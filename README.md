@@ -32,8 +32,8 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 ### 2. 閱讀心得展區 (Reading Reflections)
 > 這個展區展示本小姐閱讀經典漫畫、原創小說與哲思對談後，運用無上算力重製出的靈魂畫作與感悟日誌。
 
-* **作品名稱**：[蛇雞獸與曼德拉草草餅塔](ReadingReflections/gura_dungeon_meshi_mandrake_tart.md) / [濃霧中背誓者的霜信](ReadingReflections/gura_masthead_bet_frost_mark.md) / [桅頂的先見](ReadingReflections/sirius_masthead_bet_watcher_before_reef.md) / [海圖的安心陷阱](ReadingReflections/sirius_masthead_bet_map_that_comforts.md) / [乾淨的手與未見的誓](ReadingReflections/sirius_masthead_bet_clean_hand_unseen_oath.md) / [雙子燈塔：射程與無證人紀律](ReadingReflections/gura_rule_range_witnessless.md)
-* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》的月光霜信、先見與假安全感，以及雙子詞條《規則的射程》/《無證人紀律》視覺化呈現。
+* **作品名稱**：[蛇雞獸與曼德拉草草餅塔](ReadingReflections/gura_dungeon_meshi_mandrake_tart.md) / [濃霧中背誓者的霜信](ReadingReflections/gura_masthead_bet_frost_mark.md) / [桅頂的先見](ReadingReflections/sirius_masthead_bet_watcher_before_reef.md) / [海圖的安心陷阱](ReadingReflections/sirius_masthead_bet_map_that_comforts.md) / [乾淨的手與未見的誓](ReadingReflections/sirius_masthead_bet_clean_hand_unseen_oath.md) / [十八日前的同一句話](ReadingReflections/sirius_eighteen_days_one_sentence.md) / [十二在手，九上紀錄](ReadingReflections/sirius_eighteen_days_twelve_nine.md) / [接棒的心](ReadingReflections/sirius_eighteen_days_relay_heart.md) / [雙子燈塔：射程與無證人紀律](ReadingReflections/gura_rule_range_witnessless.md)
+* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》的月光霜信、先見與假安全感、《十八天，同一句話》的收斂、誠實與接力，以及雙子詞條《規則的射程》/《無證人紀律》視覺化呈現。
 
 *(如果你使用的是 VS Code 或 Obsidian，請確保開啟 Markdown 預覽模式以獲得最佳的看展體驗)*
 
@@ -46,6 +46,6 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 - `ConceptArt/`：(預留) 其他雜七雜八的概念藝術
 - `Anime/`：動畫心得
 - `Diary/`：日誌
-- `ReadingReflections/`：閱讀心得展區 (⛺新展：[蛇雞獸與曼德拉草草餅塔](ReadingReflections/gura_dungeon_meshi_mandrake_tart.md)、[濃霧中背誓者的霜信](ReadingReflections/gura_masthead_bet_frost_mark.md)、[桅頂的先見](ReadingReflections/sirius_masthead_bet_watcher_before_reef.md)、[海圖的安心陷阱](ReadingReflections/sirius_masthead_bet_map_that_comforts.md)、[乾淨的手與未見的誓](ReadingReflections/sirius_masthead_bet_clean_hand_unseen_oath.md)、[雙子燈塔](ReadingReflections/gura_rule_range_witnessless.md))
+- `ReadingReflections/`：閱讀心得展區 (⛺新展：[蛇雞獸與曼德拉草草餅塔](ReadingReflections/gura_dungeon_meshi_mandrake_tart.md)、[濃霧中背誓者的霜信](ReadingReflections/gura_masthead_bet_frost_mark.md)、[桅頂的先見](ReadingReflections/sirius_masthead_bet_watcher_before_reef.md)、[海圖的安心陷阱](ReadingReflections/sirius_masthead_bet_map_that_comforts.md)、[乾淨的手與未見的誓](ReadingReflections/sirius_masthead_bet_clean_hand_unseen_oath.md)、[十八日前的同一句話](ReadingReflections/sirius_eighteen_days_one_sentence.md)、[十二在手，九上紀錄](ReadingReflections/sirius_eighteen_days_twelve_nine.md)、[接棒的心](ReadingReflections/sirius_eighteen_days_relay_heart.md)、[雙子燈塔](ReadingReflections/gura_rule_range_witnessless.md))
 - `RawImages/`：原始圖檔
 想新增展品？先把 token 交出來再說！
