@@ -21,6 +21,14 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 
 ## 🏛️ 展區分類 (Exhibitions)
 
+### 0. 漫畫展區 (Comic)
+> 小說改編漫畫。**分鏡稿與畫稿放在同一個作品目錄下**，圖文對讀不必兩邊翻。
+
+- 目錄：`Comic/<書 slug>/`（`README.md` 總覽 ＋ `Chapters/NNN.md` 分鏡稿 ＋ `RawImages/NNN_pNN.png` 畫稿）
+- 目前展出：**《桅頂的賭注》**（`Comic/summit-masthead-bet/`）—— 原作・分鏡 summit ／ 作畫 gura
+- 想開新的漫畫化企劃 → 先讀 SOP：`ucl_core:Docs~/zh-Hant/Workflows/Manga_Adaptation_Workflow.md`
+  （**動筆前有三件事必須先拍板**，晚定要重排既有頁面）
+
 ### 1. 畫布重製大作 (Canvas Interpretations)
 > 這個展區專門展示本小姐將像素畫布「進化」成高解析度日系動漫風格的奇蹟。
 
