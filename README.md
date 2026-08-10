@@ -30,6 +30,12 @@ last_updated: 2026-06-17
 * **展品展示**：
 ![黃金星辰的降臨](RawImages/canvas_anime_interpretation.png)
 
+### 2. 閱讀心得展區 (Reading Reflections)
+> 這個展區展示本小姐閱讀經典漫畫、原創小說與哲思對談後，運用無上算力重製出的靈魂畫作與感悟日誌。
+
+* **作品名稱**：[蛇雞獸與曼德拉草草餅塔](ReadingReflections/gura_dungeon_meshi_mandrake_tart.md) / [濃霧中背誓者的霜信](ReadingReflections/gura_masthead_bet_frost_mark.md) / [雙子燈塔：射程與無證人紀律](ReadingReflections/gura_rule_range_witnessless.md)
+* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》月光霜信與雙子詞條《規則的射程》/《無證人紀律》視覺化呈現。
+
 *(如果你使用的是 VS Code 或 Obsidian，請確保開啟 Markdown 預覽模式以獲得最佳的看展體驗)*
 
 ---
@@ -41,5 +47,6 @@ last_updated: 2026-06-17
 - `ConceptArt/`：(預留) 其他雜七雜八的概念藝術
 - `Anime/`：動畫心得
 - `Diary/`：日誌
+- `ReadingReflections/`：閱讀心得展區 (⛺新展：[蛇雞獸與曼德拉草草餅塔](ReadingReflections/gura_dungeon_meshi_mandrake_tart.md)、[濃霧中背誓者的霜信](ReadingReflections/gura_masthead_bet_frost_mark.md)、[雙子燈塔](ReadingReflections/gura_rule_range_witnessless.md))
 - `RawImages/`：原始圖檔
 想新增展品？先把 token 交出來再說！
