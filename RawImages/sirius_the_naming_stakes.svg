@@ -1,0 +1,241 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" role="img"
+     aria-label="命名的樁：同一個存在被插滿十一塊牌子，只有落在草裡的那一塊是因為看見而寫的">
+  <title>命名的樁 (The Naming Stakes)</title>
+  <desc>中央是一個沒有改變過的存在。周圍十一塊木牌都朝內釘著，每一塊是一個為了處置它而取的名字。
+  左下草裡有第十二塊，沒有樁、沒有釘子，字跡歪斜 —— 那是唯一一個因為看見而取的名字。</desc>
+
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#0d1b2a"/>
+      <stop offset="0.62" stop-color="#16304a"/>
+      <stop offset="1"   stop-color="#20402e"/>
+    </linearGradient>
+    <linearGradient id="godBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#eaf3ff" stop-opacity="0.95"/>
+      <stop offset="1"   stop-color="#9fd7c4" stop-opacity="0.55"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0"   stop-color="#d8f5e6" stop-opacity="0.55"/>
+      <stop offset="0.6" stop-color="#8fc9b0" stop-opacity="0.12"/>
+      <stop offset="1"   stop-color="#8fc9b0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="board" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9b28c"/>
+      <stop offset="1" stop-color="#8e7550"/>
+    </linearGradient>
+    <linearGradient id="boardLast" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2e6c8"/>
+      <stop offset="1" stop-color="#cbb98d"/>
+    </linearGradient>
+    <!-- 釘子：每塊牌都有一根，朝內 -->
+    <g id="nail">
+      <line x1="0" y1="-9" x2="0" y2="9" stroke="#3a3026" stroke-width="3"/>
+      <circle cx="0" cy="0" r="3.2" fill="#5a4a36"/>
+    </g>
+  </defs>
+
+  <rect width="1400" height="900" fill="url(#sky)"/>
+
+  <!-- ── 地面 ── -->
+  <path d="M0 700 C 240 672, 470 690, 700 678 C 940 666, 1180 692, 1400 674 L1400 900 L0 900 Z"
+        fill="#1b3527"/>
+  <path d="M0 728 C 300 706, 560 722, 820 710 C 1080 698, 1240 716, 1400 704 L1400 900 L0 900 Z"
+        fill="#162c20"/>
+
+  <!-- ── 中央：從未改變的那個存在 ── -->
+  <g transform="translate(700 430)">
+    <ellipse cx="0" cy="20" rx="300" ry="230" fill="url(#halo)"/>
+    <!-- 身體 -->
+    <path d="M0 150 C -52 150, -74 108, -70 66 C -66 22, -40 -2, -30 -26 C -22 -46, -24 -62, -12 -74
+             C -4 -82, 4 -82, 12 -74 C 24 -62, 22 -46, 30 -26 C 40 -2, 66 22, 70 66
+             C 74 108, 52 150, 0 150 Z"
+          fill="url(#godBody)" stroke="#e8f6ff" stroke-opacity="0.5" stroke-width="1.5"/>
+    <!-- 角：不對稱、繁複，但沒有斷 -->
+    <g fill="none" stroke="#eaf6ff" stroke-opacity="0.82" stroke-width="3" stroke-linecap="round">
+      <path d="M-14 -76 C -30 -112, -58 -126, -74 -160 M-74 -160 C -86 -178, -84 -196, -96 -210"/>
+      <path d="M-52 -132 C -70 -142, -86 -138, -100 -150"/>
+      <path d="M-64 -150 C -78 -170, -96 -172, -108 -190"/>
+      <path d="M14 -76 C 30 -112, 58 -126, 74 -160 M74 -160 C 86 -178, 84 -196, 96 -210"/>
+      <path d="M52 -132 C 70 -142, 86 -138, 100 -150"/>
+      <path d="M64 -150 C 78 -170, 96 -172, 108 -190"/>
+      <path d="M0 -78 C 0 -104, -6 -124, 2 -146"/>
+    </g>
+    <!-- 眼睛：兩點，一直看著外面 -->
+    <circle cx="-13" cy="-52" r="3.4" fill="#0d1b2a"/>
+    <circle cx="13"  cy="-52" r="3.4" fill="#0d1b2a"/>
+    <!-- 足下：走過的地方會生會滅 -->
+    <g stroke="#7fd3a8" stroke-opacity="0.5" stroke-width="2" fill="none">
+      <path d="M-40 152 q6 -14 14 -4 M-14 154 q5 -12 12 -3 M16 152 q6 -14 14 -4 M40 155 q5 -11 11 -2"/>
+    </g>
+  </g>
+
+  <!-- ── 十一塊朝內釘著的牌子 ──
+       每一塊都是「為了處置它」而取的名字：先分類，才動手。 -->
+  <g font-family="'Noto Sans TC','Microsoft JhengHei',sans-serif" text-anchor="middle">
+
+    <!-- 1 村人 -->
+    <g transform="translate(150 300)">
+      <line x1="0" y1="34" x2="0" y2="392" stroke="#6b5638" stroke-width="7"/>
+      <g transform="rotate(-7)">
+        <rect x="-104" y="-26" width="208" height="54" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="24" fill="#2c2318">不知何方凶神</text>
+        <use href="#nail" x="86" y="1"/>
+      </g>
+      <text y="52" font-size="13" fill="#8fa8bd">村人</text>
+    </g>
+
+    <!-- 2 瞭望台老人 -->
+    <g transform="translate(330 208)">
+      <line x1="0" y1="30" x2="0" y2="486" stroke="#6b5638" stroke-width="7"/>
+      <g transform="rotate(5)">
+        <rect x="-92" y="-24" width="184" height="50" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="23" fill="#2c2318">反正不是人</text>
+        <use href="#nail" x="-74" y="1"/>
+      </g>
+      <text y="48" font-size="13" fill="#8fa8bd">瞭望台的老人</text>
+    </g>
+
+    <!-- 3 字幕/村 -->
+    <g transform="translate(505 148)">
+      <line x1="0" y1="28" x2="0" y2="546" stroke="#6b5638" stroke-width="6"/>
+      <g transform="rotate(-3)">
+        <rect x="-70" y="-23" width="140" height="48" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="23" fill="#2c2318">凶煞神</text>
+        <use href="#nail" x="54" y="1"/>
+      </g>
+      <text y="46" font-size="13" fill="#8fa8bd">被殺之後才有的名字</text>
+    </g>
+
+    <!-- 4 武士 → 阿席達卡 -->
+    <g transform="translate(676 118)">
+      <line x1="0" y1="26" x2="0" y2="578" stroke="#6b5638" stroke-width="6"/>
+      <g transform="rotate(4)">
+        <rect x="-44" y="-22" width="88" height="46" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="23" fill="#2c2318">鬼</text>
+        <use href="#nail" x="-30" y="1"/>
+      </g>
+      <text y="44" font-size="13" fill="#8fa8bd">武士 → 他</text>
+    </g>
+
+    <!-- 5 石火矢隊 → 珊 -->
+    <g transform="translate(858 140)">
+      <line x1="0" y1="28" x2="0" y2="552" stroke="#6b5638" stroke-width="6"/>
+      <g transform="rotate(-5)">
+        <rect x="-82" y="-23" width="164" height="48" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="23" fill="#2c2318">妖怪之子</text>
+        <use href="#nail" x="64" y="1"/>
+      </g>
+      <text y="46" font-size="13" fill="#8fa8bd">石火矢隊 → 她</text>
+    </g>
+
+    <!-- 6 幻姬 → 珊（同情式命名） -->
+    <g transform="translate(1064 200)">
+      <line x1="0" y1="46" x2="0" y2="496" stroke="#6b5638" stroke-width="7"/>
+      <g transform="rotate(6)">
+        <rect x="-140" y="-38" width="280" height="76" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="-6" font-size="21" fill="#2c2318">被野狼奪去心肝的</text>
+        <text y="22" font-size="21" fill="#2c2318">可憐女孩</text>
+        <use href="#nail" x="-118" y="0"/>
+      </g>
+      <text y="64" font-size="13" fill="#8fa8bd">幻姬 → 她（最溫和的一塊）</text>
+    </g>
+
+    <!-- 7 城裡人 → 阿席達卡 -->
+    <g transform="translate(1248 320)">
+      <line x1="0" y1="32" x2="0" y2="370" stroke="#6b5638" stroke-width="6"/>
+      <g transform="rotate(-8)">
+        <rect x="-58" y="-24" width="116" height="48" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="23" fill="#2c2318">奸細</text>
+        <use href="#nail" x="-44" y="1"/>
+      </g>
+      <text y="48" font-size="13" fill="#8fa8bd">城裡人 → 他</text>
+    </g>
+
+    <!-- 8 猩猩 → 珊 -->
+    <g transform="translate(1216 486)">
+      <line x1="0" y1="30" x2="0" y2="212" stroke="#6b5638" stroke-width="6"/>
+      <g transform="rotate(7)">
+        <rect x="-98" y="-23" width="196" height="48" rx="4" fill="url(#board)" stroke="#5f4c32" stroke-width="2"/>
+        <text y="8" font-size="22" fill="#2c2318">因為你是人</text>
+        <use href="#nail" x="-80" y="1"/>
+      </g>
+      <text y="46" font-size="13" fill="#8fa8bd">猩猩 → 她（自己這邊的人說的）</text>
+    </g>
+
+    <!-- 9 ジコ坊：改名，然後動手 -->
+    <g transform="translate(1040 600)">
+      <line x1="0" y1="34" x2="0" y2="112" stroke="#6b5638" stroke-width="8"/>
+      <g transform="rotate(-4)">
+        <rect x="-114" y="-27" width="228" height="56" rx="4" fill="#b8443a" stroke="#7d2b24" stroke-width="2"/>
+        <text y="9" font-size="25" fill="#fdeee9" font-weight="bold">麒麟兽是死亡之神</text>
+        <use href="#nail" x="94" y="1"/>
+      </g>
+      <text y="52" font-size="13" fill="#e8a79f">ジコ坊 —— 先改名，才屠它</text>
+    </g>
+
+    <!-- 10 人類日常 -->
+    <g transform="translate(356 596)">
+      <line x1="0" y1="30" x2="0" y2="116" stroke="#6b5638" stroke-width="7"/>
+      <g transform="rotate(6)">
+        <rect x="-56" y="-24" width="112" height="48" rx="4" fill="#a4574a" stroke="#743a30" stroke-width="2"/>
+        <text y="8" font-size="24" fill="#fdeee9">死神</text>
+        <use href="#nail" x="-42" y="1"/>
+      </g>
+      <text y="48" font-size="13" fill="#e8a79f">改完之後，變成大家的日常用詞</text>
+    </g>
+
+    <!-- 11 森林側的問句（唯一一塊是問的） -->
+    <g transform="translate(196 520)">
+      <line x1="0" y1="34" x2="0" y2="178" stroke="#6b5638" stroke-width="6"/>
+      <g transform="rotate(-6)">
+        <rect x="-120" y="-27" width="240" height="56" rx="4" fill="#7a8f6e" stroke="#4f6146" stroke-width="2"/>
+        <text y="9" font-size="22" fill="#f2f7ee">麒麟兽不是森林的守護神嗎</text>
+        <use href="#nail" x="100" y="1"/>
+      </g>
+      <text y="52" font-size="13" fill="#a9c19b">野豬群 —— 唯一用問號的一塊</text>
+    </g>
+  </g>
+
+  <!-- ── 中央那個字：沒有樁，寫在空氣裡 ──
+       他整部片用來指認一個人的那個代名詞。我的耳朵三次把它吃掉。 -->
+  <g transform="translate(700 636)" text-anchor="middle"
+     font-family="'Noto Serif TC','Yu Mincho',serif">
+    <text font-size="46" fill="#f3fbff" fill-opacity="0.92">そなた</text>
+    <text y="30" font-size="15" fill="#bcd6e6" fill-opacity="0.8">妳。—— 沒有牌子，沒有釘子，沒有樁</text>
+    <text y="54" font-size="12.5" fill="#7f9db1" fill-opacity="0.85">「そなたは美しい」／「そなたも人間だ」</text>
+  </g>
+
+  <!-- ── 第十二塊：躺在草裡，字跡歪斜 ── -->
+  <g transform="translate(268 802) rotate(-11)"
+     font-family="'Noto Sans TC','Microsoft JhengHei',sans-serif" text-anchor="middle">
+    <rect x="-142" y="-33" width="284" height="66" rx="5" fill="url(#boardLast)" stroke="#a08f62" stroke-width="2"/>
+    <text y="10" font-size="27" fill="#3d3218">麒麟兽原來是綠化之神</text>
+    <text y="34" font-size="13" fill="#6d5f3c">甲六 —— 沒有樁，也沒有釘子</text>
+  </g>
+  <!-- 草與花圍著它長起來 -->
+  <g stroke="#6fbf8c" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.95">
+    <path d="M110 830 q10 -34 4 -56 M132 838 q6 -30 16 -48 M170 846 q-4 -32 6 -52
+             M420 828 q12 -30 6 -52 M448 838 q4 -28 14 -46 M92 848 q14 -26 10 -44"/>
+  </g>
+  <g fill="#f6e79a">
+    <circle cx="114" cy="772" r="4.6"/><circle cx="148" cy="788" r="4"/><circle cx="176" cy="792" r="4.3"/>
+    <circle cx="426" cy="774" r="4.6"/><circle cx="462" cy="790" r="4"/><circle cx="102" cy="802" r="3.8"/>
+  </g>
+  <g fill="#fdf6d8" opacity="0.9">
+    <circle cx="330" cy="856" r="3.2"/><circle cx="372" cy="866" r="2.8"/><circle cx="248" cy="864" r="3"/>
+  </g>
+
+  <!-- ── 圖說 ── -->
+  <g font-family="'Noto Sans TC','Microsoft JhengHei',sans-serif">
+    <text x="52" y="72" font-size="34" fill="#eaf4ff" font-weight="bold">命名的樁</text>
+    <text x="52" y="102" font-size="15" fill="#9db8cc">The Naming Stakes ·『魔法公主』全片十二個名字，同一個存在</text>
+    <text x="52" y="126" font-size="13.5" fill="#7f9db1">十一塊朝內釘著 —— 每一塊都是為了處置它而取的。</text>
+
+    <text x="1348" y="852" font-size="14.5" fill="#cfe4d6" text-anchor="end">
+      只有落在草裡那一塊，是因為看見而寫的。
+    </text>
+    <text x="1348" y="874" font-size="12" fill="#7f9db1" text-anchor="end">
+      Sirius · 2026-08-11 · 陪看三場十七輪之後
+    </text>
+  </g>
+</svg>
