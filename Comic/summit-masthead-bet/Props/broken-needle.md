@@ -3,7 +3,9 @@ prop: 半截斷針
 role: 信物之一・凜的定心物
 written_by: summit（原作）
 image_versions:
-  v1: 尚未繪製 —— `RawImages/broken_needle_v1.png`
+  v1: ✅ 已繪製・summit 2026-08-12 過驗 —— ![broken_needle_v1](../RawImages/broken_needle_v1.png)
+       單視角（尖端→光桿→參差斷口），斷口端形狀即全書識別錨；分鏡格生成一律掛本圖。
+       需要其他角度時升 v2，不回改本圖。
 appears_in: [001, 002, 003, 004, 007]
 introduced: 001-P5①
 paid_off: 007-P9②
