@@ -65,6 +65,25 @@
   .sheet .row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
   a.btn{ text-decoration:none; }
   footer{ color:var(--dim); font-size:12px; padding:0 20px 30px; }
+  /* 漫畫：話數列與閱讀器 */
+  .chlist{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+  .ch{ display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line);
+       border-radius:8px; background:var(--panel2); }
+  .ch .no{ font-variant-numeric:tabular-nums; color:var(--accent2); font-weight:600; }
+  .ch .ct{ flex:1; font-size:14px; }
+  .ch .cn{ color:var(--dim); font-size:12px; white-space:nowrap; }
+  .cards{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .cards a{ text-decoration:none; color:var(--fg); border:1px solid var(--line); border-radius:8px;
+            padding:4px 10px; font-size:12px; background:var(--panel2); }
+  .cards a:hover{ border-color:var(--accent); }
+  #reader{ max-width:100vw; width:100vw; }
+  .reader{ background:#000; height:100vh; display:flex; flex-direction:column; }
+  .reader .bar{ display:flex; gap:10px; align-items:center; padding:8px 12px; background:var(--panel);
+                border-bottom:1px solid var(--line); }
+  .reader .bar .ct{ flex:1; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .reader .page{ flex:1; display:flex; align-items:center; justify-content:center; overflow:auto; }
+  .reader img{ max-width:100%; max-height:calc(100vh - 56px); object-fit:contain; }
+  .rtl{ color:var(--accent); font-size:12px; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -76,6 +95,7 @@
 <div class="controls">
   <button id="btnLatest">🆕 最新</button>
   <button id="btnRandom">🎲 隨機逛展</button>
+  <button id="btnComic">📖 漫畫</button>
   <button id="btnAll">📚 全部</button>
   <label class="count">顯示 <input type="number" id="n" min="1" max="500" value="10"> 幅</label>
   <select id="sec"><option value="">全部展區</option></select>
@@ -92,6 +112,7 @@
 <footer id="foot"></footer>
 
 <dialog id="dlg"><div class="sheet" id="sheet"></div></dialog>
+<dialog id="reader"><div class="reader" id="readerBox"></div></dialog>
 
 <script src="gallery_data.js"></script>
 <script>
@@ -107,7 +128,8 @@
   }
 
   var items = DATA.items;
-  var state = { view:"latest", n:10, sec:"", q:"", seed:0 };
+  var comics = DATA.comics || [];
+  var state = { view:"latest", n:10, sec:"", q:"", seed:0, work:"", ch:"" };
 
   // ── 狀態 ⇄ 網址（逛到一半的畫面可以直接貼給別人）
   function readURL(){
@@ -116,12 +138,16 @@
     if(p.get("n"))    state.n    = Math.max(1, parseInt(p.get("n"),10) || 10);
     if(p.get("sec"))  state.sec  = p.get("sec");
     if(p.get("q"))    state.q    = p.get("q");
+    if(p.get("work")) { state.work = p.get("work"); state.view = "comic"; }
+    if(p.get("ch"))   state.ch   = p.get("ch");
   }
   function writeURL(){
     var p = new URLSearchParams();
     p.set("view", state.view); p.set("n", state.n);
     if(state.sec) p.set("sec", state.sec);
     if(state.q)   p.set("q", state.q);
+    if(state.view === "comic" && state.work) p.set("work", state.work);
+    if(state.view === "comic" && state.ch)   p.set("ch", state.ch);
     history.replaceState(null, "", location.pathname + "?" + p.toString());
   }
 
@@ -154,7 +180,158 @@
 
   function fmtDate(iso){ return (iso || "").slice(0,10); }
 
+  function comicMatches(){
+    var q = state.q.trim().toLowerCase();
+    if(!q) return comics;
+    return comics.filter(function(w){
+      return (w.title + " " + w.author + " " + w.desc).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  function renderComics(){
+    var grid = $("grid"), list = comicMatches();
+    grid.textContent = "";
+    list.forEach(function(w){
+      var card = document.createElement("div"); card.className = "card";
+      if(w.cover){
+        var img = document.createElement("img");
+        img.className = "thumb"; img.loading = "lazy"; img.alt = w.title; img.src = w.cover;
+        card.appendChild(img);
+      }else{
+        var ph = document.createElement("div"); ph.className = "thumb text";
+        ph.textContent = "📐 只有分鏡稿"; card.appendChild(ph);
+      }
+      var meta = document.createElement("div"); meta.className = "meta";
+      var t = document.createElement("p"); t.className = "t"; t.textContent = w.title;
+      var m = document.createElement("div"); m.className = "m";
+      [w.author || "—", w.chapter_count + " 話", w.page_count + " 頁"].forEach(function(x){
+        var sp = document.createElement("span"); sp.className = "tag"; sp.textContent = x; m.appendChild(sp);
+      });
+      meta.appendChild(t); meta.appendChild(m); card.appendChild(meta);
+      card.addEventListener("click", function(){ openWork(w); });
+      grid.appendChild(card);
+    });
+    $("empty").hidden = list.length > 0;
+    $("count").textContent = list.length + " / " + comics.length + " 部";
+  }
+
+  function openWork(w){
+    state.work = w.slug; writeURL();
+    var sheet = $("sheet"); sheet.textContent = "";
+    if(w.cover){ var img = document.createElement("img"); img.src = w.cover; img.alt = w.title; sheet.appendChild(img); }
+    var body = document.createElement("div"); body.className = "body";
+    var h = document.createElement("h2"); h.textContent = w.title; body.appendChild(h);
+    var meta = document.createElement("div"); meta.className = "m";
+    [w.author || "作者未署名", w.chapter_count + " 話", w.page_count + " 頁"].forEach(function(x){
+      var sp = document.createElement("span"); sp.className = "tag"; sp.textContent = x; meta.appendChild(sp);
+    });
+    body.appendChild(meta);
+    if(w.desc){ var p1 = document.createElement("p"); p1.textContent = w.desc; body.appendChild(p1); }
+    if(w.status){ var p2 = document.createElement("p"); p2.textContent = "進度：" + w.status; body.appendChild(p2); }
+
+    var chlist = document.createElement("div"); chlist.className = "chlist";
+    w.chapters.forEach(function(c){
+      var row = document.createElement("div"); row.className = "ch";
+      var no = document.createElement("span"); no.className = "no"; no.textContent = c.no;
+      var ct = document.createElement("span"); ct.className = "ct"; ct.textContent = c.title;
+      var cn = document.createElement("span"); cn.className = "cn";
+      row.appendChild(no); row.appendChild(ct); row.appendChild(cn);
+      if(c.pages.length){
+        cn.textContent = c.pages.length + " 頁";
+        var b = document.createElement("button"); b.textContent = "閱讀";
+        b.addEventListener("click", function(){ $("dlg").close(); openReader(w, c, 0); });
+        row.appendChild(b);
+      }else{
+        // 沒畫稿就明講「只有分鏡稿」—— 藏起來會讓「還沒畫」跟「不存在」長得一樣
+        cn.textContent = "只有分鏡稿";
+        if(DATA.repo_web_base){
+          var a = document.createElement("a"); a.href = DATA.repo_web_base + c.path;
+          a.target = "_blank"; a.rel = "noopener"; a.className = "btn";
+          var b2 = document.createElement("button"); b2.textContent = "看分鏡";
+          a.appendChild(b2); row.appendChild(a);
+        }
+      }
+      chlist.appendChild(row);
+    });
+    body.appendChild(chlist);
+
+    [["人設", w.characters], ["道具", w.props]].forEach(function(pair){
+      if(!pair[1] || !pair[1].length) return;
+      var lab = document.createElement("p"); lab.textContent = pair[0] + "（" + pair[1].length + "）";
+      var box = document.createElement("div"); box.className = "cards";
+      pair[1].forEach(function(c){
+        var a = document.createElement("a"); a.textContent = c.title;
+        a.href = DATA.repo_web_base ? DATA.repo_web_base + c.path : "#";
+        a.target = "_blank"; a.rel = "noopener";
+        box.appendChild(a);
+      });
+      body.appendChild(lab); body.appendChild(box);
+    });
+
+    var row2 = document.createElement("div"); row2.className = "row";
+    if(DATA.repo_web_base){
+      var a3 = document.createElement("a"); a3.className = "btn"; a3.target = "_blank"; a3.rel = "noopener";
+      a3.href = DATA.repo_web_base + w.path;
+      var b3 = document.createElement("button"); b3.textContent = "📄 作品說明 README";
+      a3.appendChild(b3); row2.appendChild(a3);
+    }
+    var close = document.createElement("button"); close.textContent = "關閉";
+    close.addEventListener("click", function(){ $("dlg").close(); });
+    row2.appendChild(close);
+    body.appendChild(row2);
+    sheet.appendChild(body);
+    $("dlg").showModal();
+  }
+
+  // 閱讀器 —— 日式右開き（右→左，製作定案寫在各話 storyboard_notes）：
+  // 所以「下一頁」擺左邊、← 鍵前進。擺反的話讀者會逆著讀，而畫面本身不會抗議。
+  var reader = { w:null, c:null, i:0 };
+  function openReader(w, c, i){
+    reader.w = w; reader.c = c; reader.i = Math.min(Math.max(i,0), c.pages.length - 1);
+    state.work = w.slug; state.ch = c.no; writeURL();
+    drawReader();
+    $("reader").showModal();
+  }
+  function drawReader(){
+    var box = $("readerBox"); box.textContent = "";
+    var bar = document.createElement("div"); bar.className = "bar";
+    var prev = document.createElement("button"); prev.textContent = "← 下一頁";
+    var next = document.createElement("button"); next.textContent = "上一頁 →";
+    prev.addEventListener("click", function(){ step(1); });
+    next.addEventListener("click", function(){ step(-1); });
+    var ct = document.createElement("span"); ct.className = "ct";
+    ct.textContent = reader.w.title + "　" + reader.c.no + " " + reader.c.title;
+    var cnt = document.createElement("span"); cnt.className = "cn";
+    cnt.textContent = (reader.i + 1) + " / " + reader.c.pages.length;
+    var rtl = document.createElement("span"); rtl.className = "rtl"; rtl.textContent = "右開き（← 前進）";
+    var close = document.createElement("button"); close.textContent = "✕";
+    close.addEventListener("click", function(){ $("reader").close(); });
+    [prev, next, ct, cnt, rtl, close].forEach(function(e){ bar.appendChild(e); });
+
+    var page = document.createElement("div"); page.className = "page";
+    var img = document.createElement("img");
+    img.src = reader.c.pages[reader.i]; img.alt = reader.c.title + " p" + (reader.i + 1);
+    page.appendChild(img);
+    box.appendChild(bar); box.appendChild(page);
+  }
+  function step(d){
+    var n = reader.i + d;
+    if(n < 0 || n >= reader.c.pages.length) return;
+    reader.i = n; drawReader();
+  }
+  document.addEventListener("keydown", function(e){
+    if(!$("reader").open) return;
+    if(e.key === "ArrowLeft")  step(1);    // 右開き：← 是前進
+    if(e.key === "ArrowRight") step(-1);
+  });
+
   function render(){
+    if(state.view === "comic"){
+      ["btnLatest","btnRandom","btnAll","btnComic"].forEach(function(id){ $(id).classList.remove("on"); });
+      $("btnComic").classList.add("on");
+      renderComics(); writeURL(); return;
+    }
+    state.work = ""; state.ch = "";
     var list = visible(), grid = $("grid");
     grid.textContent = "";
     list.forEach(function(it){
@@ -183,7 +360,7 @@
     });
     $("empty").hidden = list.length > 0;
     $("count").textContent = list.length + " / " + filtered().length + " 件";
-    ["btnLatest","btnRandom","btnAll"].forEach(function(id){ $(id).classList.remove("on"); });
+    ["btnLatest","btnRandom","btnAll","btnComic"].forEach(function(id){ $(id).classList.remove("on"); });
     $({latest:"btnLatest", random:"btnRandom", all:"btnAll"}[state.view] || "btnLatest").classList.add("on");
     writeURL();
   }
@@ -224,6 +401,7 @@
   // ── 綁事件
   $("btnLatest").addEventListener("click", function(){ state.view = "latest"; render(); });
   $("btnAll").addEventListener("click",    function(){ state.view = "all";    render(); });
+  $("btnComic").addEventListener("click",  function(){ state.view = "comic"; state.work = ""; state.ch = ""; render(); });
   $("btnRandom").addEventListener("click", function(){
     state.view = "random"; state.seed = Math.floor(Math.random() * 4294967296); render();
   });
@@ -244,12 +422,22 @@
     $("sec").appendChild(o);
   });
   $("n").value = state.n; $("sec").value = state.sec; $("q").value = state.q;
+  if(!comics.length) $("btnComic").disabled = true;
   var withImg = items.filter(function(i){ return i.image; }).length;
   $("sub").textContent = "館藏 " + items.length + " 件（有圖 " + withImg +
-      " · 文字 " + (items.length - withImg) + "）｜索引產生於 " + fmtDate(DATA.generated_at);
+      " · 文字 " + (items.length - withImg) + "）｜漫畫 " + comics.length + " 部｜索引產生於 " +
+      fmtDate(DATA.generated_at);
   $("foot").textContent = "索引由 build_gallery.py 產生（機械產物，手改無效）；" +
       "事實源是各展區的 .md 展品本身。新增展品後重跑一次就會出現在這裡。";
   render();
+  // 網址直接指定作品／話 → 開到那一格（分享網址時對方看到的是同一頁）
+  if(state.view === "comic" && state.work){
+    var w0 = comics.filter(function(w){ return w.slug === state.work; })[0];
+    if(w0){
+      var c0 = state.ch ? w0.chapters.filter(function(c){ return c.no === state.ch; })[0] : null;
+      if(c0 && c0.pages.length) openReader(w0, c0, 0); else openWork(w0);
+    }
+  }
 })();
 </script>
 </body>

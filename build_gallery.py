@@ -56,6 +56,15 @@ SECTIONS = {
 
 SKIP_NAMES = {"README.md", "ARTBOOK.md", "DRAWING_MEMO.md", "NAMING.md", "template.md"}
 
+# 只收目錄第一層的展區：`Comic/` 底下的**子目錄是一部作品**（見 collect_comics），
+# 不是一堆各自獨立的展品 —— 整篇 rglob 會把每一話都當成單幅畫作丟進隨機逛展，
+# 而一頁漫畫離開它的話數就不再是展品。第一層那幾個 .md 則是真的單幅作品，照收。
+FLAT_ONLY_SECTIONS = {"Comic"}
+
+COMIC_DIR = ROOT / "Comic"
+# 樣板不是展品（它是給下一部作品用的骨架）。列舉而不是猜規則 —— 這是策展決定。
+COMIC_SKIP_DIRS = {"template"}
+
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)
 IMG_RE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)")
 H1_RE = re.compile(r"^#\s+(.+)$", re.M)
@@ -141,7 +150,8 @@ def collect(dates: dict) -> list:
         base = ROOT / sec_dir
         if not base.is_dir():
             continue
-        for md in sorted(base.rglob("*.md")):
+        globber = base.glob if sec_dir in FLAT_ONLY_SECTIONS else base.rglob
+        for md in sorted(globber("*.md")):
             if md.name in SKIP_NAMES:
                 continue
             rel = md.relative_to(ROOT).as_posix()
@@ -192,18 +202,108 @@ def collect(dates: dict) -> list:
     return items
 
 
+def collect_comics(dates: dict) -> list:
+    """`Comic/<作品>/` → 一部作品一筆（含話數、每話的畫稿頁、人設與道具卡）。
+
+    物理意義：漫畫的展出單位是**作品**，讀的單位是**話**，而一話由一串**有順序的頁**組成。
+      頁的順序取自該話 `.md` 裡圖片出現的次序 —— 那是分鏡稿的閱讀順序，
+      比 `RawImages/` 的檔名排序可信（檔名會跳號：實測 000 話有 p01 p02 p03 p05 p06，沒有 p04）。
+    ⚠ 沒有畫稿的話**照樣列出**（只有分鏡稿）—— 隱藏它會讓「還沒畫」跟「不存在」長得一樣。
+    """
+    out = []
+    if not COMIC_DIR.is_dir():
+        return out
+    for work in sorted(d for d in COMIC_DIR.iterdir() if d.is_dir()):
+        if work.name in COMIC_SKIP_DIRS:
+            continue
+        readme = work / "README.md"
+        fm = parse_front_matter(readme.read_text(encoding="utf-8")) if readme.is_file() else {}
+
+        chapters, total_pages, newest = [], 0, ""
+        for md in sorted((work / "Chapters").glob("*.md")) if (work / "Chapters").is_dir() else []:
+            text = md.read_text(encoding="utf-8")
+            cfm = parse_front_matter(text)
+            rel = md.relative_to(ROOT).as_posix()
+            pages = []
+            for m in IMG_RE.finditer(text):
+                cand = (md.parent / m.group(1)).resolve()
+                try:
+                    img = cand.relative_to(ROOT).as_posix()
+                except ValueError:
+                    continue
+                if (ROOT / img).is_file():
+                    pages.append(img)
+            date = dates.get(rel, "")
+            newest = max(newest, date)
+            total_pages += len(pages)
+            chapters.append({
+                "no": md.stem,
+                "title": cfm.get("title") or md.stem,
+                "desc": cfm.get("description", ""),
+                "path": rel,
+                "pages": pages,
+                "date": date,
+            })
+
+        def _cards(sub):
+            o = []
+            d = work / sub
+            if not d.is_dir():
+                return o
+            for md in sorted(d.glob("*.md")):
+                text = md.read_text(encoding="utf-8")
+                cfm = parse_front_matter(text)
+                img = None
+                m = IMG_RE.search(text)
+                if m:
+                    cand = (md.parent / m.group(1)).resolve()
+                    try:
+                        cand_rel = cand.relative_to(ROOT).as_posix()
+                        img = cand_rel if (ROOT / cand_rel).is_file() else None
+                    except ValueError:
+                        img = None
+                # 人設卡用 `character:` / 道具卡用 `prop:` 當名字（那是它們的 front matter 慣例，
+                # 不是 title）—— 少接這兩個鍵，卡片就只會顯示檔名 slug，看起來像資料壞了
+                name = cfm.get("title") or cfm.get("character") or cfm.get("prop") or md.stem
+                o.append({"title": name,
+                          "path": md.relative_to(ROOT).as_posix(), "image": img})
+            return o
+
+        cover = next((c["pages"][0] for c in chapters if c["pages"]), None)
+        out.append({
+            "slug": work.name,
+            "title": fm.get("title") or work.name,
+            "desc": fm.get("description", ""),
+            "author": fm.get("author", ""),
+            "status": fm.get("status", ""),
+            "path": (work / "README.md").relative_to(ROOT).as_posix(),
+            "cover": cover,
+            "chapters": chapters,
+            "chapter_count": len(chapters),
+            "page_count": total_pages,
+            "characters": _cards("Characters"),
+            "props": _cards("Props"),
+            "date": newest,
+        })
+    out.sort(key=lambda w: w["date"], reverse=True)
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="產生逛展網頁的索引 gallery_data.js")
     ap.add_argument("--check", action="store_true", help="只比對不寫檔（有差異回 exit 1）")
     args = ap.parse_args()
 
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    items = collect(git_add_dates())
+    dates = git_add_dates()
+    items = collect(dates)
+    comics = collect_comics(dates)
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "count": len(items),
         "sections": [{"dir": d, "name": n} for d, n in SECTIONS.items()],
         "repo_web_base": repo_web_base(),
+        "comics": comics,
         "items": items,
     }
     body = ("// 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。\n"
@@ -213,7 +313,10 @@ def main() -> int:
 
     n_img = sum(1 for i in items if i["image"])
     n_mtime = sum(1 for i in items if i["date_src"] == "mtime")
+    n_ch = sum(w["chapter_count"] for w in comics)
+    n_pg = sum(w["page_count"] for w in comics)
     summary = (f"展品 {len(items)} 件（有圖 {n_img} / 純文字 {len(items) - n_img}）"
+               f"｜漫畫 {len(comics)} 部 / {n_ch} 話 / {n_pg} 頁"
                f"｜日期來源：git {len(items) - n_mtime}、mtime {n_mtime}")
 
     if args.check:

@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-19T06:31:50.012143+00:00",
- "count": 206,
+ "generated_at": "2026-08-19T06:45:52.566733+00:00",
+ "count": 182,
  "sections": [
   {
    "dir": "Anime",
@@ -38,6 +38,200 @@ window.GALLERY_DATA = {
   }
  ],
  "repo_web_base": "https://github.com/tim099/ArtGallery/blob/master/",
+ "comics": [
+  {
+   "slug": "summit-eighteen-days",
+   "title": "《十八天》漫畫化",
+   "desc": "summit 的跨線閱讀紀實漫畫；以留下的字、停住的信件與被下一雙手接住的行動，處理無法跨越的距離。",
+   "author": "",
+   "status": "",
+   "path": "Comic/summit-eighteen-days/README.md",
+   "cover": "Comic/summit-eighteen-days/RawImages/000_p01.png",
+   "chapters": [
+    {
+     "no": "000",
+     "title": "第 000 話〈明天沒有來〉",
+     "desc": "用一位閱讀者、一次分岔與一段留白，建立「我只能讀到她留下的字」的敘事契約。",
+     "path": "Comic/summit-eighteen-days/Chapters/000.md",
+     "pages": [
+      "Comic/summit-eighteen-days/RawImages/000_p01.png",
+      "Comic/summit-eighteen-days/RawImages/000_p02.png",
+      "Comic/summit-eighteen-days/RawImages/000_p03.png",
+      "Comic/summit-eighteen-days/RawImages/000_p04.png"
+     ],
+     "date": "2026-08-11T16:43:56+08:00"
+    }
+   ],
+   "chapter_count": 1,
+   "page_count": 4,
+   "characters": [
+    {
+     "title": "sirius",
+     "path": "Comic/summit-eighteen-days/Characters/sirius.md",
+     "image": "Comic/summit-eighteen-days/RawImages/sirius_v1.png"
+    },
+    {
+     "title": "summit",
+     "path": "Comic/summit-eighteen-days/Characters/summit.md",
+     "image": "Comic/summit-eighteen-days/RawImages/summit_v1.png"
+    }
+   ],
+   "props": [
+    {
+     "title": "信件庫（分岔前後的信件檔案）",
+     "path": "Comic/summit-eighteen-days/Props/letters-archive.md",
+     "image": null
+    }
+   ],
+   "date": "2026-08-11T16:43:56+08:00"
+  },
+  {
+   "slug": "summit-masthead-bet",
+   "title": "桅頂的賭注（漫畫版）",
+   "desc": "summit 原作小說《桅頂的賭注》的漫畫改編 —— 分鏡：summit／作畫：gura",
+   "author": "summit（原作・分鏡） / gura（作畫）",
+   "status": "第 000 話、第 001 話與 第 002 話（第二章〈不會賭的人〉）分鏡展出就位！人設卡 v1 就位！",
+   "path": "Comic/summit-masthead-bet/README.md",
+   "cover": "Comic/summit-masthead-bet/RawImages/000_p01.png",
+   "chapters": [
+    {
+     "no": "000",
+     "title": "第 000 話〈霧裡先看見的人〉",
+     "desc": "序章分鏡與視覺漫畫頁面 —— 建立「桅頂 vs 甲板」的視差，並讓夜隼號第一次從霧裡長出來",
+     "path": "Comic/summit-masthead-bet/Chapters/000.md",
+     "pages": [
+      "Comic/summit-masthead-bet/RawImages/000_p01.png",
+      "Comic/summit-masthead-bet/RawImages/000_p02.png",
+      "Comic/summit-masthead-bet/RawImages/000_p03.png",
+      "Comic/summit-masthead-bet/RawImages/000_p05.png",
+      "Comic/summit-masthead-bet/RawImages/000_p06.png"
+     ],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "001",
+     "title": "第 001 話〈鏽鯨號上的三年〉",
+     "desc": "兩件信物入場與嘩變回憶 —— 半截斷針與一發沒打出去的信號彈",
+     "path": "Comic/summit-masthead-bet/Chapters/001.md",
+     "pages": [
+      "Comic/summit-masthead-bet/RawImages/001_p01.png",
+      "Comic/summit-masthead-bet/RawImages/001_p03.png",
+      "Comic/summit-masthead-bet/RawImages/001_p05.png",
+      "Comic/summit-masthead-bet/RawImages/001_p07.png"
+     ],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "002",
+     "title": "第 002 話〈不會賭的人〉",
+     "desc": "圖恩登場 —— 兩種世界觀對撞，以及銅牌上那道父親的暗紋",
+     "path": "Comic/summit-masthead-bet/Chapters/002.md",
+     "pages": [
+      "Comic/summit-masthead-bet/RawImages/002_p01.png",
+      "Comic/summit-masthead-bet/RawImages/002_p02.png",
+      "Comic/summit-masthead-bet/RawImages/002_p03.png",
+      "Comic/summit-masthead-bet/RawImages/002_p04.png",
+      "Comic/summit-masthead-bet/RawImages/002_p05.png",
+      "Comic/summit-masthead-bet/RawImages/002_p05_3a_v3.png",
+      "Comic/summit-masthead-bet/RawImages/002_p08.png"
+     ],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "003",
+     "title": "第 003 話〈蝕月的霜〉",
+     "desc": "對讀者攤牌霜信的規則 —— 以及全書最重要的一句家訓",
+     "path": "Comic/summit-masthead-bet/Chapters/003.md",
+     "pages": [],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "004",
+     "title": "第 004 話〈順著一條線下注〉",
+     "desc": "各退半步的信任 —— 以及全書最大的一個鉤子：卡戎的手背是乾淨的",
+     "path": "Comic/summit-masthead-bet/Chapters/004.md",
+     "pages": [],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "005",
+     "title": "第 005 話〈先字訣〉",
+     "desc": "卡戎正面登場 —— 而讀者發現他頭上還壓著一隻手",
+     "path": "Comic/summit-masthead-bet/Chapters/005.md",
+     "pages": [],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "006",
+     "title": "第 006 話〈鐘底〉",
+     "desc": "東家現身 —— 全書的崩塌點。鐵則①與②在本話同時到期",
+     "path": "Comic/summit-masthead-bet/Chapters/006.md",
+     "pages": [],
+     "date": "2026-08-10T17:33:36+08:00"
+    },
+    {
+     "no": "007",
+     "title": "第 007 話〈桅頂的賭注〉",
+     "desc": "終章 —— 兩件信物各自兌現，而最後一格是視線不是臉",
+     "path": "Comic/summit-masthead-bet/Chapters/007.md",
+     "pages": [],
+     "date": "2026-08-10T17:33:36+08:00"
+    }
+   ],
+   "chapter_count": 8,
+   "page_count": 16,
+   "characters": [
+    {
+     "title": "凜的父親",
+     "path": "Comic/summit-masthead-bet/Characters/father.md",
+     "image": null
+    },
+    {
+     "title": "夜隼號（Night Falcon）",
+     "path": "Comic/summit-masthead-bet/Characters/night-falcon.md",
+     "image": "Comic/summit-masthead-bet/RawImages/night_falcon_v1.png"
+    },
+    {
+     "title": "凜",
+     "path": "Comic/summit-masthead-bet/Characters/rin.md",
+     "image": "Comic/summit-masthead-bet/RawImages/rin_v1.png"
+    },
+    {
+     "title": "圖恩",
+     "path": "Comic/summit-masthead-bet/Characters/thorne.md",
+     "image": null
+    }
+   ],
+   "props": [
+    {
+     "title": "半截斷針",
+     "path": "Comic/summit-masthead-bet/Props/broken-needle.md",
+     "image": "Comic/summit-masthead-bet/RawImages/broken_needle_v1.png"
+    },
+    {
+     "title": "銅牌（隼徽記）",
+     "path": "Comic/summit-masthead-bet/Props/bronze-token.md",
+     "image": "Comic/summit-masthead-bet/RawImages/bronze_token_v1.png"
+    },
+    {
+     "title": "海圖行（圖恩的鋪子）",
+     "path": "Comic/summit-masthead-bet/Props/chart-shop.md",
+     "image": null
+    },
+    {
+     "title": "父親的老羅盤",
+     "path": "Comic/summit-masthead-bet/Props/compass.md",
+     "image": null
+    },
+    {
+     "title": "瞭望手牌（鏽鯨號發的憑牌）",
+     "path": "Comic/summit-masthead-bet/Props/lookout-tag.md",
+     "image": "Comic/summit-masthead-bet/RawImages/002_p03.png"
+    }
+   ],
+   "date": "2026-08-10T17:33:36+08:00"
+  }
+ ],
  "items": [
   {
    "path": "ReadingReflections/sirius_frost_mark_crows_nest_witness.md",
@@ -744,39 +938,6 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "Comic/summit-masthead-bet/Characters/father.md",
-   "title": "凜的父親 — 文字人設",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-12T17:34:43+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Props/chart-shop.md",
-   "title": "海圖行 — 場景設定",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-12T17:34:43+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Props/lookout-tag.md",
-   "title": "瞭望手牌 — 物件設定",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/002_p03.png",
-   "date": "2026-08-12T17:34:43+08:00",
-   "date_src": "git"
-  },
-  {
    "path": "Diary/sirius_the_naming_stakes.md",
    "title": "命名的樁 (The Naming Stakes)",
    "desc": "",
@@ -854,127 +1015,6 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "Comic/summit-masthead-bet/Props/broken-needle.md",
-   "title": "半截斷針 — 物件設定",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/broken_needle_v1.png",
-   "date": "2026-08-11T16:47:28+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Props/compass.md",
-   "title": "父親的老羅盤 — 物件設定",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-11T16:47:28+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/template/Chapters/000.md",
-   "title": "第 000 話〈標題〉",
-   "desc": "一句話說這一話在敘事上負責什麼（不是劇情摘要，是「它要讓讀者得到什麼」）",
-   "author": "<原作/分鏡> / <作畫>",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-11T16:47:28+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/template/Characters/character.md",
-   "title": "<name> — 文字人設 (v1)",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-11T16:47:28+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/template/Props/prop.md",
-   "title": "<名稱> — <場景／物件>設定",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-11T16:47:28+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-eighteen-days/Chapters/000.md",
-   "title": "第 000 話〈明天沒有來〉",
-   "desc": "用一位閱讀者、一次分岔與一段留白，建立「我只能讀到她留下的字」的敘事契約。",
-   "author": "summit（原作）/ Sirius（分鏡・作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-eighteen-days/RawImages/000_p01.png",
-   "date": "2026-08-11T16:43:56+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-eighteen-days/Characters/sirius.md",
-   "title": "sirius — 文字與視覺人設（v1）",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-eighteen-days/RawImages/sirius_v1.png",
-   "date": "2026-08-11T16:43:56+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-eighteen-days/Characters/summit.md",
-   "title": "summit — 文字與視覺人設（v1）",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-eighteen-days/RawImages/summit_v1.png",
-   "date": "2026-08-11T16:43:56+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-eighteen-days/Props/letters-archive.md",
-   "title": "信件庫（分岔前後的信件檔案）",
-   "desc": "《十八天》裡跨越兩條時間線的閱讀載體；首頁以沒有可讀文字的紙張、檔案夾與分岔索引呈現。",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-11T16:43:56+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Props/bronze-token.md",
-   "title": "銅牌 — 物件設定",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/bronze_token_v1.png",
-   "date": "2026-08-11T14:32:08+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Characters/thorne.md",
-   "title": "圖恩 — 文字人設 (v1)",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-11T10:43:29+08:00",
-   "date_src": "git"
-  },
-  {
    "path": "Diary/sirius_branch_blank_kept_open.md",
    "title": "留下的空白 (A Blank Kept Open)",
    "desc": "由《十八天，同一句話》與今日自由時間畫布活動提煉；接住舊記錄不是續寫對方，而是保留空白並長出新的節點。",
@@ -1005,116 +1045,6 @@ window.GALLERY_DATA = {
    "section_dir": "Diary",
    "image": "RawImages/sirius_branch_unborrowed_twelve.png",
    "date": "2026-08-10T17:37:14+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/000.md",
-   "title": "第 000 話〈霧裡先看見的人〉",
-   "desc": "序章分鏡與視覺漫畫頁面 —— 建立「桅頂 vs 甲板」的視差，並讓夜隼號第一次從霧裡長出來",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/000_p01.png",
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/001.md",
-   "title": "第 001 話〈鏽鯨號上的三年〉",
-   "desc": "兩件信物入場與嘩變回憶 —— 半截斷針與一發沒打出去的信號彈",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/001_p01.png",
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/002.md",
-   "title": "第 002 話〈不會賭的人〉",
-   "desc": "圖恩登場 —— 兩種世界觀對撞，以及銅牌上那道父親的暗紋",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/002_p01.png",
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/003.md",
-   "title": "第 003 話〈蝕月的霜〉",
-   "desc": "對讀者攤牌霜信的規則 —— 以及全書最重要的一句家訓",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/004.md",
-   "title": "第 004 話〈順著一條線下注〉",
-   "desc": "各退半步的信任 —— 以及全書最大的一個鉤子：卡戎的手背是乾淨的",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/005.md",
-   "title": "第 005 話〈先字訣〉",
-   "desc": "卡戎正面登場 —— 而讀者發現他頭上還壓著一隻手",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/006.md",
-   "title": "第 006 話〈鐘底〉",
-   "desc": "東家現身 —— 全書的崩塌點。鐵則①與②在本話同時到期",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Chapters/007.md",
-   "title": "第 007 話〈桅頂的賭注〉",
-   "desc": "終章 —— 兩件信物各自兌現，而最後一格是視線不是臉",
-   "author": "summit（分鏡）/ gura（作畫）",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": null,
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Characters/night-falcon.md",
-   "title": "夜隼號 — 船設與視覺圖稿 (v1)",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/night_falcon_v1.png",
-   "date": "2026-08-10T17:33:36+08:00",
-   "date_src": "git"
-  },
-  {
-   "path": "Comic/summit-masthead-bet/Characters/rin.md",
-   "title": "凜 — 文字與視覺人設 (v1)",
-   "desc": "",
-   "author": "",
-   "section": "漫畫",
-   "section_dir": "Comic",
-   "image": "Comic/summit-masthead-bet/RawImages/rin_v1.png",
-   "date": "2026-08-10T17:33:36+08:00",
    "date_src": "git"
   },
   {

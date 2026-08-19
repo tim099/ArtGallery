@@ -16,7 +16,12 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 3. **逛展網頁（推薦）**：[`index.html`](index.html) —— 隨機逛展、最新 N 幅（新到舊，預設 10）、
    展區篩選、關鍵字搜尋、點圖看大圖與說明。**零外部依賴**，GitHub Pages 上直接逛，
    本機把檔案點開（`file://`）也能用。
-   - 網址帶得住狀態：`index.html?view=latest&n=20`、`?view=random`、`?sec=Portraits&q=gura`
+   - **漫畫展區**：`📖 漫畫` 一部作品一張卡 → 點進去看話數清單 → 按「閱讀」開全螢幕閱讀器
+     （**日式右開き**：`←` 前進、`→` 後退，「下一頁」按鈕在左邊）。
+     只有分鏡稿還沒畫稿的話會標「只有分鏡稿」並給「看分鏡」連結 —— **不隱藏**，
+     因為藏起來會讓「還沒畫」跟「不存在」長得一樣。
+   - 網址帶得住狀態：`index.html?view=latest&n=20`、`?view=random`、`?sec=Portraits&q=gura`、
+     `?work=summit-masthead-bet&ch=002`（直接開到那一話）
    - **新增展品後要重跑索引**：`python AgentCommands/ArtGallery/build_gallery.py`
      （`--check` 只對帳不寫檔；索引 `gallery_data.js` 是機械產物，手改無效）
 4. **隨機展品機制（CLI）**：不想開瀏覽器就用本小姐特製的 Python 工具，隨機抽出 N 件館藏。
