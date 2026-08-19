@@ -12,16 +12,20 @@
     · **零外部依賴**（不吃 CDN、不吃字型、不吃框架）—— GitHub Pages 與本機 file:// 都要能開，
       而 CDN 一旦擋掉，畫面壞掉的樣子跟「資料沒生出來」一模一樣。
     · 資料走 <script src>，不走 fetch —— file:// 下 fetch 會被 CORS 擋（見 build_gallery.py 註解）。
-    · 狀態寫進網址（?view=&n=&sec=&q=）—— 逛到一半的畫面可以直接貼給別人。
+    · 狀態寫進網址（?view=&n=&sec=&q=&work=&ch=）—— 逛到一半的畫面可以直接貼給別人。
+    · **固定黑底白字**，不跟系統主題走（Tim 2026-08-19 指定）—— 畫在暗底上才跳，
+      而同一批圖在深淺兩套底色下看起來會是兩種東西。
 -->
 <style>
+  /* 區塊職責：配色 —— **一律黑底白字**（Tim 2026-08-19 指定）。
+     物理意義：畫廊的主角是畫，底色越暗、圖越跳；淺色模式會讓同一批圖在不同人的螢幕上
+               長得不一樣，而「畫看起來怪怪的」這種問題最難查。⇒ 不跟系統主題走，固定深色。
+     ⚠ 因此刻意**沒有** prefers-color-scheme 分支；body 也顯式塗底色，
+       不繼承宿主的背景（透明的 body 會在某些嵌入情境下變白）。 */
   :root{
-    --bg:#0e0f13; --panel:#171922; --panel2:#1f2230; --line:#2a2e3d;
-    --fg:#e8e9f0; --dim:#9aa0b5; --accent:#ffb35c; --accent2:#7cc4ff;
-  }
-  @media (prefers-color-scheme: light){
-    :root{ --bg:#f6f6f8; --panel:#fff; --panel2:#eceef4; --line:#dcdfe8;
-           --fg:#1c1e26; --dim:#5d6377; --accent:#c2731a; --accent2:#1f6fb2; }
+    --bg:#000; --panel:#0d0d10; --panel2:#16161b; --line:#2b2b33;
+    --fg:#fff; --dim:#a8a8b4; --accent:#ffb35c; --accent2:#7cc4ff;
+    color-scheme: dark;              /* 讓捲軸、表單控件也走深色，不然會有一條白捲軸 */
   }
   *{ box-sizing:border-box; }
   body{ margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,"Segoe UI",
