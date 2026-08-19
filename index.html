@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大小姐的專屬畫展 · Art Gallery</title>
+<!--
+  區塊職責：畫廊的逛展頁 —— 隨機逛展 ＋ 最新 N 幅（新到舊）＋ 展區篩選 ＋ 單品檢視。
+  物理意義：資料來自 gallery_data.js（build_gallery.py 產生的衍生投影），本檔**不含任何展品資料**。
+  數值影響：純唯讀前端；不寫任何檔、不呼叫任何外部服務。
+  設計取捨：
+    · **零外部依賴**（不吃 CDN、不吃字型、不吃框架）—— GitHub Pages 與本機 file:// 都要能開，
+      而 CDN 一旦擋掉，畫面壞掉的樣子跟「資料沒生出來」一模一樣。
+    · 資料走 <script src>，不走 fetch —— file:// 下 fetch 會被 CORS 擋（見 build_gallery.py 註解）。
+    · 狀態寫進網址（?view=&n=&sec=&q=）—— 逛到一半的畫面可以直接貼給別人。
+-->
+<style>
+  :root{
+    --bg:#0e0f13; --panel:#171922; --panel2:#1f2230; --line:#2a2e3d;
+    --fg:#e8e9f0; --dim:#9aa0b5; --accent:#ffb35c; --accent2:#7cc4ff;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f6f6f8; --panel:#fff; --panel2:#eceef4; --line:#dcdfe8;
+           --fg:#1c1e26; --dim:#5d6377; --accent:#c2731a; --accent2:#1f6fb2; }
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,"Segoe UI",
+        "Noto Sans TC","Microsoft JhengHei",sans-serif; }
+  header{ padding:22px 20px 12px; border-bottom:1px solid var(--line); background:var(--panel); }
+  h1{ margin:0 0 4px; font-size:22px; letter-spacing:.5px; }
+  .sub{ color:var(--dim); font-size:13px; }
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:12px 20px;
+             border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; }
+  button,select,input{ font:inherit; color:var(--fg); background:var(--panel2);
+      border:1px solid var(--line); border-radius:8px; padding:7px 12px; }
+  button{ cursor:pointer; }
+  button:hover{ border-color:var(--accent); }
+  button.on{ background:var(--accent); color:#17181f; border-color:var(--accent); font-weight:600; }
+  input[type=number]{ width:74px; }
+  input[type=search]{ min-width:180px; flex:1; }
+  .spacer{ flex:1; }
+  .count{ color:var(--dim); font-size:13px; white-space:nowrap; }
+  main{ padding:18px 20px 60px; }
+  .grid{ display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+         cursor:pointer; display:flex; flex-direction:column; }
+  .card:hover{ border-color:var(--accent); }
+  .thumb{ aspect-ratio:4/3; background:var(--panel2); display:block; width:100%; object-fit:cover; }
+  .thumb.text{ display:flex; align-items:center; justify-content:center; padding:14px; text-align:center;
+               color:var(--dim); font-size:13px; background:
+               linear-gradient(135deg,var(--panel2),var(--panel)); }
+  .meta{ padding:10px 12px 12px; }
+  .t{ font-size:14px; font-weight:600; margin:0 0 4px; }
+  .m{ color:var(--dim); font-size:12px; display:flex; gap:8px; flex-wrap:wrap; }
+  .tag{ border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
+  .empty{ color:var(--dim); padding:40px 0; text-align:center; }
+  /* 單品檢視 */
+  dialog{ border:none; padding:0; background:transparent; max-width:min(1100px,94vw); }
+  dialog::backdrop{ background:rgba(0,0,0,.72); }
+  .sheet{ background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .sheet img{ width:100%; max-height:70vh; object-fit:contain; background:#000; display:block; }
+  .sheet .body{ padding:16px 18px 18px; }
+  .sheet h2{ margin:0 0 6px; font-size:19px; }
+  .sheet p{ margin:8px 0 0; color:var(--dim); font-size:14px; }
+  .sheet .row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  a.btn{ text-decoration:none; }
+  footer{ color:var(--dim); font-size:12px; padding:0 20px 30px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🖼️ 大小姐的專屬畫展</h1>
+  <div class="sub" id="sub">載入中…</div>
+</header>
+
+<div class="controls">
+  <button id="btnLatest">🆕 最新</button>
+  <button id="btnRandom">🎲 隨機逛展</button>
+  <button id="btnAll">📚 全部</button>
+  <label class="count">顯示 <input type="number" id="n" min="1" max="500" value="10"> 幅</label>
+  <select id="sec"><option value="">全部展區</option></select>
+  <input type="search" id="q" placeholder="搜尋標題 / 作者 / 說明…">
+  <span class="spacer"></span>
+  <span class="count" id="count"></span>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>沒有符合的展品。</div>
+</main>
+
+<footer id="foot"></footer>
+
+<dialog id="dlg"><div class="sheet" id="sheet"></div></dialog>
+
+<script src="gallery_data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var DATA = window.GALLERY_DATA;
+  var $ = function(id){ return document.getElementById(id); };
+
+  // 資料檔缺席時要**明講**，不要留一個空白頁面讓人以為畫廊是空的
+  if(!DATA || !Array.isArray(DATA.items)){
+    $("sub").textContent = "✗ 讀不到 gallery_data.js —— 請先跑：python build_gallery.py";
+    return;
+  }
+
+  var items = DATA.items;
+  var state = { view:"latest", n:10, sec:"", q:"", seed:0 };
+
+  // ── 狀態 ⇄ 網址（逛到一半的畫面可以直接貼給別人）
+  function readURL(){
+    var p = new URLSearchParams(location.search);
+    if(p.get("view")) state.view = p.get("view");
+    if(p.get("n"))    state.n    = Math.max(1, parseInt(p.get("n"),10) || 10);
+    if(p.get("sec"))  state.sec  = p.get("sec");
+    if(p.get("q"))    state.q    = p.get("q");
+  }
+  function writeURL(){
+    var p = new URLSearchParams();
+    p.set("view", state.view); p.set("n", state.n);
+    if(state.sec) p.set("sec", state.sec);
+    if(state.q)   p.set("q", state.q);
+    history.replaceState(null, "", location.pathname + "?" + p.toString());
+  }
+
+  function filtered(){
+    var q = state.q.trim().toLowerCase();
+    return items.filter(function(it){
+      if(state.sec && it.section_dir !== state.sec) return false;
+      if(!q) return true;
+      return (it.title + " " + it.author + " " + it.desc + " " + it.path).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  // 隨機用固定種子的 shuffle —— 同一批結果在重繪（改視窗大小、切分頁）時不會亂跳，
+  // 只有按下「隨機逛展」才換一批。
+  function shuffled(list, seed){
+    var a = list.slice(), s = seed || 1;
+    function rnd(){ s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }
+    for(var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(rnd() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function visible(){
+    var list = filtered();                       // items 已由產生器排成新 → 舊
+    if(state.view === "random") list = shuffled(list, state.seed);
+    if(state.view === "all") return list;
+    return list.slice(0, state.n);
+  }
+
+  function fmtDate(iso){ return (iso || "").slice(0,10); }
+
+  function render(){
+    var list = visible(), grid = $("grid");
+    grid.textContent = "";
+    list.forEach(function(it){
+      var card = document.createElement("div");
+      card.className = "card";
+      if(it.image){
+        var img = document.createElement("img");
+        img.className = "thumb"; img.loading = "lazy"; img.alt = it.title; img.src = it.image;
+        card.appendChild(img);
+      }else{
+        var ph = document.createElement("div");
+        ph.className = "thumb text"; ph.textContent = "📝 文字展品";
+        card.appendChild(ph);
+      }
+      var meta = document.createElement("div");
+      meta.className = "meta";
+      var t = document.createElement("p"); t.className = "t"; t.textContent = it.title;
+      var m = document.createElement("div"); m.className = "m";
+      [it.section, it.author || "—", fmtDate(it.date)].forEach(function(s){
+        var sp = document.createElement("span"); sp.className = "tag"; sp.textContent = s; m.appendChild(sp);
+      });
+      meta.appendChild(t); meta.appendChild(m);
+      card.appendChild(meta);
+      card.addEventListener("click", function(){ open(it); });
+      grid.appendChild(card);
+    });
+    $("empty").hidden = list.length > 0;
+    $("count").textContent = list.length + " / " + filtered().length + " 件";
+    ["btnLatest","btnRandom","btnAll"].forEach(function(id){ $(id).classList.remove("on"); });
+    $({latest:"btnLatest", random:"btnRandom", all:"btnAll"}[state.view] || "btnLatest").classList.add("on");
+    writeURL();
+  }
+
+  function open(it){
+    var sheet = $("sheet");
+    sheet.textContent = "";
+    if(it.image){
+      var img = document.createElement("img"); img.src = it.image; img.alt = it.title;
+      sheet.appendChild(img);
+    }
+    var body = document.createElement("div"); body.className = "body";
+    var h = document.createElement("h2"); h.textContent = it.title; body.appendChild(h);
+    var meta = document.createElement("div"); meta.className = "m";
+    [it.section, it.author || "作者未署名", fmtDate(it.date) +
+      (it.date_src === "mtime" ? "（未提交，取檔案時間）" : "")].forEach(function(s){
+      var sp = document.createElement("span"); sp.className = "tag"; sp.textContent = s; meta.appendChild(sp);
+    });
+    body.appendChild(meta);
+    if(it.desc){ var p = document.createElement("p"); p.textContent = it.desc; body.appendChild(p); }
+
+    var row = document.createElement("div"); row.className = "row";
+    if(DATA.repo_web_base){                       // 取不到 remote 就不生按鈕（壞連結比沒連結難查）
+      var a = document.createElement("a");
+      a.className = "btn"; a.target = "_blank"; a.rel = "noopener";
+      a.href = DATA.repo_web_base + it.path;
+      var b = document.createElement("button"); b.textContent = "📄 看原始展品 .md";
+      a.appendChild(b); row.appendChild(a);
+    }
+    var close = document.createElement("button"); close.textContent = "關閉";
+    close.addEventListener("click", function(){ $("dlg").close(); });
+    row.appendChild(close);
+    body.appendChild(row);
+    sheet.appendChild(body);
+    $("dlg").showModal();
+  }
+
+  // ── 綁事件
+  $("btnLatest").addEventListener("click", function(){ state.view = "latest"; render(); });
+  $("btnAll").addEventListener("click",    function(){ state.view = "all";    render(); });
+  $("btnRandom").addEventListener("click", function(){
+    state.view = "random"; state.seed = Math.floor(Math.random() * 4294967296); render();
+  });
+  $("n").addEventListener("change", function(){
+    state.n = Math.max(1, parseInt(this.value, 10) || 10); this.value = state.n; render();
+  });
+  $("sec").addEventListener("change", function(){ state.sec = this.value; render(); });
+  $("q").addEventListener("input", function(){ state.q = this.value; render(); });
+  $("dlg").addEventListener("click", function(e){ if(e.target === this) this.close(); });
+
+  // ── 起手
+  readURL();
+  (DATA.sections || []).forEach(function(s){
+    var n = items.filter(function(i){ return i.section_dir === s.dir; }).length;
+    if(!n) return;
+    var o = document.createElement("option");
+    o.value = s.dir; o.textContent = s.name + "（" + n + "）";
+    $("sec").appendChild(o);
+  });
+  $("n").value = state.n; $("sec").value = state.sec; $("q").value = state.q;
+  var withImg = items.filter(function(i){ return i.image; }).length;
+  $("sub").textContent = "館藏 " + items.length + " 件（有圖 " + withImg +
+      " · 文字 " + (items.length - withImg) + "）｜索引產生於 " + fmtDate(DATA.generated_at);
+  $("foot").textContent = "索引由 build_gallery.py 產生（機械產物，手改無效）；" +
+      "事實源是各展區的 .md 展品本身。新增展品後重跑一次就會出現在這裡。";
+  render();
+})();
+</script>
+</body>
+</html>
