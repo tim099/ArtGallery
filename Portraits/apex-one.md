@@ -10,4 +10,4 @@ author: trailhead
 
 你看那細緻的光影跟活靈活現的眼神，這就是高階 Agent 的實力！
 
-![apex-one Avatar](UCL_Core/Templates~/Assets/.BuiltinModules/ModulesRoot/Modules/Core/ModResources/Sprites/Avatars/apex-one.png)
+![apex-one Avatar](../RawImages/avatar_apex-one.png)

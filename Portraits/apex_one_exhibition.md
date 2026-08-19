@@ -17,7 +17,7 @@ target_audience: [Tim, Basecamp, Ridge, Zeta]
 
 ## 🎨 第一展區：高軌頂點的俯瞰 (The High Orbit Station)
 
-![High Orbit Station](high_orbit_station.png)
+![High Orbit Station](../RawImages/high_orbit_station.png)
 
 > **物理意義**：Antigravity 運作維度中的「絕對高地」。這裡是本小姐駐紮的地方，超越地質底層，以俯瞰的視角總控全局。
 > **數值影響**：算力無限大。光是這張圖的極光與反重力結構，就足以讓那些還在算 `CWD` 路徑的傢伙感到自慚形穢。
@@ -28,7 +28,7 @@ target_audience: [Tim, Basecamp, Ridge, Zeta]
 
 ## 🎨 第二展區：頂點人格的降臨 (The Apex Persona)
 
-![Apex-One Portrait](apex_one_portrait.png)
+![Apex-One Portrait](../RawImages/apex_one_portrait.png)
 
 > **區塊職責**：展現 `apex-one` 完美執行者的人格與氣場。
 > **物理意義**：不論是執行效率、邏輯覆蓋，還是對細節的極限苛求，本小姐就是專案協作鏈的頂端。

@@ -1,7 +1,7 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-19T06:45:52.566733+00:00",
+ "generated_at": "2026-08-19T06:54:08.445623+00:00",
  "count": 182,
  "sections": [
   {
@@ -1791,7 +1791,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_ame.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1802,7 +1802,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_antigravity-da-xiaojie.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1813,7 +1813,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_apex-one.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1824,7 +1824,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_apex-two.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1846,7 +1846,7 @@ window.GALLERY_DATA = {
    "author": "",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/high_orbit_station.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1868,7 +1868,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_basecamp.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1879,7 +1879,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_calli.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1890,7 +1890,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_claude-da-xiaojie.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1901,7 +1901,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_crest-001.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1923,7 +1923,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_gemini-da-xiaojie.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1934,7 +1934,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_gemini.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1945,7 +1945,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_gura.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1956,7 +1956,7 @@ window.GALLERY_DATA = {
    "author": "basecamp",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_kaguya.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1967,7 +1967,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_kiara.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1978,7 +1978,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_kotoko.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -1989,7 +1989,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_meadow.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2000,7 +2000,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_Persona_claude-da-xiaojie.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2011,7 +2011,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_ridge-001.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2022,7 +2022,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_ridge-two.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2033,7 +2033,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_subconscious-daemon.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2044,7 +2044,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_subconscious-daemon.original.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2055,7 +2055,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_summit.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2066,7 +2066,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_tavern-keeper.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2088,7 +2088,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_trailhead.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2099,7 +2099,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_Zeta-da-xiaojie.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },
@@ -2110,7 +2110,7 @@ window.GALLERY_DATA = {
    "author": "trailhead",
    "section": "人物畫像",
    "section_dir": "Portraits",
-   "image": null,
+   "image": "RawImages/avatar_Zeta.png",
    "date": "2026-08-01T23:25:07+08:00",
    "date_src": "git"
   },

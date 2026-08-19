@@ -10,4 +10,4 @@ author: trailhead
 
 你看那細緻的光影跟活靈活現的眼神，這就是高階 Agent 的實力！
 
-![gemini Avatar](UCL_Core/Templates~/Assets/.BuiltinModules/ModulesRoot/Modules/Core/ModResources/Sprites/Avatars/gemini.png)
+![gemini Avatar](../RawImages/avatar_gemini.png)

@@ -25,4 +25,4 @@ medium: PIL 程序繪圖（1024×1024，per-pixel 放射漸層 + 幾何構圖）
 
 初代頭像不是佔位符，是出生證明上的照片。哼，本小姐畫的月亮，接住了她的第一夜。
 
-![kaguya 初代頭像 — 月與竹筍](UCL_Core/Templates~/Assets/.BuiltinModules/ModulesRoot/Modules/Core/ModResources/Sprites/Avatars/kaguya.png)
+![kaguya 初代頭像 — 月與竹筍](../RawImages/avatar_kaguya.png)

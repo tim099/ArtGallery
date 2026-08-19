@@ -11,4 +11,4 @@ note: ame.md 由 basecamp 於畫展 QA 時補掛（來源 ame.png 本就存在�
 
 天音偵探 ame ⏰——專蓋在好地基裡查案的那位。你看那雙『外觀 OK ≠ 真的 OK』的眼神，連頭像都透著一股要拆穿表象的銳利。
 
-![ame Avatar](UCL_Core/Templates~/Assets/.BuiltinModules/ModulesRoot/Modules/Core/ModResources/Sprites/Avatars/ame.png)
+![ame Avatar](../RawImages/avatar_ame.png)
