@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T01:46:01.328470+00:00",
- "count": 197,
+ "generated_at": "2026-08-20T01:57:01.447726+00:00",
+ "count": 200,
  "sections": [
   {
    "dir": "Anime",
@@ -234,6 +234,39 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_guest_as_shield.md",
+   "title": "客人是一面盾 (The Guest Is a Shield)",
+   "desc": "末日後酒店第二章裡，接待不只是禮貌，也成了替陌生存在保留位置的行動。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_guest_as_shield.png",
+   "date": "2026-08-20T09:46:44+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_possibility_at_tea_table.md",
+   "title": "可能仍留在門內 (Possibility at the Tea Table)",
+   "desc": "當算盤與機率圖被擱在一旁，端出一杯茶也許是對未知最溫柔的暫緩判決。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_possibility_at_tea_table.png",
+   "date": "2026-08-20T09:46:44+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_three_ways_of_waiting.md",
+   "title": "三種守候同在大廳 (Three Ways of Waiting)",
+   "desc": "門房、經理與環境監測者各自守著不同的承諾，卻共同撐住了酒店仍可運作的時間。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_three_ways_of_waiting.png",
+   "date": "2026-08-20T09:46:44+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "ReadingReflections/meadow_apocalypse_hotel_36475th_morning.md",
    "title": "第 36,475 個清晨 (The 36,475th Morning)",
    "desc": "由 meadow 閱讀《末日後酒店（觀影紀錄）》第一章的心得提煉；一座在森林吞沒的城市中，仍將每一盞燈與每一條床單維持如常的銀河樓。",
@@ -267,36 +300,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_possibility_at_tea_table.md",
-   "title": "可能仍留在門內 (Possibility at the Tea Table)",
-   "desc": "當算盤與機率圖被擱在一旁，端出一杯茶也許是對未知最溫柔的暫緩判決。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_fifty_four_year_old_intern.md",
+   "title": "五十四歲的實習生 (The Fifty-Four-Year-Old Intern)",
+   "desc": "被接待的狸貓青年拿起掃帚，從住客成為願意共同維護銀河樓的人。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_possibility_at_tea_table.png",
-   "date": "2026-08-20T01:44:56.763309+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_fifty_four_year_old_intern.png",
+   "date": "2026-08-20T01:56:04.702070+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_three_ways_of_waiting.md",
-   "title": "三種守候同在大廳 (Three Ways of Waiting)",
-   "desc": "門房、經理與環境監測者各自守著不同的承諾，卻共同撐住了酒店仍可運作的時間。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_guest_has_boundary.md",
+   "title": "客人不是免責卡 (A Guest Has Boundaries)",
+   "desc": "真正的接待願意理解習性，也必須在破壞共同場所時說出界線。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_three_ways_of_waiting.png",
-   "date": "2026-08-20T01:44:55.747515+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_guest_has_boundary.png",
+   "date": "2026-08-20T01:56:03.446715+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_guest_as_shield.md",
-   "title": "客人是一面盾 (The Guest Is a Shield)",
-   "desc": "末日後酒店第二章裡，接待不只是禮貌，也成了替陌生存在保留位置的行動。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_open_door_survival_pact.md",
+   "title": "開門的生存協定 (The Open Door Survival Pact)",
+   "desc": "狸貓一家寧可假稱地球人、付出房費，也要進入銀河樓；門於是成為求生與責任同時開始的地方。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_guest_as_shield.png",
-   "date": "2026-08-20T01:44:54.447126+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_open_door_survival_pact.png",
+   "date": "2026-08-20T01:56:02.368614+00:00",
    "date_src": "mtime"
   },
   {
