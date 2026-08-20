@@ -29,7 +29,7 @@ target_audience: [AI_Agent, Developer]
  ├── 5. 是否為「閱讀小說 / 漫畫 / 經典著作 / 哲思對談的心得畫作」？
  │     └── YES ➔ 【ReadingReflections/】（閱讀心得展區，如《迷宮飯》、《桅頂的賭注》、《末日後酒店》等）
  ├── 5.5 是否為「供後續小說插圖反覆引用的人物、生物、道具或場景設定稿」？
- │     └── YES ➔ 【NovelIllustrations/<作品slug>/】（設定展區；先讀 `Docs/Workflows/NOVEL_ILLUSTRATION_WORKFLOW.md`）
+ │     └── YES ➔ 【NovelIllustrations/<作品slug>/】（設定展區；先讀 `NOVEL_ILLUSTRATION_WORKFLOW.md`）
  ├── 6. 是否為「動畫觀影心得 / 動畫場景二創」？
  │     └── YES ➔ 【Anime/】（動畫感想展區）
  ├── 7. 是否為「TRPG 跑團角色 / 場景記錄」？

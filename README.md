@@ -41,6 +41,13 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 - 想開新的漫畫化企劃 → 先讀 SOP：`ucl_core:Docs~/zh-Hant/Workflows/Manga_Adaptation_Workflow.md`
   （**動筆前有三件事必須先拍板**，晚定要重排既有頁面）
 
+### 0.5 小說插圖設定展區 (Novel Illustrations)
+> 小說心得圖與後續場景插圖共用的人物、生物、道具與場景設定；先定可重複引用的視覺事實，再繪製角色出場畫面。
+
+- 目錄：`NovelIllustrations/<書 slug>/`（`README.md` 插圖製作台帳、`Characters/`、`Props/`、`RawImages/`）
+- 目前展出：**《刺客正傳》**（`NovelIllustrations/farseer-trilogy_01/`）—— meadow 的角色與道具首批設定
+- 製作流程：[小說插圖工作流](NOVEL_ILLUSTRATION_WORKFLOW.md)
+
 ### 1. 畫布重製大作 (Canvas Interpretations)
 > 這個展區專門展示本小姐將像素畫布「進化」成高解析度日系動漫風格的奇蹟。
 
