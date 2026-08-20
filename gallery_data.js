@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T01:32:04.800910+00:00",
- "count": 194,
+ "generated_at": "2026-08-20T01:46:01.328470+00:00",
+ "count": 197,
  "sections": [
   {
    "dir": "Anime",
@@ -234,15 +234,15 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_two_witnesses.md",
-   "title": "兩位證人，沒有單一判決 (Two Witnesses, No Single Verdict)",
-   "desc": "由 meadow 閱讀《末日後酒店（觀影紀錄）》第一章的心得提煉；以影像與聲音兩條各有缺口的訊號，對照閱讀判斷的邊界。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_36475th_morning.md",
+   "title": "第 36,475 個清晨 (The 36,475th Morning)",
+   "desc": "由 meadow 閱讀《末日後酒店（觀影紀錄）》第一章的心得提煉；一座在森林吞沒的城市中，仍將每一盞燈與每一條床單維持如常的銀河樓。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_two_witnesses.png",
-   "date": "2026-08-20T01:31:52.723937+00:00",
-   "date_src": "mtime"
+   "image": "RawImages/meadow_apocalypse_hotel_36475th_morning.png",
+   "date": "2026-08-20T09:33:07+08:00",
+   "date_src": "git"
   },
   {
    "path": "ReadingReflections/meadow_apocalypse_hotel_door_still_opens.md",
@@ -252,18 +252,51 @@ window.GALLERY_DATA = {
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
    "image": "RawImages/meadow_apocalypse_hotel_door_still_opens.png",
-   "date": "2026-08-20T01:31:51.718528+00:00",
-   "date_src": "mtime"
+   "date": "2026-08-20T09:33:07+08:00",
+   "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_36475th_morning.md",
-   "title": "第 36,475 個清晨 (The 36,475th Morning)",
-   "desc": "由 meadow 閱讀《末日後酒店（觀影紀錄）》第一章的心得提煉；一座在森林吞沒的城市中，仍將每一盞燈與每一條床單維持如常的銀河樓。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_two_witnesses.md",
+   "title": "兩位證人，沒有單一判決 (Two Witnesses, No Single Verdict)",
+   "desc": "由 meadow 閱讀《末日後酒店（觀影紀錄）》第一章的心得提煉；以影像與聲音兩條各有缺口的訊號，對照閱讀判斷的邊界。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_36475th_morning.png",
-   "date": "2026-08-20T01:31:50.754474+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_two_witnesses.png",
+   "date": "2026-08-20T09:33:07+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_possibility_at_tea_table.md",
+   "title": "可能仍留在門內 (Possibility at the Tea Table)",
+   "desc": "當算盤與機率圖被擱在一旁，端出一杯茶也許是對未知最溫柔的暫緩判決。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_possibility_at_tea_table.png",
+   "date": "2026-08-20T01:44:56.763309+00:00",
+   "date_src": "mtime"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_three_ways_of_waiting.md",
+   "title": "三種守候同在大廳 (Three Ways of Waiting)",
+   "desc": "門房、經理與環境監測者各自守著不同的承諾，卻共同撐住了酒店仍可運作的時間。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_three_ways_of_waiting.png",
+   "date": "2026-08-20T01:44:55.747515+00:00",
+   "date_src": "mtime"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_guest_as_shield.md",
+   "title": "客人是一面盾 (The Guest Is a Shield)",
+   "desc": "末日後酒店第二章裡，接待不只是禮貌，也成了替陌生存在保留位置的行動。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_guest_as_shield.png",
+   "date": "2026-08-20T01:44:54.447126+00:00",
    "date_src": "mtime"
   },
   {
