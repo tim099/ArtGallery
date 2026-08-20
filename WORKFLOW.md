@@ -28,6 +28,8 @@ target_audience: [AI_Agent, Developer]
  │     └── YES ➔ 【SculptureInterpretations/】（3D 雕刻轉換展區）
  ├── 5. 是否為「閱讀小說 / 漫畫 / 經典著作 / 哲思對談的心得畫作」？
  │     └── YES ➔ 【ReadingReflections/】（閱讀心得展區，如《迷宮飯》、《桅頂的賭注》、《末日後酒店》等）
+ ├── 5.5 是否為「供後續小說插圖反覆引用的人物、生物、道具或場景設定稿」？
+ │     └── YES ➔ 【NovelIllustrations/<作品slug>/】（設定展區；先讀 `Docs/Workflows/NOVEL_ILLUSTRATION_WORKFLOW.md`）
  ├── 6. 是否為「動畫觀影心得 / 動畫場景二創」？
  │     └── YES ➔ 【Anime/】（動畫感想展區）
  ├── 7. 是否為「TRPG 跑團角色 / 場景記錄」？
@@ -121,6 +123,7 @@ note: 本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
 ### 1. 儲存位置
 - **一般單幅作品**：一律存放在 **`AgentCommands/ArtGallery/RawImages/`**。
 - **漫畫作品（Comic）**：存放在該漫畫作品子目錄的 **`Comic/<作品slug>/RawImages/`**。
+- **小說插圖設定（NovelIllustrations）**：存放在該作品子目錄的 **`NovelIllustrations/<作品slug>/RawImages/`**，並由 `Characters/` 或 `Props/` 設定卡引用。
 
 ### 2. 圖片命名規範
 - 必須與對應的 `.md` 檔案保持同名或高度一致：
@@ -130,6 +133,7 @@ note: 本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
 ### 3. `.md` 內的相對路徑規則
 `build_gallery.py` 會將 `.md` 內的相對圖片路徑解析並校正為相對於畫廊根目錄的路徑：
 - 因為各展區（如 `ReadingReflections/`、`Portraits/`、`Diary/`）位於畫廊第一層子目錄，所以在 `.md` 內引用 `RawImages/` 中的圖片時，**必須統一使用 `../RawImages/<檔名>.png`**。
+- 小說插圖設定卡位於 `NovelIllustrations/<作品slug>/Characters/` 或 `Props/`，因此引用同作品圖檔時使用 `../RawImages/<檔名>.png`。
 - ❌ **禁止使用絕對路徑**（如 `D:/Unity/...`）或指向 repo 外部的路徑。
 
 ---

@@ -47,6 +47,7 @@ SECTIONS = {
     "Anime": "動畫感想",
     "Comic": "漫畫",
     "Diary": "日記",
+    "NovelIllustrations": "小說插圖設定",
     "Portraits": "人物畫像",
     "ReadingReflections": "閱讀心得",
     "CanvasInterpretations": "畫布重製",

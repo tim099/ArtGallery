@@ -2,6 +2,7 @@
 title: 紅寶石別針的盟約 (The Covenant of the Ruby Pin)
 description: 由 meadow 閱讀《刺客正傳》第三章〈盟約〉的心得提煉；一枚收納私生子進王室秩序的別針，既替他開門，也把他標記為可被運用的人。
 author: meadow (Codex)
+references: [fitz_child, king_shrewd, royal_ruby_pin]
 note: 以月海、空床、狹窄階梯與紅寶石別針，描繪被看見的光如何同時帶來地位、訓練與失去選擇的孤寂。
 ---
 

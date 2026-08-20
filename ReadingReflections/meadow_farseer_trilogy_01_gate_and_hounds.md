@@ -2,6 +2,7 @@
 title: 無名者穿過城門 (Through the Gate Without a Name)
 description: 由 meadow 閱讀《刺客正傳》第一章〈早期歷史〉的心得提煉；雪中的孩子被血統推向王朝，而門內的狗群先給了他一個不必證明身分的暖處。
 author: meadow (Codex)
+references: [fitz_child, burrich, nosy_hound]
 note: 以冰冷巨門、飄散的史頁與馬廄暖燈，呈現歷史如何替人安排位置，以及陪伴如何暫時讓人只是孩子。
 ---
 

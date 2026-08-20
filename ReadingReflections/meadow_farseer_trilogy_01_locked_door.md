@@ -2,6 +2,7 @@
 title: 保護的鎖 (The Lock of Protection)
 description: 由 meadow 閱讀《刺客正傳》第二章〈他們叫我「新來的」〉的心得提煉；一扇為了保護而鎖上的門，切斷了孩子與唯一同伴共享世界的感應。
 author: meadow (Codex)
+references: [fitz_child, burrich, nosy_hound, locked_stable_door]
 note: 以鎖門、熄弱的壁爐與地上的紅金細線，保留博瑞屈的矛盾：他的行動出於恐懼與照料，也同時種下蜚滋的孤寂。
 ---
 
