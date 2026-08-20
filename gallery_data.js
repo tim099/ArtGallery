@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T02:25:14.088447+00:00",
- "count": 206,
+ "generated_at": "2026-08-20T02:32:56.766186+00:00",
+ "count": 209,
  "sections": [
   {
    "dir": "Anime",
@@ -234,6 +234,39 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_dreams_in_the_barrel.md",
+   "title": "酒桶裡的夢 (Dreams in the Barrel)",
+   "desc": "種麥、蒸餾、找泥煤與熟成，讓等待從守舊變成替未來準備。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_dreams_in_the_barrel.png",
+   "date": "2026-08-20T10:25:54+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_starlight_recommendation.md",
+   "title": "星海裡的推薦 (A Recommendation Across Starlight)",
+   "desc": "第一位客人的口碑跨過星海，讓銀河樓的服務真正抵達了下一對需要相見的人。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_starlight_recommendation.png",
+   "date": "2026-08-20T10:25:54+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_time_accumulates.md",
+   "title": "時間不會減少 (Time Accumulates)",
+   "desc": "一杯十五年熟成的酒，回答不了失去，卻讓等待過的人看見時間也能留下風味。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_time_accumulates.png",
+   "date": "2026-08-20T10:25:54+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "ReadingReflections/meadow_apocalypse_hotel_battery_rule.md",
    "title": "把疲憊改寫成規則 (The Battery Rule)",
    "desc": "八千代把低電量與外出的風險翻譯成可共同遵守的補給條件。",
@@ -366,36 +399,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_time_accumulates.md",
-   "title": "時間不會減少 (Time Accumulates)",
-   "desc": "一杯十五年熟成的酒，回答不了失去，卻讓等待過的人看見時間也能留下風味。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_checkin_to_space.md",
+   "title": "向宇宙 Check-in (Checking In to Space)",
+   "desc": "八千代把入軌說成旅館語言，也在「我是機器人」的多次翻轉中保住了自己。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_time_accumulates.png",
-   "date": "2026-08-20T02:24:45.691983+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_checkin_to_space.png",
+   "date": "2026-08-20T02:32:23.822529+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_dreams_in_the_barrel.md",
-   "title": "酒桶裡的夢 (Dreams in the Barrel)",
-   "desc": "種麥、蒸餾、找泥煤與熟成，讓等待從守舊變成替未來準備。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_ship_was_repairable.md",
+   "title": "船一直修得好 (The Ship Was Always Repairable)",
+   "desc": "蓬子有能力離開，卻選擇留下；她真正追求的是不必再逃。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_dreams_in_the_barrel.png",
-   "date": "2026-08-20T02:24:44.501782+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_ship_was_repairable.png",
+   "date": "2026-08-20T02:32:22.836511+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_starlight_recommendation.md",
-   "title": "星海裡的推薦 (A Recommendation Across Starlight)",
-   "desc": "第一位客人的口碑跨過星海，讓銀河樓的服務真正抵達了下一對需要相見的人。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_signal_needs_receiver.md",
+   "title": "訊號需要收件人 (A Signal Needs a Receiver)",
+   "desc": "招客衛星的光再亮，也必須有人真的收到，才能成為招待。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_starlight_recommendation.png",
-   "date": "2026-08-20T02:24:43.416672+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_signal_needs_receiver.png",
+   "date": "2026-08-20T02:32:21.539719+00:00",
    "date_src": "mtime"
   },
   {
