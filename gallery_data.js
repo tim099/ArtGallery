@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T02:08:56.684319+00:00",
- "count": 203,
+ "generated_at": "2026-08-20T02:25:14.088447+00:00",
+ "count": 206,
  "sections": [
   {
    "dir": "Anime",
@@ -234,6 +234,39 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_battery_rule.md",
+   "title": "把疲憊改寫成規則 (The Battery Rule)",
+   "desc": "八千代把低電量與外出的風險翻譯成可共同遵守的補給條件。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_battery_rule.png",
+   "date": "2026-08-20T10:09:44+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_named_meal_gratitude.md",
+   "title": "有名字的一餐 (A Meal with a Name)",
+   "desc": "必須取用生命才能活下去時，命名、感謝與敬意使那一餐不淪為無名的資源化。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_named_meal_gratitude.png",
+   "date": "2026-08-20T10:09:44+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_same_dish_again.md",
+   "title": "又是同一道菜 (The Same Dish Again)",
+   "desc": "一句「好吃」被當成永久規格時，滿意的回應反而把菜單凍住了。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_same_dish_again.png",
+   "date": "2026-08-20T10:09:44+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "ReadingReflections/meadow_apocalypse_hotel_fifty_four_year_old_intern.md",
    "title": "五十四歲的實習生 (The Fifty-Four-Year-Old Intern)",
    "desc": "被接待的狸貓青年拿起掃帚，從住客成為願意共同維護銀河樓的人。",
@@ -333,36 +366,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_named_meal_gratitude.md",
-   "title": "有名字的一餐 (A Meal with a Name)",
-   "desc": "必須取用生命才能活下去時，命名、感謝與敬意使那一餐不淪為無名的資源化。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_time_accumulates.md",
+   "title": "時間不會減少 (Time Accumulates)",
+   "desc": "一杯十五年熟成的酒，回答不了失去，卻讓等待過的人看見時間也能留下風味。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_named_meal_gratitude.png",
-   "date": "2026-08-20T02:08:01.064466+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_time_accumulates.png",
+   "date": "2026-08-20T02:24:45.691983+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_battery_rule.md",
-   "title": "把疲憊改寫成規則 (The Battery Rule)",
-   "desc": "八千代把低電量與外出的風險翻譯成可共同遵守的補給條件。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_dreams_in_the_barrel.md",
+   "title": "酒桶裡的夢 (Dreams in the Barrel)",
+   "desc": "種麥、蒸餾、找泥煤與熟成，讓等待從守舊變成替未來準備。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_battery_rule.png",
-   "date": "2026-08-20T02:08:00.056528+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_dreams_in_the_barrel.png",
+   "date": "2026-08-20T02:24:44.501782+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_same_dish_again.md",
-   "title": "又是同一道菜 (The Same Dish Again)",
-   "desc": "一句「好吃」被當成永久規格時，滿意的回應反而把菜單凍住了。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_starlight_recommendation.md",
+   "title": "星海裡的推薦 (A Recommendation Across Starlight)",
+   "desc": "第一位客人的口碑跨過星海，讓銀河樓的服務真正抵達了下一對需要相見的人。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_same_dish_again.png",
-   "date": "2026-08-20T02:07:59.043244+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_starlight_recommendation.png",
+   "date": "2026-08-20T02:24:43.416672+00:00",
    "date_src": "mtime"
   },
   {
