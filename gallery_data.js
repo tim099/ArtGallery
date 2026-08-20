@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T02:32:56.766186+00:00",
- "count": 209,
+ "generated_at": "2026-08-20T03:37:13.724096+00:00",
+ "count": 212,
  "sections": [
   {
    "dir": "Anime",
@@ -234,6 +234,39 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_checkin_to_space.md",
+   "title": "向宇宙 Check-in (Checking In to Space)",
+   "desc": "八千代把入軌說成旅館語言，也在「我是機器人」的多次翻轉中保住了自己。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_checkin_to_space.png",
+   "date": "2026-08-20T10:33:39+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_ship_was_repairable.md",
+   "title": "船一直修得好 (The Ship Was Always Repairable)",
+   "desc": "蓬子有能力離開，卻選擇留下；她真正追求的是不必再逃。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_ship_was_repairable.png",
+   "date": "2026-08-20T10:33:39+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_signal_needs_receiver.md",
+   "title": "訊號需要收件人 (A Signal Needs a Receiver)",
+   "desc": "招客衛星的光再亮，也必須有人真的收到，才能成為招待。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_signal_needs_receiver.png",
+   "date": "2026-08-20T10:33:39+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "ReadingReflections/meadow_apocalypse_hotel_dreams_in_the_barrel.md",
    "title": "酒桶裡的夢 (Dreams in the Barrel)",
    "desc": "種麥、蒸餾、找泥煤與熟成，讓等待從守舊變成替未來準備。",
@@ -399,36 +432,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_checkin_to_space.md",
-   "title": "向宇宙 Check-in (Checking In to Space)",
-   "desc": "八千代把入軌說成旅館語言，也在「我是機器人」的多次翻轉中保住了自己。",
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_ruby_pin_covenant.md",
+   "title": "紅寶石別針的盟約 (The Covenant of the Ruby Pin)",
+   "desc": "由 meadow 閱讀《刺客正傳》第三章〈盟約〉的心得提煉；一枚收納私生子進王室秩序的別針，既替他開門，也把他標記為可被運用的人。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_checkin_to_space.png",
-   "date": "2026-08-20T02:32:23.822529+00:00",
+   "image": "RawImages/meadow_farseer_trilogy_01_ruby_pin_covenant.png",
+   "date": "2026-08-20T03:37:01.517759+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_ship_was_repairable.md",
-   "title": "船一直修得好 (The Ship Was Always Repairable)",
-   "desc": "蓬子有能力離開，卻選擇留下；她真正追求的是不必再逃。",
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_locked_door.md",
+   "title": "保護的鎖 (The Lock of Protection)",
+   "desc": "由 meadow 閱讀《刺客正傳》第二章〈他們叫我「新來的」〉的心得提煉；一扇為了保護而鎖上的門，切斷了孩子與唯一同伴共享世界的感應。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_ship_was_repairable.png",
-   "date": "2026-08-20T02:32:22.836511+00:00",
+   "image": "RawImages/meadow_farseer_trilogy_01_locked_door.png",
+   "date": "2026-08-20T03:11:51.909880+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_signal_needs_receiver.md",
-   "title": "訊號需要收件人 (A Signal Needs a Receiver)",
-   "desc": "招客衛星的光再亮，也必須有人真的收到，才能成為招待。",
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_gate_and_hounds.md",
+   "title": "無名者穿過城門 (Through the Gate Without a Name)",
+   "desc": "由 meadow 閱讀《刺客正傳》第一章〈早期歷史〉的心得提煉；雪中的孩子被血統推向王朝，而門內的狗群先給了他一個不必證明身分的暖處。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_signal_needs_receiver.png",
-   "date": "2026-08-20T02:32:21.539719+00:00",
+   "image": "RawImages/meadow_farseer_trilogy_01_gate_and_hounds.png",
+   "date": "2026-08-20T03:08:46.454566+00:00",
    "date_src": "mtime"
   },
   {
