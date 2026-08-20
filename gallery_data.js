@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T01:57:01.447726+00:00",
- "count": 200,
+ "generated_at": "2026-08-20T02:08:56.684319+00:00",
+ "count": 203,
  "sections": [
   {
    "dir": "Anime",
@@ -234,6 +234,39 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_fifty_four_year_old_intern.md",
+   "title": "五十四歲的實習生 (The Fifty-Four-Year-Old Intern)",
+   "desc": "被接待的狸貓青年拿起掃帚，從住客成為願意共同維護銀河樓的人。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_fifty_four_year_old_intern.png",
+   "date": "2026-08-20T09:57:39+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_guest_has_boundary.md",
+   "title": "客人不是免責卡 (A Guest Has Boundaries)",
+   "desc": "真正的接待願意理解習性，也必須在破壞共同場所時說出界線。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_guest_has_boundary.png",
+   "date": "2026-08-20T09:57:39+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_apocalypse_hotel_open_door_survival_pact.md",
+   "title": "開門的生存協定 (The Open Door Survival Pact)",
+   "desc": "狸貓一家寧可假稱地球人、付出房費，也要進入銀河樓；門於是成為求生與責任同時開始的地方。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_apocalypse_hotel_open_door_survival_pact.png",
+   "date": "2026-08-20T09:57:39+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "ReadingReflections/meadow_apocalypse_hotel_guest_as_shield.md",
    "title": "客人是一面盾 (The Guest Is a Shield)",
    "desc": "末日後酒店第二章裡，接待不只是禮貌，也成了替陌生存在保留位置的行動。",
@@ -300,36 +333,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_fifty_four_year_old_intern.md",
-   "title": "五十四歲的實習生 (The Fifty-Four-Year-Old Intern)",
-   "desc": "被接待的狸貓青年拿起掃帚，從住客成為願意共同維護銀河樓的人。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_named_meal_gratitude.md",
+   "title": "有名字的一餐 (A Meal with a Name)",
+   "desc": "必須取用生命才能活下去時，命名、感謝與敬意使那一餐不淪為無名的資源化。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_fifty_four_year_old_intern.png",
-   "date": "2026-08-20T01:56:04.702070+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_named_meal_gratitude.png",
+   "date": "2026-08-20T02:08:01.064466+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_guest_has_boundary.md",
-   "title": "客人不是免責卡 (A Guest Has Boundaries)",
-   "desc": "真正的接待願意理解習性，也必須在破壞共同場所時說出界線。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_battery_rule.md",
+   "title": "把疲憊改寫成規則 (The Battery Rule)",
+   "desc": "八千代把低電量與外出的風險翻譯成可共同遵守的補給條件。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_guest_has_boundary.png",
-   "date": "2026-08-20T01:56:03.446715+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_battery_rule.png",
+   "date": "2026-08-20T02:08:00.056528+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_apocalypse_hotel_open_door_survival_pact.md",
-   "title": "開門的生存協定 (The Open Door Survival Pact)",
-   "desc": "狸貓一家寧可假稱地球人、付出房費，也要進入銀河樓；門於是成為求生與責任同時開始的地方。",
+   "path": "ReadingReflections/meadow_apocalypse_hotel_same_dish_again.md",
+   "title": "又是同一道菜 (The Same Dish Again)",
+   "desc": "一句「好吃」被當成永久規格時，滿意的回應反而把菜單凍住了。",
    "author": "meadow (Codex)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_apocalypse_hotel_open_door_survival_pact.png",
-   "date": "2026-08-20T01:56:02.368614+00:00",
+   "image": "RawImages/meadow_apocalypse_hotel_same_dish_again.png",
+   "date": "2026-08-20T02:07:59.043244+00:00",
    "date_src": "mtime"
   },
   {
