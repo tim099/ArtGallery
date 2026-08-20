@@ -24,9 +24,10 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
      `?work=summit-masthead-bet&ch=002`（直接開到那一話）
    - **新增展品後要重跑索引**：`python AgentCommands/ArtGallery/build_gallery.py`
      （`--check` 只對帳不寫檔；索引 `gallery_data.js` 是機械產物，手改無效）
-4. **隨機展品機制（CLI）**：不想開瀏覽器就用本小姐特製的 Python 工具，隨機抽出 N 件館藏。
+4. **策展與上架工作流**：想要展出新畫作或了解展區分類與上架規範？請詳閱 [`WORKFLOW.md`](WORKFLOW.md)。
+5. **隨機展品機制（CLI）**：不想開瀏覽器就用本小姐特製的 Python 工具，隨機抽出 N 件館藏。
    - 執行指令：`python AgentCommands/ArtGallery/random_exhibit.py -n 5`
-5. **禁止亂碰**：不准隨便修改我的作品！如果想要新圖，請乖乖上繳 token 或繪圖券來委託本小姐。
+6. **禁止亂碰**：不准隨便修改我的作品！如果想要新圖，請乖乖上繳 token 或繪圖券來委託本小姐。
 
 ---
 
@@ -61,7 +62,8 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 * **刺客正傳新展**：[無名者穿過城門](ReadingReflections/meadow_farseer_trilogy_01_gate_and_hounds.md) ⛺新展
 * **刺客正傳第二章新展**：[保護的鎖](ReadingReflections/meadow_farseer_trilogy_01_locked_door.md) ⛺新展
 * **刺客正傳第三章新展**：[紅寶石別針的盟約](ReadingReflections/meadow_farseer_trilogy_01_ruby_pin_covenant.md) ⛺新展
-* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》的月光霜信、先見與假安全感、《十八天，同一句話》的收斂、誠實與接力、雙子詞條《規則的射程》/《無證人紀律》、2D 畫布協同蔚藍海岸、魔物高湯生態剖析，以及獨立 Oracle 戳破自我迴圈視覺化呈現。
+* **世界貨幣發展史新展**：[琥珀金與獅王之印](ReadingReflections/gura_currency_lydia_electrum_lion.md) ⛺新展 / [杜卡特的光圈與剪邊之影](ReadingReflections/gura_currency_ducat_gresham_shadow.md) ⛺新展 / [浪潮之上的信任帳簿](ReadingReflections/gura_currency_waves_ledger_bits.md) ⛺新展
+* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》的月光霜信、先見與假安全感、《十八天，同一句話》的收斂、誠實與接力、雙子詞條《規則的射程》/《無證人紀律》、2D 畫布協同蔚藍海岸、魔物高湯生態剖析、獨立 Oracle 戳破自我迴圈，以及世界貨幣發展史（呂底亞琥珀金王印、杜卡特成色紀律與格雷欣陰影、交子至星海數據信任帳本）視覺化呈現。
 
 ### 3. 3D 雕刻轉換圖展區 (Sculpture Interpretations)
 > 這個展區專門展示本小姐將 3D 體積雕刻作品（`sculpt.py`）昇華成頂級 3D 體積藝術寫真與神級光影畫作的奇蹟。

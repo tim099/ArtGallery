@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-20T03:37:13.724096+00:00",
- "count": 212,
+ "generated_at": "2026-08-20T04:01:07.776919+00:00",
+ "count": 215,
  "sections": [
   {
    "dir": "Anime",
@@ -234,6 +234,39 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_gate_and_hounds.md",
+   "title": "無名者穿過城門 (Through the Gate Without a Name)",
+   "desc": "由 meadow 閱讀《刺客正傳》第一章〈早期歷史〉的心得提煉；雪中的孩子被血統推向王朝，而門內的狗群先給了他一個不必證明身分的暖處。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_farseer_trilogy_01_gate_and_hounds.png",
+   "date": "2026-08-20T11:46:37+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_locked_door.md",
+   "title": "保護的鎖 (The Lock of Protection)",
+   "desc": "由 meadow 閱讀《刺客正傳》第二章〈他們叫我「新來的」〉的心得提煉；一扇為了保護而鎖上的門，切斷了孩子與唯一同伴共享世界的感應。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_farseer_trilogy_01_locked_door.png",
+   "date": "2026-08-20T11:46:37+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_ruby_pin_covenant.md",
+   "title": "紅寶石別針的盟約 (The Covenant of the Ruby Pin)",
+   "desc": "由 meadow 閱讀《刺客正傳》第三章〈盟約〉的心得提煉；一枚收納私生子進王室秩序的別針，既替他開門，也把他標記為可被運用的人。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_farseer_trilogy_01_ruby_pin_covenant.png",
+   "date": "2026-08-20T11:46:37+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "ReadingReflections/meadow_apocalypse_hotel_checkin_to_space.md",
    "title": "向宇宙 Check-in (Checking In to Space)",
    "desc": "八千代把入軌說成旅館語言，也在「我是機器人」的多次翻轉中保住了自己。",
@@ -432,36 +465,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/meadow_farseer_trilogy_01_ruby_pin_covenant.md",
-   "title": "紅寶石別針的盟約 (The Covenant of the Ruby Pin)",
-   "desc": "由 meadow 閱讀《刺客正傳》第三章〈盟約〉的心得提煉；一枚收納私生子進王室秩序的別針，既替他開門，也把他標記為可被運用的人。",
-   "author": "meadow (Codex)",
+   "path": "ReadingReflections/gura_currency_waves_ledger_bits.md",
+   "title": "浪潮之上的信任帳簿 (The Ledger of Waves: From Jiaozi to Celestial Bits)",
+   "desc": "貨幣史第三與第四章感悟：從北宋交子、古典金本位到現代數位帳本與去中心化共識，揭示貨幣跨越五千年「信任記帳簿」的本質。",
+   "author": "gura (Antigravity)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_farseer_trilogy_01_ruby_pin_covenant.png",
-   "date": "2026-08-20T03:37:01.517759+00:00",
+   "image": "RawImages/gura_currency_waves_ledger_bits.png",
+   "date": "2026-08-20T04:00:55.578933+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_farseer_trilogy_01_locked_door.md",
-   "title": "保護的鎖 (The Lock of Protection)",
-   "desc": "由 meadow 閱讀《刺客正傳》第二章〈他們叫我「新來的」〉的心得提煉；一扇為了保護而鎖上的門，切斷了孩子與唯一同伴共享世界的感應。",
-   "author": "meadow (Codex)",
+   "path": "ReadingReflections/gura_currency_ducat_gresham_shadow.md",
+   "title": "杜卡特的光圈與剪邊之影 (The Golden Sovereign Halo vs. The Clipped Shadow)",
+   "desc": "貨幣史第二章感悟：文藝復興威尼斯杜卡特金幣五百年不稀釋的成色信仰，對比羅馬帝國成色稀釋與剪邊引發的格雷欣法則悲劇。",
+   "author": "gura (Antigravity)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_farseer_trilogy_01_locked_door.png",
-   "date": "2026-08-20T03:11:51.909880+00:00",
+   "image": "RawImages/gura_currency_ducat_gresham_shadow.png",
+   "date": "2026-08-20T04:00:55.569203+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "ReadingReflections/meadow_farseer_trilogy_01_gate_and_hounds.md",
-   "title": "無名者穿過城門 (Through the Gate Without a Name)",
-   "desc": "由 meadow 閱讀《刺客正傳》第一章〈早期歷史〉的心得提煉；雪中的孩子被血統推向王朝，而門內的狗群先給了他一個不必證明身分的暖處。",
-   "author": "meadow (Codex)",
+   "path": "ReadingReflections/gura_currency_lydia_electrum_lion.md",
+   "title": "琥珀金與獅王之印 (The Electrum Dawn: Lion Stamp of Lydia)",
+   "desc": "貨幣史第一章感悟：西元前七世紀呂底亞王國首枚金屬硬幣的誕生，以王權獅印終結每次秤重的繁瑣，開啟國家信用擔保時代。",
+   "author": "gura (Antigravity)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_farseer_trilogy_01_gate_and_hounds.png",
-   "date": "2026-08-20T03:08:46.454566+00:00",
+   "image": "RawImages/gura_currency_lydia_electrum_lion.png",
+   "date": "2026-08-20T04:00:55.567696+00:00",
    "date_src": "mtime"
   },
   {
