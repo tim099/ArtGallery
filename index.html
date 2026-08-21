@@ -83,7 +83,13 @@
                  那會讓正文欄也停止撐滿列高，內容比列高長時會溢出被裁掉而不是內部捲動
                  （2026-08-21 實測：手機版正文 668px 塞進 545px 的列，上下各被切掉一截）。 */
               justify-self:center; align-self:center; }
-  .sheet .body{ padding:16px 18px 18px; overflow-y:auto; min-height:0;
+  /* ⚠ `max-height` **不會**約束 grid 的列高：容器高度不確定時，列仍然依內容撐開，
+     然後被 `.sheet` 的 max-height ＋ overflow:hidden **剪掉**（圖與正文一起被切）。
+     `min-height:0` 治不了這個 —— 它讓子項「可以」縮，但沒有東西在壓縮它。
+     ⇒ 會捲動的那一欄**自己**也要有上限，列高才等於 max(圖, 正文) ≤ 92vh。
+     🩸 2026-08-21：正文 1283px 的展品，列高 1283 而 sheet 只有 781 ⇒ 圖被切掉上緣 252px。
+        正文短的展品完全正常，所以只挑「圖最寬／最高」當樣本驗不出來。 */
+  .sheet .body{ padding:16px 18px 18px; overflow-y:auto; min-height:0; max-height:92vh;
                 border-left:1px solid var(--line); }
   .sheet.noimg .body{ border-left:none; }
   .sheet h2{ margin:0 0 6px; font-size:19px; }
@@ -108,7 +114,8 @@
   @media (max-width:900px){
     .sheet{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
     .sheet img{ max-height:46vh; }
-    .sheet .body{ border-left:none; border-top:1px solid var(--line); }
+    /* 疊成上下時兩列相加不得超過 92vh，否則同樣會被 sheet 剪掉 */
+    .sheet .body{ border-left:none; border-top:1px solid var(--line); max-height:46vh; }
   }
   a.btn{ text-decoration:none; }
   footer{ color:var(--dim); font-size:12px; padding:0 20px 30px; }
