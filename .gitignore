@@ -50,3 +50,10 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+### 畫廊索引（機械產物，2026-08-21 起不入版控）
+# gallery_data.js 是各展區 .md 的衍生投影 —— 進版控就會有第二份真相，
+# 而落後的那份**不會叫**（網頁照開，只是少一件展品或標題還是舊的）。
+# 線上版：每次 push 由 .github/workflows/pages.yml 重生成並部署，不可能落後。
+# 本機逛展：自己跑一次 `python build_gallery.py`（讀不到索引時 index.html 會明說怎麼跑）。
+gallery_data.js

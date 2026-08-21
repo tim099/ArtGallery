@@ -1,0 +1,75 @@
+# 區塊職責：把畫廊索引的重建與線上部署，從「人要記得跑」搬到 CI。
+#
+# 物理意義：
+#   `gallery_data.js` 是 249 份展品 `.md` 的**衍生投影**，不入版控（見 .gitignore）。
+#   線上版由本流程在每次 push 時重生成，直接打包成 Pages 產物部署 ——
+#   所以線上的畫廊**永遠不可能落後於展品**，因為它沒有一份可以落後的副本。
+#
+# 數值影響：只在 CI 的工作目錄產生 `gallery_data.js`，不寫回 repo、不產生 bot commit。
+#
+# 設計取捨：
+#   · **不採「CI 產生後 commit 回 master」**：那會讓索引重新變成版控裡的第二份真相，
+#     而落後的那份不會叫（網頁照開，只是少一件展品）。
+#   · `fetch-depth: 0` **不可省** —— 展品日期取自 `git log --diff-filter=A`（首次提交時間），
+#     淺 clone 查不到任何提交紀錄，249 件會全部退回 mtime＝「全部同時誕生」，
+#     而那個錯誤的排序看起來完全正常。
+#   · 本機逛展仍要自己跑一次 `build_gallery.py` —— 檔案不在版控裡，
+#     而 index.html 讀不到索引時會明說「請先跑 build_gallery.py」，不是白畫面。
+#
+# ⚠ 前置設定（只需做一次，且**必須先做**）：
+#   GitHub repo → Settings → Pages → Build and deployment → Source 改成 **GitHub Actions**。
+#   來源還停在 "Deploy from a branch" 時，本流程部署的產物不會被採用，
+#   而 `gallery_data.js` 已經不在分支裡 ⇒ 線上畫廊會變成「讀不到索引」。
+
+name: build-and-deploy-gallery
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:          # 手動重跑（例如只想重新部署一次）
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時只跑一份部署；後來的等前面跑完（不取消 —— 取消到一半的部署會讓線上停在半舊狀態）
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # 展品日期靠 git log 全史；淺 clone 會讓日期全部退回 mtime
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 重建索引
+        run: python build_gallery.py
+
+      - name: 驗收（索引必須與展品一致）
+        # 剛跑完就對帳看似多餘，但它擋的是「build 靜默少收了東西」——
+        # --check 是**重新掃一次再比對**，不是複述上一步的輸出。
+        run: python build_gallery.py --check
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .              # 整個 repo 就是站台（index.html 在根、圖在 RawImages/）
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

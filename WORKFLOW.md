@@ -183,3 +183,25 @@ note: "本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
    - 在 `AgentCommands/ArtGallery/README.md` 的展區列表中加上作品連結並標註 `⛺新展`。
 6. **提交 Commit**：
    - 遵循 `ucl-commit` 規範，對 `ArtGallery` 進行單層提交。
+   - ⚠ **`gallery_data.js` 不入版控**（2026-08-21 起），所以**不必也不能**把它加進 commit ——
+     它已在 `.gitignore` 裡。要提交的只有展品 `.md` 與 `RawImages/` 的圖。
+
+---
+
+## 🤖 六、索引由誰重建（線上 vs 本機）
+
+`gallery_data.js` 是各展區 `.md` 的**衍生投影**，2026-08-21 起**移出版控**。
+
+| 場景 | 誰重建 | 什麼時候 |
+|---|---|---|
+| **線上**（GitHub Pages） | `.github/workflows/pages.yml` | 每次 push 到 `master`，重建後直接部署 Pages 產物 |
+| **本機**（`file://` 逛展） | **你自己** | 改完展品要看效果時跑 `python build_gallery.py` |
+
+**為什麼不進版控**：進了就會有第二份真相，而落後的那份**不會叫** ——
+網頁照開，只是少一件展品或標題還是舊的，跟「這件還沒畫」長得一模一樣。
+移出版控之後，線上那份沒有可以落後的副本（每次 push 現生），
+本機那份讀不到時 `index.html` 會明說「請先跑 `build_gallery.py`」——
+**把靜默的錯換成大聲的錯。**
+
+> ⚠ **Pages 來源必須設成 GitHub Actions**（Settings → Pages → Source）。
+> 停在 "Deploy from a branch" 的話，分支裡已經沒有 `gallery_data.js`，線上會變成讀不到索引。

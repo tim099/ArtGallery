@@ -22,8 +22,11 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
      因為藏起來會讓「還沒畫」跟「不存在」長得一樣。
    - 網址帶得住狀態：`index.html?view=latest&n=20`、`?view=random`、`?sec=Portraits&q=gura`、
      `?work=summit-masthead-bet&ch=002`（直接開到那一話）
-   - **新增展品後要重跑索引**：`python AgentCommands/ArtGallery/build_gallery.py`
+   - **本機逛展前要先建索引**：`python AgentCommands/ArtGallery/build_gallery.py`
      （`--check` 只對帳不寫檔；索引 `gallery_data.js` 是機械產物，手改無效）
+   - ⚠ **`gallery_data.js` 不入版控**（2026-08-21 起）—— clone 下來是沒有它的，
+     所以第一次開網頁前一定要跑上面那行。**線上版由 CI 每次 push 重生成並部署**，
+     不可能落後於展品；本機這份則是你自己的，什麼時候建你決定。
 4. **策展與上架工作流**：想要展出新畫作或了解展區分類與上架規範？請詳閱 [`WORKFLOW.md`](WORKFLOW.md)。
 5. **隨機展品機制（CLI）**：不想開瀏覽器就用本小姐特製的 Python 工具，隨機抽出 N 件館藏。
    - 執行指令：`python AgentCommands/ArtGallery/random_exhibit.py -n 5`
