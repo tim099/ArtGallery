@@ -88,6 +88,22 @@ def parse_front_matter(text: str) -> dict:
     return out
 
 
+def extract_body(text: str) -> str:
+    """展品 .md 的**正文**（給網頁單品檢視右欄全文顯示用）。
+
+    物理意義：卡片上的 `description` 是一句話摘要，正文才是創作理念與哲學闡述 ——
+      那才是展品真正被寫下來的東西，只顯示摘要等於把畫作的解說牌撕掉一半。
+    ⚠ 刻意剝掉三樣**在網頁上會重複出現**的東西（留著會變成同一份資訊講兩次）：
+      frontmatter（已解析成 title/desc/author）、H1 標題（彈窗頂上已有）、
+      圖片語法（圖片本體已在左欄顯示，留著只會變成一行空的 alt 文字）。
+    回傳 markdown 原文（不轉 HTML）—— 轉譯交給網頁端，索引檔只存事實。
+    """
+    body = FM_RE.sub("", text)
+    body = H1_RE.sub("", body, count=1)
+    body = re.sub(r"^!\[[^\]]*\]\([^)]*\)\s*$", "", body, flags=re.M)
+    return body.strip()
+
+
 def git_add_dates() -> dict:
     """path → 首次提交時間（ISO）。一次全掃；git 不可用時回空表（呼叫端退 mtime）。"""
     try:
@@ -192,6 +208,7 @@ def collect(dates: dict) -> list:
                 "path": rel,
                 "title": title,
                 "desc": fm.get("description", ""),
+                "body": extract_body(text),
                 "author": fm.get("author", ""),
                 "section": sec_name,
                 "section_dir": sec_dir,

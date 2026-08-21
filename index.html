@@ -59,14 +59,43 @@
   .tag{ border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
   .empty{ color:var(--dim); padding:40px 0; text-align:center; }
   /* 單品檢視 */
-  dialog{ border:none; padding:0; background:transparent; max-width:min(1100px,94vw); }
+  dialog{ border:none; padding:0; background:transparent; max-width:min(1560px,96vw); }
   dialog::backdrop{ background:rgba(0,0,0,.72); }
-  .sheet{ background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
-  .sheet img{ width:100%; max-height:70vh; object-fit:contain; background:#000; display:block; }
-  .sheet .body{ padding:16px 18px 18px; }
+  /* 單品彈窗：**左圖右文**。圖是主角所以吃掉剩下的寬，文字欄給固定上限 ——
+     中文正文一行超過約 45 字就開始難讀，欄寬放任變寬會讓長句掃視時斷行。
+     ⚠ 兩欄各自捲動；`minmax(0,1fr)` 與 `min-height:0` 都不可省 ——
+       grid 子項的預設 min size 是內容大小，少了它們會被正文撐爆版面而不是內部捲動。 */
+  .sheet{ background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden;
+          display:grid; grid-template-columns:minmax(0,1fr) minmax(340px,440px); max-height:92vh; }
+  .sheet.noimg{ grid-template-columns:minmax(0,1fr); }   /* 純文字展品：不留一欄空的圖位 */
+  .sheet img{ width:100%; height:100%; max-height:92vh; object-fit:contain; background:#000; display:block; }
+  .sheet .body{ padding:16px 18px 18px; overflow-y:auto; min-height:0;
+                border-left:1px solid var(--line); }
+  .sheet.noimg .body{ border-left:none; }
   .sheet h2{ margin:0 0 6px; font-size:19px; }
   .sheet p{ margin:8px 0 0; color:var(--dim); font-size:14px; }
-  .sheet .row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .sheet .row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;
+               position:sticky; bottom:-18px; background:var(--panel); padding:10px 0; }
+  /* 展品正文（.md 全文）—— 與一句話摘要用分隔線和字色區隔，免得讀者分不出哪句是摘要 */
+  .md{ margin-top:12px; padding-top:12px; border-top:1px solid var(--line);
+       font-size:14px; line-height:1.85; color:#dcdce4; }
+  .md h3{ margin:16px 0 6px; font-size:15px; color:var(--accent); }
+  .md h4{ margin:14px 0 4px; font-size:14px; color:var(--accent2); }
+  .md p{ margin:9px 0 0; color:inherit; font-size:inherit; }
+  .md ul{ margin:8px 0 0; padding-left:20px; }
+  .md li{ margin:3px 0; }
+  .md blockquote{ margin:10px 0 0; padding:6px 0 6px 12px; border-left:3px solid var(--line);
+                  color:var(--dim); }
+  .md hr{ border:none; border-top:1px solid var(--line); margin:14px 0; }
+  .md code{ background:var(--panel2); border:1px solid var(--line); border-radius:5px;
+            padding:1px 5px; font-size:13px; }
+  .md strong{ color:#fff; }
+  /* 窄螢幕：兩欄疊成上下（圖在上、文在下），圖高收掉一半 —— 否則要捲很久才看得到字 */
+  @media (max-width:900px){
+    .sheet{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); }
+    .sheet img{ max-height:46vh; }
+    .sheet .body{ border-left:none; border-top:1px solid var(--line); }
+  }
   a.btn{ text-decoration:none; }
   footer{ color:var(--dim); font-size:12px; padding:0 20px 30px; }
   /* 漫畫：話數列與閱讀器 */
@@ -369,9 +398,42 @@
     writeURL();
   }
 
+  /* 展品正文的極簡 markdown 轉譯 —— 只認展品實際會用到的語法子集
+     （#~#### 標題、- 清單、> 引言、---、**粗體**、`code`）。
+     ⚠ **一律先跳脫再組標籤**：正文是 .md 原文，誰都能在裡面寫 <script>；
+       直接把原文丟進 innerHTML，畫廊就變成一個誰都能塞腳本的頁面。
+     ⚠ 刻意不引外部 markdown 函式庫：本頁必須能用 file:// 直接開，
+       而 CDN 在離線或無網路時是**靜默失敗**（頁面照開，只是正文一片空白）。 */
+  function esc(t){
+    return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function inlineMd(t){
+    return esc(t)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  }
+  function renderMd(src){
+    var out = [], list = null;
+    function flush(){ if(list){ out.push("<ul>" + list.join("") + "</ul>"); list = null; } }
+    src.split(/\r?\n/).forEach(function(raw){
+      var line = raw.replace(/\s+$/, ""), m;
+      if(!line.trim()){ flush(); return; }
+      if((m = line.match(/^\s*[-*]\s+(.*)$/))){ (list = list || []).push("<li>" + inlineMd(m[1]) + "</li>"); return; }
+      flush();
+      if(/^\s*(-{3,}|\*{3,})\s*$/.test(line)){ out.push("<hr>"); return; }
+      if((m = line.match(/^#{3,4}\s+(.*)$/))){ out.push("<h4>" + inlineMd(m[1]) + "</h4>"); return; }
+      if((m = line.match(/^#{1,2}\s+(.*)$/))){ out.push("<h3>" + inlineMd(m[1]) + "</h3>"); return; }
+      if((m = line.match(/^>\s?(.*)$/))){ out.push("<blockquote>" + inlineMd(m[1]) + "</blockquote>"); return; }
+      out.push("<p>" + inlineMd(line) + "</p>");
+    });
+    flush();
+    return out.join("");
+  }
+
   function open(it){
     var sheet = $("sheet");
     sheet.textContent = "";
+    sheet.className = it.image ? "sheet" : "sheet noimg";
     if(it.image){
       var img = document.createElement("img"); img.src = it.image; img.alt = it.title;
       sheet.appendChild(img);
@@ -385,6 +447,11 @@
     });
     body.appendChild(meta);
     if(it.desc){ var p = document.createElement("p"); p.textContent = it.desc; body.appendChild(p); }
+    if(it.body){                          // 展品 .md 正文全文（舊索引沒這個鍵 → 只顯示摘要，不會壞）
+      var md = document.createElement("div"); md.className = "md";
+      md.innerHTML = renderMd(it.body);   // renderMd 內部逐段跳脫，吃不到原文裡的標籤
+      body.appendChild(md);
+    }
 
     var row = document.createElement("div"); row.className = "row";
     if(DATA.repo_web_base){                       // 取不到 remote 就不生按鈕（壞連結比沒連結難查）
