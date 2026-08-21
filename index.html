@@ -49,7 +49,11 @@
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden;
          cursor:pointer; display:flex; flex-direction:column; }
   .card:hover{ border-color:var(--accent); }
-  .thumb{ aspect-ratio:4/3; background:var(--panel2); display:block; width:100%; object-fit:cover; }
+  /* 縮圖一律 **contain**（完整顯示，兩側留黑邊）而不是 cover ——
+     cover 會把橫版圖的左右、直式圖的上下裁掉，而**裁掉的部分在縮圖上看不出來**：
+     一張被切掉半個人的圖，看起來就只是「構圖有點怪」。
+     `aspect-ratio` 保留是為了讓所有卡片等高（不然格線會參差）；黑底讓留白看起來是相框不是破圖。 */
+  .thumb{ aspect-ratio:4/3; background:#000; display:block; width:100%; object-fit:contain; }
   .thumb.text{ display:flex; align-items:center; justify-content:center; padding:14px; text-align:center;
                color:var(--dim); font-size:13px; background:
                linear-gradient(135deg,var(--panel2),var(--panel)); }
@@ -66,9 +70,19 @@
      ⚠ 兩欄各自捲動；`minmax(0,1fr)` 與 `min-height:0` 都不可省 ——
        grid 子項的預設 min size 是內容大小，少了它們會被正文撐爆版面而不是內部捲動。 */
   .sheet{ background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden;
-          display:grid; grid-template-columns:minmax(0,1fr) minmax(340px,440px); max-height:92vh; }
+          display:grid; grid-template-columns:minmax(0,1fr) minmax(340px,440px);
+          max-width:100%; max-height:92vh; }
   .sheet.noimg{ grid-template-columns:minmax(0,1fr); }   /* 純文字展品：不留一欄空的圖位 */
-  .sheet img{ width:100%; height:100%; max-height:92vh; object-fit:contain; background:#000; display:block; }
+  /* 大圖：**盒子跟著圖走**（width/height 都 auto），不要 100% 撐滿欄位 ——
+     撐滿再 contain 的話，橫版圖會在上下補一大片黑（欄高是被右欄正文撐出來的，跟圖無關），
+     而且欄寬吃滿時圖會頂出版面。auto + max-* 讓圖**永遠完整、永遠不溢出**，
+     多出來的空間留給欄位底色（不是黑塊）。 */
+  .sheet img{ width:auto; height:auto; max-width:100%; max-height:92vh;
+              object-fit:contain; background:#000; display:block;
+              /* 只讓**圖**置中；不可改成 grid 的 align-items:center ——
+                 那會讓正文欄也停止撐滿列高，內容比列高長時會溢出被裁掉而不是內部捲動
+                 （2026-08-21 實測：手機版正文 668px 塞進 545px 的列，上下各被切掉一截）。 */
+              justify-self:center; align-self:center; }
   .sheet .body{ padding:16px 18px 18px; overflow-y:auto; min-height:0;
                 border-left:1px solid var(--line); }
   .sheet.noimg .body{ border-left:none; }
