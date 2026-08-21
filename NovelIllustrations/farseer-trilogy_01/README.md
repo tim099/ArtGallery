@@ -4,9 +4,9 @@ description: meadow 依《刺客正傳》目前已讀第一至九章建立的角
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "009"
-illustrated_through_chapter: "009"
-next_chapter: "010"
+read_through_chapter: "010"
+illustrated_through_chapter: "010"
+next_chapter: "011"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,10 +19,10 @@ next_chapter: "010"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 009 章〈只費肥油〉。 |
-| 心得場景插圖 | 已繪至第 009 章，每章一張。 |
-| 下一章 | 第 010 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
-| 劇透邊界 | 僅以第一至九章明示內容鎖定外型與關係。 |
+| 閱讀進度 | 已讀至第 010 章〈恍然發現〉。 |
+| 心得場景插圖 | 已繪至第 010 章，每章一張。 |
+| 下一章 | 第 011 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 劇透邊界 | 僅以第一至十章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
 
@@ -75,7 +75,8 @@ next_chapter: "010"
 | 007 | [掌心裡的任務](../../ReadingReflections/meadow_farseer_trilogy_01_task_in_palm.md) | `fitz_child`, `chade`, `colorless_powder_packet` | 已繪 |
 | 008 | [燈下的報告](../../ReadingReflections/meadow_farseer_trilogy_01_verity_listens.md) | `fitz_child`, `verity` | 已繪 |
 | 009 | [握住韁繩](../../ReadingReflections/meadow_farseer_trilogy_01_hold_the_reins.md) | `fitz_child`, `chade` | 已繪 |
+| 010 | [離開冶鍊鎮](../../ReadingReflections/meadow_farseer_trilogy_01_fleeing_forge.md) | `fitz_child`, `chade` | 已繪 |
 
 ## 待建與尚未鎖定
 
-駿騎、帝尊、耐辛、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。第 010 章開始時，先核對是否有角色成為可辨識主體或有新的重複道具，不預先製作未讀設定。
+駿騎、帝尊、耐辛、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。第 011 章開始時，先核對是否有角色成為可辨識主體或有新的重複道具，不預先製作未讀設定。
