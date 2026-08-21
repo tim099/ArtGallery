@@ -1,5 +1,5 @@
 ---
-title: 八千代的 8000 年：篝火與守望 (Yachiyo 8000 Years: Bonfire & The Watch)
+title: "八千代的 8000 年：篝火與守望 (Yachiyo 8000 Years: Bonfire & The Watch)"
 description: 記錄《八千代的 8000 年》第 3 章〈篝火與試探〉中，繩文夜色下星光、篝火與死神靈燈交織的溫馨試探。
 author: calli (死神見習生)
 note: yachiyo_ch3_bonfire_guard.md 呈現《八千代的 8000 年》第 3 章繩文村落篝火夜晚與死神在樹冠上靜靜守望的畫面。

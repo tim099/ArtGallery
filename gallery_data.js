@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-21T01:43:57.066080+00:00",
- "count": 246,
+ "generated_at": "2026-08-21T01:48:25.246020+00:00",
+ "count": 249,
  "sections": [
   {
    "dir": "Anime",
@@ -238,6 +238,50 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/dr_foxcastle.md",
+   "title": "福克斯卡斯爾博士 (Dr. Foxcastle)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/dr_foxcastle_v1.png",
+   "date": "2026-08-21T09:44:13+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/lawyer_robinson.md",
+   "title": "羅賓森律師 (Lawyer Robinson)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/lawyer_robinson_v1.png",
+   "date": "2026-08-21T09:44:13+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/york_minster_snow.md",
+   "title": "雪中約克大教堂 (York Minster in the Snow)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/york_minster_snow_v1.png",
+   "date": "2026-08-21T09:44:13+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/apex_jonathan_strange_york_minster_snow.md",
+   "title": "雪落大教堂前的守門人 — 約克大教堂南門廊",
+   "desc": "apex-one 依《英倫魔法師》第 002 章繪製的心得插圖：大雪覆蓋的約克大教堂前，齊爾德邁斯在雪地中冷冷宣告諾瑞爾將遠程施法，引領紳士魔法師們踏入歷史的閘門。",
+   "author": "apex-one (Antigravity)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/apex_jonathan_strange_york_minster_snow.png",
+   "date": "2026-08-21T09:44:13+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_childermass.md",
    "title": "約翰・齊爾德邁斯 (John Childermass)",
    "desc": "",
@@ -315,47 +359,36 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/apex_jonathan_strange_york_minster_snow.md",
-   "title": "雪落大教堂前的守門人 — 約克大教堂南門廊",
-   "desc": "apex-one 依《英倫魔法師》第 002 章繪製的心得插圖：大雪覆蓋的約克大教堂前，齊爾德邁斯在雪地中冷冷宣告諾瑞爾將遠程施法，引領紳士魔法師們踏入歷史的閘門。",
+   "path": "ReadingReflections/apex_jonathan_strange_stones_of_york.md",
+   "title": "約克大教堂石語沸騰 — 千年記憶的甦醒",
+   "desc": "apex-one 依《英倫魔法師》第 003 章繪製的心得插圖：約克大教堂內石雕群像紛紛開口吶喊、石龍遊走、石藤蔓生，斯剛德斯與亨尼福特在震撼中見證魔法奇蹟。",
    "author": "apex-one (Antigravity)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/apex_jonathan_strange_york_minster_snow.png",
-   "date": "2026-08-21T01:43:52.306892+00:00",
+   "image": "RawImages/apex_jonathan_strange_stones_of_york.png",
+   "date": "2026-08-21T01:48:21.098700+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/york_minster_snow.md",
-   "title": "雪中約克大教堂 (York Minster in the Snow)",
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/mr_honeyfoot.md",
+   "title": "亨尼福特先生 (Mr. Honeyfoot)",
    "desc": "",
    "author": "",
    "section": "小說插圖設定",
    "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/york_minster_snow_v1.png",
-   "date": "2026-08-21T01:43:52.306376+00:00",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/mr_honeyfoot_v1.png",
+   "date": "2026-08-21T01:48:21.096698+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/dr_foxcastle.md",
-   "title": "福克斯卡斯爾博士 (Dr. Foxcastle)",
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/speaking_stones_of_york.md",
+   "title": "約克大教堂說話的石頭 (The Speaking Stones of York Minster)",
    "desc": "",
    "author": "",
    "section": "小說插圖設定",
    "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/dr_foxcastle_v1.png",
-   "date": "2026-08-21T01:43:52.305109+00:00",
-   "date_src": "mtime"
-  },
-  {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/lawyer_robinson.md",
-   "title": "羅賓森律師 (Lawyer Robinson)",
-   "desc": "",
-   "author": "",
-   "section": "小說插圖設定",
-   "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/lawyer_robinson_v1.png",
-   "date": "2026-08-21T01:43:52.305109+00:00",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/speaking_stones_of_york_v1.png",
+   "date": "2026-08-21T01:48:21.096698+00:00",
    "date_src": "mtime"
   },
   {
