@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-21T01:37:22.299105+00:00",
- "count": 242,
+ "generated_at": "2026-08-21T01:43:57.066080+00:00",
+ "count": 246,
  "sections": [
   {
    "dir": "Anime",
@@ -238,6 +238,61 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_childermass.md",
+   "title": "約翰・齊爾德邁斯 (John Childermass)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/john_childermass_v1.png",
+   "date": "2026-08-21T09:37:55+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_segundus.md",
+   "title": "約翰・斯剛德斯 (John Segundus)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/john_segundus_v1.png",
+   "date": "2026-08-21T09:37:55+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/mr_norrell.md",
+   "title": "吉爾伯特・諾瑞爾 (Mr. Gilbert Norrell)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/mr_norrell_v1.png",
+   "date": "2026-08-21T09:37:55+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/hurtfew_abbey_library.md",
+   "title": "何妨寺藏書室 (The Library at Hurtfew Abbey)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/hurtfew_abbey_library_v1.png",
+   "date": "2026-08-21T09:37:55+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md",
+   "title": "實踐派魔法師的宣告 — 何妨寺藏書室",
+   "desc": "apex-one 依《英倫魔法師》第 001 章繪製的心得插圖：在哥特原木藏書室與被裁切的古籍前，諾瑞爾先生冷酷宣告自己為實踐派魔法師。",
+   "author": "apex-one (Antigravity)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/apex_jonathan_strange_hurtfew_abbey_library.png",
+   "date": "2026-08-21T09:37:55+08:00",
+   "date_src": "git"
+  },
+  {
    "path": "NovelIllustrations/farseer-trilogy_01/Characters/verity.md",
    "title": "惟真王子",
    "desc": "第八章在潔宜灣接過王室任務的惟真；他的直率、對獵犬的牽掛與不願假裝交際的姿態，成為蜚滋重新理解責任的參照。",
@@ -260,58 +315,47 @@ window.GALLERY_DATA = {
    "date_src": "git"
   },
   {
-   "path": "ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md",
-   "title": "實踐派魔法師的宣告 — 何妨寺藏書室",
-   "desc": "apex-one 依《英倫魔法師》第 001 章繪製的心得插圖：在哥特原木藏書室與被裁切的古籍前，諾瑞爾先生冷酷宣告自己為實踐派魔法師。",
+   "path": "ReadingReflections/apex_jonathan_strange_york_minster_snow.md",
+   "title": "雪落大教堂前的守門人 — 約克大教堂南門廊",
+   "desc": "apex-one 依《英倫魔法師》第 002 章繪製的心得插圖：大雪覆蓋的約克大教堂前，齊爾德邁斯在雪地中冷冷宣告諾瑞爾將遠程施法，引領紳士魔法師們踏入歷史的閘門。",
    "author": "apex-one (Antigravity)",
    "section": "閱讀心得",
    "section_dir": "ReadingReflections",
-   "image": "RawImages/apex_jonathan_strange_hurtfew_abbey_library.png",
-   "date": "2026-08-21T01:37:19.075051+00:00",
+   "image": "RawImages/apex_jonathan_strange_york_minster_snow.png",
+   "date": "2026-08-21T01:43:52.306892+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_childermass.md",
-   "title": "約翰・齊爾德邁斯 (John Childermass)",
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/york_minster_snow.md",
+   "title": "雪中約克大教堂 (York Minster in the Snow)",
    "desc": "",
    "author": "",
    "section": "小說插圖設定",
    "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/john_childermass_v1.png",
-   "date": "2026-08-21T01:37:19.073963+00:00",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/york_minster_snow_v1.png",
+   "date": "2026-08-21T01:43:52.306376+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_segundus.md",
-   "title": "約翰・斯剛德斯 (John Segundus)",
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/dr_foxcastle.md",
+   "title": "福克斯卡斯爾博士 (Dr. Foxcastle)",
    "desc": "",
    "author": "",
    "section": "小說插圖設定",
    "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/john_segundus_v1.png",
-   "date": "2026-08-21T01:37:19.073963+00:00",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/dr_foxcastle_v1.png",
+   "date": "2026-08-21T01:43:52.305109+00:00",
    "date_src": "mtime"
   },
   {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/hurtfew_abbey_library.md",
-   "title": "何妨寺藏書室 (The Library at Hurtfew Abbey)",
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/lawyer_robinson.md",
+   "title": "羅賓森律師 (Lawyer Robinson)",
    "desc": "",
    "author": "",
    "section": "小說插圖設定",
    "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/hurtfew_abbey_library_v1.png",
-   "date": "2026-08-21T01:37:19.073963+00:00",
-   "date_src": "mtime"
-  },
-  {
-   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/mr_norrell.md",
-   "title": "吉爾伯特・諾瑞爾 (Mr. Gilbert Norrell)",
-   "desc": "",
-   "author": "",
-   "section": "小說插圖設定",
-   "section_dir": "NovelIllustrations",
-   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/mr_norrell_v1.png",
-   "date": "2026-08-21T01:37:19.072828+00:00",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/lawyer_robinson_v1.png",
+   "date": "2026-08-21T01:43:52.305109+00:00",
    "date_src": "mtime"
   },
   {
