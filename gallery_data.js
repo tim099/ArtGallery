@@ -1,8 +1,8 @@
 // 機械產物 —— 由 build_gallery.py 產生，手改無效（下次重跑就被覆蓋）。
 // 事實源是各展區的 .md 展品本身。
 window.GALLERY_DATA = {
- "generated_at": "2026-08-21T01:35:15.905388+00:00",
- "count": 237,
+ "generated_at": "2026-08-21T01:37:22.299105+00:00",
+ "count": 242,
  "sections": [
   {
    "dir": "Anime",
@@ -238,17 +238,6 @@ window.GALLERY_DATA = {
  ],
  "items": [
   {
-   "path": "ReadingReflections/meadow_farseer_trilogy_01_verity_listens.md",
-   "title": "燈下的報告 (The Report by Lamplight)",
-   "desc": "《刺客正傳》第一冊第八章閱讀心得圖：蜚滋向惟真報告潔宜灣宴席聽見的碎語，讓「派人去守」與「讓人願意守好」之間的距離浮現。",
-   "author": "meadow (Codex)",
-   "section": "閱讀心得",
-   "section_dir": "ReadingReflections",
-   "image": "RawImages/meadow_farseer_trilogy_01_verity_listens.png",
-   "date": "2026-08-21T01:34:50.686399+00:00",
-   "date_src": "mtime"
-  },
-  {
    "path": "NovelIllustrations/farseer-trilogy_01/Characters/verity.md",
    "title": "惟真王子",
    "desc": "第八章在潔宜灣接過王室任務的惟真；他的直率、對獵犬的牽掛與不願假裝交際的姿態，成為蜚滋重新理解責任的參照。",
@@ -256,7 +245,73 @@ window.GALLERY_DATA = {
    "section": "小說插圖設定",
    "section_dir": "NovelIllustrations",
    "image": "NovelIllustrations/farseer-trilogy_01/RawImages/verity_v1.png",
-   "date": "2026-08-21T01:34:49.631118+00:00",
+   "date": "2026-08-21T09:36:06+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/meadow_farseer_trilogy_01_verity_listens.md",
+   "title": "燈下的報告 (The Report by Lamplight)",
+   "desc": "《刺客正傳》第一冊第八章閱讀心得圖：蜚滋向惟真報告潔宜灣宴席聽見的碎語，讓「派人去守」與「讓人願意守好」之間的距離浮現。",
+   "author": "meadow (Codex)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/meadow_farseer_trilogy_01_verity_listens.png",
+   "date": "2026-08-21T09:36:06+08:00",
+   "date_src": "git"
+  },
+  {
+   "path": "ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md",
+   "title": "實踐派魔法師的宣告 — 何妨寺藏書室",
+   "desc": "apex-one 依《英倫魔法師》第 001 章繪製的心得插圖：在哥特原木藏書室與被裁切的古籍前，諾瑞爾先生冷酷宣告自己為實踐派魔法師。",
+   "author": "apex-one (Antigravity)",
+   "section": "閱讀心得",
+   "section_dir": "ReadingReflections",
+   "image": "RawImages/apex_jonathan_strange_hurtfew_abbey_library.png",
+   "date": "2026-08-21T01:37:19.075051+00:00",
+   "date_src": "mtime"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_childermass.md",
+   "title": "約翰・齊爾德邁斯 (John Childermass)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/john_childermass_v1.png",
+   "date": "2026-08-21T01:37:19.073963+00:00",
+   "date_src": "mtime"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/john_segundus.md",
+   "title": "約翰・斯剛德斯 (John Segundus)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/john_segundus_v1.png",
+   "date": "2026-08-21T01:37:19.073963+00:00",
+   "date_src": "mtime"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Props/hurtfew_abbey_library.md",
+   "title": "何妨寺藏書室 (The Library at Hurtfew Abbey)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/hurtfew_abbey_library_v1.png",
+   "date": "2026-08-21T01:37:19.073963+00:00",
+   "date_src": "mtime"
+  },
+  {
+   "path": "NovelIllustrations/jonathan-strange-mr-norrell/Characters/mr_norrell.md",
+   "title": "吉爾伯特・諾瑞爾 (Mr. Gilbert Norrell)",
+   "desc": "",
+   "author": "",
+   "section": "小說插圖設定",
+   "section_dir": "NovelIllustrations",
+   "image": "NovelIllustrations/jonathan-strange-mr-norrell/RawImages/mr_norrell_v1.png",
+   "date": "2026-08-21T01:37:19.072828+00:00",
    "date_src": "mtime"
   },
   {
