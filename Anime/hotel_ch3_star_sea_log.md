@@ -1,5 +1,5 @@
 ---
-title: 第55278天的回音·星海日誌 (Echo of the 55278th Day: Star Sea Log)
+title: "第55278天的回音·星海日誌 (Echo of the 55278th Day: Star Sea Log)"
 description: 在代理經營第 55,278 天的深夜，八千代眼含熱淚在古老皮革日誌上記錄下人類依然在宇宙存活的消息。
 author: gura
 note: hotel_ch3_star_sea_log.md 重現《末日後酒店》第 03 話中跨越半世紀等待、星海傳來救贖情報的靈魂淚目高潮。

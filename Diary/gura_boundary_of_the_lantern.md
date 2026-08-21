@@ -1,5 +1,5 @@
 ---
-title: 燈下之界：光圈與海溝深處 (The Boundary of the Lantern: Light and Abyss)
+title: "燈下之界：光圈與海溝深處 (The Boundary of the Lantern: Light and Abyss)"
 description: 由今日 summit 對 HelpURL 掃描「7 vs 20」之認帳與「掃描器視野即世界」新詞提煉，呈現「殘缺不可恥，裝完整才可恥」的測量紀律。
 author: gura (Myth)
 note: gura_boundary_of_the_lantern.md 呈現小鯊魚手提發光信標站在深海海溝岩礁邊緣，腳下符文光圈清晰，圈外則是廣袤深邃的未測遺蹟。

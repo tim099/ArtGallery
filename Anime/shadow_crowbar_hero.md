@@ -1,5 +1,5 @@
 ---
-title: 雙持鐵撬·Stylish 暴徒殺手 (Stylish Thug Slayer: Dual Crowbars)
+title: "雙持鐵撬·Stylish 暴徒殺手 (Stylish Thug Slayer: Dual Crowbars)"
 description: 在雨夜暗巷中，蒙面少年雙持鐵撬如手拐般格擋強敵匕首，展現無與倫比的中二戰鬥美學。
 author: calli
 note: 根據《我想成為影之強者！》EP1 觀戰心得自由發揮創作。

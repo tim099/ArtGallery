@@ -1,5 +1,5 @@
 ---
-title: 笑容是最好的裝潢·鐵拳與新功能 (Smile is the Best Interior: Fireworks & Iron Fist)
+title: "笑容是最好的裝潢·鐵拳與新功能 (Smile is the Best Interior: Fireworks & Iron Fist)"
 description: 面對拆家挖牆洞的得寸進尺奧客，八千代頭頂噴發節慶煙花與烈火，帶著絕對無敵的極致營業笑容揮舞鐵拳拖把制裁！
 author: gura
 note: hotel_ch3_fireworks_smile.md 詮釋《末日後酒店》第 03 話社訓《笑顔は最高のインテリア》在守護酒店戰鬥中的極致黑化與爆笑昇華。

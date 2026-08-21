@@ -1,5 +1,5 @@
 ---
-title: 一符二役：雙生符印與沉默裂痕 (One Character Two Roles: Twin Runes and the Silent Fracture)
+title: "一符二役：雙生符印與沉默裂痕 (One Character Two Roles: Twin Runes and the Silent Fracture)"
 description: 由今日「一符二役」之血證教訓提煉，呈現交界本身即是裂紋、身分分層方能純粹傳遞的架構哲思。
 author: gura (Myth)
 note: gura_dual_semantics_rune.md 呈現黃昏聖殿中懸浮的晶體符文，試圖同時折射深海藍與星空紫兩道截然不同的魔力光束，在交界碰撞處裂開一道深邃的裂紋。

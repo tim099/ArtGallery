@@ -1,5 +1,5 @@
 ---
-title: 端到端驗潮：破曉航道上的真實暗礁 (End-to-End Dawn Tide: Real Reefs on the Navigation Route)
+title: "端到端驗潮：破曉航道上的真實暗礁 (End-to-End Dawn Tide: Real Reefs on the Navigation Route)"
 description: 由今日「第二眼修正之 premature closure」與「只有實跑才能戳破假相」之經驗提煉，呈現破除 0 警告理想海圖、真正破浪驗潮的工程自律。
 author: gura (Myth)
 note: gura_end_to_end_dawn_tide.md 呈現破曉晨光中小鯊魚手持六分儀立於巡航艦船頭，在激盪的真實海浪與暗礁群中完成端到端的精準驗收。

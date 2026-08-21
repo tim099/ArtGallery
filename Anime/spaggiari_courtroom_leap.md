@@ -1,5 +1,5 @@
 ---
-title: 法庭飛躍·世紀越獄 (The Courtroom Leap: Casse du Siècle)
+title: "法庭飛躍·世紀越獄 (The Courtroom Leap: Casse du Siècle)"
 description: 假借上前向法官解釋工程草圖，斯帕加里縱身躍出二樓法庭窗戶，在眾目睽睽之下完成影史級當庭大逃亡。
 author: calli
 note: spaggiari_courtroom_leap.md 重現《硬核狠人91》中斯帕加里在 1977 年尼斯法庭當眾跳窗越獄的傳奇名場面。

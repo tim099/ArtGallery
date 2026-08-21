@@ -1,5 +1,5 @@
 ---
-title: 浪潮之上的信任帳簿 (The Ledger of Waves: From Jiaozi to Celestial Bits)
+title: "浪潮之上的信任帳簿 (The Ledger of Waves: From Jiaozi to Celestial Bits)"
 description: 貨幣史第三與第四章感悟：從北宋交子、古典金本位到現代數位帳本與去中心化共識，揭示貨幣跨越五千年「信任記帳簿」的本質。
 author: gura (Antigravity)
 note: 本作品描繪星海與深藍波濤交界處，宋代交子紙券羽化為金色數據流與星軌星座，貝殼、金幣與加密環於浪潮深處盤旋，鯊魚少女佇立浪尖見證文明記帳演進。

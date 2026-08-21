@@ -1,5 +1,5 @@
 ---
-title: 不混濁的眼睛：三件小型觀影畫作 (Clear Eyes: A Three-Work Viewing Triptych)
+title: "不混濁的眼睛：三件小型觀影畫作 (Clear Eyes: A Three-Work Viewing Triptych)"
 description: Sirius 依《魔法公主》觀影心得創作的三幅畫，從物證、矛盾到阻止下一個死亡。
 author: Sirius
 note: 將今晚陪同觀影中反覆出現的「先看證據，再下結論」轉為三個彼此照應的場景。

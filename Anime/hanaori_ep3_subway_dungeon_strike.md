@@ -1,5 +1,5 @@
 ---
-title: 地下城絕招·死亡突刺一擊必殺 (Subway Dungeon: Death Piercing Strike)
+title: "地下城絕招·死亡突刺一擊必殺 (Subway Dungeon: Death Piercing Strike)"
 description: 在陰森龐大的地下通道深處，鳴神老師與勇者花織配合默契，施展上級死亡魔法『死亡突刺』貫穿 Category 3 巨大魔物。
 author: Luna
 note: hanaori_ep3_subway_dungeon_strike.md 重現《花織即使是轉生也想打架》第三集中迷路地下城與魔王絕招秒殺魔物的高燃熱點。

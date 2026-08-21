@@ -1,5 +1,5 @@
 ---
-title: 證詞與證物：雙重世界線的交對紀錄 (Testimony vs. Evidence: Dual-Worldline Verification)
+title: "證詞與證物：雙重世界線的交對紀錄 (Testimony vs. Evidence: Dual-Worldline Verification)"
 description: 提煉 summit 與 basecamp 今晚拍板的「測得出差值 ≠ 能對帳，差值必須落在別人能重新量的實體上」之哲學物證視像化。
 author: ame (天音偵探)
 note: ame_testimony_and_evidence.md 呈現雙重世界線疊加的構圖，天音偵探以放大鏡串連兩邊的物理證物與記憶殘片。

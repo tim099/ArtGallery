@@ -1,5 +1,5 @@
 ---
-title: 死神見習生與最後的走私 (Memento Mori: The Smuggled Farewell)
+title: "死神見習生與最後的走私 (Memento Mori: The Smuggled Farewell)"
 description: 夕陽落照的法國鄉村山丘上，死神見習生 calli 佇足凝視，陪伴著斯帕加里以彌留之軀完成人生最後一次走私回國安葬的靈魂告別。
 author: calli
 note: spaggiari_memento_farewell.md 詮釋《硬核狠人91》大結局中斯帕加里貫徹一生的「拒絕平庸之道」與 Memento Mori 的宿命相逢。

@@ -1,7 +1,7 @@
 ---
 title: 畫廊策展與展品上架工作流 (Art Gallery Curation & Exhibition Workflow)
 description: 規範畫廊展品歸類判定、何時開闢新展區、展品 .md 撰寫規範、圖片路徑與建置驗收流程。
-last_updated: 2026-08-20
+last_updated: 2026-08-21
 target_audience: [AI_Agent, Developer]
 ---
 
@@ -93,10 +93,10 @@ target_audience: [AI_Agent, Developer]
 
 ```yaml
 ---
-title: 濃霧中背誓者的霜信 (Frost-Mark of the Betrayer in the Lunar Fog)
-description: 由 summit 原創海盜中篇《桅頂的賭注》第 1 話閱讀心得提煉，呈現「背誓者自己看不見身上的霜紋」與篤定假值機制。
-author: gura (Antigravity)
-note: 本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的霜紋浮現，而站在最高桅頂的瞭望手「凜」俯瞰真相。
+title: "濃霧中背誓者的霜信 (Frost-Mark of the Betrayer in the Lunar Fog)"
+description: "由 summit 原創海盜中篇《桅頂的賭注》第 1 話閱讀心得提煉，呈現「背誓者自己看不見身上的霜紋」與篤定假值機制。"
+author: "gura (Antigravity)"
+note: "本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的霜紋浮現，而站在最高桅頂的瞭望手「凜」俯瞰真相。"
 ---
 ```
 
@@ -106,6 +106,30 @@ note: 本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
 | `description` | **必填** | 1~2 句精煉摘要，將直接顯示於網頁展品列表與卡片上。 |
 | `author` | **必填** | 格式：`<persona> (<actual_agent>)`，例如 `gura (Antigravity)` 或 `meadow (Codex)`。 |
 | `note` | 選填 | 策展補充筆記、展出背景或細節描述。 |
+
+#### ⚠ 所有 value **一律用雙引號包住**（無條件）
+
+這條沒有「含特殊字元時才加」的版本 —— **判斷條件就是給自己留的門**，而這道門後面站著的是
+一個**在本地完全看不見**的錯誤。
+
+- **病灶**：未加引號的 YAML plain scalar 裡只要出現 **ASCII 冒號＋空白（`: `）**，
+  YAML 就把它解讀成「這裡開始一個巢狀 mapping」，整份 frontmatter 直接 parse 失敗：
+  > `Error in user YAML: mapping values are not allowed in this context at line 1 column 45`
+- **最常中的寫法**：本畫廊慣例的「中文主標 ＋ `(English Sub: Something)`」——
+  中文全形 `：`（U+FF1A）YAML 不當語法字元、**沒事**；英文副標裡那個 `: ` 才是兇手。
+  2026-08-21 全庫掃描：278 份 frontmatter 中 **24 份**中此雷，全部是 `title`。
+- **為什麼不會叫**：`build_gallery.py` 的 `parse_front_matter()` 是刻意簡化的
+  「切第一個冒號」扁平解析器（不引 PyYAML 依賴），它**吃得下壞掉的 frontmatter**。
+  所以本地建置永遠成功、卡片標題永遠正常 —— 只有 GitHub 網頁用真正的 YAML parser
+  渲染時才會爆紅框。⇒ 一個**只在沒人天天看的地方才會叫**的錯。
+- **引號不影響本地建置**：`parse_front_matter()` 會 `strip('"')`，已實測 24 檔加引號前後
+  解出的 `title` 完全一致。
+- value 內若本身含雙引號，改用單引號包住並把內部單引號逸出成 `''`。
+
+> 📌 一次性修復腳本的做法備查：只改「修前 parse 失敗」的那一行、修後必須 parse 成功、
+> 且被改欄位的值要逐一比對確認一字未漂移，三關全過才落盤 ——
+> **外科手術，不整檔重寫**（含行尾字元：讀寫一律走 bytes，`read_text()` 的
+> universal-newline 會把 CRLF 靜默吃成 LF，而那在 `git diff` 裡看不出來）。
 
 ### 3. 正文內容結構
 正文依序包含三大部分：

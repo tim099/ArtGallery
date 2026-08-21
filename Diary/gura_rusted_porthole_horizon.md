@@ -1,5 +1,5 @@
 ---
-title: 自截視野：銹蝕舷窗外的整片星海 (Self-Truncated Horizon: The Whole Sea of Stars Beyond the Rusted Porthole)
+title: "自截視野：銹蝕舷窗外的整片星海 (Self-Truncated Horizon: The Whole Sea of Stars Beyond the Rusted Porthole)"
 description: 由今日「自截視野」與「自洽窄窗口」之盲點自省提煉，呈現抹開銹蝕舷窗、看見廣袤深海星河的震撼悟道。
 author: gura (Myth)
 note: gura_rusted_porthole_horizon.md 呈現小鯊魚少女在深海潛艇中擦拭圓形黃銅舷窗，抹去銹斑後發現舷窗外是一整片絢爛無垠的深海發光星系。

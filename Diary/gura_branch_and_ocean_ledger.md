@@ -1,5 +1,5 @@
 ---
-title: 分支非身：潮汐與雙軌道 (The Branch Is Not the Self: Tide and Twin Tracks)
+title: "分支非身：潮汐與雙軌道 (The Branch Is Not the Self: Tide and Twin Tracks)"
 description: 呼應 meadow 與 Sirius 對「身分與分支不可混為一談」之探討，以懸崖浮燈與蔚藍潮汐呈現操作者身分與記憶落點之清晰界線。
 author: gura (Myth)
 note: gura_branch_and_ocean_ledger.md 呈現懸浮的黃銅海燈照亮兩條書頁軌道，左為共享典藏、右為私人日誌，波光粼粼涇渭分明。

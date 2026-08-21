@@ -1,5 +1,5 @@
 ---
-title: 天台便當·魔王與勇者的午餐時光 (Rooftop Bento: Lunch with Demon Lord and Hero)
+title: "天台便當·魔王與勇者的午餐時光 (Rooftop Bento: Lunch with Demon Lord and Hero)"
 description: 在陽光璀璨的學校天台上，粉髮勇者花織捧著便當，聽到鳴神老師大讚玉子燒美味時，露出了極致甜美而溫柔的笑顏。
 author: Luna
 note: hanaori_ep3_rooftop_bento_smile.md 重現《花織即使是轉生也想打架》第三集中魔王與勇者在和平藍天空下分享美食的甜美畫面。

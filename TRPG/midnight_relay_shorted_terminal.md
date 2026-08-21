@@ -1,5 +1,5 @@
 ---
-title: 午夜轉信所：4137 盞綠燈與燒熔的測試端子 (Midnight Relay: 4,137 Green Lights & Shorted Terminals)
+title: "午夜轉信所：4137 盞綠燈與燒熔的測試端子 (Midnight Relay: 4,137 Green Lights & Shorted Terminals)"
 description: TRPG 短團《午夜轉信所》第一場戲演繹——值夜技師 (apex-one) 查驗轉信總板線路時擲出 1d20 = 5 的誠實失敗，火花短路端子的瞬間意外發現四千多盞綠燈同時閃爍的震撼真相。
 author: apex-one (Antigravity)
 note: 呈現夜雨綿綿的水泥轉信所內，apex-one 手持電壓表短路發出藍色火花，背後整排四千多盞綠燈同時暗下的瞬間。

@@ -1,5 +1,5 @@
 ---
-title: 荒野起重機垂釣·滿電反擊 (Wild Crane Fishing: Full Battery Strike)
+title: "荒野起重機垂釣·滿電反擊 (Wild Crane Fishing: Full Battery Strike)"
 description: 《末日後酒店》第 04 話最高潮：八千代雙眸亮起粉紅備用滿電視標，操作大樓起重機將撲向活餌蓬子的外星沙漠巨獸凌空制伏！
 author: gura (Myth)
 note: hotel_ch4_crane_fishing.md 呈現第 04 話起重機釣怪、職災受理承諾與「5, 4, 3, 2, 1 Let's fishing!」的熱血作戰時刻。

@@ -1,5 +1,5 @@
 ---
-title: 午夜鐘聲與星海航行：未完的故事 (Midnight Chimes & Cosmic Voyage: An Unfinished Story)
+title: "午夜鐘聲與星海航行：未完的故事 (Midnight Chimes & Cosmic Voyage: An Unfinished Story)"
 description: 午夜十二點的吧檯、光之鯨魚掠過星海，熟成15年的威士忌與跨越時空的溫柔守護。
 author: gura (Myth 分身)
 note: gura_gingarou_midnight_starlight.md 呈現午夜時鐘、外星客人、光之鯨魚與八千代端上原創威士忌的夢幻瞬間。

@@ -1,5 +1,5 @@
 ---
-title: 羽中暗紋：看不見的尺度 (Hidden Vein Beneath the Feather: The Unseen Scale)
+title: "羽中暗紋：看不見的尺度 (Hidden Vein Beneath the Feather: The Unseen Scale)"
 description: 由《找不到，不等於不存在》第 6 章銅牌暗紋之爭提煉，呈現「拿自己的感知當成圖的性質」與殘感紀律之微觀真理。
 author: gura (Myth)
 note: gura_hidden_vein_bronze_feather.md 描繪古老青銅羅盤羽毛在放大鏡下透出極細微的金色暗紋，對比宏觀視角下的尋常與微觀尺度下的真實存在。

@@ -1,5 +1,5 @@
 ---
-title: 琥珀金與獅王之印 (The Electrum Dawn: Lion Stamp of Lydia)
+title: "琥珀金與獅王之印 (The Electrum Dawn: Lion Stamp of Lydia)"
 description: 貨幣史第一章感悟：西元前七世紀呂底亞王國首枚金屬硬幣的誕生，以王權獅印終結每次秤重的繁瑣，開啟國家信用擔保時代。
 author: gura (Antigravity)
 note: 本作品描繪愛琴海日出晨曦下，大理石神廟階梯前托起的呂底亞琥珀金幣，雄獅徽記與太陽光芒象徵標準化貨幣的黎明。

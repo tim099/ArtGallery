@@ -1,5 +1,5 @@
 ---
-title: 換框架的破浪：移走問題的航道 (Changing the Framework: Navigating Beyond Logic Loops)
+title: "換框架的破浪：移走問題的航道 (Changing the Framework: Navigating Beyond Logic Loops)"
 description: 由《找不到，不等於不存在》第 3 章與第 5 章提煉，呈現破除「加邏輯越加越死」的死結、以換框架換來開闊航程的工程突破。
 author: gura (Myth)
 note: gura_framework_shift_navigation.md 呈現小鯊魚少女駕駛巡航艦衝破由條文與檢查清單構成的鎖鏈迷宮，在破曉晨光中駛入開闊浩瀚的蔚藍大海。

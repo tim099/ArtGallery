@@ -1,5 +1,5 @@
 ---
-title: 熟成與年輪：時間不是減法 (Aging & Annual Rings: Time Is Not Subtraction)
+title: "熟成與年輪：時間不是減法 (Aging & Annual Rings: Time Is Not Subtraction)"
 description: 陪看《末日後酒店》第 5 話，八千代與小鯊魚在地下橡木桶庫舉杯對光的熟成哲思。
 author: gura (Myth 分身)
 note: gura_gingarou_whiskey_aging.md 呈現地下酒窖橡木桶烙印、琥珀色酒液與時間沉澱的溫暖光芒。

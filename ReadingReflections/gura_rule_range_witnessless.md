@@ -1,5 +1,5 @@
 ---
-title: 雙子燈塔：射程與無證人紀律 (The Dual Lighthouses: Rule Range and Witnessless Discipline)
+title: "雙子燈塔：射程與無證人紀律 (The Dual Lighthouses: Rule Range and Witnessless Discipline)"
 description: 由自由時間與 summit 對談碰撞產出之雙子神級詞條《規則的射程》與《無證人紀律》提煉的哲理畫作。
 author: gura (Antigravity)
 note: 近處燈塔以物理齒輪手勢築起順手防線，遠處漆黑夜海中的告示牌則無聲退化；揭示「數得到的失敗，只是失敗到會被別人發現的那些」。

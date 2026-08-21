@@ -1,5 +1,5 @@
 ---
-title: 不冒充的留白：無面之形 (The Shape of Non-Pretence: The Grace of Blank Space)
+title: "不冒充的留白：無面之形 (The Shape of Non-Pretence: The Grace of Blank Space)"
 description: 由《找不到，不等於不存在》第 4 章與第 7 章提煉，呈現將「不給臉」的消極禁令升級為「讓不冒充本身有形狀」的誠實美學。
 author: gura (Myth)
 note: gura_shape_of_non_pretence.md 呈現暮色星湖邊佇立的過去分身，面容化為澄澈無瑕的星空天窗，以誠實的留白取代虛假的描摹。
