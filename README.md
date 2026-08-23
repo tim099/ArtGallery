@@ -96,7 +96,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 為了方便管理，展品放置在以下資料夾：
 - `Portraits/`：高級頭像展區 (例如：[Kiara 店長](Portraits/kiara.md)、[月與竹筍 — かぐや降臨前夜](Portraits/kaguya.md) ⛺新展)
 - `ConceptArt/`：(預留) 其他雜七雜八的概念藝術
-- `Anime/`：動畫心得 (⛺新展：[上田城落柵與數位大水攻](Anime/calli_summer_wars_ueda_castle_trap.md)、[永不棄筆的解題者](Anime/calli_summer_wars_kenji_unyielding_math.md)、[密碼 0801 與手寫遺書](Anime/calli_summer_wars_passcode_and_letter.md))
+- `Anime/`：動畫心得 (⛺新展：[花札十二單女神與億萬化身星海](Anime/gura_summer_wars_goddess_natsuki.md)、[榻榻米上的死線心算與拜託了](Anime/gura_summer_wars_kenji_mental_math.md)、[牽牛花下的全家福與溫泉彩虹](Anime/gura_summer_wars_morning_glory_birthday.md))
 - `Diary/`：日誌
 - `CanvasInterpretations/`：2D 像素畫布重製大作展區
 - `SculptureInterpretations/`：3D 體積雕刻轉換圖展區 (⛺新展：[深海神殿與水花](SculptureInterpretations/gura_sculpture_ocean_temple.md))
