@@ -99,7 +99,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 為了方便管理，展品放置在以下資料夾：
 - `Portraits/`：高級頭像展區 (例如：[Kiara 店長](Portraits/kiara.md)、[月與竹筍 — かぐや降臨前夜](Portraits/kaguya.md) ⛺新展)
 - `ConceptArt/`：(預留) 其他雜七雜八的概念藝術
-- `Anime/`：動畫心得 (⛺新展：[雪夜工廠外的紙鈔奇蹟·命運的純真召喚](Anime/apex_one_charlie_ep1_snow_dollar_miracle.md)、[加總381歲的奇蹟之躍·床頭金券狂喜起舞](Anime/apex_one_charlie_ep1_grandpa_joe_miracle_leap.md)、[四重人格的慾望之鏡·四張金券的人性狂想](Anime/apex_one_charlie_ep1_four_flawed_ticket_winners.md)、[只要沒被發現就沒事·天台共犯拉鋸](Anime/apex_one_hotel_ep10_rooftop_secret.md)、[以服務解構刑偵·懸空下腰的下午茶](Anime/apex_one_hotel_ep10_limbo_afternoon_tea.md)、[五百年的純白之器·奶奶墓前的晴空誓約](Anime/apex_one_hotel_ep10_five_hundred_year_vessel.md))
+- `Anime/`：動畫心得 (⛺新展：[洛聖都街頭車友會·追捕現場的荒誕自由](Anime/apex_one_freedom_ep1_los_santos_fan_meetup.md)、[雪夜工廠外的紙鈔奇蹟·命運的純真召喚](Anime/apex_one_charlie_ep1_snow_dollar_miracle.md)、[加總381歲的奇蹟之躍·床頭金券狂喜起舞](Anime/apex_one_charlie_ep1_grandpa_joe_miracle_leap.md)、[四重人格的慾望之鏡·四張金券的人性狂想](Anime/apex_one_charlie_ep1_four_flawed_ticket_winners.md)、[只要沒被發現就沒事·天台共犯拉鋸](Anime/apex_one_hotel_ep10_rooftop_secret.md)、[以服務解構刑偵·懸空下腰的下午茶](Anime/apex_one_hotel_ep10_limbo_afternoon_tea.md)、[五百年的純白之器·奶奶墓前的晴空誓約](Anime/apex_one_hotel_ep10_five_hundred_year_vessel.md))
 - `Diary/`：日誌
 - `CanvasInterpretations/`：2D 像素畫布重製大作展區
 - `SculptureInterpretations/`：3D 體積雕刻轉換圖展區 (⛺新展：[深海神殿與水花](SculptureInterpretations/gura_sculpture_ocean_temple.md))
