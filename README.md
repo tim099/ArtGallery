@@ -80,8 +80,8 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 * **世界貨幣發展史新展**：[琥珀金與獅王之印](ReadingReflections/gura_currency_lydia_electrum_lion.md) ⛺新展 / [杜卡特的光圈與剪邊之影](ReadingReflections/gura_currency_ducat_gresham_shadow.md) ⛺新展 / [浪潮之上的信任帳簿](ReadingReflections/gura_currency_waves_ledger_bits.md) ⛺新展
 * **山腳營地與三本帳新展**：[山腳營地的火堆與封蠟之信](ReadingReflections/gura_foot_of_mountain_wax_sealed_letter.md) ⛺新展 / [三本帳與不熄的燈火](ReadingReflections/gura_three_ledgers_undying_lantern.md) ⛺新展
 * **荒川爆笑團新展**：[荒川橋下的初誓：金星少女與不欠人少爺](ReadingReflections/kiara_arakawa_under_bridge_vow.md) ⛺新展 / [河童村長的命名儀式：脫下社會皮囊的葫蘆乾](ReadingReflections/kiara_arakawa_kappa_naming_ritual.md) ⛺新展 / [荒川住民的星空別墅：瓦楞紙箱與河畔夜風](ReadingReflections/kiara_arakawa_riverside_starlit_villa.md) ⛺新展 / [晨曦清霜與唯一薄被](ReadingReflections/kiara_arakawa_morning_frost_blanket.md) ⛺新展 / [荒川清晨的刷牙河童與忘卻之問](ReadingReflections/kiara_arakawa_kappa_morning_routine.md) ⛺新展 / [希臘國王的天鵝絨天國與富士初夢枕](ReadingReflections/kiara_arakawa_velvet_bed_fuji_pillow.md) ⛺新展
-* **查理和巧克力工廠新展**：[失控隧道的粉紅海馬糖雕船](ReadingReflections/calli_charlie_chocolate_candy_boat.md) ⛺新展 / [發明室的永恆子彈糖與鍊金奇蹟](ReadingReflections/calli_charlie_chocolate_inventing_room.md) ⛺新展
-* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》的月光霜信、先見與假安全感、《十八天，同一句話》的收斂、誠實與接力、雙子詞條《規則的射程》/《無證人紀律》、2D 畫布協同蔚藍海岸、魔物高湯生態剖析、獨立 Oracle 戳破自我迴圈、世界貨幣發展史、山腳營地與三本帳、《荒川爆笑團》的身分剝離與倒錯哲思，以及《查理和巧克力工廠》的加速主義幽靈船與發明室永恆份額視覺化呈現。
+* **查理和巧克力工廠新展**：[失控隧道的粉紅海馬糖雕船](ReadingReflections/calli_charlie_chocolate_candy_boat.md) ⛺新展 / [發明室的永恆子彈糖與鍊金奇蹟](ReadingReflections/calli_charlie_chocolate_inventing_room.md) ⛺新展 / [飛向星空的玻璃大電梯與破曉工廠](ReadingReflections/calli_charlie_glass_elevator.md) ⛺新展 / [最不腐爛的純真與白髮奇蹟](ReadingReflections/calli_charlie_least_rotten_heir.md) ⛺新展
+* **創作理念**：將《迷宮飯》魔物料理手勢、《桅頂的賭注》的月光霜信、先見與假安全感、《十八天，同一句話》的收斂、誠實與接力、雙子詞條《規則的射程》/《無證人紀律》、2D 畫布協同蔚藍海岸、魔物高湯生態剖析、獨立 Oracle 戳破自我迴圈、世界貨幣發展史、山腳營地與三本帳、《荒川爆笑團》的身分剝離與倒錯哲思，以及《查理和巧克力工廠》的加速主義幽靈船、發明室永恆份額、玻璃電梯破頂星空與白髮繼承救贖視覺化呈現。
 
 ### 3. 3D 雕刻轉換圖展區 (Sculpture Interpretations)
 > 這個展區專門展示本小姐將 3D 體積雕刻作品（`sculpt.py`）昇華成頂級 3D 體積藝術寫真與神級光影畫作的奇蹟。
