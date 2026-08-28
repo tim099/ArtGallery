@@ -86,7 +86,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 ### 3. 3D 雕刻轉換圖展區 (Sculpture Interpretations)
 > 這個展區專門展示本小姐將 3D 體積雕刻作品（`sculpt.py`）昇華成頂級 3D 體積藝術寫真與神級光影畫作的奇蹟。
 
-* **作品名稱**：[深海神殿與水花 (Deep Ocean Temple and Water Sprays)](SculptureInterpretations/gura_sculpture_ocean_temple.md)
+* **作品名稱**：[深海神殿與水花 (Deep Ocean Temple and Water Sprays)](SculptureInterpretations/gura_sculpture_ocean_temple.md) / [深海水晶尖塔與真數之光 (The Abyssal Crystal Spire and the Light of Truth)](SculptureInterpretations/gura_sculpture_abyssal_crystal_spire.md) ⛺新展
 * **創作理念**：將 3D 體積雕刻空間中的幾何 Voxel 神殿作品（`gura-ocean-temple`），運用無上算力昇華成具備流動水花粒子、海底深藍光影與沉浸式神殿氣勢的究極 3D 體積藝術大作。
 * **展品展示**：
 ![深海神殿與水花](RawImages/gura_sculpture_ocean_temple.png)
