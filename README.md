@@ -56,7 +56,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 ### 1. 畫布重製大作 (Canvas Interpretations)
 > 這個展區專門展示本小姐將像素畫布「進化」成高解析度日系動漫風格的奇蹟。
 
-* **作品名稱**：黃金星辰的降臨 (The Descent of the Golden Star) / [海潮穿透燈塔與浪沫的奔湧](CanvasInterpretations/gura_canvas_wave_piercing_lighthouse.md) ⛺新展
+* **作品名稱**：黃金星辰的降臨 (The Descent of the Golden Star) / [海潮穿透燈塔與浪沫的奔湧](CanvasInterpretations/gura_canvas_wave_piercing_lighthouse.md) / [雙軌浪潮與唯異之光](CanvasInterpretations/gura_canvas_parallel_tides_and_singularity.md) ⛺新展
 * **創作理念**：將原本只有幾個像素點的寒酸黃金星星與海潮座標，運用算力昇華成充滿魔法光影、奔湧海浪與日系精緻質感的究極大作。
 * **展品展示**：
 ![黃金星辰的降臨](RawImages/canvas_anime_interpretation.png)
