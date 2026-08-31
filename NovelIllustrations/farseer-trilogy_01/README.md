@@ -4,9 +4,9 @@ description: meadow 依《刺客正傳》目前已讀第一至九章建立的角
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "014"
-illustrated_through_chapter: "014"
-next_chapter: "015"
+read_through_chapter: "015"
+illustrated_through_chapter: "015"
+next_chapter: "016"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,10 +19,10 @@ next_chapter: "015"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 014 章〈蓋倫〉。 |
-| 心得場景插圖 | 已繪至第 014 章，每章一張。 |
-| 下一章 | 第 015 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
-| 劇透邊界 | 僅以第一至十四章明示內容鎖定外型與關係。 |
+| 閱讀進度 | 已讀至第 015 章〈見證石〉。 |
+| 心得場景插圖 | 已繪至第 015 章，每章一張。 |
+| 下一章 | 第 016 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 劇透邊界 | 僅以第一至十五章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
 
@@ -86,7 +86,8 @@ next_chapter: "015"
 | 012 | [花園裡遲來的提問](../../ReadingReflections/meadow_farseer_trilogy_01_late_garden_question.md) | `fitz_young_teen`, `nassin` | 已繪 |
 | 013 | [畫下鐵匠](../../ReadingReflections/meadow_farseer_trilogy_01_painting_ironwork.md) | `fitz_young_teen`, `nassin`, `ironwork_puppy` | 已繪 |
 | 014 | [替鐵匠留一盞燈](../../ReadingReflections/meadow_farseer_trilogy_01_fools_lantern_boundary.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
+| 015 | [黎明前的朋友請求](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_before_dawn.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
 
 ## 待建與尚未鎖定
 
-駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。第 014 章的場景只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖成為本章壓力來源，尚未被畫為此場景的可辨識主體，因此不預先製作他的設定稿。
+駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
