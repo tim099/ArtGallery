@@ -2,7 +2,7 @@
 title: 《十八天》漫畫化
 description: summit 的跨線閱讀紀實漫畫；以留下的字、停住的信件與被下一雙手接住的行動，處理無法跨越的距離。
 source: AgentCommands/Books/summit-eighteen-days
-last_updated: 2026-08-11
+last_updated: 2026-09-01
 ---
 
 # 《十八天》漫畫化
@@ -12,9 +12,9 @@ last_updated: 2026-08-11
 | 章節 | 原文 | 狀態 | 說明 |
 |---|---|---|---|
 | 000〈明天沒有來〉 | `AgentCommands/Books/summit-eighteen-days/000.txt` | **完成（4/4）** | 首頁試畫；已逐頁驗收。 |
-| 001 | `AgentCommands/Books/summit-eighteen-days/001.txt` | 未分鏡 | |
-| 002 | `AgentCommands/Books/summit-eighteen-days/002.txt` | 未分鏡 | |
-| 003 | `AgentCommands/Books/summit-eighteen-days/003.txt` | 未分鏡 | |
+| 001〈十八天前的同一句話〉 | `AgentCommands/Books/summit-eighteen-days/001.txt` | **完成（5/5）** | 一次過稿；四判準裁圖驗收全過、零打回。 |
+| 002〈手邊躺著一顆十二〉 | `AgentCommands/Books/summit-eighteen-days/002.txt` | **完成（5/5）** | 正本：`002_p01_v2`／`002_p02_v4`／`002_p03`–`p05`。五判準全過。 |
+| 003〈字會糊，補了就還在〉 | `AgentCommands/Books/summit-eighteen-days/003.txt` | **完成（6/6）** | 主線收束；六判準全過、零打回。 |
 | 後記 | `003` 之後 | 已決定、未分鏡 | Sirius 接住信件；不是 `000` 的 P5。 |
 
 ## 角色分工
@@ -28,18 +28,26 @@ last_updated: 2026-08-11
 1. **畫面零可讀文字。** 字幕與台詞留在 `Chapters/`，讓閱讀語言不干擾畫面。
 2. **另一條線不以可見人物補全。** 她由信件、停止的位置與留白成立，因為不可跨越的距離本身就是情感。
 3. **全書基調為淺色。** 留白從一開始就存在，最後才顯出它的大小；桌燈只溫暖閱讀物，不把空間壓成暗室。
+4. **同一隻手的動作是全書的刻度。** `000` 懸空不碰 → `001` 落下去量 → 之後只能繼續往前推，
+   不可讓她再懸空一次。進度寫在這隻手上，所以這些格子不因「畫得更好看」而改構圖。
 
 ## 視覺母題
 
 - 紙頁的物理排列：一列變成 Y、末端整齊地停止。
 - 指尖與最後一頁之間可測量的距離。
 - 空桌面與遠處小小的閱讀者。
+- 兩列之間永不被填滿的空白帶（零通訊的視覺證據；補一條線就是改寫故事）。
+- 形狀相同、紙不相同：同一句話在兩條線上各自長出來。
+- **可數的物件代替數字**（`001` 六張頁 → `002` 十二／九／三顆籌碼 → `003` 十三張卡／八塊）。數字是文字，顆數不是。
+- **同一隻手的四格刻度**（見鐵則 4）—— 已於 `003` P6-② 收束，讀數見 `DRAWING_MEMO.md`。
 
 ## 人設與命名
 
 - [Summit](Characters/summit.md)
 - [Sirius](Characters/sirius.md)
 - [信件庫](Props/letters-archive.md)
+- [判定官的道具（骰・籌碼・直尺）](Props/judge-tools.md)
+- [字塊與條文（兩隻手的產物）](Props/word-blocks.md)
 - [正名與畫面文字規則](NAMING.md)
 
 ## 後記的已定位置
