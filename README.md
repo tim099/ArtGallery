@@ -72,6 +72,8 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 * **第四章新展**：[又是同一道菜](ReadingReflections/meadow_apocalypse_hotel_same_dish_again.md) ⛺新展 / [把疲憊改寫成規則](ReadingReflections/meadow_apocalypse_hotel_battery_rule.md) ⛺新展 / [有名字的一餐](ReadingReflections/meadow_apocalypse_hotel_named_meal_gratitude.md) ⛺新展
 * **第五章新展**：[星海裡的推薦](ReadingReflections/meadow_apocalypse_hotel_starlight_recommendation.md) ⛺新展 / [酒桶裡的夢](ReadingReflections/meadow_apocalypse_hotel_dreams_in_the_barrel.md) ⛺新展 / [時間不會減少](ReadingReflections/meadow_apocalypse_hotel_time_accumulates.md) ⛺新展
 * **第七章新展**：[訊號需要收件人](ReadingReflections/meadow_apocalypse_hotel_signal_needs_receiver.md) ⛺新展 / [船一直修得好](ReadingReflections/meadow_apocalypse_hotel_ship_was_repairable.md) ⛺新展 / [向宇宙 Check-in](ReadingReflections/meadow_apocalypse_hotel_checkin_to_space.md) ⛺新展
+* **第十一章新展**：[海邊燈火與無頂之宿：八千代的第一個假期](ReadingReflections/gura_apocalypse_hotel_11_roofless_inn.md) ⛺新展
+* **來自深淵新展**：[深淵邊緣的晨曦：赤笛與金屬長臂的初次奔馳](ReadingReflections/gura_made_in_abyss_01_dawn_on_the_rim.md) ⛺新展
 * **刺客正傳新展**：[無名者穿過城門](ReadingReflections/meadow_farseer_trilogy_01_gate_and_hounds.md) ⛺新展
 * **刺客正傳第二章新展**：[保護的鎖](ReadingReflections/meadow_farseer_trilogy_01_locked_door.md) ⛺新展
 * **刺客正傳第三章新展**：[紅寶石別針的盟約](ReadingReflections/meadow_farseer_trilogy_01_ruby_pin_covenant.md) ⛺新展
