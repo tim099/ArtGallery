@@ -4,9 +4,9 @@ description: meadow 依《刺客正傳》目前已讀第一至九章建立的角
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "015"
-illustrated_through_chapter: "015"
-next_chapter: "016"
+read_through_chapter: "016"
+illustrated_through_chapter: "016"
+next_chapter: "017"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,10 +19,10 @@ next_chapter: "016"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 015 章〈見證石〉。 |
-| 心得場景插圖 | 已繪至第 015 章，每章一張。 |
-| 下一章 | 第 016 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
-| 劇透邊界 | 僅以第一至十五章明示內容鎖定外型與關係。 |
+| 閱讀進度 | 已讀至第 016 章〈課程〉。 |
+| 心得場景插圖 | 已繪至第 016 章，每章一張。 |
+| 下一章 | 第 017 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 劇透邊界 | 僅以第一至十六章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
 
@@ -87,6 +87,7 @@ next_chapter: "016"
 | 013 | [畫下鐵匠](../../ReadingReflections/meadow_farseer_trilogy_01_painting_ironwork.md) | `fitz_young_teen`, `nassin`, `ironwork_puppy` | 已繪 |
 | 014 | [替鐵匠留一盞燈](../../ReadingReflections/meadow_farseer_trilogy_01_fools_lantern_boundary.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
 | 015 | [黎明前的朋友請求](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_before_dawn.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
+| 016 | [海灘岩石後的未言之約](../../ReadingReflections/kiara_farseer_trilogy_01_unspoken_on_the_beach.md) | `fitz_young_teen`, `molly_bundle`, `ironwork_puppy` | 已繪 |
 
 ## 待建與尚未鎖定
 
