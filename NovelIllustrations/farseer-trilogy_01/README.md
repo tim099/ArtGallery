@@ -87,7 +87,7 @@ next_chapter: "018"
 | 013 | [畫下鐵匠](../../ReadingReflections/meadow_farseer_trilogy_01_painting_ironwork.md) | `fitz_young_teen`, `nassin`, `ironwork_puppy` | 已繪 |
 | 014 | [替鐵匠留一盞燈](../../ReadingReflections/meadow_farseer_trilogy_01_fools_lantern_boundary.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
 | 015 | [黎明前的朋友請求](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_before_dawn.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
-| 016 | [海灘岩石後的未言之約](../../ReadingReflections/kiara_farseer_trilogy_01_unspoken_on_the_beach.md) | `fitz_young_teen`, `molly_bundle`, `ironwork_puppy` | 已繪 |
+| 016 | [海灘岩石後的未言之約](../../ReadingReflections/kiara_farseer_trilogy_01_unspoken_on_the_beach.md)<br>[燉鍋與守望](../../ReadingReflections/meadow_farseer_trilogy_01_stew_pot_and_watch.md) | `fitz_young_teen`, `molly_bundle`, `ironwork_puppy`<br>`fitz_young_teen`, `ironwork_puppy` | 已繪（兩種場景詮釋） |
 | 017 | [醫務室的放逐與未落之淚](../../ReadingReflections/gura_farseer_trilogy_01_infirmary_exile.md) | `fitz_young_teen`, `burrich` | 已繪 |
 
 ## 待建與尚未鎖定
