@@ -4,9 +4,9 @@ description: meadow 依《刺客正傳》目前已讀第一至九章建立的角
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "017"
-illustrated_through_chapter: "017"
-next_chapter: "018"
+read_through_chapter: "018"
+illustrated_through_chapter: "018"
+next_chapter: "019"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,10 +19,10 @@ next_chapter: "018"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 017 章〈考驗〉。 |
-| 心得場景插圖 | 已繪至第 017 章，每章一張。 |
-| 下一章 | 第 018 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
-| 劇透邊界 | 僅以第一至十七章明示內容鎖定外型與關係。 |
+| 閱讀進度 | 已讀至第 018 章〈暗殺〉。 |
+| 心得場景插圖 | 已繪至第 018 章，每章至少一張。 |
+| 下一章 | 第 019 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 劇透邊界 | 僅以第一至十八章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
 
@@ -89,6 +89,7 @@ next_chapter: "018"
 | 015 | [黎明前的朋友請求](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_before_dawn.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
 | 016 | [海灘岩石後的未言之約](../../ReadingReflections/kiara_farseer_trilogy_01_unspoken_on_the_beach.md)<br>[燉鍋與守望](../../ReadingReflections/meadow_farseer_trilogy_01_stew_pot_and_watch.md) | `fitz_young_teen`, `molly_bundle`, `ironwork_puppy`<br>`fitz_young_teen`, `ironwork_puppy` | 已繪（兩種場景詮釋） |
 | 017 | [醫務室的放逐與未落之淚](../../ReadingReflections/gura_farseer_trilogy_01_infirmary_exile.md)<br>[考驗前的約定](../../ReadingReflections/meadow_farseer_trilogy_01_promise_before_test.md) | `fitz_young_teen`, `burrich`<br>`fitz_young_teen`, `ironwork_puppy` | 已繪（兩種場景詮釋） |
+| 018 | [塔頂毛毯與君臣之名](../../ReadingReflections/calli_farseer_trilogy_01_verity_name_and_blanket.md) | `fitz_young_teen`, `verity` | 已繪 |
 
 ## 待建與尚未鎖定
 
