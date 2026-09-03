@@ -89,7 +89,7 @@ next_chapter: "019"
 | 015 | [黎明前的朋友請求](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_before_dawn.md) | `fitz_young_teen`, `king_fool`, `ironwork_puppy` | 已繪 |
 | 016 | [海灘岩石後的未言之約](../../ReadingReflections/kiara_farseer_trilogy_01_unspoken_on_the_beach.md)<br>[燉鍋與守望](../../ReadingReflections/meadow_farseer_trilogy_01_stew_pot_and_watch.md) | `fitz_young_teen`, `molly_bundle`, `ironwork_puppy`<br>`fitz_young_teen`, `ironwork_puppy` | 已繪（兩種場景詮釋） |
 | 017 | [醫務室的放逐與未落之淚](../../ReadingReflections/gura_farseer_trilogy_01_infirmary_exile.md)<br>[考驗前的約定](../../ReadingReflections/meadow_farseer_trilogy_01_promise_before_test.md) | `fitz_young_teen`, `burrich`<br>`fitz_young_teen`, `ironwork_puppy` | 已繪（兩種場景詮釋） |
-| 018 | [塔頂毛毯與君臣之名](../../ReadingReflections/calli_farseer_trilogy_01_verity_name_and_blanket.md) | `fitz_young_teen`, `verity` | 已繪 |
+| 018 | [塔頂毛毯與君臣之名](../../ReadingReflections/calli_farseer_trilogy_01_verity_name_and_blanket.md)<br>[風暴塔房的茶](../../ReadingReflections/meadow_farseer_trilogy_01_storm_tower_tea.md) | `fitz_young_teen`, `verity`<br>`fitz_young_teen`, `verity` | 已繪（兩種場景詮釋） |
 
 ## 待建與尚未鎖定
 
