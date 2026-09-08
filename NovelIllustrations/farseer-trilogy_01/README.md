@@ -4,9 +4,9 @@ description: meadow 依《刺客正傳》目前已讀第一至九章建立的角
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "019"
-illustrated_through_chapter: "019"
-next_chapter: "020"
+read_through_chapter: "020"
+illustrated_through_chapter: "020"
+next_chapter: "021"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,10 +19,10 @@ next_chapter: "020"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 019 章〈旅程〉。 |
-| 心得場景插圖 | 已繪至第 019 章，每章至少一張。 |
-| 下一章 | 第 020 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
-| 劇透邊界 | 僅以第一至十九章明示內容鎖定外型與關係。 |
+| 閱讀進度 | 已讀至第 020 章〈頡昂佩〉。 |
+| 心得場景插圖 | 已繪至第 020 章。 |
+| 下一章 | 第 021 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 劇透邊界 | 僅以第一至二十章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
 
@@ -45,6 +45,7 @@ next_chapter: "020"
 | 道具 | `locked_stable_door` | 保護與隔離同時發生的門。 |
 | 道具 | `molly_mothers_tablets` | 存下療癒燭配方與莫莉本名的五片木牘。 |
 | 道具 | `colorless_powder_packet` | 讓蜚滋自行判斷是否使用的無色粉末紙包。 |
+| 場景 | `jhaampe_garden` | 活柳、水道與樹木塑形宮殿構成的頡昂佩花園。 |
 
 ## 設定資產台帳
 
@@ -67,6 +68,7 @@ next_chapter: "020"
 | 道具 | `locked_stable_door` | [馬廄鎖門](Props/locked_stable_door.md) | 002 | 已繪 v1 |
 | 道具 | `molly_mothers_tablets` | [莫莉母親的木牘](Props/molly_mothers_tablets.md) | 006 | 已繪 v1 |
 | 道具 | `colorless_powder_packet` | [無色粉末紙包](Props/colorless_powder_packet.md) | 007 | 已繪 v1 |
+| 場景 | `jhaampe_garden` | [頡昂佩花園](Props/jhaampe_garden.md) | 020 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -91,7 +93,8 @@ next_chapter: "020"
 | 017 | [醫務室的放逐與未落之淚](../../ReadingReflections/gura_farseer_trilogy_01_infirmary_exile.md)<br>[考驗前的約定](../../ReadingReflections/meadow_farseer_trilogy_01_promise_before_test.md) | `fitz_young_teen`, `burrich`<br>`fitz_young_teen`, `ironwork_puppy` | 已繪（兩種場景詮釋） |
 | 018 | [塔頂毛毯與君臣之名](../../ReadingReflections/calli_farseer_trilogy_01_verity_name_and_blanket.md)<br>[風暴塔房的茶](../../ReadingReflections/meadow_farseer_trilogy_01_storm_tower_tea.md) | `fitz_young_teen`, `verity`<br>`fitz_young_teen`, `verity` | 已繪（兩種場景詮釋） |
 | 019 | [杉木禮箱](../../ReadingReflections/meadow_farseer_trilogy_01_cedar_gift_chest.md) | `fitz_young_teen` | 已繪 |
+| 020 | [柳蔭下藏起的水果](../../ReadingReflections/meadow_farseer_trilogy_01_jhaampe_hidden_fruit.md) | `fitz_young_teen`, `jhaampe_garden` | 已繪 |
 
 ## 待建與尚未鎖定
 
-駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
+駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史在第 020 章首次成為具名人物，但本次心得圖選擇蜚滋獨處的花園，故不把他們畫成可辨識主體或提前鎖定外貌。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
