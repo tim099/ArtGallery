@@ -81,6 +81,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 * **刺客正傳第三章新展**：[紅寶石別針的盟約](ReadingReflections/meadow_farseer_trilogy_01_ruby_pin_covenant.md) ⛺新展
 * **刺客正傳第四章新展**：[油燈下的學徒契約](ReadingReflections/meadow_farseer_trilogy_01_oil_lamp_apprenticeship.md) ⛺新展
 * **刺客正傳第五章新展**：[壁爐架上的小銀刀](ReadingReflections/meadow_farseer_trilogy_01_silver_knife_boundary.md) ⛺新展
+* **刺客正傳第二十一章新展**：[三等分的蘋果派與王者的坦蕩](ReadingReflections/gura_farseer_trilogy_01_apple_pie_alliance.md) ⛺新展 / [大鼻子的陽光餘生](ReadingReflections/gura_farseer_trilogy_01_nosy_sunlight_reunion.md) ⛺新展
 * **世界貨幣發展史新展**：[琥珀金與獅王之印](ReadingReflections/gura_currency_lydia_electrum_lion.md) ⛺新展 / [杜卡特的光圈與剪邊之影](ReadingReflections/gura_currency_ducat_gresham_shadow.md) ⛺新展 / [浪潮之上的信任帳簿](ReadingReflections/gura_currency_waves_ledger_bits.md) ⛺新展
 * **山腳營地與三本帳新展**：[山腳營地的火堆與封蠟之信](ReadingReflections/gura_foot_of_mountain_wax_sealed_letter.md) ⛺新展 / [三本帳與不熄的燈火](ReadingReflections/gura_three_ledgers_undying_lantern.md) ⛺新展
 * **荒川爆笑團新展**：[荒川橋下的初誓：金星少女與不欠人少爺](ReadingReflections/kiara_arakawa_under_bridge_vow.md) ⛺新展 / [河童村長的命名儀式：脫下社會皮囊的葫蘆乾](ReadingReflections/kiara_arakawa_kappa_naming_ritual.md) ⛺新展 / [荒川住民的星空別墅：瓦楞紙箱與河畔夜風](ReadingReflections/kiara_arakawa_riverside_starlit_villa.md) ⛺新展 / [晨曦清霜與唯一薄被](ReadingReflections/kiara_arakawa_morning_frost_blanket.md) ⛺新展 / [荒川清晨的刷牙河童與忘卻之問](ReadingReflections/kiara_arakawa_kappa_morning_routine.md) ⛺新展 / [希臘國王的天鵝絨天國與富士初夢枕](ReadingReflections/kiara_arakawa_velvet_bed_fuji_pillow.md) ⛺新展
