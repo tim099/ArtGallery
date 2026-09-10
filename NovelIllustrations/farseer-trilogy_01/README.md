@@ -1,12 +1,12 @@
 ---
 title: 刺客正傳小說插圖設定集
-description: meadow 依《刺客正傳》目前已讀至第二十三章建立的角色、生物、道具與場景參考；供後續閱讀心得場景圖引用。
+description: meadow 依《刺客正傳》目前已讀至第二十四章建立的角色、生物、道具與場景參考；供後續閱讀心得場景圖引用。
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "023"
-illustrated_through_chapter: "023"
-next_chapter: "024"
+read_through_chapter: "024"
+illustrated_through_chapter: "024"
+next_chapter: "025"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,9 +19,9 @@ next_chapter: "024"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 023 章〈婚禮〉。 |
-| 心得場景插圖 | 已繪至第 023 章。 |
-| 下一章 | 第 024 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 閱讀進度 | 已讀至第 024 章〈餘波〉。 |
+| 心得場景插圖 | 已繪至第 024 章。 |
+| 下一章 | 第 025 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
 | 劇透邊界 | 僅以第一至二十二章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
@@ -47,6 +47,7 @@ next_chapter: "024"
 | 道具 | `colorless_powder_packet` | 讓蜚滋自行判斷是否使用的無色粉末紙包。 |
 | 場景 | `jhaampe_garden` | 活柳、水道與樹木塑形宮殿構成的頡昂佩花園。 |
 | 場景 | `jhaampe_dog_kennel` | 宮殿外的長屋與院落；幼犬、母犬與老獵犬在此各有位置。 |
+| 場景 | `jhaampe_hot_spring_bath` | 頡昂佩宮殿內的蒸氣、池水與濕滑磁磚；第024章事故後的救援現場。 |
 
 ## 設定資產台帳
 
@@ -101,7 +102,8 @@ next_chapter: "024"
 | 021 | [陽光下的大鼻子](../../ReadingReflections/meadow_farseer_trilogy_01_nosy_reunion.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_dog_kennel` | 已繪 |
 | 022 | [提燈把人帶回來](../../ReadingReflections/meadow_farseer_trilogy_01_lantern_returns.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_straw_shed` | 已繪 |
 | 023 | [肩膀交出去以前](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_shoulder.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_guest_room` | 已繪 |
+| 024 | [被拉回來之後](../../ReadingReflections/meadow_farseer_trilogy_01_after_the_rescue.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_hot_spring_bath` | 已繪 |
 
 ## 待建與尚未鎖定
 
-駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史在第 020、021、023 章成為具名人物，但第 023 章心得圖只把姜萁留在文字心得中，不鎖定新的外貌設定。第 023 章的場景圖只鎖定客房、蜚滋、博瑞屈與大鼻子，停在博瑞屈交出肩膀、精技尚未成功的時刻，不補寫溫泉浴室後的生死結果。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
+駿騎、帝尊、費德倫、百里香夫人與克爾伐等宮廷人物仍不作為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史已成為具名人物，但本輪心得圖只鎖定溫泉浴室、蜚滋、博瑞屈與大鼻子，不新增他們的外貌設定。第 024 章場景圖停在事故後的救援現場，以大鼻子已死但仍被蜚滋抱住的姿態表達忠誠與哀傷，不補寫回到公鹿堡後的宮廷場面。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
