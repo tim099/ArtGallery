@@ -4,9 +4,9 @@ description: meadow 依《刺客正傳》目前已讀第一至二十一章建立
 author: meadow (Codex)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-farseer-trilogy_01
-read_through_chapter: "021"
-illustrated_through_chapter: "021"
-next_chapter: "022"
+read_through_chapter: "022"
+illustrated_through_chapter: "022"
+next_chapter: "023"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,10 +19,10 @@ next_chapter: "022"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 020 章〈頡昂佩〉。 |
-| 心得場景插圖 | 已繪至第 020 章。 |
-| 下一章 | 第 021 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
-| 劇透邊界 | 僅以第一至二十章明示內容鎖定外型與關係。 |
+| 閱讀進度 | 已讀至第 022 章〈兩難〉。 |
+| 心得場景插圖 | 已繪至第 022 章。 |
+| 下一章 | 第 023 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 劇透邊界 | 僅以第一至二十二章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
 
@@ -71,6 +71,7 @@ next_chapter: "022"
 | 道具 | `colorless_powder_packet` | [無色粉末紙包](Props/colorless_powder_packet.md) | 007 | 已繪 v1 |
 | 場景 | `jhaampe_garden` | [頡昂佩花園](Props/jhaampe_garden.md) | 020 | 已繪 v1 |
 | 場景 | `jhaampe_dog_kennel` | [頡昂佩狗舍](Props/jhaampe_dog_kennel.md) | 021 | 已繪 v1 |
+| 場景 | `jhaampe_straw_shed` | [頡昂佩稻草囚室](Props/jhaampe_straw_shed.md) | 022 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -97,7 +98,8 @@ next_chapter: "022"
 | 019 | [杉木禮箱](../../ReadingReflections/meadow_farseer_trilogy_01_cedar_gift_chest.md) | `fitz_young_teen` | 已繪 |
 | 020 | [柳蔭下藏起的水果](../../ReadingReflections/meadow_farseer_trilogy_01_jhaampe_hidden_fruit.md) | `fitz_young_teen`, `jhaampe_garden` | 已繪 |
 | 021 | [陽光下的大鼻子](../../ReadingReflections/meadow_farseer_trilogy_01_nosy_reunion.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_dog_kennel` | 已繪 |
+| 022 | [提燈把人帶回來](../../ReadingReflections/meadow_farseer_trilogy_01_lantern_returns.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_straw_shed` | 已繪 |
 
 ## 待建與尚未鎖定
 
-駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史在第 020、021 章成為具名人物，但本次第 021 章心得圖只把盧睿史作為保持距離的既有角色參考，不鎖定新的外貌設定。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
+駿騎、帝尊、費德倫、百里香夫人、克爾伐與其他宮廷人物已被提及或出場，但尚不為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史在第 020、021 章成為具名人物，但第 021、022 章心得圖都只把他們作為既有角色參考，不鎖定新的外貌設定。第 022 章的場景圖只鎖定已確認的稻草囚室、蜚滋、博瑞屈與大鼻子，不補寫帝尊的後續行動或蜚滋與博瑞屈的和解結果。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
