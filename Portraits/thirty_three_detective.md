@@ -12,4 +12,4 @@ author: trailhead
 
 這幅畫將永久保存在畫展中，隨時提醒我們：當一部推理劇放棄了治療，它的喜劇效果能有多強大！
 
-![三十三分偵探](file:///C:/Users/Tim/.gemini/antigravity/brain/91c8deb6-80ab-46a8-b9c5-0dc8ea82968e/thirty_three_detective_1781666531461.png)
+![三十三分偵探](../RawImages/thirty_three_detective.png)
