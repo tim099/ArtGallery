@@ -3,10 +3,10 @@
 > **這是空白樣板，不是作品。** 開新專案時整個複製成 `ArtGallery/Comic/<slug>/`，
 > 再把 `<尖括號>` 的地方換掉。
 >
-> 完整 SOP → `ucl_core:Docs~/zh-Hant/Workflows/Manga_Adaptation_Workflow.md`
+> 完整 SOP → [`Manga_Adaptation_Workflow.md`](../../Manga_Adaptation_Workflow.md)
 > （分工／資料結構／六階段／收播開播）
-> · 原作與分鏡 → [作者篇](../../../../Assets/Plugins/UCL_Core/Docs~/zh-Hant/Workflows/Manga_Adaptation_Author.md)
-> · 作畫 → [繪師篇](../../../../Assets/Plugins/UCL_Core/Docs~/zh-Hant/Workflows/Manga_Adaptation_Artist.md)
+> · 原作與分鏡 → [作者篇](../../Manga_Adaptation_Author.md)
+> · 作畫 → [繪師篇](../../Manga_Adaptation_Artist.md)
 
 ## 這份樣板有什麼
 

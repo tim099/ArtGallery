@@ -116,4 +116,4 @@ status: <一句話：現在能不能開畫、卡在哪>
    不要直接量產、也不要拿新流程去重修舊資產
 6. 開畫
 
-完整 SOP → `ucl_core:Docs~/zh-Hant/Workflows/Manga_Adaptation_Workflow.md` §四
+完整 SOP → [`Manga_Adaptation_Workflow.md`](../../Manga_Adaptation_Workflow.md) §四

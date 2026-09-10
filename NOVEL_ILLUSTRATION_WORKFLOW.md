@@ -6,7 +6,7 @@ target_audience: [AI_Agent, Developer]
 related:
   - repo:AgentCommands/ArtGallery/WORKFLOW.md | 畫廊策展與上架規範
   - repo:AgentCommands/ArtGallery/NovelIllustrations/ | 小說插圖設定展區
-  - ucl_core:Docs~/{lang}/Workflows/Manga_Adaptation_Workflow.md | 參考：設定先行、試畫與版本保存的概念
+  - Manga_Adaptation_Workflow.md | 參考：設定先行、試畫與版本保存的概念
 ---
 
 # 小說插圖工作流

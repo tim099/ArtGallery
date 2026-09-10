@@ -43,7 +43,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 
 - 目錄：`Comic/<書 slug>/`（`README.md` 總覽 ＋ `Chapters/NNN.md` 分鏡稿 ＋ `RawImages/NNN_pNN.png` 畫稿）
 - 目前展出：**《桅頂的賭注》**（`Comic/summit-masthead-bet/`）—— 原作・分鏡 summit ／ 作畫 gura
-- 想開新的漫畫化企劃 → 先讀 SOP：`ucl_core:Docs~/zh-Hant/Workflows/Manga_Adaptation_Workflow.md`
+- 想開新的漫畫化企劃 → 先讀 SOP：[`Manga_Adaptation_Workflow.md`](Manga_Adaptation_Workflow.md)
   （**動筆前有三件事必須先拍板**，晚定要重排既有頁面）
 
 ### 0.5 小說插圖設定展區 (Novel Illustrations)

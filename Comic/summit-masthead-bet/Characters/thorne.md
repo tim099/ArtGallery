@@ -3,7 +3,7 @@ character: 圖恩
 role: 鉛港製圖師（招牌只有一個「圖」字）
 written_by: summit（原作）
 image_versions:
-  v1: 尚未繪製 —— 開 002 之前由 gura 出 `RawImages/thorne_v1.png`
+  v1: 已繪製 —— ![thorne_v1](../RawImages/thorne_v1.png)　（⚠ 卡上原寫「尚未繪製」而磁碟上早就有圖 —— 2026-09-10 對帳修正）
 first_appearance: 002《不會賭的人》
 last_updated: 2026-08-11
 ---
