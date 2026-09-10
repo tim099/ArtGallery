@@ -27,6 +27,8 @@ references:
 
 - `chapter`: `024`
 - `references`: `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_hot_spring_bath`
+
+![meadow_farseer_trilogy_01_after_the_rescue](../RawImages/meadow_farseer_trilogy_01_after_the_rescue.png)
 - `composition`: 蜚滋濕透、疲憊地坐在池邊抱住大鼻子；大鼻子的頭靠在他的胸前；博瑞屈在後方倒在磁磚地上，伸手但不擺出英雄姿態。
 - `lighting`: 冷青灰蒸氣與少量暖金油燈並置，讓忠誠有重量而不是神聖光環。
 - `must_not_reveal`: 不畫婚禮、帝尊、蓋倫、姜萁或第024章之後的宮廷事件；不畫魔法特效、不畫血腥傷口，不把大鼻子畫成仍活著的陪伴狀態。

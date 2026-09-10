@@ -36,11 +36,11 @@ next_chapter: "006"
 | 人物 | `mr_honeyfoot` | 和藹熱誠的約克紳士，為常春藤女孩奔走掘棺的善意象徵。 |
 | 人物 | `christopher_drawlight` | 倫敦社交名利場的寄生掮客，黑天鵝絨眼鏡、大眼長睫的逢迎客。 |
 | 人物 | `mr_lascelles` | （待繪圖）高大英俊、冷酷傲慢、言辭如刀的貴族浪蕩子。 |
-| 人物 | `sir_walter_pole` | （待繪圖）內閣大臣、冷靜務實的政治家，通往國家權力機器的樞紐。 |
+| 人物 | `sir_walter_pole` | 內閣大臣、冷靜務實的政治家，通往國家權力機器的樞紐。 |
 | 場景/道具 | `hurtfew_abbey_library` | 仿哥特拱頂木雕藏書室，英格蘭魔法典籍的封閉神殿。 |
 | 場景/道具 | `york_minster_snow` | 白雪覆蓋的約克大教堂與南門廊，歷史交替的閘門。 |
 | 場景/道具 | `speaking_stones_of_york` | 活化甦醒的約克大教堂石刻群像、石龍與蔓生石藤。 |
-| 場景/道具 | `vinculus_yellow_tent` | （待繪圖）聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
+| 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
 
@@ -53,11 +53,11 @@ next_chapter: "006"
 | 人物 | `lawyer_robinson` | [羅賓森律師](Characters/lawyer_robinson.md) | 002 | 已繪 v1 |
 | 人物 | `mr_honeyfoot` | [亨尼福特先生](Characters/mr_honeyfoot.md) | 003 | 已繪 v1 |
 | 人物 | `christopher_drawlight` | [克里斯多福・德羅萊特](Characters/christopher_drawlight.md) | 004 | 已繪 v1 |
-| 人物 | `sir_walter_pole` | [沃特・坡爵士](Characters/sir_walter_pole.md) | 005 | 待繪圖 |
+| 人物 | `sir_walter_pole` | [沃特・坡爵士](Characters/sir_walter_pole.md) | 005 | 已繪 v1 |
 | 場景 | `hurtfew_abbey_library` | [何妨寺藏書室](Props/hurtfew_abbey_library.md) | 001 | 已繪 v1 |
 | 場景 | `york_minster_snow` | [雪中約克大教堂](Props/york_minster_snow.md) | 002 | 已繪 v1 |
 | 道具 | `speaking_stones_of_york` | [約克大教堂說話的石頭](Props/speaking_stones_of_york.md) | 003 | 已繪 v1 |
-| 道具 | `vinculus_yellow_tent` | [聞秋樂的黃色布棚](Props/vinculus_yellow_tent.md) | 005 | 待繪圖 |
+| 道具 | `vinculus_yellow_tent` | [聞秋樂的黃色布棚](Props/vinculus_yellow_tent.md) | 005 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -69,4 +69,4 @@ next_chapter: "006"
 
 ## 待建與尚未鎖定
 
-聞秋樂 (Vinculus)、波奈爾先生 (Mr. Bonnell) 已被提及；待配額重置後，再補齊待繪圖像。
+波奈爾先生 (Mr. Bonnell) 已被提及；待讀到明確外貌與場景需求後，再補齊新的設定圖像。

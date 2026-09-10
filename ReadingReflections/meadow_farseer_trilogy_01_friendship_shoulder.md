@@ -27,6 +27,8 @@ references:
 
 - `chapter`: `023`
 - `references`: `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_guest_room`
+
+![meadow_farseer_trilogy_01_friendship_shoulder](../RawImages/meadow_farseer_trilogy_01_friendship_shoulder.png)
 - `composition`: 黎明前的客房；蜚滋坐在床沿，博瑞屈跪在他面前，手與肩膀形成畫面焦點；大鼻子躺在後景。
 - `lighting`: 冷灰晨光與肩上微暖的燈光並置，保持疲憊但沒有勝利宣告的情緒。
 - `must_not_reveal`: 不畫帝尊、蓋倫、婚禮、溫泉浴室或後續生死結果；不把精技描成已成功的發光特效。

@@ -23,3 +23,5 @@ first_referenced_chapter: 024
 - 不畫婚禮、帝尊、蓋倫或第 024 章之後的宮廷事件。
 - 不新增怪物、魔法爆光或未確認的建築標誌；不把大鼻子畫成仍然活著的陪伴狀態。
 - 無文字、無水印。
+
+![jhaampe_hot_spring_bath_v1](../RawImages/jhaampe_hot_spring_bath_v1.png)

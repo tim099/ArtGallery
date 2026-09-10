@@ -5,10 +5,13 @@ type: prop
 work: jonathan-strange-mr-norrell
 first_appearance: "005"
 last_updated: 2026-08-21
+image: ../RawImages/vinculus_yellow_tent_v1.png
 tags: [prop, location, street_magic, london, prophecy]
 ---
 
 # 聞秋樂的黃色布棚 (Vinculus's Yellow Tent)
+
+![vinculus_yellow_tent](../RawImages/vinculus_yellow_tent_v1.png)
 
 ## 外貌與構造
 - **位置**：倫敦聖克里斯托弗-斯托克斯教堂外，牆面濺滿泥濘。

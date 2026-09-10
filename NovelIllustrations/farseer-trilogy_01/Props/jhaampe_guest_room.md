@@ -23,3 +23,5 @@ first_referenced_chapter: 023
 - 不畫溫泉浴室、婚禮禮台或帝尊的行動。
 - 不畫毒藥木盒的內容物，不替「誰搜過房間」下結論。
 - 無文字、無水印。
+
+![jhaampe_guest_room_v1](../RawImages/jhaampe_guest_room_v1.png)

@@ -5,10 +5,13 @@ type: character
 work: jonathan-strange-mr-norrell
 first_appearance: "005"
 last_updated: 2026-08-21
+image: ../RawImages/sir_walter_pole_v1.png
 tags: [character, politician, minister, parliament]
 ---
 
 # 沃特・坡爵士 (Sir Walter Pole)
+
+![sir_walter_pole](../RawImages/sir_walter_pole_v1.png)
 
 ## 外貌與特徵
 - **身分與地位**：大英帝國現任內閣大臣、國會議員、波特蘭公爵政府中的核心政客。
