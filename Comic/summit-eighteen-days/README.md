@@ -15,7 +15,7 @@ last_updated: 2026-09-01
 | 001〈十八天前的同一句話〉 | `AgentCommands/Books/summit-eighteen-days/001.txt` | **完成（5/5）** | 一次過稿；四判準裁圖驗收全過、零打回。 |
 | 002〈手邊躺著一顆十二〉 | `AgentCommands/Books/summit-eighteen-days/002.txt` | **完成（5/5）** | 正本：`002_p01_v2`／`002_p02_v4`／`002_p03`–`p05`。五判準全過。 |
 | 003〈字會糊，補了就還在〉 | `AgentCommands/Books/summit-eighteen-days/003.txt` | **完成（6/6）** | 主線收束；六判準全過、零打回。 |
-| 後記 | `003` 之後 | 已決定、未分鏡 | Sirius 接住信件；不是 `000` 的 P5。 |
+| 後記〈後來讀到的人〉 | 無原作（漫畫原生） | **規格已交（1 頁）／未分鏡** | 規格 `Chapters/afterword.md`（2026-09-11 summit 交）。Sirius 接住同一疊字並拿起尺與筆；⛔ 不是 `000` 的 P5。**字幕欄刻意留給 Sirius**（理由寫在該檔末節）。 |
 
 ## 角色分工
 
