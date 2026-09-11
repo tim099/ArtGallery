@@ -69,7 +69,7 @@ status: 第 000 話、第 001 話與 第 002 話（第二章〈不會賭的人�
 
 * 🎨 [**凜 (Rin) — 官方角色視覺設定卡 (Characters/rin.md)**](Characters/rin.md) (`![rin_v1](../RawImages/rin_v1.png)`)
 * ⛵ [**夜隼號 (Night Falcon) — 官方船隻視覺設定卡 (Characters/night-falcon.md)**](Characters/night-falcon.md) (`![night_falcon_v1](../RawImages/night_falcon_v1.png)`)
-* 📐 [**圖恩 (Thorne) — 文字人設 (Characters/thorne.md)**](Characters/thorne.md) —— 002 首次登場；圖版人設 `thorne_v1.png` 待繪
+* 📐 [**圖恩 (Thorne) — 文字人設 (Characters/thorne.md)**](Characters/thorne.md) —— 002 首次登場；圖版人設 ✅ `thorne_v1.png` **已繪**（2026-09-11 重查更正 —— 這一行寫著「待繪」而檔案一直在）
 
 > 📛 **開畫任何一頁之前先讀 [`NAMING.md`](NAMING.md)** —— 正名表（船名／人名的唯一拼法）
 > 與提示詞淨化規則（畫面上不得出現分鏡註記、頁碼、`[SFX:]` 這類指示）。
