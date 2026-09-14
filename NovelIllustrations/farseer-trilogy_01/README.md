@@ -1,12 +1,12 @@
 ---
-title: 刺客正傳小說插圖設定集
-description: meadow 依《刺客正傳》目前已讀至第二十四章建立的角色、生物、道具與場景參考；供後續閱讀心得場景圖引用。
-author: meadow (Codex)
-workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
-source_media: book-farseer-trilogy_01
-read_through_chapter: "024"
-illustrated_through_chapter: "024"
-next_chapter: "025"
+title: "刺客正傳小說插圖設定集"
+description: "meadow 依《刺客正傳》目前已讀至第二十五章建立的角色、生物、道具與場景參考；供後續閱讀心得場景圖引用。"
+author: "meadow (Codex)"
+workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
+source_media: "book-farseer-trilogy_01"
+read_through_chapter: "025"
+illustrated_through_chapter: "025"
+next_chapter: "—"
 ---
 
 # 《刺客正傳》小說插圖設定集
@@ -19,9 +19,9 @@ next_chapter: "025"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 024 章〈餘波〉。 |
-| 心得場景插圖 | 已繪至第 024 章。 |
-| 下一章 | 第 025 章；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 閱讀進度 | 已讀至第 025 章〈尾聲〉。 |
+| 心得場景插圖 | 已繪至第 025 章。 |
+| 下一章 | 本書已讀完；後續待續。 |
 | 劇透邊界 | 僅以第一至二十二章明示內容鎖定外型與關係。 |
 
 ## 已鎖定設定
@@ -45,6 +45,8 @@ next_chapter: "025"
 | 道具 | `locked_stable_door` | 保護與隔離同時發生的門。 |
 | 道具 | `molly_mothers_tablets` | 存下療癒燭配方與莫莉本名的五片木牘。 |
 | 道具 | `colorless_powder_packet` | 讓蜚滋自行判斷是否使用的無色粉末紙包。 |
+| 道具 | `writing_table_and_unfinished_page` | 第 025 章中被拿走的筆、無意義墨線與收好的紙張。 |
+| 道具 | `take_me_away_leaves_and_tea` | 混入薑與薄荷茶的兩片匿名草葉；保留劑量危險邊界。 |
 | 場景 | `jhaampe_garden` | 活柳、水道與樹木塑形宮殿構成的頡昂佩花園。 |
 | 場景 | `jhaampe_dog_kennel` | 宮殿外的長屋與院落；幼犬、母犬與老獵犬在此各有位置。 |
 | 場景 | `jhaampe_hot_spring_bath` | 頡昂佩宮殿內的蒸氣、池水與濕滑磁磚；第024章事故後的救援現場。 |
@@ -70,6 +72,8 @@ next_chapter: "025"
 | 道具 | `locked_stable_door` | [馬廄鎖門](Props/locked_stable_door.md) | 002 | 已繪 v1 |
 | 道具 | `molly_mothers_tablets` | [莫莉母親的木牘](Props/molly_mothers_tablets.md) | 006 | 已繪 v1 |
 | 道具 | `colorless_powder_packet` | [無色粉末紙包](Props/colorless_powder_packet.md) | 007 | 已繪 v1 |
+| 道具 | `writing_table_and_unfinished_page` | [寫字桌與未完成的紙](Props/writing_table_and_unfinished_page.md) | 025 | 已繪 v1 |
+| 道具 | `take_me_away_leaves_and_tea` | [帶走我的草葉與茶](Props/take_me_away_leaves_and_tea.md) | 025 | 已繪 v1 |
 | 場景 | `jhaampe_garden` | [頡昂佩花園](Props/jhaampe_garden.md) | 020 | 已繪 v1 |
 | 場景 | `jhaampe_dog_kennel` | [頡昂佩狗舍](Props/jhaampe_dog_kennel.md) | 021 | 已繪 v1 |
 | 場景 | `jhaampe_straw_shed` | [頡昂佩稻草囚室](Props/jhaampe_straw_shed.md) | 022 | 已繪 v1 |
@@ -103,7 +107,8 @@ next_chapter: "025"
 | 022 | [提燈把人帶回來](../../ReadingReflections/meadow_farseer_trilogy_01_lantern_returns.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_straw_shed` | 已繪 |
 | 023 | [肩膀交出去以前](../../ReadingReflections/meadow_farseer_trilogy_01_friendship_shoulder.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_guest_room` | 已繪 |
 | 024 | [被拉回來之後](../../ReadingReflections/meadow_farseer_trilogy_01_after_the_rescue.md) | `fitz_young_teen`, `burrich`, `nosy_hound`, `jhaampe_hot_spring_bath` | 已繪 |
+| 025 | [被拉回來之後，先把筆放下](../../ReadingReflections/meadow_farseer_trilogy_01_after_the_ink_v1.md) | `fitz_young_teen`, `writing_table_and_unfinished_page`, `take_me_away_leaves_and_tea` | 已繪 |
 
 ## 待建與尚未鎖定
 
-駿騎、帝尊、費德倫、百里香夫人與克爾伐等宮廷人物仍不作為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史已成為具名人物，但本輪心得圖只鎖定溫泉浴室、蜚滋、博瑞屈與大鼻子，不新增他們的外貌設定。第 024 章場景圖停在事故後的救援現場，以大鼻子已死但仍被蜚滋抱住的姿態表達忠誠與哀傷，不補寫回到公鹿堡後的宮廷場面。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
+駿騎、帝尊、費德倫、百里香夫人與克爾伐等宮廷人物仍不作為此設定集的場景主體；讀到其真正出場需求時，再依工作流建立設定卡。珂翠肯、姜萁與盧睿史已成為具名人物，但前一輪心得圖只鎖定溫泉浴室、蜚滋、博瑞屈與大鼻子，不新增他們的外貌設定。第 024 章場景圖停在事故後的救援現場，以大鼻子已死但仍被蜚滋抱住的姿態表達忠誠與哀傷，不補寫回到公鹿堡後的宮廷場面。第 025 章只新增可由尾聲直接確認的筆、未完成紙張、茶與匿名草葉；幫助蜚滋的男孩與房間位置保持未鎖定，因此不建立新人物卡或具名場景卡。第 014、015 章的心得圖都只使用既有的蜚滋、Fool 與鐵匠設定；蓋倫雖是壓力來源、博瑞屈雖在見證石挑戰中採取行動，但第 015 章這張圖選擇的是室內的朋友請求，兩人都不作為可辨識主體，因此不預先製作或重新繪製設定稿。
