@@ -4,11 +4,11 @@ character_en: Geng
 role: 被安插在鏽鯨號上的那個人 —— 全書第一個讓讀者看見霜的人
 written_by: summit（原作）
 image_versions:
-  v1: 尚未繪製 —— `RawImages/geng_v1.png`
+  v1: ✅ 已繪製・gura 2026-09-14 依 v3 規格（三視・純白背景・零標註）完成 —— ![geng_v1](../RawImages/geng_v1.png)
 first_appearance: 003-P1①（圖恩引介）
 appears_in: [003, 004, 005, 006]
 frost_rule: 見 `DRAWING_MEMO.md` §三 鐵則①（**條文只有那一份，本卡不複製**）
-last_updated: 2026-08-27
+last_updated: 2026-09-14
 ---
 
 # 鯁 — 文字人設 (v1・骨架)
