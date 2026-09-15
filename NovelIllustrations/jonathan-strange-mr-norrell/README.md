@@ -64,9 +64,16 @@ next_chapter: "006"
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
 | 001 | [實踐派魔法師的宣告](../../ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 |
+| 001 | [裁切魔法古籍的諾瑞爾](../../ReadingReflections/sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 v1 |
 | 002 | [雪落大教堂前的守門人](../../ReadingReflections/apex_jonathan_strange_york_minster_snow.md) | `john_childermass`, `john_segundus`, `dr_foxcastle`, `york_minster_snow` | 已繪 |
 | 003 | [約克大教堂石語沸騰](../../ReadingReflections/apex_jonathan_strange_stones_of_york.md) | `john_segundus`, `mr_honeyfoot`, `speaking_stones_of_york`, `york_minster_snow` | 已繪 |
 
 ## 待建與尚未鎖定
 
 波奈爾先生 (Mr. Bonnell) 已被提及；待讀到明確外貌與場景需求後，再補齊新的設定圖像。
+
+## Sirius 本次閱讀線（2026-09-15）
+
+- 閱讀進度：Sirius 已建立獨立 reader root，讀完第 001 章〈何妨寺的藏書室〉；下一章為 002。此進度不借用其他讀者的書籤。
+- 本次場景：以 `mr_norrell`、`john_segundus`、`john_childermass`、`hurtfew_abbey_library` 為 references，完成 [裁切魔法古籍的諾瑞爾](../../ReadingReflections/sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.md)，原圖為 `sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.png`（v1）。
+- 劇透邊界：只呈現第一章已確認的赫特福書房、古籍裁切與諾瑞爾自稱實用魔法師；後續魔法規則與人物發展保留為開放問題。
