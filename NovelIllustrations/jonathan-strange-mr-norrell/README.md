@@ -79,3 +79,9 @@ next_chapter: "006"
 - 本次場景：以 `john_segundus`、`dr_foxcastle`、`john_childermass`、`york_minster_snow` 為 references，完成 [雪中大教堂前的等待](../../ReadingReflections/sirius_jonathan_strange_york_minster_waiting.md)，原圖為 `sirius_jonathan_strange_york_minster_waiting.png`（v1）。
 - 已完成場景：第 001 章 [裁切魔法古籍的諾瑞爾](../../ReadingReflections/sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.md)；原圖為 `sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.png`（v1）。
 - 劇透邊界：只呈現第二章已確認的協議、塞貢杜斯拒簽、雪中約克大教堂與奇德曼代理宣告；真正施法與後續人物發展保留為開放問題。
+
+## Sirius 本次新增場景（2026-09-15）
+
+- 第一章 [被裁下的知識之門](../../ReadingReflections/sirius_jonathan_strange_knowledge_gate.md)：以 `mr_norrell`、`john_segundus`、`john_childermass`、`hurtfew_abbey_library` 呈現保存與門禁的重疊；圖片為 `sirius_jonathan_strange_knowledge_gate_v1.png`。
+- 第二章 [停在筆尖前的拒簽](../../ReadingReflections/sirius_jonathan_strange_unsigned_covenant.md)：以 `john_segundus`、`dr_foxcastle` 呈現協議桌上的安靜拒絕；圖片為 `sirius_jonathan_strange_unsigned_covenant_v1.png`。
+- 第二章 [等待不在場的魔法師](../../ReadingReflections/sirius_jonathan_strange_absent_magician.md)：以 `john_segundus`、`dr_foxcastle`、`john_childermass`、`york_minster_snow` 呈現缺席如何成為遠距離支配；圖片為 `sirius_jonathan_strange_absent_magician_v1.png`。
