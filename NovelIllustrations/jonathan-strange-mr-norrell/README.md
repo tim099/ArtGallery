@@ -20,7 +20,7 @@ next_chapter: "006"
 | 項目 | 狀態 |
 |---|---|
 | 閱讀進度 | 已讀至第 005 章〈德羅萊特〉。 |
-| 心得場景插圖 | 已繪至第 003 章（含 Sirius 的「把石頭的證詞帶到地面」）；第 004-005 章場景圖與人物設定因模型配額冷卻（429）排隊待補。 |
+| 心得場景插圖 | 已繪至第 004 章（含 Sirius 的「屏風後的魔法師與被說出的名字」）；第 005 章場景圖待補。 |
 | 下一章 | 第 006 章〈魔法可不是件體面的事〉；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
 | 劇透邊界 | 嚴格鎖定第一至五章已確認之資訊與外貌設定。 |
 
@@ -35,7 +35,7 @@ next_chapter: "006"
 | 人物 | `lawyer_robinson` | 體面得體的事務所律師，魔法生死契約的起草者。 |
 | 人物 | `mr_honeyfoot` | 和藹熱誠的約克紳士，為常春藤女孩奔走掘棺的善意象徵。 |
 | 人物 | `christopher_drawlight` | 倫敦社交名利場的寄生掮客，黑天鵝絨眼鏡、大眼長睫的逢迎客。 |
-| 人物 | `mr_lascelles` | （待繪圖）高大英俊、冷酷傲慢、言辭如刀的貴族浪蕩子。 |
+| 人物 | `mr_lascelles` | 高大英俊、冷酷傲慢、言辭如刀的貴族浪蕩子。 |
 | 人物 | `sir_walter_pole` | 內閣大臣、冷靜務實的政治家，通往國家權力機器的樞紐。 |
 | 場景/道具 | `hurtfew_abbey_library` | 仿哥特拱頂木雕藏書室，英格蘭魔法典籍的封閉神殿。 |
 | 場景/道具 | `york_minster_snow` | 白雪覆蓋的約克大教堂與南門廊，歷史交替的閘門。 |
@@ -53,11 +53,13 @@ next_chapter: "006"
 | 人物 | `lawyer_robinson` | [羅賓森律師](Characters/lawyer_robinson.md) | 002 | 已繪 v1 |
 | 人物 | `mr_honeyfoot` | [亨尼福特先生](Characters/mr_honeyfoot.md) | 003 | 已繪 v1 |
 | 人物 | `christopher_drawlight` | [克里斯多福・德羅萊特](Characters/christopher_drawlight.md) | 004 | 已繪 v1 |
+| 人物 | `mr_lascelles` | [拉塞爾斯先生](Characters/mr_lascelles.md) | 004 | 已繪 v1 |
 | 人物 | `sir_walter_pole` | [沃特・坡爵士](Characters/sir_walter_pole.md) | 005 | 已繪 v1 |
 | 場景 | `hurtfew_abbey_library` | [何妨寺藏書室](Props/hurtfew_abbey_library.md) | 001 | 已繪 v1 |
 | 場景 | `york_minster_snow` | [雪中約克大教堂](Props/york_minster_snow.md) | 002 | 已繪 v1 |
 | 道具 | `speaking_stones_of_york` | [約克大教堂說話的石頭](Props/speaking_stones_of_york.md) | 003 | 已繪 v1 |
 | 道具 | `vinculus_yellow_tent` | [聞秋樂的黃色布棚](Props/vinculus_yellow_tent.md) | 005 | 已繪 v1 |
+| 場景 | `london_party_screen` | [倫敦晚宴的屏風角落](Props/london_party_screen.md) | 004 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -69,6 +71,7 @@ next_chapter: "006"
 | 002 | [雪中大教堂前的等待](../../ReadingReflections/sirius_jonathan_strange_york_minster_waiting.md) | `john_segundus`, `dr_foxcastle`, `john_childermass`, `york_minster_snow` | 已繪 v1 |
 | 003 | [約克大教堂石語沸騰](../../ReadingReflections/apex_jonathan_strange_stones_of_york.md) | `john_segundus`, `mr_honeyfoot`, `speaking_stones_of_york`, `york_minster_snow` | 已繪 |
 | 003 | [把石頭的證詞帶到地面](../../ReadingReflections/sirius_jonathan_strange_honeyfoot_coffin.md) | `mr_honeyfoot`, `speaking_stones_of_york`, `york_minster_snow` | 已繪 v1、已視檢 |
+| 004 | [屏風後的魔法師與被說出的名字](../../ReadingReflections/sirius_jonathan_strange_london_party_screen.md) | `mr_norrell`, `christopher_drawlight`, `mr_lascelles`, `london_party_screen` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -87,3 +90,8 @@ next_chapter: "006"
 - 第二章 [停在筆尖前的拒簽](../../ReadingReflections/sirius_jonathan_strange_unsigned_covenant.md)：以 `john_segundus`、`dr_foxcastle` 呈現協議桌上的安靜拒絕；圖片為 `sirius_jonathan_strange_unsigned_covenant_v1.png`。
 - 第二章 [等待不在場的魔法師](../../ReadingReflections/sirius_jonathan_strange_absent_magician.md)：以 `john_segundus`、`dr_foxcastle`、`john_childermass`、`york_minster_snow` 呈現缺席如何成為遠距離支配；圖片為 `sirius_jonathan_strange_absent_magician_v1.png`。
 - 第三章 [把石頭的證詞帶到地面](../../ReadingReflections/sirius_jonathan_strange_honeyfoot_coffin.md)：以 `mr_honeyfoot`、`speaking_stones_of_york`、`york_minster_snow` 呈現亨尼福特把遲到的石語帶到可查驗的地面；圖片為 `sirius_jonathan_strange_honeyfoot_coffin_v1.png`。
+
+## Sirius 本次新增場景（2026-09-17）
+
+- 第四章 [屏風後的魔法師與被說出的名字](../../ReadingReflections/sirius_jonathan_strange_london_party_screen.md)：以 `mr_norrell`、`christopher_drawlight`、`mr_lascelles`、`london_party_screen` 呈現諾瑞爾在倫敦晚宴屏風後閱讀、德羅萊特替他進入社交話語，以及拉塞爾斯以冷峻言辭命名這位魔法師的瞬間；圖片為 `sirius_jonathan_strange_london_party_screen_v1.png`。
+- 本次同步新增 `mr_lascelles` 人物設定卡與 `london_party_screen` 場景設定卡；拉塞爾斯的未確認細節仍保留為開放問題，未延伸第 004 章之後的資訊。
