@@ -1,10 +1,10 @@
 ---
 title: "刺客正傳Ⅱ・皇家刺客小說插圖設定集"
-description: "meadow 依《皇家刺客》目前已讀至第三章建立的角色沿用、道具與場景參考；只鎖定前三章明示內容。"
+description: "meadow 依《皇家刺客》目前已讀至第五章建立的角色沿用、道具與場景參考；只鎖定前五章明示內容。"
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_02"
-read_through_chapter: "0003"
+read_through_chapter: "0005"
 illustrated_through_chapter: "0003"
 next_chapter: "0004"
 ---
@@ -19,10 +19,10 @@ next_chapter: "0004"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 003 章〈重建關係〉。 |
+| 閱讀進度 | 已讀至第 005 章〈孤注一擲〉。 |
 | 心得場景插圖 | 已繪至第 003 章。 |
 | 下一章 | 第 004 章。 |
-| 劇透邊界 | 只鎖定前三章已明示的病夢、泥濘灣視野、弄臣照料、破曉出發、風雪歸途、公鹿堡馬廄、惟真談話與莫莉重逢；不補完後續王室事件或兩人未解的關係。 |
+| 劇透邊界 | 只鎖定前五章已明示的病夢、泥濘灣視野、弄臣照料、破曉出發、風雪歸途、公鹿堡馬廄、惟真談話與莫莉重逢，以及小狼的祕密照料；不補完後續王室事件、小狼的名字或命運，或兩人未解的關係。 |
 
 ## 沿用設定
 
@@ -40,6 +40,7 @@ next_chapter: "0004"
 |---|---|---|---|---|
 | 場景 | `king_shrewd_bedroom_fireplace` | [黠謀國王臥房與壁爐](Props/king_shrewd_bedroom_fireplace.md) | 0001 | 已繪 v1 |
 | 道具 | `fool_mouse_scepter_and_wet_cloth` | [鼠頭權杖與濕布](Props/fool_mouse_scepter_and_wet_cloth.md) | 0001 | 已繪 v1 |
+| 生物 | `wolf_cub` | [小狼設定](Characters/wolf_cub.md) | 0005 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -48,7 +49,8 @@ next_chapter: "0004"
 | 001 | [壁爐邊的兩種痛](../../ReadingReflections/meadow_farseer_trilogy_02_hearth_and_mud_bay_v1.md) | `fitz_young_teen`, `king_fool`, `king_shrewd_bedroom_fireplace`, `fool_mouse_scepter_and_wet_cloth` | 已繪 |
 | 002 | [風雪後的馬廄歸鄉](../../ReadingReflections/meadow_farseer_trilogy_02_return_home_v1.md) | `fitz_young_teen`, `burrich` | 已繪 |
 | 003 | [門邊未完的話](../../ReadingReflections/meadow_farseer_trilogy_02_rebuild_relationship_v1.md) | `fitz_young_teen`, `molly_bundle` | 已繪 v1 |
+| 005 | [雪中暫借的家](../../ReadingReflections/meadow_farseer_trilogy_02_all_in_v1.md) | `fitz_young_teen`, `wolf_cub` | 已繪 v1（第 004 章尚未插圖化） |
 
 ## 待建與尚未鎖定
 
-第一章的泥濘灣只以蜚滋的精技視野出現；紅船、火災與居民的死亡不可被當作一張可驗證的現實場景重畫，因此不建立泥濘灣街景或新的劫匪人物卡。弄臣的身分、預言能力與鼠頭權杖的用途仍只鎖定前三章可見行為，不替後續章節補完。第三章沒有新增設定卡：惟真與莫莉均沿用第一冊已存在的角色設定，場景圖選擇莫莉重逢的門邊距離，避免把未解的關係畫成和解。下一次開工先讀第四章，再確認是否需要新增角色、道具或場景設定。
+第一章的泥濘灣只以蜚滋的精技視野出現；紅船、火災與居民的死亡不可被當作一張可驗證的現實場景重畫，因此不建立泥濘灣街景或新的劫匪人物卡。弄臣的身分、預言能力與鼠頭權杖的用途仍只鎖定前三章可見行為，不替後續章節補完。第三章沒有新增設定卡：惟真與莫莉均沿用第一冊已存在的角色設定，場景圖選擇莫莉重逢的門邊距離，避免把未解的關係畫成和解。第五章的小狼已完成設定與心得場景圖，畫面將照顧保留為可退出的暫時庇護，而非馴服或既定歸屬。下一次開工先補第 004 章，再確認是否需要新增角色、道具或場景設定。
