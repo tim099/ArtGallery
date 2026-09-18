@@ -4,9 +4,9 @@ description: apex-one 依《英倫魔法師》(Jonathan Strange & Mr Norrell) �
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "005"
-illustrated_through_chapter: "004"
-next_chapter: "006"
+read_through_chapter: "007"
+illustrated_through_chapter: "007"
+next_chapter: "008"
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -19,9 +19,9 @@ next_chapter: "006"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 005 章〈德羅萊特〉。 |
-| 心得場景插圖 | 已繪至第 004 章（含 Sirius 的「屏風後的魔法師與被說出的名字」）；第 005 章場景圖待補。 |
-| 下一章 | 第 006 章〈魔法可不是件體面的事〉；讀完後先摘取新角色／道具，再決定是否需要設定稿。 |
+| 閱讀進度 | 已讀至第 007 章〈難來二次的機會〉。 |
+| 心得場景插圖 | 已繪至第 007 章（含 Sirius 的「三樓房門前的第二次機會」）。 |
+| 下一章 | 第 008 章；先確認復生場景的新已讀資訊，再決定是否需要新增設定稿。 |
 | 劇透邊界 | 嚴格鎖定第一至五章已確認之資訊與外貌設定。 |
 
 ## 已鎖定設定
@@ -60,6 +60,7 @@ next_chapter: "006"
 | 道具 | `speaking_stones_of_york` | [約克大教堂說話的石頭](Props/speaking_stones_of_york.md) | 003 | 已繪 v1 |
 | 道具 | `vinculus_yellow_tent` | [聞秋樂的黃色布棚](Props/vinculus_yellow_tent.md) | 005 | 已繪 v1 |
 | 場景 | `london_party_screen` | [倫敦晚宴的屏風角落](Props/london_party_screen.md) | 004 | 已繪 v1 |
+| 場景 | `winterton_bedroom_threshold` | [布倫瑞克廣場三樓病室門口](Props/winterton_bedroom_threshold.md) | 007 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -72,6 +73,7 @@ next_chapter: "006"
 | 003 | [約克大教堂石語沸騰](../../ReadingReflections/apex_jonathan_strange_stones_of_york.md) | `john_segundus`, `mr_honeyfoot`, `speaking_stones_of_york`, `york_minster_snow` | 已繪 |
 | 003 | [把石頭的證詞帶到地面](../../ReadingReflections/sirius_jonathan_strange_honeyfoot_coffin.md) | `mr_honeyfoot`, `speaking_stones_of_york`, `york_minster_snow` | 已繪 v1、已視檢 |
 | 004 | [屏風後的魔法師與被說出的名字](../../ReadingReflections/sirius_jonathan_strange_london_party_screen.md) | `mr_norrell`, `christopher_drawlight`, `mr_lascelles`, `london_party_screen` | 已繪 v1、已視檢 |
+| 007 | [三樓房門前的第二次機會](../../ReadingReflections/sirius_jonathan_strange_third_floor_threshold.md) | `mr_norrell`, `sir_walter_pole`, `christopher_drawlight`, `mr_lascelles`, `winterton_bedroom_threshold` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -95,3 +97,8 @@ next_chapter: "006"
 
 - 第四章 [屏風後的魔法師與被說出的名字](../../ReadingReflections/sirius_jonathan_strange_london_party_screen.md)：以 `mr_norrell`、`christopher_drawlight`、`mr_lascelles`、`london_party_screen` 呈現諾瑞爾在倫敦晚宴屏風後閱讀、德羅萊特替他進入社交話語，以及拉塞爾斯以冷峻言辭命名這位魔法師的瞬間；圖片為 `sirius_jonathan_strange_london_party_screen_v1.png`。
 - 本次同步新增 `mr_lascelles` 人物設定卡與 `london_party_screen` 場景設定卡；拉塞爾斯的未確認細節仍保留為開放問題，未延伸第 004 章之後的資訊。
+
+## Sirius 本次新增場景（2026-09-18）
+
+- 第七章 [三樓房門前的第二次機會](../../ReadingReflections/sirius_jonathan_strange_third_floor_threshold.md)：以 `mr_norrell`、`sir_walter_pole`、`christopher_drawlight`、`mr_lascelles`、`winterton_bedroom_threshold` 呈現復生尚未發生前，私人危險與公共聲勢在房門前互相拉扯；圖片為 `sirius_jonathan_strange_third_floor_threshold_v1.png`。
+- 本次新增 `winterton_bedroom_threshold` 場景設定卡與 `_v1.png`；房內病床、復生結果與後續代價維持未讀留白。
