@@ -4,10 +4,10 @@ description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至�
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "007"
-illustrated_through_chapter: "007"
-next_chapter: "008"
-last_updated: 2026-09-18
+read_through_chapter: "010"
+illustrated_through_chapter: "010"
+next_chapter: "011"
+last_updated: 2026-09-21
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -20,10 +20,10 @@ last_updated: 2026-09-18
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | 已讀至第 007 章〈難來二次的機會〉。 |
-| 心得場景插圖 | 已繪至第 007 章；本次新增第 005、006 章場景圖。 |
-| 下一章 | 第 008 章；先確認復生場景的新已讀資訊，再決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定第一至七章已確認之資訊與外貌設定；第 007 章之後的復生結果與代價仍留白。 |
+| 閱讀進度 | Sirius 已讀至第 010 章〈替魔法師謀職之難〉。 |
+| 心得場景插圖 | 已繪至第 010 章；本次新增第 010 章場景圖。 |
+| 下一章 | 第 011 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十章；不以後續戰爭介入、軍方訪客或復生資訊補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -77,6 +77,7 @@ last_updated: 2026-09-18
 | 005 | [客廳裡被安排的魔法](../../ReadingReflections/sirius_jonathan_strange_social_name.md) | `mr_norrell`, `christopher_drawlight`, `london_party_screen` | 已繪 v1、已視檢 |
 | 006 | [被體面分類的公共魔法](../../ReadingReflections/sirius_jonathan_strange_public_magic_classified.md) | `mr_norrell`, `sir_walter_pole`, `speaking_stones_of_york` | 已繪 v1、已視檢 |
 | 007 | [三樓房門前的第二次機會](../../ReadingReflections/sirius_jonathan_strange_third_floor_threshold.md) | `mr_norrell`, `sir_walter_pole`, `christopher_drawlight`, `mr_lascelles`, `winterton_bedroom_threshold` | 已繪 v1、已視檢 |
+| 010 | [替魔法謀職的邊界](../../ReadingReflections/sirius_jonathan_strange_magic_employment_boundary.md) | `mr_norrell`, `sir_walter_pole` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -107,3 +108,7 @@ last_updated: 2026-09-18
 - 第六章 [被體面分類的公共魔法](../../ReadingReflections/sirius_jonathan_strange_public_magic_classified.md)：以 `mr_norrell`、`sir_walter_pole`、`speaking_stones_of_york` 呈現諾瑞爾帶著石頭證詞與研究面對政治分類，背景的關閉房門只保留被忽略的病室邊界；圖片為 `sirius_jonathan_strange_public_magic_classified_v1.png`。
 - 第七章 [三樓房門前的第二次機會](../../ReadingReflections/sirius_jonathan_strange_third_floor_threshold.md)：以 `mr_norrell`、`sir_walter_pole`、`christopher_drawlight`、`mr_lascelles`、`winterton_bedroom_threshold` 呈現復生尚未發生前，私人危險與公共聲勢在房門前互相拉扯；圖片為 `sirius_jonathan_strange_third_floor_threshold_v1.png`。
 - 本次新增 `winterton_bedroom_threshold` 場景設定卡與 `_v1.png`；房內病床、復生結果與後續代價維持未讀留白。
+
+## Sirius 本次新增場景（2026-09-21）
+
+- 第十章 [替魔法謀職的邊界](../../ReadingReflections/sirius_jonathan_strange_magic_employment_boundary.md)：以 `mr_norrell`、`sir_walter_pole` 呈現政府對徵兵咒的未定義需求，與諾瑞爾對地理範圍、對象與副作用的克制回應；圖片為 `sirius_jonathan_strange_magic_employment_boundary_v1.png`。不畫軍方訪客、死者、復生或任何第十章後資訊。
