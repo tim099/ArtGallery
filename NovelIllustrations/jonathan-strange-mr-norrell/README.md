@@ -1,13 +1,13 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "011"
-illustrated_through_chapter: "011"
-next_chapter: "012"
-last_updated: 2026-09-21
+read_through_chapter: "012"
+illustrated_through_chapter: "012"
+next_chapter: "013"
+last_updated: 2026-09-22
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -20,9 +20,9 @@ last_updated: 2026-09-21
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 011 章〈布雷斯特〉。 |
-| 心得場景插圖 | 已繪至第 011 章；本次新增雨艦隊設定稿與第 011 章場景圖。 |
-| 下一章 | 第 012 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 閱讀進度 | Sirius 已讀至第 012 章〈英格蘭魔法精神感召下，諾先生助戰不列顛尼亞〉。 |
+| 心得場景插圖 | 已繪至第 012 章；本次新增幻影銀盆設定稿與第 012 章場景圖。 |
+| 下一章 | 第 013 章；先只根據新讀內容決定是否需要新增設定稿。 |
 | 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十一章；不以後續軍事行動、社會反應或人物發展補入目前畫面。 |
 
 ## 已鎖定設定
@@ -63,6 +63,7 @@ last_updated: 2026-09-21
 | 場景 | `london_party_screen` | [倫敦晚宴的屏風角落](Props/london_party_screen.md) | 004 | 已繪 v1 |
 | 場景 | `winterton_bedroom_threshold` | [布倫瑞克廣場三樓病室門口](Props/winterton_bedroom_threshold.md) | 007 | 已繪 v1 |
 | 場景 | `rain_fleet_of_brest` | [布雷斯特雨艦隊](Props/rain_fleet_of_brest.md) | 011 | 已繪 v1 |
+| 道具 | `silver_basin_of_visions` | [幻影銀盆](Props/silver_basin_of_visions.md) | 012 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -80,6 +81,7 @@ last_updated: 2026-09-21
 | 007 | [三樓房門前的第二次機會](../../ReadingReflections/sirius_jonathan_strange_third_floor_threshold.md) | `mr_norrell`, `sir_walter_pole`, `christopher_drawlight`, `mr_lascelles`, `winterton_bedroom_threshold` | 已繪 v1、已視檢 |
 | 010 | [替魔法謀職的邊界](../../ReadingReflections/sirius_jonathan_strange_magic_employment_boundary.md) | `mr_norrell`, `sir_walter_pole` | 已繪 v1、已視檢 |
 | 011 | [雨艦隊裡被偷走的一週](../../ReadingReflections/sirius_jonathan_strange_brest_rain_fleet.md) | `rain_fleet_of_brest` | 已繪 v1、已視檢 |
+| 012 | [銀盆把遠方照進冬日房間](../../ReadingReflections/sirius_jonathan_strange_silver_basin.md) | `mr_norrell`, `silver_basin_of_visions` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -115,3 +117,8 @@ last_updated: 2026-09-21
 
 - 第十章 [替魔法謀職的邊界](../../ReadingReflections/sirius_jonathan_strange_magic_employment_boundary.md)：以 `mr_norrell`、`sir_walter_pole` 呈現政府對徵兵咒的未定義需求，與諾瑞爾對地理範圍、對象與副作用的克制回應；圖片為 `sirius_jonathan_strange_magic_employment_boundary_v1.png`。不畫軍方訪客、死者、復生或任何第十章後資訊。
 - 第十一章 [雨艦隊裡被偷走的一週](../../ReadingReflections/sirius_jonathan_strange_brest_rain_fleet.md)：以新設定 `rain_fleet_of_brest` 呈現三名匿名法國觀察者穿過雨水構成的英國艦隊；圖片為 `sirius_jonathan_strange_brest_rain_fleet_v1.png`。不畫具名法軍、炮火、城市或第十一章後的軍事結果。
+
+## Sirius 本次新增場景（2026-09-22）
+
+- 第十二章 [銀盆把遠方照進冬日房間](../../ReadingReflections/sirius_jonathan_strange_silver_basin.md)：以既有 `mr_norrell` 與新設定 `silver_basin_of_visions` 呈現諾瑞爾在海軍部讓三艘軍艦的幻影浮現在銀盆水面；圖片為 `sirius_jonathan_strange_silver_basin_v1.png`。不畫可辨識的新官員、文字標籤、後續軍事結果或第十二章後的人物發展。
+- 本次新增 `silver_basin_of_visions` 道具設定卡與 `_v1.png`；設定只鎖定第十二章已確認的銀盆、清水、三艘軍艦幻影與「可觀看但不完整」的情報邊界。
