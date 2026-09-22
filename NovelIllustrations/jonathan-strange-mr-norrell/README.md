@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十三章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "012"
-illustrated_through_chapter: "012"
-next_chapter: "013"
+read_through_chapter: "013"
+illustrated_through_chapter: "013"
+next_chapter: "014"
 last_updated: 2026-09-22
 ---
 
@@ -20,10 +20,10 @@ last_updated: 2026-09-22
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 012 章〈英格蘭魔法精神感召下，諾先生助戰不列顛尼亞〉。 |
-| 心得場景插圖 | 已繪至第 012 章；本次新增幻影銀盆設定稿與第 012 章場景圖。 |
-| 下一章 | 第 013 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十一章；不以後續軍事行動、社會反應或人物發展補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 013 章〈針線街的魔法師〉。 |
+| 心得場景插圖 | 已繪至第 013 章；本次新增聞秋樂設定稿與第 013 章書房對峙場景圖。 |
+| 下一章 | 第 014 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十三章；不以後續預言、人物發展或魔法結果補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -48,6 +48,7 @@ last_updated: 2026-09-22
 | 類別 | id | 設定卡 | 首次關聯章節 | 狀態 |
 |---|---|---|---|---|
 | 人物 | `mr_norrell` | [吉爾伯特・諾瑞爾](Characters/mr_norrell.md) | 001 | 已繪 v1 |
+| 人物 | `vinculus` | [聞秋樂](Characters/vinculus.md) | 005 | 已繪 v1 |
 | 人物 | `john_segundus` | [約翰・斯剛德斯](Characters/john_segundus.md) | 001 | 已繪 v1 |
 | 人物 | `john_childermass` | [約翰・齊爾德邁斯](Characters/john_childermass.md) | 001 | 已繪 v1 |
 | 人物 | `dr_foxcastle` | [福克斯卡斯爾博士](Characters/dr_foxcastle.md) | 002 | 已繪 v1 |
@@ -82,6 +83,7 @@ last_updated: 2026-09-22
 | 010 | [替魔法謀職的邊界](../../ReadingReflections/sirius_jonathan_strange_magic_employment_boundary.md) | `mr_norrell`, `sir_walter_pole` | 已繪 v1、已視檢 |
 | 011 | [雨艦隊裡被偷走的一週](../../ReadingReflections/sirius_jonathan_strange_brest_rain_fleet.md) | `rain_fleet_of_brest` | 已繪 v1、已視檢 |
 | 012 | [銀盆把遠方照進冬日房間](../../ReadingReflections/sirius_jonathan_strange_silver_basin.md) | `mr_norrell`, `silver_basin_of_visions` | 已繪 v1、已視檢 |
+| 013 | [闖進書房的街頭預言](../../ReadingReflections/sirius_jonathan_strange_vinculus_in_study.md) | `mr_norrell`, `vinculus` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -122,3 +124,8 @@ last_updated: 2026-09-22
 
 - 第十二章 [銀盆把遠方照進冬日房間](../../ReadingReflections/sirius_jonathan_strange_silver_basin.md)：以既有 `mr_norrell` 與新設定 `silver_basin_of_visions` 呈現諾瑞爾在海軍部讓三艘軍艦的幻影浮現在銀盆水面；圖片為 `sirius_jonathan_strange_silver_basin_v1.png`。不畫可辨識的新官員、文字標籤、後續軍事結果或第十二章後的人物發展。
 - 本次新增 `silver_basin_of_visions` 道具設定卡與 `_v1.png`；設定只鎖定第十二章已確認的銀盆、清水、三艘軍艦幻影與「可觀看但不完整」的情報邊界。
+
+## Sirius 本次新增場景（2026-09-22）
+
+- 第十三章 [闖進書房的街頭預言](../../ReadingReflections/sirius_jonathan_strange_vinculus_in_study.md)：以既有 `mr_norrell` 與新設定 `vinculus` 呈現聞秋樂把街頭魔法與烏衣王預言帶進諾瑞爾書房，而諾瑞爾先護住散落的書；圖片為 `sirius_jonathan_strange_vinculus_in_study_v1.png`。不畫預言文字、烏衣王具象身影、可辨識僕人或第十三章後的發展。
+- 本次新增 `vinculus` 人物設定卡與 `_v1.png`；藍色彎印只作未解釋的可見標誌，不補充來源或超出已讀內容的能力。
