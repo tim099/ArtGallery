@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十三章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "013"
-illustrated_through_chapter: "013"
-next_chapter: "014"
+read_through_chapter: "014"
+illustrated_through_chapter: "014"
+next_chapter: "015"
 last_updated: 2026-09-22
 ---
 
@@ -20,10 +20,10 @@ last_updated: 2026-09-22
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 013 章〈針線街的魔法師〉。 |
-| 心得場景插圖 | 已繪至第 013 章；本次新增聞秋樂設定稿與第 013 章書房對峙場景圖。 |
-| 下一章 | 第 014 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十三章；不以後續預言、人物發展或魔法結果補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 014 章〈傷心農莊〉。 |
+| 心得場景插圖 | 已繪至第 014 章；本次新增傑里米、勞倫斯・斯特蘭奇設定稿與寒冷書房場景圖。 |
+| 下一章 | 第 015 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十四章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -38,6 +38,8 @@ last_updated: 2026-09-22
 | 人物 | `christopher_drawlight` | 倫敦社交名利場的寄生掮客，黑天鵝絨眼鏡、大眼長睫的逢迎客。 |
 | 人物 | `mr_lascelles` | 高大英俊、冷酷傲慢、言辭如刀的貴族浪蕩子。 |
 | 人物 | `sir_walter_pole` | 內閣大臣、冷靜務實的政治家，通往國家權力機器的樞紐。 |
+| 人物 | `jeremy` | 年輕、強健而易怒的新男僕，穿過荊棘與寒冷仍活下來。 |
+| 人物 | `lawrence_strange` | 什羅普郡老地主，將財產與僕役制度變成傷人工具。 |
 | 場景/道具 | `hurtfew_abbey_library` | 仿哥特拱頂木雕藏書室，英格蘭魔法典籍的封閉神殿。 |
 | 場景/道具 | `york_minster_snow` | 白雪覆蓋的約克大教堂與南門廊，歷史交替的閘門。 |
 | 場景/道具 | `speaking_stones_of_york` | 活化甦醒的約克大教堂石刻群像、石龍與蔓生石藤。 |
@@ -57,6 +59,8 @@ last_updated: 2026-09-22
 | 人物 | `christopher_drawlight` | [克里斯多福・德羅萊特](Characters/christopher_drawlight.md) | 004 | 已繪 v1 |
 | 人物 | `mr_lascelles` | [拉塞爾斯先生](Characters/mr_lascelles.md) | 004 | 已繪 v1 |
 | 人物 | `sir_walter_pole` | [沃特・坡爵士](Characters/sir_walter_pole.md) | 005 | 已繪 v1 |
+| 人物 | `jeremy` | [傑里米](Characters/jeremy.md) | 014 | 已繪 v1 |
+| 人物 | `lawrence_strange` | [勞倫斯・斯特蘭奇](Characters/lawrence_strange.md) | 014 | 已繪 v1 |
 | 場景 | `hurtfew_abbey_library` | [何妨寺藏書室](Props/hurtfew_abbey_library.md) | 001 | 已繪 v1 |
 | 場景 | `york_minster_snow` | [雪中約克大教堂](Props/york_minster_snow.md) | 002 | 已繪 v1 |
 | 道具 | `speaking_stones_of_york` | [約克大教堂說話的石頭](Props/speaking_stones_of_york.md) | 003 | 已繪 v1 |
@@ -84,6 +88,7 @@ last_updated: 2026-09-22
 | 011 | [雨艦隊裡被偷走的一週](../../ReadingReflections/sirius_jonathan_strange_brest_rain_fleet.md) | `rain_fleet_of_brest` | 已繪 v1、已視檢 |
 | 012 | [銀盆把遠方照進冬日房間](../../ReadingReflections/sirius_jonathan_strange_silver_basin.md) | `mr_norrell`, `silver_basin_of_visions` | 已繪 v1、已視檢 |
 | 013 | [闖進書房的街頭預言](../../ReadingReflections/sirius_jonathan_strange_vinculus_in_study.md) | `mr_norrell`, `vinculus` | 已繪 v1、已視檢 |
+| 014 | [寒冷在先，煎熬在後](../../ReadingReflections/sirius_jonathan_strange_heartbreak_farm.md) | `jeremy`, `lawrence_strange` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -129,3 +134,8 @@ last_updated: 2026-09-22
 
 - 第十三章 [闖進書房的街頭預言](../../ReadingReflections/sirius_jonathan_strange_vinculus_in_study.md)：以既有 `mr_norrell` 與新設定 `vinculus` 呈現聞秋樂把街頭魔法與烏衣王預言帶進諾瑞爾書房，而諾瑞爾先護住散落的書；圖片為 `sirius_jonathan_strange_vinculus_in_study_v1.png`。不畫預言文字、烏衣王具象身影、可辨識僕人或第十三章後的發展。
 - 本次新增 `vinculus` 人物設定卡與 `_v1.png`；藍色彎印只作未解釋的可見標誌，不補充來源或超出已讀內容的能力。
+
+## Sirius 本次新增場景（2026-09-22）
+
+- 第十四章 [寒冷在先，煎熬在後](../../ReadingReflections/sirius_jonathan_strange_heartbreak_farm.md)：以新設定 `jeremy`、`lawrence_strange` 呈現傑里米從被故意誤導的荊棘路線返回後，活著睡倒在地，而勞倫斯在開著雪窗的書桌前凍死；圖片為 `sirius_jonathan_strange_heartbreak_farm_v1.png`。不畫後續家族史、英雄化的流行轉述、可辨識的魔法效果或第十四章後的發展。
+- 本次新增 `jeremy` 與 `lawrence_strange` 人物設定卡及各自 `_v1.png`；只鎖定第十四章已確認的外貌、行為與結局，不延伸後續人物發展。
