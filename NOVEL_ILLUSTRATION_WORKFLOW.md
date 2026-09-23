@@ -30,6 +30,8 @@ AgentCommands/ArtGallery/
 
 設定卡必須嵌入對應設定稿。`Characters/` 記錄人物或有敘事人格的生物；`Props/` 記錄關鍵道具與會反覆出現的場景。閱讀心得場景圖仍住在 `ReadingReflections/`，不把設定稿偽裝成心得圖。
 
+> 路徑邊界：`NovelIllustrations/<work-slug>/RawImages/` 只存可重複引用的角色、道具與場景設定稿；`ReadingReflections/` 的心得場景圖則存於畫廊根層 `RawImages/`，展卡統一引用 `../RawImages/<檔名>.png`。兩者即使同屬一部小說，也不可互換存放。
+
 ## 每部小說的插圖製作台帳
 
 每個 `NovelIllustrations/<work-slug>/README.md` 是該小說插圖化的唯一工作入口，不只是作品介紹。它必須在每次上架設定稿或心得場景圖後更新，至少包含：
