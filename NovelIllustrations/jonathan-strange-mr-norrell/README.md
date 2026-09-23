@@ -1,13 +1,13 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十五章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "014"
-illustrated_through_chapter: "014"
-next_chapter: "015"
-last_updated: 2026-09-22
+read_through_chapter: "015"
+illustrated_through_chapter: "015"
+next_chapter: "016"
+last_updated: 2026-09-23
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -20,9 +20,9 @@ last_updated: 2026-09-22
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 014 章〈傷心農莊〉。 |
-| 心得場景插圖 | 已繪至第 014 章；本次新增傑里米、勞倫斯・斯特蘭奇設定稿與寒冷書房場景圖。 |
-| 下一章 | 第 015 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 閱讀進度 | Sirius 已讀至第 015 章〈坡夫人還好嗎？〉。 |
+| 心得場景插圖 | 已繪至第 015 章；本次新增坡夫人、史蒂芬・布萊克設定稿、九號 Harley Street 晚宴場景設定稿與晚宴心得場景圖。 |
+| 下一章 | 第 016 章；先只根據新讀內容決定是否需要新增設定稿。 |
 | 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十四章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
 
 ## 已鎖定設定
@@ -59,6 +59,8 @@ last_updated: 2026-09-22
 | 人物 | `christopher_drawlight` | [克里斯多福・德羅萊特](Characters/christopher_drawlight.md) | 004 | 已繪 v1 |
 | 人物 | `mr_lascelles` | [拉塞爾斯先生](Characters/mr_lascelles.md) | 004 | 已繪 v1 |
 | 人物 | `sir_walter_pole` | [沃特・坡爵士](Characters/sir_walter_pole.md) | 005 | 已繪 v1 |
+| 人物 | `lady_pole` | [坡夫人](Characters/lady_pole.md) | 007 | 已繪 v1 |
+| 人物 | `stephen_black` | [史蒂芬・布萊克](Characters/stephen_black.md) | 015 | 已繪 v1 |
 | 人物 | `jeremy` | [傑里米](Characters/jeremy.md) | 014 | 已繪 v1 |
 | 人物 | `lawrence_strange` | [勞倫斯・斯特蘭奇](Characters/lawrence_strange.md) | 014 | 已繪 v1 |
 | 場景 | `hurtfew_abbey_library` | [何妨寺藏書室](Props/hurtfew_abbey_library.md) | 001 | 已繪 v1 |
@@ -69,6 +71,7 @@ last_updated: 2026-09-22
 | 場景 | `winterton_bedroom_threshold` | [布倫瑞克廣場三樓病室門口](Props/winterton_bedroom_threshold.md) | 007 | 已繪 v1 |
 | 場景 | `rain_fleet_of_brest` | [布雷斯特雨艦隊](Props/rain_fleet_of_brest.md) | 011 | 已繪 v1 |
 | 道具 | `silver_basin_of_visions` | [幻影銀盆](Props/silver_basin_of_visions.md) | 012 | 已繪 v1 |
+| 場景 | `nine_harley_street_dinner` | [九號 Harley Street 的坡宅晚宴](Props/nine_harley_street_dinner.md) | 015 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -89,6 +92,7 @@ last_updated: 2026-09-22
 | 012 | [銀盆把遠方照進冬日房間](../../ReadingReflections/sirius_jonathan_strange_silver_basin.md) | `mr_norrell`, `silver_basin_of_visions` | 已繪 v1、已視檢 |
 | 013 | [闖進書房的街頭預言](../../ReadingReflections/sirius_jonathan_strange_vinculus_in_study.md) | `mr_norrell`, `vinculus` | 已繪 v1、已視檢 |
 | 014 | [寒冷在先，煎熬在後](../../ReadingReflections/sirius_jonathan_strange_heartbreak_farm.md) | `jeremy`, `lawrence_strange` | 已繪 v1、已視檢 |
+| 015 | [坡夫人把晚宴問回孤獨](../../ReadingReflections/sirius_jonathan_strange_harley_street_uneasy_dinner.md) | `lady_pole`, `stephen_black`, `mr_norrell`, `christopher_drawlight`, `mr_lascelles`, `nine_harley_street_dinner` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -139,3 +143,8 @@ last_updated: 2026-09-22
 
 - 第十四章 [寒冷在先，煎熬在後](../../ReadingReflections/sirius_jonathan_strange_heartbreak_farm.md)：以新設定 `jeremy`、`lawrence_strange` 呈現傑里米從被故意誤導的荊棘路線返回後，活著睡倒在地，而勞倫斯在開著雪窗的書桌前凍死；圖片為 `sirius_jonathan_strange_heartbreak_farm_v1.png`。不畫後續家族史、英雄化的流行轉述、可辨識的魔法效果或第十四章後的發展。
 - 本次新增 `jeremy` 與 `lawrence_strange` 人物設定卡及各自 `_v1.png`；只鎖定第十四章已確認的外貌、行為與結局，不延伸後續人物發展。
+
+## Sirius 本次新增場景（2026-09-23）
+
+- 第十五章 [坡夫人把晚宴問回孤獨](../../ReadingReflections/sirius_jonathan_strange_harley_street_uneasy_dinner.md)：以新設定 `lady_pole`、`stephen_black`、`nine_harley_street_dinner`，以及既有 `mr_norrell`、`christopher_drawlight`、`mr_lascelles`，呈現九號 Harley Street 晚宴裡坡夫人的直接提問、諾瑞爾被名聲包圍的孤獨與僕人秩序邊緣的三個未決異常；圖片為 `sirius_jonathan_strange_harley_street_uneasy_dinner_v1.png`。不把銀髮綠衣人影、悲傷音樂與窗外樹林合併成已證實的共同魔法，也不補入第十五章後的發展。
+- 本次新增 `lady_pole`、`stephen_black` 人物設定卡與 `nine_harley_street_dinner` 場景設定卡及其 `_v1.png`；坡夫人的精確外貌、史蒂芬的身世與傳聞真相仍保留為開放問題。
