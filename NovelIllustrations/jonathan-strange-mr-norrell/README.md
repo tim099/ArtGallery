@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "018"
-illustrated_through_chapter: "018"
-next_chapter: "019"
+read_through_chapter: "019"
+illustrated_through_chapter: "019"
+next_chapter: "020"
 last_updated: 2026-09-25
 ---
 
@@ -14,16 +14,16 @@ last_updated: 2026-09-25
 
 ## 視覺母題
 
-十九世紀初攝政時期英格蘭北部約克郡的厚重沉靜質感，過渡至倫敦漢諾威廣場與曼徹斯特大街晚宴的浮華喧囂。以冷灰石材、純白積雪、哥特大教堂、漢諾威廣場千篇一律的磚石高牆、晚宴客廳的璀璨燭光與黑天鵝絨、以及倫敦街頭泥濘牆角邊聞秋樂的黃色髒布棚為基調。色彩以小牛皮原色、深黑毛料、暗紅天鵝絨、雪白荷葉邊、土黃粗布與金銀冷光交織。設定稿維持經典英國歷史奇幻插畫油畫質地、筆觸細膩、無文字、無水印。
+十九世紀初攝政時期英格蘭北部約克郡的厚重沉靜質感，過渡至倫敦漢諾威廣場與曼徹斯特大街晚宴的浮華喧囂。以冷灰石材、純白積雪、哥特大教堂、漢諾威廣場千篇一律的磚石高牆、晚宴客廳的璀璨燭光與黑天鵝絨、倫敦街頭泥濘牆角邊聞秋樂的黃色髒布棚，以及咖啡館隔間的深木色與油燈煙霧為基調。色彩以小牛皮原色、深黑毛料、暗紅天鵝絨、雪白荷葉邊、土黃粗布與金銀冷光交織。設定稿維持經典英國歷史奇幻插畫油畫質地、筆觸細膩、無文字、無水印。
 
 ## 範圍與進度
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 018 章〈沃特爵士向各路人士徵求意見〉。 |
-| 心得場景插圖 | 已繪至第 018 章；本次新增漢諾威廣場書房設定稿與黑窗爭執心得場景圖。 |
-| 下一章 | 第 019 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十八章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 019 章〈黎明男兒〉。 |
+| 心得場景插圖 | 已繪至第 019 章；本次沿用史蒂芬與白髮先生設定，新增咖啡館隔間對話場景。 |
+| 下一章 | 第 020 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十九章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -101,6 +101,7 @@ last_updated: 2026-09-25
 | 016 | [鏡前的邀請](../../ReadingReflections/sirius_jonathan_strange_mourning_wings_mirror_invitation.md) | `stephen_black`, `white_haired_gentleman`, `mourning_wings_dance_hall` | 已繪 v1、已視檢 |
 | 017 | [二十五枚幾尼照出的異樣](../../ReadingReflections/sirius_jonathan_strange_twenty_five_guineas_glow.md) | `stephen_black`, `brandy_grocery_shop`, `twenty_five_mysterious_guineas` | 已繪 v1、已視檢 |
 | 018 | [黑窗裡的兩種盤算](../../ReadingReflections/sirius_jonathan_strange_black_window_bargain.md) | `mr_norrell`, `white_haired_gentleman`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
+| 019 | [隔間裡的王位許諾](../../ReadingReflections/sirius_jonathan_strange_dawn_men_coffeehouse.md) | `stephen_black`, `white_haired_gentleman` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -169,3 +170,8 @@ last_updated: 2026-09-25
 
 - 第十八章 [黑窗裡的兩種盤算](../../ReadingReflections/sirius_jonathan_strange_black_window_bargain.md)：以 `mr_norrell`、`white_haired_gentleman`、`norrell_hanover_square_study` 呈現兩人在黑窗倒影中的爭執，以及坡夫人的感受被排除在解釋之外；圖片為 `sirius_jonathan_strange_black_window_bargain_v1.png`。不替倒影定性或補入未說明的動機。
 - 新增漢諾威廣場書房場景卡與設定稿。
+
+## Sirius 本次新增場景（2026-09-25）
+
+- 第十九章 [隔間裡的王位許諾](../../ReadingReflections/sirius_jonathan_strange_dawn_men_coffeehouse.md)：以 `stephen_black`、`white_haired_gentleman` 呈現「黎明男兒」咖啡館中，白髮先生把干預包裝成恩惠，而史蒂芬仍保留對沃特爵士記憶與判斷的片刻；圖片為 `sirius_jonathan_strange_dawn_men_coffeehouse_v1.png`。不呈現未知的鎖鏈景象，也不替白髮先生補上未揭明的來歷或動機。
+- 更新兩張人物設定卡，補入第十九章已確認的疲憊狀態、言行與未知邊界。
