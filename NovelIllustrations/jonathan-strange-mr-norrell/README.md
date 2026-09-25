@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十六章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "016"
-illustrated_through_chapter: "016"
-next_chapter: "017"
+read_through_chapter: "017"
+illustrated_through_chapter: "017"
+next_chapter: "018"
 last_updated: 2026-09-25
 ---
 
@@ -20,10 +20,10 @@ last_updated: 2026-09-25
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 016 章〈喪冀〉。 |
-| 心得場景插圖 | 已繪至第 016 章；本次新增白髮舞會主人、喪冀舞會石廳設定稿與鏡前心得場景圖。 |
-| 下一章 | 第 017 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十六章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 017 章〈二十五枚來歷不明的幾尼〉。 |
+| 心得場景插圖 | 已繪至第 017 章；本次新增布蘭迪副食店、來歷不明幾尼設定稿與金光心得場景圖。 |
+| 下一章 | 第 018 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十七章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -74,6 +74,8 @@ last_updated: 2026-09-25
 | 道具 | `silver_basin_of_visions` | [幻影銀盆](Props/silver_basin_of_visions.md) | 012 | 已繪 v1 |
 | 場景 | `nine_harley_street_dinner` | [九號 Harley Street 的坡宅晚宴](Props/nine_harley_street_dinner.md) | 015 | 已繪 v1 |
 | 場景 | `mourning_wings_dance_hall` | [喪冀舞會的石廳](Props/mourning_wings_dance_hall.md) | 016 | 已繪 v1 |
+| 場景 | `brandy_grocery_shop` | [布蘭迪副食店](Props/brandy_grocery_shop.md) | 017 | 已繪 v1 |
+| 道具 | `twenty_five_mysterious_guineas` | [來歷不明的二十五枚幾尼](Props/twenty_five_mysterious_guineas.md) | 017 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -96,6 +98,7 @@ last_updated: 2026-09-25
 | 014 | [寒冷在先，煎熬在後](../../ReadingReflections/sirius_jonathan_strange_heartbreak_farm.md) | `jeremy`, `lawrence_strange` | 已繪 v1、已視檢 |
 | 015 | [坡夫人把晚宴問回孤獨](../../ReadingReflections/sirius_jonathan_strange_harley_street_uneasy_dinner.md) | `lady_pole`, `stephen_black`, `mr_norrell`, `christopher_drawlight`, `mr_lascelles`, `nine_harley_street_dinner` | 已繪 v1、已視檢 |
 | 016 | [鏡前的邀請](../../ReadingReflections/sirius_jonathan_strange_mourning_wings_mirror_invitation.md) | `stephen_black`, `white_haired_gentleman`, `mourning_wings_dance_hall` | 已繪 v1、已視檢 |
+| 017 | [二十五枚幾尼照出的異樣](../../ReadingReflections/sirius_jonathan_strange_twenty_five_guineas_glow.md) | `stephen_black`, `brandy_grocery_shop`, `twenty_five_mysterious_guineas` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -156,3 +159,7 @@ last_updated: 2026-09-25
 
 - 第十六章 [鏡前的邀請](../../ReadingReflections/sirius_jonathan_strange_mourning_wings_mirror_invitation.md)：以 `stephen_black`、`white_haired_gentleman`、`mourning_wings_dance_hall` 呈現鏡中並置的膚色與身分判斷，以及尚未看清代價的邀請；圖片為 `sirius_jonathan_strange_mourning_wings_mirror_invitation_v1.png`。
 - 新增白髮舞會主人角色設定卡與喪冀舞會石廳場景卡及設定稿；男子姓名與來歷未確認，仍保持開放。
+## Sirius 本次新增場景（2026-09-25）
+
+- 第十七章 [二十五枚幾尼照出的異樣](../../ReadingReflections/sirius_jonathan_strange_twenty_five_guineas_glow.md)：以 `stephen_black`、`brandy_grocery_shop`、`twenty_five_mysterious_guineas` 呈現金光改變人物可見樣貌、史蒂芬疲憊旁觀的瞬間；圖片為 `sirius_jonathan_strange_twenty_five_guineas_glow_v1.png`。不推測金幣來歷，也不將光環解讀為身分證明。
+- 新增布蘭迪副食店場景卡與二十五枚來歷不明幾尼道具卡及設定稿。
