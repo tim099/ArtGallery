@@ -1,13 +1,13 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "019"
-illustrated_through_chapter: "019"
-next_chapter: "020"
-last_updated: 2026-09-25
+read_through_chapter: "020"
+illustrated_through_chapter: "020"
+next_chapter: "021"
+last_updated: 2026-09-27
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -20,10 +20,10 @@ last_updated: 2026-09-25
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 019 章〈黎明男兒〉。 |
-| 心得場景插圖 | 已繪至第 019 章；本次沿用史蒂芬與白髮先生設定，新增咖啡館隔間對話場景。 |
-| 下一章 | 第 020 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至十九章；不以後續家族史、人物發展或英雄化轉述補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 020 章〈可疑的帽商〉。 |
+| 心得場景插圖 | 已繪至第 020 章；沿用聞秋樂、齊爾德邁斯與黃色布棚設定，新增兩人在泥地旁辨認咒語紙的場景。 |
+| 下一章 | 第 021 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十章；不以後續情節補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -102,6 +102,7 @@ last_updated: 2026-09-25
 | 017 | [二十五枚幾尼照出的異樣](../../ReadingReflections/sirius_jonathan_strange_twenty_five_guineas_glow.md) | `stephen_black`, `brandy_grocery_shop`, `twenty_five_mysterious_guineas` | 已繪 v1、已視檢 |
 | 018 | [黑窗裡的兩種盤算](../../ReadingReflections/sirius_jonathan_strange_black_window_bargain.md) | `mr_norrell`, `white_haired_gentleman`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 019 | [隔間裡的王位許諾](../../ReadingReflections/sirius_jonathan_strange_dawn_men_coffeehouse.md) | `stephen_black`, `white_haired_gentleman` | 已繪 v1、已視檢 |
+| 020 | [泥地裡的咒語紙](../../ReadingReflections/sirius_jonathan_strange_suspicious_hatter.md) | `vinculus`, `john_childermass`, `vinculus_yellow_tent` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -175,3 +176,7 @@ last_updated: 2026-09-25
 
 - 第十九章 [隔間裡的王位許諾](../../ReadingReflections/sirius_jonathan_strange_dawn_men_coffeehouse.md)：以 `stephen_black`、`white_haired_gentleman` 呈現「黎明男兒」咖啡館中，白髮先生把干預包裝成恩惠，而史蒂芬仍保留對沃特爵士記憶與判斷的片刻；圖片為 `sirius_jonathan_strange_dawn_men_coffeehouse_v1.png`。不呈現未知的鎖鏈景象，也不替白髮先生補上未揭明的來歷或動機。
 - 更新兩張人物設定卡，補入第十九章已確認的疲憊狀態、言行與未知邊界。
+
+## Sirius 本次新增場景（2026-09-27）
+
+- 第二十章 [泥地裡的咒語紙](../../ReadingReflections/sirius_jonathan_strange_suspicious_hatter.md)：以 `vinculus`、`john_childermass`、`vinculus_yellow_tent` 呈現聞秋樂認出諾瑞爾的咒語紙後，齊爾德邁斯暫拒服從驅逐命令、提出找地方談談的片刻；圖片為 `sirius_jonathan_strange_suspicious_hatter_v1.png`。不呈現可讀咒語文字或兩人後續談話結果。
