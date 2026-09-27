@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "022"
-illustrated_through_chapter: "022"
-next_chapter: "023"
+read_through_chapter: "024"
+illustrated_through_chapter: "024"
+next_chapter: "025"
 last_updated: 2026-09-27
 ---
 
@@ -20,14 +20,16 @@ last_updated: 2026-09-27
 
 第二十二章的雷蒙家客廳以暖木色、壁爐與燭光呈現；鏡中諾瑞爾的書房則收在較冷、較暗的色調。乾燥薰衣草、玫瑰與百里香沿鏡框散置，鏡面上的四分圓只作本章咒式的可見痕跡，不加入可讀咒文。
 
+第二十四章回到漢諾威廣場書房，以暗木、火光與深色鏡面構成安靜的展示空間。斯特蘭奇把書的實體移入鏡中、桌面只剩映像；鏡面不發光，法術不加符文或煙霧。
+
 ## 範圍與進度
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 022 章〈權杖騎士〉。 |
-| 心得場景插圖 | 已繪至第 022 章；新增喬納森・斯特蘭奇、阿拉貝拉・伍德霍普與刺探咒鏡面設定稿，並完成鏡中看見諾瑞爾書房的場景。 |
-| 下一章 | 第 023 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十二章；不以後續情節補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 024 章〈另一位魔法師〉；第 023 章已讀，尚未另繪場景。 |
+| 心得場景插圖 | 已繪至第 024 章；沿用既有角色與漢諾威廣場書房，新增傑里米・托特《英格蘭魔法》設定稿，呈現書的實體只出現在鏡中的瞬間。 |
+| 下一章 | 第 025 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十四章；不以後續情節補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -85,6 +87,7 @@ last_updated: 2026-09-27
 | 人物 | `jonathan_strange` | [喬納森・斯特蘭奇](Characters/jonathan_strange.md) | 022 | 已繪 v1 |
 | 人物 | `arabella_woodhope` | [阿拉貝拉・伍德霍普](Characters/arabella_woodhope.md) | 022 | 已繪 v1 |
 | 道具 | `spying_mirror_spell` | [刺探咒與乾花鏡面](Props/spying_mirror_spell.md) | 022 | 已繪 v1 |
+| 道具 | `toth_english_magic` | [傑里米・托特《英格蘭魔法》](Props/toth_english_magic.md) | 024 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -113,6 +116,7 @@ last_updated: 2026-09-27
 | 020 | [泥地裡的咒語紙](../../ReadingReflections/sirius_jonathan_strange_suspicious_hatter.md) | `vinculus`, `john_childermass`, `vinculus_yellow_tent` | 已繪 v1、已視檢 |
 | 021 | [九張牌圍住黑國王](../../ReadingReflections/sirius_jonathan_strange_marseille_tarot.md) | `john_childermass`, `vinculus`, `childermass_marseille_tarot` | 已繪 v1、已視檢 |
 | 022 | [鏡中書房的意外相逢](../../ReadingReflections/sirius_jonathan_strange_spying_mirror.md) | `jonathan_strange`, `arabella_woodhope`, `mr_norrell`, `spying_mirror_spell` | 已繪 v1、已視檢 |
+| 024 | [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md) | `jonathan_strange`, `mr_norrell`, `mr_lascelles`, `christopher_drawlight`, `norrell_hanover_square_study`, `toth_english_magic` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -201,3 +205,10 @@ last_updated: 2026-09-27
 - 第二十二章 [鏡中書房的意外相逢](../../ReadingReflections/sirius_jonathan_strange_spying_mirror.md)：以 `jonathan_strange`、`arabella_woodhope`、`mr_norrell`、`spying_mirror_spell` 呈現喬納森的刺探咒第一次奏效，鏡中意外映出諾瑞爾書房的瞬間；圖片為 `sirius_jonathan_strange_spying_mirror_v1.png`。不加入咒語文字、聽覺資訊或第二十二章後的情節。
 - 新增 `jonathan_strange`、`arabella_woodhope` 人物設定卡與 `spying_mirror_spell` 道具設定卡及設定稿；服飾細節與鏡框外觀提案仍標為未確認。
 - Library reader root 仍顯示第十九章；第 20 至 22 章閱讀紀錄待 queue lock 釋放後由 Cmd 補存，不直接修改 reader JSON。
+
+## Sirius 本次新增場景（2026-09-27）
+
+- 第二十三章已讀，未新增場景插圖；讀到斯剛德斯在影宅夢境中遇見斯特蘭奇，並與他在醒世初次相逢。
+- 第二十四章 [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md)：以 `jonathan_strange`、`mr_norrell`、`mr_lascelles`、`christopher_drawlight`、`norrell_hanover_square_study`、`toth_english_magic` 呈現斯特蘭奇讓《英格蘭魔法》的實體進入鏡中，諾瑞爾立刻辨認並由衷讚歎的瞬間；圖片為 `sirius_jonathan_strange_book_in_mirror_v1.png`。不補入法術機制或第二十四章後的師徒發展。
+- 新增 `toth_english_magic` 道具設定卡與設定稿；裝幀只作無字的視覺提案。
+- Library reader root 仍顯示第十九章；第 20 至 24 章閱讀紀錄待 `queue.json.lock` 釋放後由 Library Cmd 補存，不直接修改 reader JSON。
