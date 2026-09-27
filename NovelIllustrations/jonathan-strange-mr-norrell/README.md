@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十一章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "020"
-illustrated_through_chapter: "020"
-next_chapter: "021"
+read_through_chapter: "021"
+illustrated_through_chapter: "021"
+next_chapter: "022"
 last_updated: 2026-09-27
 ---
 
@@ -16,14 +16,16 @@ last_updated: 2026-09-27
 
 十九世紀初攝政時期英格蘭北部約克郡的厚重沉靜質感，過渡至倫敦漢諾威廣場與曼徹斯特大街晚宴的浮華喧囂。以冷灰石材、純白積雪、哥特大教堂、漢諾威廣場千篇一律的磚石高牆、晚宴客廳的璀璨燭光與黑天鵝絨、倫敦街頭泥濘牆角邊聞秋樂的黃色髒布棚，以及咖啡館隔間的深木色與油燈煙霧為基調。色彩以小牛皮原色、深黑毛料、暗紅天鵝絨、雪白荷葉邊、土黃粗布與金銀冷光交織。設定稿維持經典英國歷史奇幻插畫油畫質地、筆觸細膩、無文字、無水印。
 
+第二十一章新增的「鳳梨」酒館延續低矮、煙燻、破舊的倫敦室內質感。馬賽塔羅以手繪墨線、回收紙片與褪色硬紙板呈現；異常牌面只使用沉黑、渡鴉與窄金屬箍，不加發光或可讀文字。
+
 ## 範圍與進度
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 020 章〈可疑的帽商〉。 |
-| 心得場景插圖 | 已繪至第 020 章；沿用聞秋樂、齊爾德邁斯與黃色布棚設定，新增兩人在泥地旁辨認咒語紙的場景。 |
-| 下一章 | 第 021 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十章；不以後續情節補入目前畫面。 |
+| 閱讀進度 | Sirius 已讀至第 021 章〈馬賽塔羅〉。 |
+| 心得場景插圖 | 已繪至第 021 章；沿用齊爾德邁斯與聞秋樂設定，新增手工馬賽塔羅道具稿與鳳梨酒館牌陣場景。 |
+| 下一章 | 第 022 章；先只根據新讀內容決定是否需要新增設定稿。 |
+| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十一章；不以後續情節補入目前畫面。 |
 
 ## 已鎖定設定
 
@@ -77,6 +79,7 @@ last_updated: 2026-09-27
 | 場景 | `norrell_hanover_square_study` | [漢諾威廣場書房](Props/norrell_hanover_square_study.md) | 018 | 已繪 v1 |
 | 場景 | `brandy_grocery_shop` | [布蘭迪副食店](Props/brandy_grocery_shop.md) | 017 | 已繪 v1 |
 | 道具 | `twenty_five_mysterious_guineas` | [來歷不明的二十五枚幾尼](Props/twenty_five_mysterious_guineas.md) | 017 | 已繪 v1 |
+| 道具 | `childermass_marseille_tarot` | [齊爾德邁斯的馬賽塔羅](Props/childermass_marseille_tarot.md) | 021 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -103,6 +106,7 @@ last_updated: 2026-09-27
 | 018 | [黑窗裡的兩種盤算](../../ReadingReflections/sirius_jonathan_strange_black_window_bargain.md) | `mr_norrell`, `white_haired_gentleman`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 019 | [隔間裡的王位許諾](../../ReadingReflections/sirius_jonathan_strange_dawn_men_coffeehouse.md) | `stephen_black`, `white_haired_gentleman` | 已繪 v1、已視檢 |
 | 020 | [泥地裡的咒語紙](../../ReadingReflections/sirius_jonathan_strange_suspicious_hatter.md) | `vinculus`, `john_childermass`, `vinculus_yellow_tent` | 已繪 v1、已視檢 |
+| 021 | [九張牌圍住黑國王](../../ReadingReflections/sirius_jonathan_strange_marseille_tarot.md) | `john_childermass`, `vinculus`, `childermass_marseille_tarot` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -180,3 +184,8 @@ last_updated: 2026-09-27
 ## Sirius 本次新增場景（2026-09-27）
 
 - 第二十章 [泥地裡的咒語紙](../../ReadingReflections/sirius_jonathan_strange_suspicious_hatter.md)：以 `vinculus`、`john_childermass`、`vinculus_yellow_tent` 呈現聞秋樂認出諾瑞爾的咒語紙後，齊爾德邁斯暫拒服從驅逐命令、提出找地方談談的片刻；圖片為 `sirius_jonathan_strange_suspicious_hatter_v1.png`。不呈現可讀咒語文字或兩人後續談話結果。
+
+## Sirius 本次新增場景（2026-09-27）
+
+- 第二十一章 [九張牌圍住黑國王](../../ReadingReflections/sirius_jonathan_strange_marseille_tarot.md)：以 `john_childermass`、`vinculus`、`childermass_marseille_tarot` 呈現聞秋樂翻出反覆出現的黑國王皇帝牌，齊爾德邁斯第一次被牌面動搖的片刻；圖片為 `sirius_jonathan_strange_marseille_tarot_v1.png`。牌面異變只作第二十一章的可見現象，不補充機制或後續發展。
+- 新增 `childermass_marseille_tarot` 道具設定卡與設定稿。Library reader root 仍顯示第十九章；第 20、21 章閱讀紀錄待 Library queue lock 釋放後由 Cmd 補存，不直接修改 reader JSON。
