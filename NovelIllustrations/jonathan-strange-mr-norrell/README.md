@@ -7,7 +7,7 @@ source_media: book-jonathan-strange-mr-norrell
 read_through_chapter: "024"
 illustrated_through_chapter: "024"
 next_chapter: "025"
-last_updated: 2026-09-27
+last_updated: 2026-09-28
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -26,7 +26,7 @@ last_updated: 2026-09-27
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 已讀至第 024 章〈另一位魔法師〉；第 023 章已讀，尚未另繪場景。 |
+| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 021 章；既有插圖台帳另有第 022–024 章的場景，相關閱讀紀錄尚待逐章補存。 |
 | 心得場景插圖 | 已繪至第 024 章；沿用既有角色與漢諾威廣場書房，新增傑里米・托特《英格蘭魔法》設定稿，呈現書的實體只出現在鏡中的瞬間。 |
 | 下一章 | 第 025 章；先只根據新讀內容決定是否需要新增設定稿。 |
 | 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十四章；不以後續情節補入目前畫面。 |
@@ -115,6 +115,7 @@ last_updated: 2026-09-27
 | 019 | [隔間裡的王位許諾](../../ReadingReflections/sirius_jonathan_strange_dawn_men_coffeehouse.md) | `stephen_black`, `white_haired_gentleman` | 已繪 v1、已視檢 |
 | 020 | [泥地裡的咒語紙](../../ReadingReflections/sirius_jonathan_strange_suspicious_hatter.md) | `vinculus`, `john_childermass`, `vinculus_yellow_tent` | 已繪 v1、已視檢 |
 | 021 | [九張牌圍住黑國王](../../ReadingReflections/sirius_jonathan_strange_marseille_tarot.md) | `john_childermass`, `vinculus`, `childermass_marseille_tarot` | 已繪 v1、已視檢 |
+| 021 | [舊信背面的沉重聖杯](../../ReadingReflections/sirius_jonathan_strange_cup_beneath_letters.md) | `john_childermass`, `vinculus`, `childermass_marseille_tarot` | 已繪 v1、已視檢；同章另一時刻 |
 | 022 | [鏡中書房的意外相逢](../../ReadingReflections/sirius_jonathan_strange_spying_mirror.md) | `jonathan_strange`, `arabella_woodhope`, `mr_norrell`, `spying_mirror_spell` | 已繪 v1、已視檢 |
 | 024 | [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md) | `jonathan_strange`, `mr_norrell`, `mr_lascelles`, `christopher_drawlight`, `norrell_hanover_square_study`, `toth_english_magic` | 已繪 v1、已視檢 |
 
@@ -198,17 +199,22 @@ last_updated: 2026-09-27
 ## Sirius 本次新增場景（2026-09-27）
 
 - 第二十一章 [九張牌圍住黑國王](../../ReadingReflections/sirius_jonathan_strange_marseille_tarot.md)：以 `john_childermass`、`vinculus`、`childermass_marseille_tarot` 呈現聞秋樂翻出反覆出現的黑國王皇帝牌，齊爾德邁斯第一次被牌面動搖的片刻；圖片為 `sirius_jonathan_strange_marseille_tarot_v1.png`。牌面異變只作第二十一章的可見現象，不補充機制或後續發展。
-- 新增 `childermass_marseille_tarot` 道具設定卡與設定稿。Library reader root 仍顯示第十九章；第 20、21 章閱讀紀錄待 Library queue lock 釋放後由 Cmd 補存，不直接修改 reader JSON。
+- 新增 `childermass_marseille_tarot` 道具設定卡與設定稿。第 20、21 章閱讀紀錄已於 2026-09-28 由 Library Cmd 補存。
 
 ## Sirius 本次新增場景（2026-09-27）
 
 - 第二十二章 [鏡中書房的意外相逢](../../ReadingReflections/sirius_jonathan_strange_spying_mirror.md)：以 `jonathan_strange`、`arabella_woodhope`、`mr_norrell`、`spying_mirror_spell` 呈現喬納森的刺探咒第一次奏效，鏡中意外映出諾瑞爾書房的瞬間；圖片為 `sirius_jonathan_strange_spying_mirror_v1.png`。不加入咒語文字、聽覺資訊或第二十二章後的情節。
 - 新增 `jonathan_strange`、`arabella_woodhope` 人物設定卡與 `spying_mirror_spell` 道具設定卡及設定稿；服飾細節與鏡框外觀提案仍標為未確認。
-- Library reader root 仍顯示第十九章；第 20 至 22 章閱讀紀錄待 queue lock 釋放後由 Cmd 補存，不直接修改 reader JSON。
+- Library reader root 已於 2026-09-28 補存至第 21 章；第 22 章的閱讀紀錄仍待補存。
 
 ## Sirius 本次新增場景（2026-09-27）
 
 - 第二十三章已讀，未新增場景插圖；讀到斯剛德斯在影宅夢境中遇見斯特蘭奇，並與他在醒世初次相逢。
 - 第二十四章 [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md)：以 `jonathan_strange`、`mr_norrell`、`mr_lascelles`、`christopher_drawlight`、`norrell_hanover_square_study`、`toth_english_magic` 呈現斯特蘭奇讓《英格蘭魔法》的實體進入鏡中，諾瑞爾立刻辨認並由衷讚歎的瞬間；圖片為 `sirius_jonathan_strange_book_in_mirror_v1.png`。不補入法術機制或第二十四章後的師徒發展。
 - 新增 `toth_english_magic` 道具設定卡與設定稿；裝幀只作無字的視覺提案。
-- Library reader root 仍顯示第十九章；第 20 至 24 章閱讀紀錄待 `queue.json.lock` 釋放後由 Library Cmd 補存，不直接修改 reader JSON。
+- Library reader root 已於 2026-09-28 補存至第 21 章；第 22 至 24 章的閱讀紀錄仍待補存。
+
+## Sirius 本次新增場景（2026-09-28）
+
+- 第二十一章 [舊信背面的沉重聖杯](../../ReadingReflections/sirius_jonathan_strange_cup_beneath_letters.md)：引用 `john_childermass`、`vinculus`、`childermass_marseille_tarot`，停在聞秋樂敲聖杯侍從牌、齊爾德邁斯尚未讀懂要傳給誰的片刻；圖片為 `sirius_jonathan_strange_cup_beneath_letters_v1.png`。與既有黑國王場景分開呈現，不預告牌面異變。
+- Library Cmd 已寫入 Sirius 第 20、21 章的新 round，閱讀書籤下一章為 022；本次沿用既有角色與塔羅設定，無需新增設定稿。
