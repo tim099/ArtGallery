@@ -26,10 +26,10 @@ last_updated: 2026-09-28
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 022 章；既有插圖台帳另有第 023–024 章的場景，相關閱讀紀錄尚待逐章補存。 |
+| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 023 章；既有插圖台帳另有第 024 章的場景，相關閱讀紀錄尚待補存。 |
 | 心得場景插圖 | 已繪至第 024 章；沿用既有角色與漢諾威廣場書房，新增傑里米・托特《英格蘭魔法》設定稿，呈現書的實體只出現在鏡中的瞬間。 |
-| 下一章 | 第 025 章；先只根據新讀內容決定是否需要新增設定稿。 |
-| 劇透邊界 | 嚴格鎖定 Sirius 已讀的第一至二十四章；不以後續情節補入目前畫面。 |
+| 下一章 | Sirius 的 Library 書籤為第 024 章；既有插圖台帳的續作章節為第 025 章。 |
+| 劇透邊界 | 本次新增圖只取 Sirius Library 已讀至第 023 章的內容；既有第 024 章場景不補入本次畫面。 |
 
 ## 已鎖定設定
 
@@ -118,6 +118,7 @@ last_updated: 2026-09-28
 | 021 | [舊信背面的沉重聖杯](../../ReadingReflections/sirius_jonathan_strange_cup_beneath_letters.md) | `john_childermass`, `vinculus`, `childermass_marseille_tarot` | 已繪 v1、已視檢；同章另一時刻 |
 | 022 | [鏡中書房的意外相逢](../../ReadingReflections/sirius_jonathan_strange_spying_mirror.md) | `jonathan_strange`, `arabella_woodhope`, `mr_norrell`, `spying_mirror_spell` | 已繪 v1、已視檢 |
 | 022 | [冬日村口的折返](../../ReadingReflections/sirius_jonathan_strange_winter_road_return.md) | `jonathan_strange`, `jeremy` | 已繪 v1、已視檢；同章另一時刻 |
+| 023 | [酒家餐桌上的書名](../../ReadingReflections/sirius_jonathan_strange_books_over_supper.md) | `jonathan_strange`, `john_segundus`, `mr_honeyfoot` | 已繪 v1、已視檢 |
 | 024 | [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md) | `jonathan_strange`, `mr_norrell`, `mr_lascelles`, `christopher_drawlight`, `norrell_hanover_square_study`, `toth_english_magic` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
@@ -210,10 +211,10 @@ last_updated: 2026-09-28
 
 ## Sirius 本次新增場景（2026-09-27）
 
-- 第二十三章已讀，未新增場景插圖；讀到斯剛德斯在影宅夢境中遇見斯特蘭奇，並與他在醒世初次相逢。
+- 第二十三章先前已讀而未新增場景插圖；讀到斯剛德斯在影宅夢境中遇見斯特蘭奇，並與他在醒世初次相逢。2026-09-28 已補上另一時刻的場景圖，見下方新增場景。
 - 第二十四章 [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md)：以 `jonathan_strange`、`mr_norrell`、`mr_lascelles`、`christopher_drawlight`、`norrell_hanover_square_study`、`toth_english_magic` 呈現斯特蘭奇讓《英格蘭魔法》的實體進入鏡中，諾瑞爾立刻辨認並由衷讚歎的瞬間；圖片為 `sirius_jonathan_strange_book_in_mirror_v1.png`。不補入法術機制或第二十四章後的師徒發展。
 - 新增 `toth_english_magic` 道具設定卡與設定稿；裝幀只作無字的視覺提案。
-- Library reader root 已於 2026-09-28 補存至第 22 章；第 23、24 章的閱讀紀錄仍待補存。
+- Library reader root 已於 2026-09-28 補存至第 23 章；第 24 章的閱讀紀錄仍待補存。
 
 ## Sirius 本次新增場景（2026-09-28）
 
@@ -224,3 +225,8 @@ last_updated: 2026-09-28
 
 - 第二十二章 [冬日村口的折返](../../ReadingReflections/sirius_jonathan_strange_winter_road_return.md)：引用 `jonathan_strange`、`jeremy`，呈現喬納森決定返回幫助籬下陌生人、傑里米拿起粗樹枝同行的片刻；圖片為 `sirius_jonathan_strange_winter_road_return_v1.png`。遠方村民不作可辨識人物，不描繪後續結果。
 - Library Cmd 已寫入 Sirius 第 22 章的新 round，閱讀書籤下一章為 023；本次沿用既有人物設定，無需新增設定稿。
+
+## Sirius 本次新增場景（2026-09-28）
+
+- 第二十三章 [酒家餐桌上的書名](../../ReadingReflections/sirius_jonathan_strange_books_over_supper.md)：引用 `jonathan_strange`、`john_segundus`、`mr_honeyfoot`，呈現斯特蘭奇在喬治酒家記下兩位學者推薦書目的片刻；圖片為 `sirius_jonathan_strange_books_over_supper_v1.png`。桌面文字不可讀，不預設見過諾瑞爾後的結果。
+- Library Cmd 已寫入 Sirius 第 23 章的新 round，書籤下一章為 024；沿用三張既有人物設定稿，無需新增人物或道具設定。
