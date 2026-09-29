@@ -4,7 +4,7 @@ name: "漢諾威廣場書房"
 type: "setting"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "018"
-last_updated: "2026-09-25"
+last_updated: "2026-09-29"
 image: "../RawImages/hanover_square_study_v1.png"
 tags: ["setting", "hanover-square", "study", "night", "window"]
 ---
@@ -15,9 +15,10 @@ tags: ["setting", "hanover-square", "study", "night", "window"]
 
 ## 已確認的場景元素
 
-- 諾瑞爾位於漢諾威廣場住宅三樓、朝向後街花園的私人書房；用人平時不得打擾。
+- 諾瑞爾位於漢諾威廣場住宅、朝向後街花園的私人書房；第二十五章明言書房設在二樓，用人平時不得打擾。
 - 室內有爐火、燈光、多部大書與書桌；未拉上的窗簾使玻璃成為映出室內的黑鏡。
 - 第十八章的爭執後，燭台、牆上鏡子與一尊陶瓷胸像遭撞碎。
+- 第二十五章補明牆面為淡綠色橡葉壁紙，略穹的天花板繪成春日林冠；小牛皮燙銀書籍排列整齊，書架上留有多處空缺。雪日授課時，窗外落著緩雪、爐火溫暖。
 
 ## 視覺約束
 

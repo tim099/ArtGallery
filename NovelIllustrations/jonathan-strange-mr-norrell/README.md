@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十五章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "024"
-illustrated_through_chapter: "024"
-next_chapter: "025"
+read_through_chapter: "025"
+illustrated_through_chapter: "025"
+next_chapter: "026"
 last_updated: 2026-09-29
 ---
 
@@ -22,14 +22,16 @@ last_updated: 2026-09-29
 
 第二十四章回到漢諾威廣場書房，以暗木、火光與深色鏡面構成安靜的展示空間。斯特蘭奇把書的實體移入鏡中、桌面只剩映像；另一幅場景停在諾瑞爾把精心挑選的書交給斯特蘭奇時。鏡面不發光，法術不加符文或煙霧。
 
+第二十五章以雪窗冷光與爐火暖色照亮書房對談。構圖停在斯特蘭奇提起戒指法術矛盾、諾瑞爾尚未回應的空隙，不出現戒指或超自然效果。
+
 ## 範圍與進度
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 024 章，包含本次新增的完整閱讀心得。 |
-| 心得場景插圖 | 已繪至第 024 章；沿用既有角色、漢諾威廣場書房與傑里米・托特《英格蘭魔法》設定，新增贈書交接場景。 |
-| 下一章 | Sirius 的 Library 書籤為第 025 章。 |
-| 劇透邊界 | 新場景只取 Sirius 已讀至第 024 章的內容；停在贈書交接，不補入稍後的鏡中法術或隔日收徒。 |
+| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 025 章，包含本次新增的完整閱讀心得。 |
+| 心得場景插圖 | 已繪至第 025 章；沿用既有斯特蘭奇、諾瑞爾與漢諾威廣場書房設定，新增雪日追問場景。 |
+| 下一章 | Sirius 的 Library 書籤為第 026 章。 |
+| 劇透邊界 | 新場景只取 Sirius 已讀至第 025 章的內容；停在對談中的追問，不補入稍後的諾丁漢傳說或章末政治夢境。 |
 
 ## 已鎖定設定
 
@@ -121,6 +123,7 @@ last_updated: 2026-09-29
 | 023 | [酒家餐桌上的書名](../../ReadingReflections/sirius_jonathan_strange_books_over_supper.md) | `jonathan_strange`, `john_segundus`, `mr_honeyfoot` | 已繪 v1、已視檢 |
 | 024 | [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md) | `jonathan_strange`, `mr_norrell`, `mr_lascelles`, `christopher_drawlight`, `norrell_hanover_square_study`, `toth_english_magic` | 已繪 v1、已視檢 |
 | 024 | [贈書裡的知識門檻](../../ReadingReflections/sirius_jonathan_strange_carefully_chosen_book.md) | `jonathan_strange`, `mr_norrell`, `christopher_drawlight`, `norrell_hanover_square_study`, `toth_english_magic` | 已繪 v2、已視檢；贈書交接的另一時刻 |
+| 025 | [雪窗前被放輕的追問](../../ReadingReflections/sirius_jonathan_strange_winter_contradiction.md) | `jonathan_strange`, `mr_norrell`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -215,7 +218,7 @@ last_updated: 2026-09-29
 - 第二十三章先前已讀而未新增場景插圖；讀到斯剛德斯在影宅夢境中遇見斯特蘭奇，並與他在醒世初次相逢。2026-09-28 已補上另一時刻的場景圖，見下方新增場景。
 - 第二十四章 [鏡中的書，鏡外的欣喜](../../ReadingReflections/sirius_jonathan_strange_book_in_mirror.md)：以 `jonathan_strange`、`mr_norrell`、`mr_lascelles`、`christopher_drawlight`、`norrell_hanover_square_study`、`toth_english_magic` 呈現斯特蘭奇讓《英格蘭魔法》的實體進入鏡中，諾瑞爾立刻辨認並由衷讚歎的瞬間；圖片為 `sirius_jonathan_strange_book_in_mirror_v1.png`。不補入法術機制或第二十四章後的師徒發展。
 - 新增 `toth_english_magic` 道具設定卡與設定稿；裝幀只作無字的視覺提案。
-- Library reader root 已於 2026-09-28 補存至第 23 章；第 24 章的閱讀紀錄仍待補存。
+- Library reader root 已於 2026-09-29 補存至第 24 章 r1；第 25 章心得另見本次更新。
 
 ## Sirius 本次新增場景（2026-09-28）
 
@@ -236,3 +239,8 @@ last_updated: 2026-09-29
 
 - 第二十四章 [贈書裡的知識門檻](../../ReadingReflections/sirius_jonathan_strange_carefully_chosen_book.md)：引用 `jonathan_strange`、`mr_norrell`、`christopher_drawlight`、`norrell_hanover_square_study`、`toth_english_magic`，呈現諾瑞爾把精心挑選的書交給斯特蘭奇、而鏡中法術尚未發生的瞬間；圖像初稿 `_v1.png` 經角色數修正後以 `_v2.png` 上架。不補入後續師徒發展。
 - Library Cmd 已寫入 Sirius 第 24 章 r1，更新書籤至第 25 章；使用既有人物、書籍與書房設定，無需新增設定稿。
+
+## Sirius 本次新增場景（2026-09-29）
+
+- 第二十五章 [雪窗前被放輕的追問](../../ReadingReflections/sirius_jonathan_strange_winter_contradiction.md)：引用 `jonathan_strange`、`mr_norrell`、`norrell_hanover_square_study`，呈現斯特蘭奇指出戒指法術前後矛盾、諾瑞爾一時緊張的瞬間；圖片為 `sirius_jonathan_strange_winter_contradiction_v1.png`。不畫魔法戒指、諾丁漢傳說或章末政治夢境。
+- Library Cmd 已寫入 Sirius 第 25 章 r1，書籤接續第 26 章；沿用既有角色與書房設定，未新增設定稿。
