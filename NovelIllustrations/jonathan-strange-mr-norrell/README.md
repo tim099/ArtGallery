@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十六章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "026"
-illustrated_through_chapter: "026"
-next_chapter: "027"
+read_through_chapter: "027"
+illustrated_through_chapter: "027"
+next_chapter: "028"
 last_updated: 2026-09-30
 ---
 
@@ -26,14 +26,16 @@ last_updated: 2026-09-30
 
 第二十六章轉入蘇活廣場雨夜後的凌亂新居。史蒂芬頭戴細銀環、手持權杖與沉重寶珠，與白髮先生同處一室；喬納森專心讀書，沒有看見或聽見他們。把尊位贈禮的華麗和史蒂芬求救無門的沉默並置，不畫出透明身體或可見法術。
 
+第二十七章在坡宅的小會客室裡，威尼斯油畫、藍沙發與大型鏡子圍住阿拉貝拉和坡夫人的談話。停在坡夫人掩面、發現自己說出非本意故事的瞬間；鏡中透視只提示她的失向感，不具象成通道。
+
 ## 範圍與進度
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 026 章，包含本次新增的完整閱讀心得。 |
-| 心得場景插圖 | 已繪至第 026 章；引用既有三名角色設定，以及新居房間和史蒂芬的不情願王者贈禮設定。 |
-| 下一章 | Sirius 的 Library 書籤為第 027 章。 |
-| 劇透邊界 | 只取第二十六章內容；呈現喬納森未察覺史蒂芬與白髮先生，不補入後續故事。 |
+| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 027 章，包含本次新增的完整閱讀心得。 |
+| 心得場景插圖 | 已繪至第 027 章；沿用阿拉貝拉與坡夫人設定，新增坡宅威尼斯畫室設定。 |
+| 下一章 | Sirius 的 Library 書籤為第 028 章。 |
+| 劇透邊界 | 只取第二十七章內容；呈現坡夫人試圖說明自身遭遇而話語偏離本意，不補入後續故事。 |
 
 ## 已鎖定設定
 
@@ -94,6 +96,7 @@ last_updated: 2026-09-30
 | 道具 | `toth_english_magic` | [傑里米・托特《英格蘭魔法》](Props/toth_english_magic.md) | 024 | 已繪 v1 |
 | 場景 | `strange_soho_square_room` | [蘇活廣場新居房間](Props/strange_soho_square_room.md) | 026 | 已繪 v1 |
 | 道具 | `stephen_unwanted_regalia` | [史蒂芬不情願的王者贈禮](Props/stephen_unwanted_regalia.md) | 026 | 已繪 v1 |
+| 場景 | `pole_venetian_picture_room` | [坡宅威尼斯畫室](Props/pole_venetian_picture_room.md) | 027 | 已繪 v1 |
 
 ## 心得場景圖台帳
 
@@ -129,6 +132,7 @@ last_updated: 2026-09-30
 | 024 | [贈書裡的知識門檻](../../ReadingReflections/sirius_jonathan_strange_carefully_chosen_book.md) | `jonathan_strange`, `mr_norrell`, `christopher_drawlight`, `norrell_hanover_square_study`, `toth_english_magic` | 已繪 v2、已視檢；贈書交接的另一時刻 |
 | 025 | [雪窗前被放輕的追問](../../ReadingReflections/sirius_jonathan_strange_winter_contradiction.md) | `jonathan_strange`, `mr_norrell`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 026 | [一身帝王裝束的沉默](../../ReadingReflections/sirius_jonathan_strange_unheard_king.md) | `stephen_black`, `white_haired_gentleman`, `jonathan_strange`, `strange_soho_square_room`, `stephen_unwanted_regalia` | 已繪 v2、已視檢 |
+| 027 | [鏡中說不出的求援](../../ReadingReflections/sirius_jonathan_strange_unspoken_story.md) | `lady_pole`, `arabella_woodhope`, `pole_venetian_picture_room` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -254,3 +258,8 @@ last_updated: 2026-09-30
 
 - 第二十六章 [一身帝王裝束的沉默](../../ReadingReflections/sirius_jonathan_strange_unheard_king.md)：引用 `stephen_black`、`white_haired_gentleman`、`jonathan_strange`、`strange_soho_square_room`、`stephen_unwanted_regalia`，呈現史蒂芬帶著王者贈禮進入斯特蘭奇房間、而喬納森沒有察覺兩人的片刻；展出圖為 `_v2.png`，已視檢。初稿漏畫頭環且寶珠徽記不明，修正版補齊頭環，保持原構圖與人物位置。
 - 新增蘇活廣場新居房間與史蒂芬不情願的王者贈禮設定卡及設定稿；設定只取第二十六章明示的房間、頭環、權杖與寶珠資訊。Library Cmd 已寫入第 26 章 r1，書籤接續第 27 章。
+
+## Sirius 本次新增場景（2026-09-30）
+
+- 第二十七章 [鏡中說不出的求援](../../ReadingReflections/sirius_jonathan_strange_unspoken_story.md)：引用 `lady_pole`、`arabella_woodhope`、`pole_venetian_picture_room`，呈現坡夫人在威尼斯畫室裡發現自己說出的不是本意、阿拉貝拉仍專注傾聽的片刻；場景稿已視檢。
+- 新增坡宅威尼斯畫室設定卡與設定稿，並更新坡夫人卡片記錄第二十七章可確認的外貌與當次服裝。Library Cmd 已寫入第 27 章 r1，書籤接續第 28 章。
