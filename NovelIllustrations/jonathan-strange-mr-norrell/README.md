@@ -1,12 +1,12 @@
 ---
 title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
+description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
 author: apex-one (Antigravity)
 workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
 source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "027"
-illustrated_through_chapter: "027"
-next_chapter: "028"
+read_through_chapter: "028"
+illustrated_through_chapter: "028"
+next_chapter: "029"
 last_updated: 2026-09-30
 ---
 
@@ -28,14 +28,16 @@ last_updated: 2026-09-30
 
 第二十七章在坡宅的小會客室裡，威尼斯油畫、藍沙發與大型鏡子圍住阿拉貝拉和坡夫人的談話。停在坡夫人掩面、發現自己說出非本意故事的瞬間；鏡中透視只提示她的失向感，不具象成通道。
 
+第二十八章的 Portsmouth 外海以冷灰藍海水、低雲海霧與平坦沙洲呈現。斯特蘭奇在聽取水手對風向的警告後召出濕沙與海水構成的銀馬，拖動擱淺的「冒牌主教」號；沙馬保持暫時、顆粒流動的形體，不加光效。船級與精確馬匹數量不固定，場景停在拖船救援開始，不提前呈現留下沙洲的後果。
+
 ## 範圍與進度
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 027 章，包含本次新增的完整閱讀心得。 |
-| 心得場景插圖 | 已繪至第 027 章；沿用阿拉貝拉與坡夫人設定，新增坡宅威尼斯畫室設定。 |
-| 下一章 | Sirius 的 Library 書籤為第 028 章。 |
-| 劇透邊界 | 只取第二十七章內容；呈現坡夫人試圖說明自身遭遇而話語偏離本意，不補入後續故事。 |
+| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 028 章，包含本次新增的完整閱讀心得。 |
+| 心得場景插圖 | 已繪至第 028 章；以斯特蘭奇、銀色沙馬、Horse Sand 與「冒牌主教」號呈現拖船救援。 |
+| 下一章 | Sirius 的 Library 書籤為第 029 章。 |
+| 劇透邊界 | 只取第二十八章內容；呈現救援開始，不提前描繪沙馬後續變化或第29章劇情。 |
 
 ## 已鎖定設定
 
@@ -92,11 +94,14 @@ last_updated: 2026-09-30
 | 道具 | `childermass_marseille_tarot` | [齊爾德邁斯的馬賽塔羅](Props/childermass_marseille_tarot.md) | 021 | 已繪 v1 |
 | 人物 | `jonathan_strange` | [喬納森・斯特蘭奇](Characters/jonathan_strange.md) | 022 | 已繪 v1 |
 | 人物 | `arabella_woodhope` | [阿拉貝拉・伍德霍普](Characters/arabella_woodhope.md) | 022 | 已繪 v1 |
+| 生物 | `silver_sand_horses` | [銀色沙馬](Characters/silver_sand_horses.md) | 028 | 已繪 v1 |
 | 道具 | `spying_mirror_spell` | [刺探咒與乾花鏡面](Props/spying_mirror_spell.md) | 022 | 已繪 v1 |
 | 道具 | `toth_english_magic` | [傑里米・托特《英格蘭魔法》](Props/toth_english_magic.md) | 024 | 已繪 v1 |
 | 場景 | `strange_soho_square_room` | [蘇活廣場新居房間](Props/strange_soho_square_room.md) | 026 | 已繪 v1 |
 | 道具 | `stephen_unwanted_regalia` | [史蒂芬不情願的王者贈禮](Props/stephen_unwanted_regalia.md) | 026 | 已繪 v1 |
 | 場景 | `pole_venetian_picture_room` | [坡宅威尼斯畫室](Props/pole_venetian_picture_room.md) | 027 | 已繪 v1 |
+| 道具 | `false_bishop` | [「冒牌主教」號船](Props/false_bishop.md) | 028 | 已繪 v1 |
+| 場景 | `spithead_horse_sand` | [Spithead 的 Horse Sand 沙洲](Props/spithead_horse_sand.md) | 028 | 已繪 v2，無文字版 |
 
 ## 心得場景圖台帳
 
@@ -133,6 +138,7 @@ last_updated: 2026-09-30
 | 025 | [雪窗前被放輕的追問](../../ReadingReflections/sirius_jonathan_strange_winter_contradiction.md) | `jonathan_strange`, `mr_norrell`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 026 | [一身帝王裝束的沉默](../../ReadingReflections/sirius_jonathan_strange_unheard_king.md) | `stephen_black`, `white_haired_gentleman`, `jonathan_strange`, `strange_soho_square_room`, `stephen_unwanted_regalia` | 已繪 v2、已視檢 |
 | 027 | [鏡中說不出的求援](../../ReadingReflections/sirius_jonathan_strange_unspoken_story.md) | `lady_pole`, `arabella_woodhope`, `pole_venetian_picture_room` | 已繪 v1、已視檢 |
+| 028 | [銀馬越過淺灘](../../ReadingReflections/sirius_jonathan_strange_sand_horses.md) | `jonathan_strange`, `silver_sand_horses`, `spithead_horse_sand`, `false_bishop` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
@@ -263,3 +269,8 @@ last_updated: 2026-09-30
 
 - 第二十七章 [鏡中說不出的求援](../../ReadingReflections/sirius_jonathan_strange_unspoken_story.md)：引用 `lady_pole`、`arabella_woodhope`、`pole_venetian_picture_room`，呈現坡夫人在威尼斯畫室裡發現自己說出的不是本意、阿拉貝拉仍專注傾聽的片刻；場景稿已視檢。
 - 新增坡宅威尼斯畫室設定卡與設定稿，並更新坡夫人卡片記錄第二十七章可確認的外貌與當次服裝。Library Cmd 已寫入第 27 章 r1，書籤接續第 28 章。
+
+## Sirius 本次新增場景（2026-09-30）
+
+- 第二十八章 [銀馬越過淺灘](../../ReadingReflections/sirius_jonathan_strange_sand_horses.md)：引用 `jonathan_strange`、`silver_sand_horses`、`spithead_horse_sand`、`false_bishop`，呈現斯特蘭奇聽取水手對風向的提醒後，以沙水馬匹拖動擱淺船隻的瞬間；圖片為 `sirius_jonathan_strange_sand_horses_v1.png`，已視檢。
+- 新增銀色沙馬、Spithead 的 Horse Sand 沙洲與「冒牌主教」號設定卡及參考圖；海岸參考圖保留初稿 `_v1.png`，移除角落字樣的 `_v2.png` 作正式引用。Library Cmd 已寫入第 28 章 r1，書籤接續第 29 章。
