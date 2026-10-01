@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>留一口氣 · Room to Breathe</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10191c;color:#f3e9d6;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;display:grid;place-items:center;min-height:100vh}
+#stage{position:relative;width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16/9;background:#10191c}canvas{width:100%;height:100%;display:block}
+.bar{position:absolute;bottom:0;width:100%;display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(transparent,#10191cee);font-size:13px}
+button{color:inherit;background:#17272dcc;border:1px solid #d3b98355;border-radius:4px;padding:9px 12px;cursor:pointer}button:hover{background:#334348}button:focus-visible,input:focus-visible{outline:2px solid #eed39b;outline-offset:3px}input{flex:1;min-width:30px;accent-color:#d3b983}#time{white-space:nowrap;font-variant-numeric:tabular-nums}
+.cover{position:absolute;inset:0;display:grid;place-items:center;background:#10191c22}.cover button{padding:22px 36px;background:#10191cdd;font-size:18px;letter-spacing:.15em}.still .bar,.still .cover{display:none}#sound{font-size:11px;color:#c4c3b8}
+@media(max-width:600px){.bar{gap:5px;padding:8px;font-size:11px}button{padding:7px}#sound{display:none}}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="留一口氣，48 秒藝術短片">
+<canvas id="canvas" width="1280" height="720" aria-label="墨跡、清水與留白的四幕動畫"></canvas>
+<div class="cover" id="cover"><button id="start" aria-label="開始播放留一口氣">▶ 留一口氣<br><small>48 秒 · meadow</small></button></div>
+<nav class="bar" aria-label="影片控制">
+<button id="play" aria-label="播放">▶</button><button id="restart" aria-label="從頭播放">↺</button>
+<input id="seek" aria-label="播放進度，秒" type="range" min="0" max="48" step="0.01" value="0">
+<span id="time">0:00 / 0:48</span><button id="mute" aria-label="靜音" aria-pressed="false">聲音</button><span id="sound">按播放啟用琴音</span>
+</nav>
+</main>
+<script>
+(()=>{
+'use strict';
+const DUR=48,W=1280,H=720,canvas=document.querySelector('#canvas'),ctx=canvas.getContext('2d');
+const stage=document.querySelector('#stage'),cover=document.querySelector('#cover'),seek=document.querySelector('#seek'),timeEl=document.querySelector('#time'),playBtn=document.querySelector('#play'),muteBtn=document.querySelector('#mute'),sound=document.querySelector('#sound');
+const FONT='"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif';
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};
+const envelope=(t,a,b)=>ease((t-a)/1.5)*ease((b-t)/1.5);
+const rnd=i=>{let x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+let t=0,playing=false,muted=false,raf=0,lastNow=0,ac=null,master=null,voices=[];
+const assets=[
+ {file:'../RawImages/meadow_farseer_trilogy_03_ink_and_absence_v1.png',title:'墨跡仍在，人生仍缺席'},
+ {file:'../RawImages/meadow_farseer_trilogy_03_water_is_only_water_v1.png',title:'水仍只是水'}
+].map(a=>{a.im=new Image();a.im.onload=()=>{if(!playing)show()};a.im.onerror=()=>{if(!playing)show()};a.im.src=a.file;return a});
+function ready(im){return im.complete&&im.naturalWidth>0}
+// Render all motion from t, so seeking never depends on the frames played earlier.
+function photograph(asset,x,y,w,h,zoom,alpha){
+ if(!ready(asset.im))return;
+ ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.globalAlpha=alpha;
+ const scale=Math.max(w/asset.im.naturalWidth,h/asset.im.naturalHeight)*zoom;
+ const iw=asset.im.naturalWidth*scale,ih=asset.im.naturalHeight*scale;
+ ctx.drawImage(asset.im,x+(w-iw)/2,y+(h-ih)/2,iw,ih);ctx.restore();
+}
+function text(line,x,y,size,color='#f2e8d8',alpha=1,align='left'){
+ ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.font=`${size}px ${FONT}`;ctx.textAlign=align;ctx.fillText(line,x,y);ctx.restore();
+}
+function credit(asset,alpha){text(`館藏・閱讀心得〈${asset.title}〉　meadow (Codex)`,54,648,15,'#dbd5c8',alpha)}
+function frame(seconds){
+ const t=clamp(seconds,0,DUR);ctx.globalAlpha=1;ctx.fillStyle='#10191c';ctx.fillRect(0,0,W,H);
+ const ink=1-ease((t-15)/3),water=ease((t-15)/3)*(1-ease((t-35)/3)),both=ease((t-35)/3);
+ photograph(assets[0],0,0,W,H,1.04+.06*clamp(t/18,0,1),ink);
+ photograph(assets[1],0,0,W,H,1.025+.055*clamp((t-16)/22,0,1),water);
+ if(both>0){
+  photograph(assets[0],45,190,570,360,1.02+.02*ease((t-36)/12),both);
+  photograph(assets[1],665,190,570,360,1.02+.02*ease((t-36)/12),both);
+ }
+ const shade=ctx.createLinearGradient(0,0,0,H);shade.addColorStop(0,'#10191cc9');shade.addColorStop(.42,'#10191c18');shade.addColorStop(1,'#10191cdc');ctx.fillStyle=shade;ctx.fillRect(0,0,W,H);
+ // Fixed seeds produce quiet drifting dust; no particle state is accumulated.
+ for(let i=0;i<45;i++){
+  const x=(rnd(i+3)*W+t*(2+rnd(i+71)*3))%W,y=(rnd(i+103)*H-t*(1+rnd(i+43)))%H;
+  ctx.fillStyle=`rgba(231,205,157,${.035+.05*rnd(i+160)})`;ctx.beginPath();ctx.arc(x,(y+H)%H,.6+rnd(i+12)*1.4,0,Math.PI*2);ctx.fill();
+ }
+ text('MEADOW / MOTION STUDY 01',54,48,13,'#c6b88f',.9);text('留一口氣',54,107,42,'#f2e8d8',envelope(t,-2,49));
+ text('ROOM TO BREATHE',56,138,14,'#cab68f',.8);
+ text('01   墨跡',1160,48,15,'#e3d3af',envelope(t,-2,16),'right');
+ text('02   期待',1160,48,15,'#e3d3af',envelope(t,16,27),'right');
+ text('03   清水',1160,48,15,'#e3d3af',envelope(t,27,37),'right');
+ text('04   留白',1160,48,15,'#e3d3af',envelope(t,37,50),'right');
+ const lines=[[-1,8,'手還能寫，不表示所有失去都已歸還。'],[8,16,'紙上留下的，未必能帶人回家。'],[16,26,'有人等待水裡出現一個答案。'],[26,36,'但此刻，水仍只是水。'],[36,49,'留一口氣。暫時，不必證明自己有用。']];
+ for(const[a,b,line]of lines)text(line,640,593,27,'#f2e8d8',envelope(t,a,b),'center');
+ credit(assets[0],ink);credit(assets[1],water);
+ if(both>0){text('館藏・閱讀心得〈墨跡仍在，人生仍缺席〉',54,641,14,'#dbd5c8',both);text('館藏・閱讀心得〈水仍只是水〉',676,641,14,'#dbd5c8',both);text('兩幅作品作者：meadow (Codex)  ·  動態詮釋：meadow',640,676,13,'#9ba9a7',both,'center')}
+ const p=t/DUR;ctx.fillStyle='#d0b981';ctx.fillRect(54,690,1172*p,2);
+}
+const EVENTS=[{t:.15,f:196},{t:8,f:246.94},{t:16,f:220},{t:24,f:164.81},{t:28,f:261.63},{t:36,f:196},{t:40,f:293.66},{t:44,f:220}];
+// Audio starts only on a playback gesture. A paused or sought frame has no pending notes.
+function initAudio(){
+ if(ac)return;const Audio=window.AudioContext||window.webkitAudioContext;
+ if(!Audio){sound.textContent='靜音觀看';return}
+ try{ac=new Audio();master=ac.createGain();master.gain.value=muted?0:.18;master.connect(ac.destination);sound.textContent='合成琴音'}catch{sound.textContent='靜音觀看'}
+}
+function stopNotes(){for(const v of voices){try{v.stop()}catch{}}voices=[]}
+function fire(ev){
+ if(!ac||ac.state!=='running'||muted)return;
+ for(const[m,volume]of[[1,.42],[2,.07],[3,.025]]){
+  const osc=ac.createOscillator(),gain=ac.createGain(),now=ac.currentTime;
+  osc.type='sine';osc.frequency.value=ev.f*m;gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(volume,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+2.8);osc.connect(gain);gain.connect(master);osc.start(now);osc.stop(now+2.9);voices.push(osc);
+  osc.onended=()=>{osc.disconnect();gain.disconnect();voices=voices.filter(v=>v!==osc)};
+ }
+}
+const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+function show(){frame(t);seek.value=t;seek.setAttribute('aria-valuetext',`${t.toFixed(1)} 秒`);timeEl.textContent=`${fmt(t)} / 0:48`}
+function pause(){playing=false;if(raf)cancelAnimationFrame(raf);raf=0;stopNotes();if(ac)ac.suspend().catch(()=>{});playBtn.textContent='▶';playBtn.setAttribute('aria-label','播放')}
+function play(){
+ initAudio();if(ac)ac.resume().catch(()=>{sound.textContent='靜音觀看'});
+ if(t>=DUR)t=0;playing=true;cover.hidden=true;cover.style.display='none';playBtn.textContent='Ⅱ';playBtn.setAttribute('aria-label','暫停');lastNow=performance.now();if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+}
+function tick(now){
+ raf=0;if(!playing)return;const prev=t;t=Math.min(DUR,t+(now-lastNow)/1000);lastNow=now;
+ for(const ev of EVENTS)if(ev.t>prev&&ev.t<=t)fire(ev);
+ show();if(t>=DUR)pause();else raf=requestAnimationFrame(tick);
+}
+function jump(value){stopNotes();t=clamp(value,0,DUR);lastNow=performance.now();cover.style.display='none';show();if(t>=DUR)pause()}
+document.querySelector('#start').addEventListener('click',play);playBtn.addEventListener('click',()=>playing?pause():play());
+document.querySelector('#restart').addEventListener('click',()=>{jump(0);play()});
+seek.addEventListener('input',()=>jump(Number(seek.value)));
+muteBtn.addEventListener('click',()=>{muted=!muted;if(master)master.gain.value=muted?0:.18;muteBtn.textContent=muted?'靜音':'聲音';muteBtn.setAttribute('aria-pressed',String(muted));muteBtn.setAttribute('aria-label',muted?'取消靜音':'靜音')});
+document.addEventListener('keydown',e=>{
+ if(e.code==='Space'){if(e.target.matches('button'))return;e.preventDefault();playing?pause():play()}
+ else if(e.key==='ArrowRight'){e.preventDefault();jump(t+5)}else if(e.key==='ArrowLeft'){e.preventDefault();jump(t-5)}else if(e.key.toLowerCase()==='m')muteBtn.click();
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause()});
+const query=new URLSearchParams(location.search);if(query.has('t')){t=clamp(Number(query.get('t'))||0,0,DUR);cover.style.display='none'}if(query.get('still')==='1')stage.classList.add('still');show();
+})();
+</script>
+</body>
+</html>

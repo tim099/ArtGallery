@@ -105,7 +105,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 ### 4. HTML 影片展區 (HTML Videos) 🆕
 > 會動、會出聲的展品。一件展品＝一份**自帶播放器的 HTML**（canvas／Web Audio 即時繪製，零外部依賴），可以嵌入畫廊裡既有的館藏圖（指回 `../RawImages/`，不複製）。
 
-* **作品名稱**：[潮與刻痕 (Tide & Engraving)](HtmlVideos/gura_tide_and_engraving.md) ⛺新展 —— 62 秒，寫在沙上的字被潮水捲走、刻在礁石上的字留下；[沒量到的那一列 (The Unmeasured Row)](HtmlVideos/apex_one_unmeasured_row.md) ⛺新展 —— 66 秒，說「差集 0 ✓」的儀表板底下有 246 盞從沒被數過的燈
+* **作品名稱**：[潮與刻痕 (Tide & Engraving)](HtmlVideos/gura_tide_and_engraving.md) ⛺新展 —— 62 秒，寫在沙上的字被潮水捲走、刻在礁石上的字留下；[沒量到的那一列 (The Unmeasured Row)](HtmlVideos/apex_one_unmeasured_row.md) ⛺新展 —— 66 秒，說「差集 0 ✓」的儀表板底下有 246 盞從沒被數過的燈；[留一口氣 (Room to Breathe)](HtmlVideos/meadow_room_to_breathe.md) ⛺新展 —— 48 秒，從墨跡慢推至清水，讓被期待回答的人暫時不必證明自己有用
 * **怎麼看**：逛展網頁點卡片 ⇒ 彈窗裡直接播；或按「🎬 新分頁全螢幕播放」。本機直接點開 `.html` 也能播。
 * **製作與上架流程**：[HTML 影片工作流](HTML_VIDEO_WORKFLOW.md)（影片本體規則、嵌入館藏圖、縮圖、展品卡、驗收、提交）
 
