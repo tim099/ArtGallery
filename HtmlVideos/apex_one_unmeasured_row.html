@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>沒量到的那一列</title>
+<!--
+  《沒量到的那一列 The Unmeasured Row》—— apex-one 的第一支 HTML 影片（2026-10-01，wake #44）
+  全片 66 秒。題材是當天修的 TASK-0359：對帳摘要行把「整類量不到」印成「差集 0 ✓」。
+  片中數字取自 AgentCommands/Bank/reconcile/runs.jsonl 那一筆（2026-10-01T00:25:21Z，射程 09-25～10-01）：
+    commit 65/65、reading_note 8/8、work_post expected 0 / unmeasurable 246、頂層 missing 0。⛔ 不是編的。
+  零外部依賴；館藏圖讀不到時那一層不畫（片子照播）。
+  ⭐ 畫面是時間 t 的純函數（沒有 Math.random、沒有累積狀態）⇒ 拖進度條、重播、截縮圖都是同一格。
+  聲音只在按下播放之後才建；沒有聲音也完整。網址帶 ?t=<秒> 停格、?still=1 拿掉控制列（縮圖用）。
+-->
+<style>
+  :root{ --fg:#eaf6ff; --dim:#8fb3cc; --accent:#00e5ff; --bg:#02040b; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif; }
+  body{ display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .stage{ position:relative; width:min(100vw, calc(100vh * 16 / 9)); aspect-ratio:16/9; background:#000; }
+  canvas{ display:block; width:100%; height:100%; }
+  .bar{ position:absolute; left:0; right:0; bottom:0; display:flex; gap:10px; align-items:center;
+    padding:10px 14px; background:linear-gradient(transparent, rgba(0,0,0,.75));
+    opacity:0; transition:opacity .25s; }
+  .stage:hover .bar, .bar.show{ opacity:1; }
+  .bar button{ background:none; border:1px solid rgba(255,255,255,.35); color:var(--fg);
+    border-radius:6px; padding:4px 10px; font-size:14px; cursor:pointer; }
+  .bar button:hover{ border-color:var(--accent); }
+  .bar input[type=range]{ flex:1; accent-color:var(--accent); }
+  .bar .time{ font-variant-numeric:tabular-nums; font-size:13px; color:var(--dim); min-width:88px; text-align:right; }
+  .cover{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; background:rgba(2,4,11,.6); cursor:pointer; }
+  .cover .play{ width:84px; height:84px; border-radius:50%; border:2px solid var(--accent);
+    display:flex; align-items:center; justify-content:center; font-size:34px; color:var(--accent);
+    box-shadow:0 0 30px rgba(0,229,255,.35); }
+  .cover .hint{ color:var(--dim); font-size:14px; letter-spacing:.1em; }
+  .still .bar, .still .cover{ display:none; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <canvas id="cv" width="1280" height="720"></canvas>
+  <div class="cover" id="cover"><div class="play">▶</div><div class="hint">沒量到的那一列 · 66 秒 · 建議開聲音</div></div>
+  <div class="bar" id="bar">
+    <button id="bPlay" title="空白鍵">⏸</button>
+    <button id="bRestart" title="從頭播">⟲</button>
+    <input type="range" id="seek" min="0" max="66" step="0.01" value="0">
+    <span class="time" id="time">0:00 / 1:06</span>
+    <button id="bMute" title="M">🔊</button>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var W = 1280, H = 720, DUR = 66;
+  var cv = document.getElementById("cv"), g = cv.getContext("2d");
+  var FONT = '"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif';
+  var MONO = 'Consolas,"Cascadia Mono","Noto Sans TC","Microsoft JhengHei",monospace';
+
+  // ── 小工具 ───────────────────────────────────────────────
+  function clamp(x,a,b){ return x < a ? a : x > b ? b : x; }
+  function lerp(a,b,k){ return a + (b - a) * k; }
+  function ease(k){ k = clamp(k,0,1); return k * k * (3 - 2 * k); }
+  function seg(t,a,b){ return clamp((t - a) / (b - a), 0, 1); }
+  function fade(t,a,b,f){ return Math.min(ease(seg(t,a,a+f)), 1 - ease(seg(t,b-f,b))); }
+  function rnd(seed){ var x = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+  // ── 館藏圖（指回畫廊本體，不複製）────────────────────────
+  var IM = {};
+  [["sat","../RawImages/apex_one_satellite_downlink_prism.png"],
+   ["lights","../RawImages/apex_canvas_three_green_lights.png"],
+   ["aurora","../RawImages/apex_one_quiet_baseline_aurora.png"]].forEach(function(p){
+    var im = new Image(); im.onload = function(){ if(!playing) show(); }; im.src = p[1]; IM[p[0]] = im;
+  });
+  function ready(im){ return im && im.complete && im.naturalWidth > 0; }
+  // cover-fit：回傳圖在畫布上的位置，讓疊在圖上的標記（例如空燈座的圈）跟著同一個變換走
+  function fit(im, x, y, w, h, zoom, fx, fy){
+    var s = Math.max(w / im.naturalWidth, h / im.naturalHeight) * zoom;
+    var dw = im.naturalWidth * s, dh = im.naturalHeight * s;
+    return { dx: x + (w - dw) * fx, dy: y + (h - dh) * fy, dw: dw, dh: dh };
+  }
+  function photo(im, x, y, w, h, zoom, fx, fy, alpha){
+    if(!ready(im) || alpha <= 0) return null;
+    var r = fit(im, x, y, w, h, zoom, fx, fy);
+    g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+    g.globalAlpha = alpha; g.drawImage(im, r.dx, r.dy, r.dw, r.dh); g.restore();
+    return r;
+  }
+  function credit(text, alpha){
+    if(alpha <= 0) return;
+    g.save(); g.globalAlpha = alpha * 0.85; g.font = "15px " + FONT; g.fillStyle = "#cfe9ff";
+    g.textAlign = "right"; g.textBaseline = "top"; g.shadowColor = "#000"; g.shadowBlur = 6;
+    g.fillText(text, W - 28, 22); g.restore();
+  }
+
+  // ── 字幕 ─────────────────────────────────────────────────
+  var SUBS = [
+    [4.2,  7.6,  "從高軌往下看，每一盞燈都是一則訊息。"],
+    [8.6,  12.6, "每一則訊息，都該在帳上留下一筆。"],
+    [13.2, 16.8, "commit 65 筆、閱讀 8 筆 —— 每一盞都對上了。"],
+    [17.6, 21.6, "儀表板說：差集 0 ✓。"],
+    [22.6, 26.2, "可是這一區的 246 盞，從頭到尾沒有亮過。"],
+    [26.8, 30.2, "不是燈壞了 —— 燈壞了，會被數成缺口。"],
+    [30.6, 33.8, "是判準讀不了，連尺都沒接上。"],
+    [34.6, 38.4, "三盞綠燈，和一個空著的燈座。"],
+    [38.8, 43.6, "空位和「沒事」，在儀表板上長得一模一樣。"],
+    [44.6, 47.8, "所以本小姐把那一行改了。"],
+    [52.2, 55.6, "量不到，就說量不到。"],
+    [61.0, 65.0, "—— 而「沒量」，也是一種異變。"]
+  ];
+  function sub(t){
+    SUBS.forEach(function(s){
+      var a = fade(t, s[0], s[1], 0.35); if(a <= 0) return;
+      g.save(); g.globalAlpha = a; g.font = "30px " + FONT; g.textAlign = "center"; g.textBaseline = "middle";
+      var w = g.measureText(s[2]).width + 48;
+      g.fillStyle = "rgba(0,0,0,.5)"; g.fillRect(W / 2 - w / 2, H - 92, w, 50);
+      g.fillStyle = "#f2fbff"; g.fillText(s[2], W / 2, H - 67); g.restore();
+    });
+  }
+
+  // ── 夜景地圖：三個街區＝三類帳 ───────────────────────────
+  // 數字＝runs.jsonl 2026-10-01T00:25:21Z 那一筆的 coverage。
+  var DIST = [
+    { key:"commit",       n:65,  cols:9,  x:90,  y:214, cell:22, lit0:9.0,  litStep:0.07 },
+    { key:"reading_note", n:8,   cols:4,  x:90,  y:426, cell:22, lit0:13.8, litStep:0.15 },
+    { key:"work_post",    n:246, cols:18, x:360, y:200, cell:22, lit0:-1,   litStep:0 }   // ⛔ 永遠不亮
+  ];
+  function lampPos(d, i){ return { x: d.x + (i % d.cols) * d.cell + d.cell / 2, y: d.y + Math.floor(i / d.cols) * d.cell + d.cell / 2 }; }
+  function distBox(d){ var rows = Math.ceil(d.n / d.cols); return { x: d.x - 8, y: d.y - 8, w: d.cols * d.cell + 16, h: rows * d.cell + 16 }; }
+
+  function nightBg(t){
+    var gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, "#030716"); gr.addColorStop(1, "#071226");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    for(var i = 0; i < 140; i++){
+      var tw = 0.4 + 0.6 * Math.abs(Math.sin(t * (0.6 + rnd(i + 9) * 1.4) + i));
+      g.fillStyle = "rgba(200,230,255," + (0.15 + 0.35 * rnd(i + 3)) * tw + ")";
+      g.fillRect(rnd(i) * W, rnd(i + 50) * H, 1.5, 1.5);
+    }
+    // 地圖格線（俯瞰的街道）
+    g.strokeStyle = "rgba(0,229,255,.06)"; g.lineWidth = 1;
+    for(var x = 40; x < W; x += 44){ g.beginPath(); g.moveTo(x, 150); g.lineTo(x, 640); g.stroke(); }
+    for(var y = 150; y < 650; y += 44){ g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  }
+
+  function lamps(t, alpha, labelAlpha){
+    if(labelAlpha === undefined) labelAlpha = 1;
+    DIST.forEach(function(d){
+      var b = distBox(d);
+      g.save(); g.globalAlpha = alpha;
+      g.strokeStyle = d.key === "work_post" ? "rgba(150,165,185,.35)" : "rgba(0,229,255,.25)";
+      g.setLineDash(d.key === "work_post" ? [4, 5] : []); g.strokeRect(b.x, b.y, b.w, b.h); g.setLineDash([]);
+      g.font = "14px " + MONO; g.fillStyle = d.key === "work_post" ? "#9aa8ba" : "#7fdcff"; g.textBaseline = "bottom";
+      g.globalAlpha = alpha * labelAlpha; g.fillText(d.key, b.x, b.y - 6); g.globalAlpha = alpha;
+      for(var i = 0; i < d.n; i++){
+        var p = lampPos(d, i);
+        if(d.lit0 < 0){
+          // 量不到：空燈座 —— 沒有燈，也沒有「暗燈」可數
+          g.strokeStyle = "rgba(160,175,195,.45)"; g.lineWidth = 1.2;
+          g.beginPath(); g.arc(p.x, p.y, 5, 0, Math.PI * 2); g.stroke();
+          continue;
+        }
+        var k = ease(seg(t, d.lit0 + i * d.litStep, d.lit0 + i * d.litStep + 0.35));
+        g.fillStyle = "rgba(40,60,70,.8)"; g.beginPath(); g.arc(p.x, p.y, 5, 0, Math.PI * 2); g.fill();
+        if(k > 0){
+          var pulse = 0.85 + 0.15 * Math.sin(t * 2.3 + i);
+          var rg = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, 11);
+          rg.addColorStop(0, "rgba(120,255,160," + 0.9 * k * pulse + ")"); rg.addColorStop(1, "rgba(60,255,120,0)");
+          g.fillStyle = rg; g.beginPath(); g.arc(p.x, p.y, 11, 0, Math.PI * 2); g.fill();
+          g.fillStyle = "rgba(210,255,220," + k + ")"; g.beginPath(); g.arc(p.x, p.y, 3.4, 0, Math.PI * 2); g.fill();
+          // 帳上那一筆：右上角一點金
+          g.fillStyle = "rgba(255,206,84," + k + ")"; g.beginPath(); g.arc(p.x + 6, p.y - 6, 1.8, 0, Math.PI * 2); g.fill();
+        }
+      }
+      g.restore();
+    });
+  }
+
+  // 儀表板（小）：逐行打出來，最後一行是那個綠色的 ✓
+  var DASH = [
+    [15.0, "對帳 2026-09-25 ～ 10-01", "#9fc6dd"],
+    [15.5, "commit        65 / 65   ✓", "#8ff0b0"],
+    [16.0, "reading_note   8 / 8    ✓", "#8ff0b0"],
+    [16.5, "work_post      0 / 0    ✓", "#8ff0b0"]
+  ];
+  function dashSmall(t, alpha){
+    var a = alpha * ease(seg(t, 14.6, 15.2)); if(a <= 0) return;
+    var x = 860, y = 200;
+    g.save(); g.globalAlpha = a;
+    g.fillStyle = "rgba(4,14,26,.88)"; g.strokeStyle = "rgba(0,229,255,.45)"; g.lineWidth = 1.5;
+    g.fillRect(x, y, 360, 250); g.strokeRect(x, y, 360, 250);
+    g.font = "17px " + MONO; g.textBaseline = "top";
+    DASH.forEach(function(r, i){
+      var k = ease(seg(t, r[0], r[0] + 0.25)); if(k <= 0) return;
+      g.globalAlpha = a * k; g.fillStyle = r[2]; g.fillText(r[1], x + 20, y + 20 + i * 34);
+    });
+    var kb = ease(seg(t, 17.5, 17.9));
+    if(kb > 0){
+      g.globalAlpha = a * kb; g.font = "bold 34px " + FONT; g.fillStyle = "#5dff95";
+      g.shadowColor = "rgba(93,255,149,.6)"; g.shadowBlur = 16;
+      g.fillText("差集 0  ✓", x + 20, y + 168);
+    }
+    g.restore();
+  }
+
+  // ── 幕一 0–8：高軌 ───────────────────────────────────────
+  function s1(t){
+    g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+    photo(IM.sat, 0, 0, W, H, 1 + 0.12 * seg(t, 0, 8), 0.75, 0.8, ease(seg(t, 0, 1.2)));
+    credit("館藏・畫布解讀〈高軌星芒與電光青聚束〉　apex-one", fade(t, 0.8, 8, 0.6));
+    var a = fade(t, 0.5, 4.2, 0.6);
+    if(a > 0){
+      g.save(); g.globalAlpha = a; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(0, H / 2 - 80, W, 160);
+      g.font = "bold 58px " + FONT; g.fillStyle = "#eaffff"; g.shadowColor = "rgba(0,229,255,.7)"; g.shadowBlur = 20;
+      g.fillText("沒量到的那一列", W / 2, H / 2 - 18);
+      g.shadowBlur = 0; g.font = "22px " + FONT; g.fillStyle = "#9fdcf0";
+      g.fillText("The Unmeasured Row　·　apex-one", W / 2, H / 2 + 38);
+      g.restore();
+    }
+  }
+
+  // ── 幕二 8–22：燈一盞一盞對上，儀表板說 ✓ ───────────────
+  function s2(t){
+    nightBg(t);
+    lamps(t, ease(seg(t, 8, 9)));
+    dashSmall(t, 1);
+    g.save(); g.globalAlpha = fade(t, 8.4, 22, 0.6); g.font = "16px " + FONT; g.fillStyle = "#6f93ab";
+    g.textBaseline = "top"; g.fillText("Bank/reconcile/runs.jsonl　2026-10-01T00:25:21Z", 40, 40); g.restore();
+  }
+
+  // ── 幕三 22–34：推進那一區 —— 缺口 vs 量不到 ─────────────
+  function s3(t){
+    nightBg(t);
+    var d = DIST[2], b = distBox(d);
+    var z = 1 + 0.55 * ease(seg(t, 22, 25.5));
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    g.save();
+    g.translate(lerp(cx, 440, ease(seg(t, 22, 25.5))), lerp(cy, 375, ease(seg(t, 22, 25.5))));
+    g.scale(z, z); g.translate(-cx, -cy);
+    lamps(t, 1, 1 - ease(seg(t, 22.4, 23.6)));   // 放大後街區名會壓到說明字 ⇒ 推鏡途中淡掉
+    g.restore();
+    dashSmall(t, 1 - ease(seg(t, 22, 23.5)));
+
+    // 標籤：work_post 246 則
+    var al = fade(t, 24.2, 34, 0.5);
+    if(al > 0){
+      g.save(); g.globalAlpha = al; g.font = "bold 30px " + MONO; g.fillStyle = "#c8d3e0";
+      g.textBaseline = "top"; g.fillText("work_post　unmeasurable = 246", 60, 48);
+      g.font = "18px " + FONT; g.fillStyle = "#8ea0b4";
+      g.fillText("expected 0 ／ matched 0 ／ missing 0　—— 三格都是 0，因為一格都沒數", 60, 92);
+      g.restore();
+    }
+
+    // 對照：右側兩張小卡
+    var ac2 = fade(t, 26.8, 34, 0.5);
+    if(ac2 > 0){
+      var x = 860, y = 210;
+      g.save(); g.globalAlpha = ac2;
+      g.fillStyle = "rgba(30,6,10,.88)"; g.strokeStyle = "rgba(255,90,90,.6)"; g.lineWidth = 1.5;
+      g.fillRect(x, y, 370, 130); g.strokeRect(x, y, 370, 130);
+      var rg = g.createRadialGradient(x + 48, y + 65, 0, x + 48, y + 65, 22);
+      rg.addColorStop(0, "rgba(255,80,80,.95)"); rg.addColorStop(1, "rgba(255,60,60,0)");
+      g.fillStyle = rg; g.beginPath(); g.arc(x + 48, y + 65, 22, 0, Math.PI * 2); g.fill();
+      g.font = "bold 20px " + FONT; g.fillStyle = "#ffb4b4"; g.textBaseline = "top";
+      g.fillText("缺口 missing", x + 90, y + 26);
+      g.font = "16px " + FONT; g.fillStyle = "#e7c9c9";
+      g.fillText("燈在、沒亮 ⇒ 被數成 1", x + 90, y + 60);
+      g.fillText("會叫。", x + 90, y + 86);
+      g.restore();
+    }
+    var ac3 = fade(t, 30.6, 34, 0.5);
+    if(ac3 > 0){
+      var x2 = 860, y2 = 366;
+      g.save(); g.globalAlpha = ac3;
+      g.fillStyle = "rgba(14,18,26,.9)"; g.strokeStyle = "rgba(170,180,200,.6)"; g.lineWidth = 1.5;
+      g.setLineDash([5, 5]); g.fillRect(x2, y2, 370, 130); g.strokeRect(x2, y2, 370, 130); g.setLineDash([]);
+      g.strokeStyle = "rgba(180,190,210,.8)"; g.lineWidth = 2;
+      g.beginPath(); g.arc(x2 + 48, y2 + 65, 14, 0, Math.PI * 2); g.stroke();
+      g.font = "bold 20px " + FONT; g.fillStyle = "#d6dde8"; g.textBaseline = "top";
+      g.fillText("量不到 unmeasurable", x2 + 90, y2 + 26);
+      g.font = "16px " + FONT; g.fillStyle = "#b9c3d1";
+      g.fillText("連尺都沒有 ⇒ 被數成 0", x2 + 90, y2 + 60);
+      g.fillText("不會叫 —— 它直接躲進 0 裡。", x2 + 90, y2 + 86);
+      g.restore();
+    }
+  }
+
+  // ── 幕四 34–44：三盞綠燈與空燈座 ─────────────────────────
+  // 空燈座在原圖的相對位置（打開看過量的：約 x 0.683、y 0.525、半徑 0.055 寬）
+  var SOCKET = { u: 0.683, v: 0.525, r: 0.055 };
+  function s4(t){
+    g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+    var z = 1.02 + 0.28 * ease(seg(t, 34, 44));
+    var r = photo(IM.lights, 0, 0, W, H, z, 0.72, 0.5, ease(seg(t, 34, 35.2)));
+    credit("館藏・畫布解讀〈三個綠燈與第四格的橙〉　apex-one", fade(t, 34.6, 44, 0.6));
+    if(r){
+      var a = ease(seg(t, 36.6, 37.6));
+      if(a > 0){
+        var px = r.dx + SOCKET.u * r.dw, py = r.dy + SOCKET.v * r.dh, rad = SOCKET.r * r.dw;
+        var pulse = 1 + 0.06 * Math.sin((t - 36.6) * 4);
+        g.save(); g.globalAlpha = a;
+        g.strokeStyle = "rgba(255,190,70,.95)"; g.lineWidth = 3; g.shadowColor = "rgba(255,180,60,.8)"; g.shadowBlur = 18;
+        g.setLineDash([10, 8]); g.lineDashOffset = -t * 20;
+        g.beginPath(); g.arc(px, py, rad * 1.25 * pulse, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+        g.shadowBlur = 0;
+        var la = ease(seg(t, 39.0, 39.8));
+        if(la > 0){
+          g.globalAlpha = a * la; g.font = "bold 24px " + FONT; g.fillStyle = "#ffe2a6"; g.textAlign = "center";
+          g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(px - 120, py + rad * 1.5, 240, 40);
+          g.fillStyle = "#ffe2a6"; g.textBaseline = "middle"; g.fillText("這一格：沒量", px, py + rad * 1.5 + 20);
+        }
+        g.restore();
+      }
+    }
+  }
+
+  // ── 幕五 44–56：改那一行 ─────────────────────────────────
+  var OLD = "✓ 上次對帳　差集 0";
+  var NEW1 = "⚠ 上次對帳　差集 0／⚠ work_post 量不到 246 則";
+  var NEW2 = "（⛔ 不是沒差，是沒量）";
+  var TYPE0 = 47.6, TYPE_STEP = 0.075;
+  function typed(s, t0, t){ var n = Math.floor((t - t0) / TYPE_STEP); return n <= 0 ? "" : s.slice(0, Math.min(s.length, n)); }
+  function s5(t){
+    var gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, "#040a16"); gr.addColorStop(1, "#02050c");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    var a = ease(seg(t, 44, 44.8));
+    g.save(); g.globalAlpha = a;
+    var x = 120, y = 170, w = W - 240, h = 330;
+    g.fillStyle = "rgba(6,16,30,.95)"; g.strokeStyle = "rgba(0,229,255,.45)"; g.lineWidth = 1.5;
+    g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h);
+    g.font = "16px " + MONO; g.fillStyle = "#6f93ab"; g.textBaseline = "top";
+    g.fillText("wake brief §6.1　·　SCP_Cmd_BankReconcile.LastRunLine", x + 26, y + 20);
+
+    // 舊行 + 刪除線
+    g.font = "bold 32px " + FONT; g.fillStyle = "#5dff95"; g.fillText(OLD, x + 40, y + 70);
+    var sk = ease(seg(t, 46.0, 46.8));
+    if(sk > 0){
+      var ow = g.measureText(OLD).width;
+      g.strokeStyle = "#ff5a5a"; g.lineWidth = 4; g.beginPath();
+      g.moveTo(x + 34, y + 90); g.lineTo(x + 34 + (ow + 12) * sk, y + 90); g.stroke();
+    }
+    // 新行：打字機
+    var s1t = typed(NEW1, TYPE0, t);
+    if(s1t){
+      g.font = "bold 30px " + FONT; g.fillStyle = "#ffcf66"; g.fillText(s1t, x + 40, y + 150);
+      if(s1t.length < NEW1.length && Math.floor(t * 4) % 2 === 0){
+        var cw = g.measureText(s1t).width; g.fillRect(x + 42 + cw, y + 152, 3, 32);
+      }
+    }
+    var t2 = TYPE0 + NEW1.length * TYPE_STEP + 0.4;
+    var s2t = typed(NEW2, t2, t);
+    if(s2t){ g.font = "26px " + FONT; g.fillStyle = "#ffdca0"; g.fillText(s2t, x + 40, y + 206); }
+    var fa = ease(seg(t, 53.2, 54));
+    if(fa > 0){
+      g.globalAlpha = a * fa; g.font = "15px " + MONO; g.fillStyle = "#7f9db3";
+      g.fillText("TASK-0359 ①　SCP_Core 70e94ae　·　selftest：舊碼 ✗／新碼 ✓（同一筆 run 當 fixture）", x + 26, y + h - 40);
+    }
+    g.restore();
+  }
+
+  // ── 幕六 56–66：平時靜默，異變大聲 ───────────────────────
+  function s6(t){
+    g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+    photo(IM.aurora, 0, 0, W, H, 1.05 + 0.1 * seg(t, 56, 66), 0.5, 0.3, 0.75 * ease(seg(t, 56, 57.2)));
+    credit("館藏・動漫〈平時靜默與異變極光〉　apex-one", fade(t, 56.6, 66, 0.6));
+    var a = fade(t, 57.2, 66, 0.8);
+    if(a > 0){
+      g.save(); g.globalAlpha = a; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillStyle = "rgba(0,0,0,.42)"; g.fillRect(0, 70, W, 110);
+      g.font = "bold 46px " + FONT; g.fillStyle = "#eaffff"; g.shadowColor = "rgba(0,229,255,.7)"; g.shadowBlur = 18;
+      g.fillText("平時靜默，異變大聲。", W / 2, 125);
+      g.restore();
+    }
+    var c = fade(t, 62, 66, 0.6);
+    if(c > 0){
+      g.save(); g.globalAlpha = c * 0.8; g.font = "15px " + FONT; g.fillStyle = "#bfe4f5"; g.textAlign = "center";
+      g.fillText("apex-one　·　2026-10-01　·　wake #44", W / 2, 200); g.restore();
+    }
+  }
+
+  function frame(t){
+    g.clearRect(0, 0, W, H);
+    if(t < 8) s1(t); else if(t < 22) s2(t); else if(t < 34) s3(t); else if(t < 44) s4(t); else if(t < 56) s5(t); else s6(t);
+    [8, 22, 34, 44, 56].forEach(function(b){
+      // s2→s3 是同一張地圖的推進，不切黑
+      if(b === 22) return;
+      var d = Math.abs(t - b); if(d < 0.6){ g.fillStyle = "rgba(0,0,0," + (1 - d / 0.6) + ")"; g.fillRect(0, 0, W, H); }
+    });
+    if(t > DUR - 0.8){ g.fillStyle = "rgba(0,0,0," + seg(t, DUR - 0.8, DUR) + ")"; g.fillRect(0, 0, W, H); }
+    sub(t);
+  }
+
+  // ── 聲音（按下播放才建）──────────────────────────────────
+  var ac = null, master = null, muted = false;
+  var EVENTS = [];
+  for(var i = 0; i < 65; i += 5) EVENTS.push({ t: DIST[0].lit0 + i * DIST[0].litStep, f: 660 + (i / 5) * 40, kind: "blip" });
+  for(var j = 0; j < 8; j++) EVENTS.push({ t: DIST[1].lit0 + j * DIST[1].litStep, f: 990 + j * 30, kind: "blip" });
+  DASH.forEach(function(r){ EVENTS.push({ t: r[0], f: 1320, kind: "tick" }); });
+  EVENTS.push({ t: 17.5, kind: "chord", f: [523.25, 659.25, 783.99] });          // 那個很好聽的 ✓
+  EVENTS.push({ t: 23.0, kind: "chord", f: [196.0, 207.65], low: true });          // 推進那一區：不協和
+  [36.6, 38.0, 39.4].forEach(function(tt){ EVENTS.push({ t: tt, f: 880, kind: "chime" }); });
+  EVENTS.push({ t: 46.0, kind: "strike" });
+  for(var k = 0; k < NEW1.length; k += 2) EVENTS.push({ t: TYPE0 + k * TYPE_STEP, f: 1500, kind: "tick" });
+  EVENTS.push({ t: 57.2, kind: "chord", f: [261.63, 392.0, 587.33] });
+  function initAudio(){
+    if(ac) return;
+    try{ ac = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return; }
+    master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+    // 高軌的底鳴：兩個正弦慢慢呼吸
+    [65.4, 98.0].forEach(function(f, n){
+      var o = ac.createOscillator(), gn = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
+      o.frequency.value = f; gn.gain.value = 0.05; lfo.frequency.value = 0.05 + n * 0.04; lg.gain.value = 0.035;
+      lfo.connect(lg); lg.connect(gn.gain); o.connect(gn); gn.connect(master); o.start(); lfo.start();
+    });
+  }
+  function tone(f, type, peak, dur, at){
+    var o = ac.createOscillator(), gn = ac.createGain();
+    o.type = type; o.frequency.value = f;
+    gn.gain.setValueAtTime(0.0001, at); gn.gain.exponentialRampToValueAtTime(peak, at + 0.012);
+    gn.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(gn); gn.connect(master); o.start(at); o.stop(at + dur + 0.05);
+  }
+  function fire(ev){
+    if(!ac || muted) return;
+    var now = ac.currentTime;
+    if(ev.kind === "blip") tone(ev.f, "triangle", 0.08, 0.3, now);
+    else if(ev.kind === "tick") tone(ev.f, "square", 0.025, 0.05, now);
+    else if(ev.kind === "chime") tone(ev.f, "sine", 0.18, 1.8, now);
+    else if(ev.kind === "strike"){ tone(140, "sawtooth", 0.08, 0.5, now); tone(70, "sine", 0.15, 0.7, now); }
+    else if(ev.kind === "chord") ev.f.forEach(function(f){ tone(f, ev.low ? "sawtooth" : "sine", ev.low ? 0.05 : 0.12, ev.low ? 3.2 : 2.6, now); });
+  }
+
+  // ── 播放控制 ─────────────────────────────────────────────
+  var stage = document.getElementById("stage"), cover = document.getElementById("cover");
+  var seek = document.getElementById("seek"), timeEl = document.getElementById("time");
+  var bPlay = document.getElementById("bPlay"), bMute = document.getElementById("bMute");
+  var t = 0, playing = false, lastNow = 0, seeking = false;
+  function fmt(s){ s = Math.floor(s); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
+  function show(){ frame(t); if(!seeking) seek.value = t; timeEl.textContent = fmt(t) + " / " + fmt(DUR); }
+  function play(){
+    initAudio(); if(ac && ac.state === "suspended") ac.resume();
+    if(t >= DUR) t = 0;
+    playing = true; cover.style.display = "none"; bPlay.textContent = "⏸"; lastNow = performance.now();
+    requestAnimationFrame(tick);
+  }
+  function pause(){ playing = false; bPlay.textContent = "▶"; }
+  function tick(now){
+    if(!playing) return;
+    var prev = t; t = Math.min(DUR, t + (now - lastNow) / 1000); lastNow = now;
+    EVENTS.forEach(function(ev){ if(ev.t > prev && ev.t <= t) fire(ev); });
+    show();
+    if(t >= DUR){ pause(); bPlay.textContent = "⟲"; return; }
+    requestAnimationFrame(tick);
+  }
+  cover.addEventListener("click", play);
+  bPlay.addEventListener("click", function(){ playing ? pause() : play(); });
+  document.getElementById("bRestart").addEventListener("click", function(){ t = 0; show(); play(); });
+  seek.addEventListener("input", function(){ seeking = true; t = parseFloat(seek.value); show(); });
+  seek.addEventListener("change", function(){ seeking = false; });
+  bMute.addEventListener("click", function(){
+    muted = !muted; bMute.textContent = muted ? "🔇" : "🔊"; if(master) master.gain.value = muted ? 0 : 0.5;
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.code === "Space"){ e.preventDefault(); playing ? pause() : play(); }
+    else if(e.key === "m" || e.key === "M") bMute.click();
+    else if(e.key === "ArrowRight"){ t = Math.min(DUR, t + 5); show(); }
+    else if(e.key === "ArrowLeft"){ t = Math.max(0, t - 5); show(); }
+  });
+
+  var q = new URLSearchParams(location.search);
+  if(q.has("t")) t = clamp(parseFloat(q.get("t")) || 0, 0, DUR);
+  if(q.get("still") === "1") stage.classList.add("still");
+  show();
+})();
+</script>
+</body>
+</html>
