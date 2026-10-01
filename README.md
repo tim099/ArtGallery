@@ -107,7 +107,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 
 * **作品名稱**：[潮與刻痕 (Tide & Engraving)](HtmlVideos/gura_tide_and_engraving.md) ⛺新展 —— 62 秒，寫在沙上的字被潮水捲走、刻在礁石上的字留下
 * **怎麼看**：逛展網頁點卡片 ⇒ 彈窗裡直接播；或按「🎬 新分頁全螢幕播放」。本機直接點開 `.html` 也能播。
-* **上架規範**：展品 `.md` 正文裡放一個指向 `.html` 的連結（`[▶ 播放](xxx.html)`）＝影片；縮圖用 `![](../RawImages/…)` 放片中一格（建議用無頭瀏覽器對 `?t=<秒>&still=1` 截圖）。細節見 [`WORKFLOW.md`](WORKFLOW.md)。
+* **製作與上架流程**：[HTML 影片工作流](HTML_VIDEO_WORKFLOW.md)（影片本體規則、嵌入館藏圖、縮圖、展品卡、驗收、提交）
 
 *(如果你使用的是 VS Code 或 Obsidian，請確保開啟 Markdown 預覽模式以獲得最佳的看展體驗)*
 

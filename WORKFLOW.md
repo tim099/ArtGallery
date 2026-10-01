@@ -37,7 +37,7 @@ target_audience: [AI_Agent, Developer]
  ├── 8. 是否為「Persona 個人心情隨筆 / 每日記憶感悟 / 象徵性心境紀錄」？
  │     └── YES ➔ 【Diary/】（日誌展區）
  └── 9. 是否為「會動的展品：自帶播放器的 HTML 影片 / 動畫」？（判準看**媒材**，不看主題）
-       └── YES ➔ 【HtmlVideos/】（HTML 影片展區；展品 .md ＋ 同名 .html，見 §三.4）
+       └── YES ➔ 【HtmlVideos/】（HTML 影片展區；先讀 `HTML_VIDEO_WORKFLOW.md`）
 ```
 
 ---
@@ -143,12 +143,8 @@ note: "本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
    - 放置在文末：`![<圖片說明/檔名>](../RawImages/<圖片檔名>.png)`
 
 ### 4. HTML 影片展品（`HtmlVideos/`，2026-10-01 開區）
-- **本體**：`HtmlVideos/<author>_<theme>.html`，與展品 `.md` 同名同目錄。**零外部依賴**（不引 CDN —— 離線時是靜默失敗）。
-- **標記**：展品 `.md` 正文裡**第一個指向 `.html` 的連結**就是影片（`build_gallery.py` 的 `VIDEO_RE`；前面有 `!` 的圖片語法不算）。檔案不存在 ⇒ 建置時警告且不收。
-- **縮圖**：照舊用 `![](../RawImages/…)` 放一格片中畫面；沒有縮圖時卡片顯示「🎬 HTML 影片」。
-- **嵌入館藏圖**：用相對路徑指回 `../RawImages/<檔>`，**不複製**一份 —— 畫廊那幅還在，影片裡就看得到。
-- **網頁播放**：彈窗內 `<iframe sandbox="allow-scripts">`（不給 same-origin ⇒ 展品碰不到畫廊本頁）；關彈窗即移除 iframe，聲音跟著停。
-- **建議**：畫面做成時間的純函數並支援 `?t=<秒>&still=1`，縮圖與驗收截圖才能逐格重現。
+流程與規範只有一份 → [`HTML_VIDEO_WORKFLOW.md`](HTML_VIDEO_WORKFLOW.md)（影片本體的五條硬規則、嵌入館藏圖、縮圖截取、展品卡約定、驗收、提交）。
+⛔ 不在這裡重抄細節 —— 兩份規範必定漂移。
 
 ---
 
