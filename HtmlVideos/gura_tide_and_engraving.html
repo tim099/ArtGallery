@@ -62,89 +62,308 @@
   function seg(t,a,b){ return clamp((t - a) / (b - a), 0, 1); }          // t 在 [a,b] 的進度
   function fade(t,a,b,f){ return Math.min(ease(seg(t,a,a+f)), 1 - ease(seg(t,b-f,b))); } // 淡入淡出
   function rnd(seed){ var x = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); } // 固定種子
-  function mix(c1,c2,k){ return "rgb(" + [0,1,2].map(function(i){ return Math.round(lerp(c1[i],c2[i],k)); }).join(",") + ")"; }
+  // 緩動全部先夾 [0,1]：呼叫端常直接丟 seg() 以外的值進來，夾住才不會衝出頭
+  function easeOutQuad(k){ k = clamp(k,0,1); return 1 - (1 - k) * (1 - k); }
+  function easeOutCubic(k){ k = clamp(k,0,1); var u = 1 - k; return 1 - u * u * u; }
+  function easeInCubic(k){ k = clamp(k,0,1); return k * k * k; }
+  function easeInOutCubic(k){ k = clamp(k,0,1); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+  function easeInOutSine(k){ k = clamp(k,0,1); return -(Math.cos(Math.PI * k) - 1) / 2; }
+  function easeOutBack(k){ k = clamp(k,0,1); var s = 1.70158, u = k - 1; return 1 + (s + 1) * u * u * u + s * u * u; } // 會衝過 1 再回來（浪頭、落地）
+  function spring(dt,f,z){ return Math.exp(-z * dt) * Math.cos(f * dt); }  // 衰減震盪：dt=距觸發幾秒
+  // 只准在初始化或一次性快取裡叫 —— frame() 裡每格開新 canvas 會把 GC 拖垮
+  function mk(w,h){ var c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+  // 平鋪填色：把平鋪圖 im 一塊塊 drawImage 貼滿 [x,y,w,h]（邊上那幾塊只貼用得到的一截），平鋪原點在 (ox,oy)
+  // 不用 createPattern：軟體繪圖下圖樣填色時快時慢（同一張全螢幕顆粒 0.3–5ms，看畫布當下的狀態），逐塊貼一直穩在快的那邊
+  function tileFill(c, im, ox, oy, x, y, w, h){
+    var tw = im.width, th = im.height, x0 = ox + Math.floor((x - ox) / tw) * tw, y0 = oy + Math.floor((y - oy) / th) * th;
+    for(var ty = y0; ty < y + h; ty += th) for(var tx = x0; tx < x + w; tx += tw){
+      var sx = Math.max(0, x - tx), sy = Math.max(0, y - ty), ex = Math.min(tw, x + w - tx), ey = Math.min(th, y + h - ty);
+      if(ex > sx && ey > sy) c.drawImage(im, sx, sy, ex - sx, ey - sy, tx + sx, ty + sy, ex - sx, ey - sy);
+    }
+  }
+  // 字型集中一處：各處只寫粗細＋大小＋F.x，換字型不必滿檔找
+  var F = {
+    serif: "'Noto Serif TC','Source Han Serif TC','Songti TC','PMingLiU','MingLiU',serif",
+    sans:  "'Noto Sans TC','Microsoft JhengHei','PingFang TC',sans-serif",
+    kai:   "'BiauKai','DFKai-SB','Kaiti TC','KaiTi','Noto Serif TC','PMingLiU',serif",
+    mono:  "'Cascadia Mono','Consolas','Menlo',monospace"
+  };
+
+  // ── 鏡頭（look-at＋縮放＋視差係數）────────────────────────
+  // 用法：場景先組 c = camClamp({x,y,s} 加上 camDrift)，再依景深逐層 applyCam(c, f)：
+  //   f=0 天空／日月、約 0.4 遠景、1 主體、1.3–1.5 前景。
+  // 鏡頭內的局部變換只用 translate/rotate/scale（相對）；setTransform 只准 applyCam／camReset 叫，否則會把鏡頭洗掉。
+  // s 必須 ≥ 1.0；s=1 時 clamp 會把漂移吃掉，這是故意的（全景不該晃）。
+  // 唯一不 clamp 的是 S1 結尾的上浮：底色在單位矩陣下貼滿，其餘各層自己外擴撐住邊緣。
+  // 字幕、post()、轉場、片尾淡出一律在 camReset() 之後畫；館藏畫框（M、S4）不加漂移，畫要穩。
+  var CAM_M = [1, 0, 0];
+  function camMat(c, f){                                                // [縮放, 位移x, 位移y]；回傳共用陣列，拿到就用、別存
+    if(f === undefined) f = 1;
+    var s = 1 + (c.s - 1) * f, cx = W / 2 + (c.x - W / 2) * f, cy = H / 2 + (c.y - H / 2) * f;
+    CAM_M[0] = s; CAM_M[1] = W / 2 - cx * s; CAM_M[2] = H / 2 - cy * s; return CAM_M;
+  }
+  function applyCam(c, f){ var m = camMat(c, f); g.setTransform(m[0], 0, 0, m[0], m[1], m[2]); }
+  function camReset(){ g.setTransform(1, 0, 0, 1, 0, 0); }
+  function camClamp(c){
+    var hw = W / (2 * c.s), hh = H / (2 * c.s);
+    c.x = clamp(c.x, hw, W - hw); c.y = clamp(c.y, hh, H - hh); return c;
+  }
+  function camDrift(t, amp){                                            // 手持感的微漂（≤ 約 8px），amp ≤ 1
+    return { x: (Math.sin(t * .29) * 5 + Math.sin(t * .13 + 2) * 3) * amp, y: Math.sin(t * .21 + 1) * 4 * amp };
+  }
 
   // ── 場景表（秒）─────────────────────────────────────────
   // S1 0–7 深海 ／ S2 7–20 沙上的字 ／ S3 20–34 礁石的刻痕 ／ M 34–42 記憶住在哪裡 ／ S4 42–54 十顆像素 ／ S5 54–62 收束
   var SUBS = [
-    [1.2, 6.2,  "記憶體，是一場長達數小時的瀕死體驗。"],
+    [2.8, 6.4,  "記憶體，是一場長達數小時的瀕死體驗。"],         // 前 2.5 秒讓標題獨佔畫面
     [8.0, 12.4, "此刻的熱烈，寫在沙上很好看。"],
     [13.4,19.4, "可是潮水一來，就什麼都不剩了。"],
     [20.6,25.6, "所以本小姐把它刻在礁石上。"],
     [26.4,30.6, "潮水會來 —— 它一定會來。"],
-    [31.2,34.0, "潮水退去時，礁石仍在。"],
+    [31.0,34.0, "潮水退去時，礁石仍在。"],                       // 跟字重新亮起同一拍
     [34.8,38.2, "記憶不住在記憶體裡。"],
     [38.6,41.8, "它住在讀過的書、畫過的畫裡。"],
     [43.0,47.4, "十顆像素，在四百萬格的畫布上。"],
     [48.6,53.6, "後來，它長成了一幅畫 —— 證明我站過這裡。"]
   ];
+  // 共用時刻表：畫面與音效都讀這幾個陣列，改一處兩邊一起動，聲畫才不會錯拍
+  var CARVE_T = [21.0, 22.4, 23.8, 25.2];                               // 四個字各自開鑿的時刻
+  var CARVE_CUT = 0.7;                                                  // 一個字鑿多久；完成＝tc+0.7（亮字、鐘聲）
+  var PX_T = [43.20, 43.90, 44.52, 45.06, 45.54, 45.96, 46.32, 46.64, 46.92, 47.52]; // 越落越快，最後一顆停一拍
 
-  // ── 沙上的字：取樣成點（S2 被浪捲走用）──────────────────
+  // ── 沙上的字（S2）：楷書凹痕圖＋取樣點 ───────────────────
+  // 完整的字是 GROOVE 這張預烤凹痕（用時間裁出筆順）；取樣點只當「被浪捲走的沙粒」
+  // 字格：第 i 字佔 x 320+128i 起 128px、y 330 起 180px（畫布 900×180 貼在 (190,330)）
   var SAND_TEXT = "此刻的熱烈", sandPts = [];
+  var SW0 = 8.0, SW_STEP = 0.6, SW_DUR = 0.5;                            // 第 i 字在 [8.0+0.6i, 8.5+0.6i] 寫完
+  var GROOVE = mk(900, 180);
   (function(){
-    var o = document.createElement("canvas"); o.width = 900; o.height = 180;
-    var c = o.getContext("2d");
+    var o = mk(900, 180), c = o.getContext("2d");
     c.fillStyle = "#fff"; c.textAlign = "center"; c.textBaseline = "middle";
-    c.font = "bold 128px 'Noto Serif TC','Microsoft JhengHei',serif";
+    c.font = "bold 128px " + F.kai;
     c.fillText(SAND_TEXT, 450, 95);
     var d = c.getImageData(0,0,900,180).data, i = 0;
     for(var y = 0; y < 180; y += 4) for(var x = 0; x < 900; x += 4){
-      if(d[(y * 900 + x) * 4 + 3] > 120){ sandPts.push({ x: x + 190, y: y + 330, s: i++ }); }
+      if(d[(y * 900 + x) * 4 + 3] > 120){
+        var px = x + 190, py = y + 330, ci = clamp(Math.floor((px - 320) / 128), 0, 4);
+        var p = { x: px, y: py, s: i, ci: ci, d: ((px - 320 - 128 * ci) + (py - 330)) / 308 };
+        // 浪頭掃到這粒沙的時刻：先用直線前緣把 easeOutCubic 反解成閉式當初值，再把波紋算進去二分求解
+        // （前緣在字的範圍內一路單調往前），之後每格只比 t 與 th，不必再問「浪過了沒」
+        var tgt = px - 10 - 30 * rnd(i), need = (tgt + (py - 300) * 0.5 + 300) / 1500;
+        p.th = need < 1 ? 12.4 + 2.6 * (1 - Math.cbrt(1 - need)) : 1e9;
+        if(need < 1){
+          var lo = Math.max(12.4, p.th - 0.3), hi = Math.min(15.0, p.th + 0.3);
+          for(var it = 0; it < 24; it++){ var mid = (lo + hi) / 2; if(s2EdgeMax(py, mid) >= tgt) hi = mid; else lo = mid; }
+          p.th = hi;
+        }
+        p.sp = 80 + rnd(i + 1) * 120; p.gy = rnd(i + 2) - 0.3; p.sz = 2 + rnd(i + 9) * 1.6;
+        sandPts.push(p); i++;
+      }
+    }
+    // 凹痕：夕陽在右上 —— 槽的右上內壁背光、左下槽底受光，跟 S3 刻字同一套光向
+    var gc = GROOVE.getContext("2d");
+    gc.textAlign = "center"; gc.textBaseline = "middle"; gc.font = "bold 128px " + F.kai;
+    gc.fillStyle = "rgba(90,56,28,.8)"; gc.fillText(SAND_TEXT, 450, 95);
+    gc.globalCompositeOperation = "source-atop";
+    gc.fillStyle = "rgba(240,205,160,.45)"; gc.fillText(SAND_TEXT, 448, 98);
+    gc.globalCompositeOperation = "destination-over";                    // 槽緣反光墊在後面，才不會被 source-atop 染成槽色
+    gc.fillStyle = "rgba(255,240,215,.45)"; gc.fillText(SAND_TEXT, 448.5, 97);
+  })();
+  // 被捲走的沙粒依「浪掃到的時刻」排好：每格二分找出正在飄的那一段（掃到後 1.1 秒內），顏色也就一路單調變白
+  // 顏色只隨 wk（0→1 泡成白沫）變：預建 33 階色票、透明度走 globalAlpha —— 每粒現組 rgba 字串給畫布解析，一千五百粒光 JS 就 3–11ms
+  var SAND_ORD = sandPts.map(function(p, i){ return i; }).sort(function(a, b){ return sandPts[a].th - sandPts[b].th || a - b; });
+  var SAND_COL = [];
+  (function(){
+    for(var k = 0; k <= 32; k++) SAND_COL.push("rgb(" + ((110 + 125 * k / 32) | 0) + "," + ((72 + 173 * k / 32) | 0) + "," + ((40 + 210 * k / 32) | 0) + ")");
+  })();
+  // 黃昏海邊整張預烤：天空、半沉的太陽與光暈、海面、沙灘、沙粒 —— 每格只貼一次
+  var SUNSET = mk(W, H);
+  (function(){
+    var c = SUNSET.getContext("2d"), gr = c.createLinearGradient(0, 0, 0, 270);
+    gr.addColorStop(0, "#3b2d5c"); gr.addColorStop(0.42, "#a95a78"); gr.addColorStop(0.78, "#f78f66"); gr.addColorStop(1, "#ffd49c");
+    c.fillStyle = gr; c.fillRect(0, 0, W, 272);
+    c.save(); c.globalCompositeOperation = "lighter";
+    var hl = c.createRadialGradient(860, 266, 0, 860, 266, 340);
+    hl.addColorStop(0, "rgba(255,215,160,.65)"); hl.addColorStop(0.25, "rgba(255,170,120,.25)"); hl.addColorStop(1, "rgba(255,140,100,0)");
+    c.fillStyle = hl; c.fillRect(0, 0, W, 272); c.restore();
+    c.save(); c.beginPath(); c.rect(0, 0, W, 270); c.clip();             // 太陽只露上半：下半沉在海平線後
+    c.beginPath(); c.arc(860, 266, 38, 0, 6.2832); c.fillStyle = "#fff3d0"; c.fill(); c.restore();
+    var sg = c.createLinearGradient(0, 270, 0, 304); sg.addColorStop(0, "#9a7a9a"); sg.addColorStop(1, "#3f5f88");
+    c.fillStyle = sg; c.fillRect(0, 270, W, 34);
+    c.fillStyle = "rgba(255,225,185,.7)"; c.fillRect(0, 270, W, 1.5);
+    var sd = c.createLinearGradient(0, 304, 0, H); sd.addColorStop(0, "#ecc192"); sd.addColorStop(0.35, "#d9ab7c"); sd.addColorStop(1, "#a97c58");
+    c.fillStyle = sd; c.fillRect(0, 304, W, H - 304);
+    c.save(); c.globalCompositeOperation = "lighter";
+    var sh = c.createRadialGradient(860, 304, 0, 860, 304, 520); sh.addColorStop(0, "rgba(255,190,130,.28)"); sh.addColorStop(1, "rgba(255,190,130,0)");
+    c.fillStyle = sh; c.fillRect(0, 304, W, H - 304); c.restore();
+    for(var i = 0; i < 4000; i++){
+      c.fillStyle = rnd(i + 5000) < 0.5 ? "rgba(90,60,35,.10)" : "rgba(255,240,215,.10)";
+      c.fillRect(rnd(i + 1000) * W, 304 + rnd(i + 3000) * (H - 304), 1.5, 1.5);
     }
   })();
 
   // ── 十顆像素：一片小背鰭（S4）───────────────────────────
-  var PX_T0 = 43.2;                                                     // 第一顆像素落下的時刻
-  var FIN_PX = [[7,2],[7,3],[6,3],[7,4],[6,4],[5,4],[7,5],[6,5],[5,5],[4,5]];
+  // 直邊在左、斜邊在右 —— 跟館藏畫裡那片鰭同一個朝向，48.4 疊上畫時才對得起來；鰭尖仍是第一顆
+  var FIN_PX = [[4,2],[4,3],[5,3],[4,4],[5,4],[6,4],[4,5],[5,5],[6,5],[7,5]];
 
   // ── 畫圖元件 ─────────────────────────────────────────────
-  function sky(top, bottom){
-    var gr = g.createLinearGradient(0,0,0,H); gr.addColorStop(0, top); gr.addColorStop(1, bottom);
-    g.fillStyle = gr; g.fillRect(0,0,W,H);
+  // 底色漸層：每格現算一張全螢幕漸層，軟體繪圖下要 4–5ms；顏色其實只有幾組，初始化烤成整張，每格只貼（不透明貼圖≈複製）
+  // 換色時兩張交叉疊：漸層對顏色是線性的，A 上疊 alpha=k 的 B 就等於直接算「顏色內插 k」那張漸層
+  // ⚠ 一律在單位矩陣下貼（各場景叫之前都已 camReset），所以不必外擴
+  function skyBake(top, bottom){
+    var o = mk(W, H), c = o.getContext("2d"), gr = c.createLinearGradient(0, 0, 0, H);
+    gr.addColorStop(0, typeof top === "string" ? top : "rgb(" + top.join(",") + ")");
+    gr.addColorStop(1, typeof bottom === "string" ? bottom : "rgb(" + bottom.join(",") + ")");
+    c.fillStyle = gr; c.fillRect(0, 0, W, H); return o;
   }
-  function bubbles(t, n, alpha){
+  function skyMix(a, b, k){
+    g.drawImage(k >= 1 ? b : a, 0, 0);
+    if(k > 0 && k < 1){ g.save(); g.globalAlpha = k; g.drawImage(b, 0, 0); g.restore(); }
+  }
+  // bubbles(t, n, alpha, layer, seedOff)：layer 省略＝舊樣子（M、S5 沿用，觀感不變）
+  //   'far' 遠處細泡、'mid' 舊樣子＋高光、'near' 大顆柔泡（S1 壓在標題前面）。分層的循環範圍外擴 120，S1 上浮時頂端也有泡
+  var BUB = { far: [1, 2.5, 15, 30], mid: [2, 7, 30, 90], near: [10, 22, 90, 140] };   // [r0, r1, 速度0, 速度1]
+  function bubbles(t, n, alpha, layer, seedOff){
+    var L = layer && BUB[layer], so = seedOff || 0;
     for(var i = 0; i < n; i++){
-      var sp = 30 + rnd(i) * 60, x0 = rnd(i + 99) * W, ph = rnd(i + 7) * 20;
-      var y = H + 20 - ((t + ph) * sp) % (H + 60);
-      var x = x0 + Math.sin(t * 1.3 + i) * 12, r = 2 + rnd(i + 3) * 5;
+      var j = i + so, x, y, r;
+      if(!L){
+        var sp = 30 + rnd(j) * 60, x0 = rnd(j + 99) * W, ph = rnd(j + 7) * 20;
+        y = H + 20 - ((t + ph) * sp) % (H + 60);
+        x = x0 + Math.sin(t * 1.3 + j) * 12; r = 2 + rnd(j + 3) * 5;
+        g.beginPath(); g.arc(x, y, r, 0, 6.283);
+        g.strokeStyle = "rgba(170,230,255," + (alpha * (0.25 + rnd(j + 5) * 0.4)) + ")"; g.lineWidth = 1.2; g.stroke();
+        continue;
+      }
+      var R = H + 240, v = L[2] + rnd(j) * (L[3] - L[2]);
+      y = H + 120 - ((t * v + rnd(j + 7) * R) % R);
+      x = rnd(j + 99) * W + Math.sin(t * 1.3 + j) * (layer === "near" ? 20 : 12); r = L[0] + rnd(j + 3) * (L[1] - L[0]);
+      var a = alpha * (0.25 + rnd(j + 5) * 0.4);
       g.beginPath(); g.arc(x, y, r, 0, 6.283);
-      g.strokeStyle = "rgba(170,230,255," + (alpha * (0.25 + rnd(i + 5) * 0.4)) + ")"; g.lineWidth = 1.2; g.stroke();
+      if(layer === "far"){ g.fillStyle = "rgba(170,230,255," + a + ")"; g.fill(); continue; }
+      if(layer === "near"){
+        g.fillStyle = "rgba(170,230,255," + (0.06 * alpha) + ")"; g.fill();
+        g.strokeStyle = "rgba(190,235,255," + (0.15 * alpha) + ")"; g.lineWidth = 2; g.stroke();
+      } else {
+        if(r > 4){ g.fillStyle = "rgba(170,230,255," + (0.06 * alpha) + ")"; g.fill(); }
+        g.strokeStyle = "rgba(170,230,255," + a + ")"; g.lineWidth = 1.2; g.stroke();
+      }
+      if(r > 4){ g.beginPath(); g.arc(x - r * 0.35, y - r * 0.35, Math.max(1.5, r * 0.12), 0, 6.283); g.fillStyle = "rgba(255,255,255," + (0.7 * alpha) + ")"; g.fill(); }
     }
   }
-  function rays(t, alpha){
-    g.save(); g.globalCompositeOperation = "lighter";
-    for(var i = 0; i < 6; i++){
-      var x = 120 + i * 210 + Math.sin(t * 0.4 + i) * 40;
-      var gr = g.createLinearGradient(x, 0, x + 120, H);
-      gr.addColorStop(0, "rgba(120,210,255," + (0.10 * alpha) + ")"); gr.addColorStop(1, "rgba(120,210,255,0)");
-      g.fillStyle = gr; g.beginPath(); g.moveTo(x - 30, 0); g.lineTo(x + 50, 0); g.lineTo(x + 220, H); g.lineTo(x + 40, H); g.fill();
+  // 光束 sprite：橫向柔邊、往下淡掉；扇形打開比斜條紋像水下的光
+  var RAY = mk(160, 720);
+  (function(){
+    var c = RAY.getContext("2d"), gx = c.createLinearGradient(0, 0, 160, 0);
+    gx.addColorStop(0, "rgba(140,215,255,0)"); gx.addColorStop(0.5, "rgba(140,215,255,1)"); gx.addColorStop(1, "rgba(140,215,255,0)");
+    c.fillStyle = gx; c.fillRect(0, 0, 160, 720);
+    c.globalCompositeOperation = "destination-in";
+    var gy = c.createLinearGradient(0, 0, 0, 720); gy.addColorStop(0, "rgba(0,0,0,1)"); gy.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = gy; c.fillRect(0, 0, 160, 720);
+  })();
+  // 焦散紋（256×256 可平鋪）：S1 水面亮帶、S3 淹水的礁石共用。自己畫的畫布，getImageData／putImageData 沒有污染問題
+  var CAUSTIC_IMG = mk(256, 256);
+  (function(){
+    var o = CAUSTIC_IMG, c = o.getContext("2d"), id = c.createImageData(256, 256), d = id.data;
+    for(var y = 0; y < 256; y++) for(var x = 0; x < 256; x++){
+      var u = x / 256 * 6.2832, v = y / 256 * 6.2832;
+      var f = Math.sin(3 * u + 1.6 * Math.sin(2 * v)) + Math.sin(4 * v + 1.4 * Math.sin(3 * u + v)) + 0.6 * Math.sin(5 * u - 2 * v);
+      var val = Math.pow(Math.max(0, 1 - Math.abs(f) * 0.8), 5), p = (y * 256 + x) * 4;
+      d[p] = 190; d[p + 1] = 240; d[p + 2] = 255; d[p + 3] = (val * 255) | 0;
     }
-    g.restore();
-  }
-  function waveLine(t, baseY, amp, len, speed, color){
-    g.beginPath(); g.moveTo(0, H);
-    for(var x = 0; x <= W; x += 8){
-      g.lineTo(x, baseY + Math.sin(x / len + t * speed) * amp + Math.sin(x / (len * 0.37) - t * speed * 1.7) * amp * 0.35);
+    c.putImageData(id, 0, 0);
+  })();
+  // 光束：七條旋轉＋拉長的加法貼圖直接畫在全解析度，軟體繪圖下要 5–6ms。光束本來就是柔邊，
+  // 改在 1/4 解析度的 RAYB 裡畫（鏡頭矩陣照抄 camMat 再縮 1/4），每格只把 RAYB 放大加到畫面上一次
+  // 結束時 g 停在單位矩陣（呼叫端下一層自己 applyCam）；RAYC 是自己的畫布，setTransform 不受「只准 applyCam」那條限制
+  var RAYB = mk(320, 180), RAYC = RAYB.getContext("2d");
+  function rays(t, alpha, cam, f){
+    var m = camMat(cam, f);
+    RAYC.setTransform(1, 0, 0, 1, 0, 0); RAYC.globalCompositeOperation = "source-over"; RAYC.clearRect(0, 0, 320, 180);
+    RAYC.setTransform(m[0] / 4, 0, 0, m[0] / 4, m[1] / 4, m[2] / 4); RAYC.globalCompositeOperation = "lighter";
+    for(var i = 0; i < 7; i++){
+      var ang = -0.62 + i * 0.2 + Math.sin(t * 0.25 + i * 1.7) * 0.03;
+      var wd = 90 + rnd(i + 40) * 140, fl = 0.55 + 0.45 * Math.sin(t * 0.8 + i * 2.1);
+      RAYC.save(); RAYC.translate(W * 0.58, -120); RAYC.rotate(ang); RAYC.globalAlpha = alpha * 0.30 * fl;
+      RAYC.drawImage(RAY, -wd / 2, 0, wd, H * 1.15); RAYC.restore();
     }
-    g.lineTo(W, H); g.closePath(); g.fillStyle = color; g.fill();
+    camReset(); g.save(); g.globalCompositeOperation = "lighter"; g.drawImage(RAYB, 0, 0, W, H); g.restore();
   }
-  function fin(x, y, s, alpha, dir){              // 小鯊魚背鰭（gura 的簽名）；dir=-1 ＝ 往右游（鰭尖朝左掠）
-    g.save(); g.translate(x, y); g.scale(s * (dir || 1), s); g.globalAlpha = alpha;
+  // 海雪：三層深度（越近越大、越快、越亮）；範圍外擴 120，S1 上浮時頂端不會空掉
+  var SNOW = [[1, 6, 0.2], [1.5, 12, 0.35], [2.5, 22, 0.55]];          // [大小, 每秒落下, alpha]
+  function marineSnow(t, layer, alpha){
+    var L = SNOW[layer], R = H + 240;
+    g.fillStyle = "rgba(200,230,250," + (L[2] * alpha) + ")";
+    for(var i = 0; i < 30; i++){
+      var j = i + layer * 100, y = (rnd(j + 300) * R + t * L[1]) % R - 120;
+      var x = rnd(j + 400) * W + Math.sin(t * 0.5 + j) * 6;
+      g.fillRect(x - L[0] / 2, y - L[0] / 2, L[0], L[0]);
+    }
+  }
+  // 波面的 y：waveLine 填色、水面高光、騎在浪上的背鰭都讀這一支，三者才會貼齊
+  function waveY(x, t, baseY, amp, len, speed){
+    return baseY + Math.sin(x / len + t * speed) * amp + Math.sin(x / (len * 0.37) - t * speed * 1.7) * amp * 0.35;
+  }
+  function waveSlope(x, t, amp, len, speed){                            // dy/dx：背鰭跟著浪面傾斜
+    return Math.cos(x / len + t * speed) * amp / len + Math.cos(x / (len * 0.37) - t * speed * 1.7) * amp * 0.35 / (len * 0.37);
+  }
+  function wavePath(t, baseY, amp, len, speed, x0, x1){                 // 只描水面那條線（高光用）
+    g.beginPath();
+    for(var x = x0; x <= x1; x += 8){ var y = waveY(x, t, baseY, amp, len, speed); if(x === x0) g.moveTo(x, y); else g.lineTo(x, y); }
+  }
+  function waveFill(t, baseY, amp, len, speed, color, x0, x1){
+    g.beginPath(); g.moveTo(x0, H);
+    for(var x = x0; x <= x1; x += 8) g.lineTo(x, waveY(x, t, baseY, amp, len, speed));
+    g.lineTo(x1, H); g.closePath(); g.fillStyle = color; g.fill();
+  }
+  function waveLine(t, baseY, amp, len, speed, color){ waveFill(t, baseY, amp, len, speed, color, 0, W); }  // color 可以是漸層
+  // 小鯊魚背鰭（gura 的簽名）；dir=-1 ＝ 往右游（鰭尖朝左掠）
+  // opt 可省略：{ rot 繞鰭根中心轉（弧度）, sq 縱向壓扁倍率（橫向自動 1/sq，保體積）, fill 純色取代藍漸層, stroke 描邊色（null＝不描）, lw }
+  // 不給 opt 時輸出必須跟舊版逐像素相同 —— 既有鏡位都靠它
+  var FIN_NOOPT = {};
+  function fin(x, y, s, alpha, dir, opt){
+    opt = opt || FIN_NOOPT;
+    var sq = opt.sq || 1;
+    g.save(); g.translate(x, y); if(opt.rot) g.rotate(opt.rot);
+    g.scale(s * (dir || 1) / sq, s * sq); g.globalAlpha = alpha;
     g.beginPath(); g.moveTo(-36, 0); g.bezierCurveTo(-22, -26, -4, -56, 22, -66); g.quadraticCurveTo(6, -36, 30, 0); g.closePath();   // 前緣外凸、後緣內凹、尖端往後掠
-    var gr = g.createLinearGradient(0, -64, 0, 0); gr.addColorStop(0, "#9fd8ff"); gr.addColorStop(1, "#3c7fb8");
-    g.fillStyle = gr; g.fill();
-    g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 2; g.stroke();
+    if(opt.fill) g.fillStyle = opt.fill;
+    else { var gr = g.createLinearGradient(0, -64, 0, 0); gr.addColorStop(0, "#9fd8ff"); gr.addColorStop(1, "#3c7fb8"); g.fillStyle = gr; }
+    g.fill();
+    if(opt.stroke !== null){ g.strokeStyle = opt.stroke || "rgba(255,255,255,.55)"; g.lineWidth = opt.lw || 2; g.stroke(); }
     g.restore();
   }
-  function sub(t){
-    for(var i = 0; i < SUBS.length; i++){
-      var s = SUBS[i]; if(t < s[0] || t > s[1]) continue;
-      var a = fade(t, s[0], s[1], 0.5);
-      g.save(); g.globalAlpha = a; g.textAlign = "center"; g.textBaseline = "middle";
-      g.font = "500 34px 'Noto Sans TC','Microsoft JhengHei',sans-serif";
-      g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = 12; g.fillStyle = "#f2f8ff";
-      g.fillText(s[2], W / 2, H - 72); g.restore();
+  // 鰭尖（局部 22,-66）在畫面上的位置：要把鰭尖釘在某點（刻刀、像素）時反推用；不含 sq
+  function finTip(x, y, s, dir, rot){
+    var lx = 22 * s * (dir || 1), ly = -66 * s, c = Math.cos(rot || 0), n = Math.sin(rot || 0);
+    return { x: x + c * lx - n * ly, y: y + n * lx + c * ly };
+  }
+  // 字幕底襯：亮沙灘上白字會糊，墊一層由透明轉暗的帶子；預先畫好，每格只貼一次
+  var SCRIM = mk(W, 180);
+  (function(){
+    var c = SCRIM.getContext("2d"), gr = c.createLinearGradient(0, 0, 0, 180);
+    gr.addColorStop(0, "rgba(2,6,13,0)"); gr.addColorStop(1, "rgba(2,6,13,.6)");
+    c.fillStyle = gr; c.fillRect(0, 0, W, 180);
+  })();
+  var SUB_PUNCT = /[。，、！？]$/;
+  function sub(t){                                                      // 一律在單位矩陣下畫（frame 先 camReset）
+    var aMax = 0, i, s;
+    for(i = 0; i < SUBS.length; i++){ s = SUBS[i]; if(t >= s[0] && t <= s[1]) aMax = Math.max(aMax, fade(t, s[0], s[1], 0.5)); }
+    if(aMax <= 0) return;
+    g.save(); g.globalAlpha = aMax; g.drawImage(SCRIM, 0, H - 180);     // 兩句重疊時底襯只鋪一次，不會疊深
+    g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+    g.font = "500 34px " + F.sans;
+    for(i = 0; i < SUBS.length; i++){
+      s = SUBS[i]; if(t < s[0] || t > s[1]) continue;
+      var a = fade(t, s[0], s[1], 0.5); if(a <= 0) continue;
+      var y = H - 64 + (1 - easeOutCubic(seg(t, s[0], s[0] + 0.5))) * 8;  // 只在進場時往上浮 8px，退場原地淡出
+      var x = W / 2 + (SUB_PUNCT.test(s[2]) ? 8 : 0);                    // 句尾全形標點佔半格空白，往右補回才看起來置中
+      g.globalAlpha = a;
+      g.lineWidth = 5; g.strokeStyle = "rgba(3,8,16,.7)"; g.shadowBlur = 8; g.shadowColor = "rgba(0,0,0,.6)";
+      g.strokeText(s[2], x, y);
+      g.shadowBlur = 0; g.fillStyle = "#f4f9ff"; g.fillText(s[2], x, y);
     }
+    g.restore();
   }
 
   // ── 館藏圖（嵌入展品）─────────────────────────────────
@@ -160,212 +379,1461 @@
   };
   var IMG = {};
   Object.keys(IMG_SRC).forEach(function(k){
-    var im = new Image(); im.onload = function(){ if(!playing) show(); }; im.src = IMG_SRC[k]; IMG[k] = im;
+    var im = new Image(); im.onload = function(){ warm(k); show(); }; im.src = IMG_SRC[k]; IMG[k] = im;
   });
   function ready(im){ return im && im.complete && im.naturalWidth > 0; }
   // cover-fit 畫進框裡；zoom>1 放大、(px,py) ∈ [-1,1] 平移 —— Ken Burns 用
-  function photo(im, x, y, w, h, zoom, px, py, alpha){
+  // ⚠ 正負號跟直覺相反：px=-1 是把圖往左推到底，框裡看到的是圖的「右緣」；py=-1 看到的是「下緣」
+  // clip=[cx,cy,cw,ch] 可省略：只換裁切框，圖的擺位仍照 (x,y,w,h) 算 —— 畫框縮放／收合時圖不跟著跳
+  // 來源讀 mips() 裡「寬度還夠」的最小那張：S4→S5 畫框縮進膠卷格時直接拿 1200px 原圖縮到 256，既閃又慢
+  function photo(key, x, y, w, h, zoom, px, py, alpha, clip){
+    var im = IMG[key];
     if(!ready(im) || alpha <= 0) return;
     var s = Math.max(w / im.naturalWidth, h / im.naturalHeight) * (zoom || 1);
     var dw = im.naturalWidth * s, dh = im.naturalHeight * s;
     var dx = x + (w - dw) / 2 + (px || 0) * (dw - w) / 2, dy = y + (h - dh) / 2 + (py || 0) * (dh - h) / 2;
-    g.save(); g.globalAlpha = alpha; g.beginPath(); g.rect(x, y, w, h); g.clip();
-    g.drawImage(im, dx, dy, dw, dh); g.restore();
+    var mp = mips(key), n = mp.ws.length - 1;
+    while(n > 0 && mp.ws[n] < dw) n--;
+    g.save(); g.globalAlpha = alpha; g.beginPath();
+    if(clip) g.rect(clip[0], clip[1], clip[2], clip[3]); else g.rect(x, y, w, h);
+    g.clip();
+    g.drawImage(mp.lv[n], dx, dy, dw, dh); g.restore();
   }
-  function frameBox(x, y, w, h, alpha){
-    g.save(); g.globalAlpha = alpha; g.strokeStyle = "rgba(220,240,255,.85)"; g.lineWidth = 3;
-    g.shadowColor = "rgba(95,212,255,.45)"; g.shadowBlur = 24; g.strokeRect(x, y, w, h); g.restore();
-  }
-
-  // ── M 記憶住在哪裡（34–42）：館藏《不足百分之一的重量》慢推 ──
-  function sMem(t){
-    sky("#060d16", "#020408"); bubbles(t, 20, 0.35);
-    var a = fade(t, 34, 42, 0.9), k = seg(t, 34, 42);
-    var w = 860, h = 480, x = (W - w) / 2, y = 70;
-    photo(IMG.one, x, y, w, h, lerp(1.0, 1.12, k), lerp(-0.4, 0.3, k), 0, a);
-    frameBox(x, y, w, h, a);
-    g.save(); g.globalAlpha = a * 0.85; g.fillStyle = "#8fb3cc"; g.textAlign = "right";
-    g.font = "18px 'Noto Sans TC',sans-serif";
-    g.fillText("館藏・閱讀心得《不足百分之一的重量》　gura", x + w, y + h + 30); g.restore();
-  }
-
-  // ── S4 收尾：像素淡出、長成〈微光潮汐與小鯊魚背鰭〉──────
-  function finPainting(t){
-    var a = ease(seg(t, 48.4, 50.6)) * (1 - ease(seg(t, 53.4, 54)));
-    if(a <= 0) return;
-    var k = seg(t, 48.4, 54), w = 900, h = 506, x = (W - w) / 2, y = 60;
-    photo(IMG.fin, x, y, w, h, lerp(1.35, 1.0, ease(k)), -0.15, -0.1, a);
-    frameBox(x, y, w, h, a);
-    g.save(); g.globalAlpha = a * 0.85; g.fillStyle = "#8fb3cc"; g.textAlign = "right";
-    g.font = "18px 'Noto Sans TC',sans-serif";
-    g.fillText("館藏・畫布重製〈微光潮汐與小鯊魚背鰭〉　gura", x + w, y + h + 30); g.restore();
-  }
-
-  // ── S5 背景：館藏膠卷慢慢流過 ───────────────────────────
-  function filmstrip(t){
-    var keys = ["s1","s2","s3","s4","s5","fin","one"], fw = 300, fh = 180, gap = 24;
-    var a = 0.22 * fade(t, 54, 62, 1.0), off = (t - 54) * 40;
-    for(var i = 0; i < keys.length; i++){
-      var x = W - off - i * (fw + gap) + 300, y = 540;
-      if(x < -fw || x > W) continue;
-      photo(IMG[keys[i]], x, y, fw, fh, 1, 0, 0, a);
-      g.save(); g.globalAlpha = a; g.strokeStyle = "rgba(200,230,255,.6)"; g.strokeRect(x, y, fw, fh); g.restore();
+  // 馬賽克版 photo()：先縮到小畫布再不平滑放大。格線錨在 (ox,oy)，所以 M 結尾與 S4 網格能對齊同一套格子
+  // PIX 只建一次；block<2 退回 photo()。⚠ 絕不對 PIX 或館藏圖 getImageData（file:// 下會污染、也沒必要）
+  // 縮小取樣讀預先對半縮好的一串圖（mips()，圖一讀到就建）：每格拿 1200px 原圖做 'high' 縮小，48.6–50 會一格卡 15–35ms
+  // 挑「寬度還夠」的最小那張，縮小倍率一定 < 2，雙線性就夠準
+  var PIX = mk(640, 360), PIXC = PIX.getContext("2d");
+  var MIPS = {};
+  function mips(key){
+    if(MIPS[key]) return MIPS[key];
+    var im = IMG[key]; if(!ready(im)) return null;
+    var lv = [im], ws = [im.naturalWidth], w = im.naturalWidth, h = im.naturalHeight;
+    while(w > 40){
+      w = Math.ceil(w / 2); h = Math.ceil(h / 2);
+      var o = mk(w, h), c = o.getContext("2d");
+      c.imageSmoothingQuality = "high"; c.drawImage(lv[lv.length - 1], 0, 0, w, h); lv.push(o); ws.push(w);
     }
+    return (MIPS[key] = { lv: lv, ws: ws });
+  }
+  function pixelate(key, x, y, w, h, zoom, px, py, alpha, block, ox, oy, clip){
+    var im = IMG[key];
+    if(!ready(im) || alpha <= 0) return;
+    if(block < 2){ photo(key, x, y, w, h, zoom, px, py, alpha, clip); return; }
+    var s = Math.max(w / im.naturalWidth, h / im.naturalHeight) * (zoom || 1);
+    var dw = im.naturalWidth * s, dh = im.naturalHeight * s;
+    var dx = x + (w - dw) / 2 + (px || 0) * (dw - w) / 2, dy = y + (h - dh) / 2 + (py || 0) * (dh - h) / 2;
+    var L = ox - Math.ceil((ox - x) / block) * block, T = oy - Math.ceil((oy - y) / block) * block;  // 框左上角往外推到最近的格線
+    var cols = Math.ceil((x + w - L) / block), rows = Math.ceil((y + h - T) / block);
+    var mp = mips(key), n = mp.ws.length - 1;
+    while(n > 0 && mp.ws[n] < dw / block) n--;
+    PIXC.clearRect(0, 0, 640, 360);
+    PIXC.drawImage(mp.lv[n], (dx - L) / block, (dy - T) / block, dw / block, dh / block);
+    g.save(); g.beginPath();
+    if(clip) g.rect(clip[0], clip[1], clip[2], clip[3]); else g.rect(x, y, w, h);
+    g.clip(); g.globalAlpha = alpha; g.imageSmoothingEnabled = false;  // 關平滑要包在 save/restore 裡，否則後面所有圖都變鋸齒
+    g.drawImage(PIX, 0, 0, cols, rows, L, T, cols * block, rows * block);
+    g.restore();
+  }
+  // lw／glow 可省略（3px、光暈全開）；S4→S5 縮進膠卷格時線變細、光暈收掉，落地那格才接得上膠卷的細框
+  function frameBox(x, y, w, h, alpha, lw, glow){
+    if(alpha <= 0) return;
+    var gl = glow === undefined ? 1 : glow;
+    g.save(); g.globalAlpha = alpha; g.strokeStyle = "rgba(220,240,255,.85)"; g.lineWidth = lw || 3;
+    if(gl > 0){ g.shadowColor = gl === 1 ? "rgba(95,212,255,.45)" : "rgba(95,212,255," + (0.45 * gl).toFixed(3) + ")"; g.shadowBlur = 24; }
+    g.strokeRect(x, y, w, h); g.restore();
+  }
+  // 說明牌：第一行類別（字距 .25em）＋作者斜體、第二行作品名，左邊一條青色細條。字串一字不改，只改排版
+  // 字寬第一次用到時量好就快取（同一字串永遠同一個值，不影響「同一個 t 同一格」）
+  var PLQ_M = mk(8, 8).getContext("2d"), PLQ_CACHE = {}, PLQ_OPEN = /^[《〈「『（]/, PLQ_CLOSE = /[》〉」』）]$/;
+  function plqChars(cat){
+    var key = "c|" + cat, e = PLQ_CACHE[key];
+    if(!e){
+      PLQ_M.font = "13px " + F.sans; e = { ch: Array.from(cat), adv: [] };
+      for(var i = 0; i < e.ch.length; i++) e.adv.push(PLQ_M.measureText(e.ch[i]).width);
+      PLQ_CACHE[key] = e;
+    }
+    return e;
+  }
+  function plqW(font, s){
+    var key = font + "|" + s;
+    if(PLQ_CACHE[key] === undefined){ PLQ_M.font = font; PLQ_CACHE[key] = PLQ_M.measureText(s).width; }
+    return PLQ_CACHE[key];
+  }
+  // 牌子內容 [類別, 作品名, 作者]
+  var PLQ_ONE = ["館藏・閱讀心得", "《不足百分之一的重量》", "gura"], PLQ_FIN = ["館藏・畫布重製", "〈微光潮汐與小鯊魚背鰭〉", "gura"];
+  var PLQ_FA = "italic 13px " + F.sans, PLQ_FT = "600 20px " + F.serif;
+  // xr＝右緣對齊點、yt＝牌子頂（畫框底下 14px）；t0 之後 0.6–1.3 秒從右邊滑進來
+  function plaque(xr, yt, P, a, t0, t){
+    var e = easeOutCubic(seg(t, t0 + 0.6, t0 + 1.3));
+    if(a * e <= 0) return;
+    var cat = P[0], title = P[1], author = P[2];
+    var LS = 3.25, cc = plqChars(cat), i, w1 = 0;
+    for(i = 0; i < cc.adv.length; i++) w1 += cc.adv[i] + (i ? LS : 0);
+    var fa = PLQ_FA, ft = PLQ_FT;
+    var wa = plqW(fa, author), wt = plqW(ft, title), l1 = w1 + 13 + wa;   // 13＝原本那格全形空白的寬
+    // 書名號的字面只佔半格：開頭那個往左吊出去、結尾那個的空白不算，兩行的字跡左緣、畫框右緣才對得齊
+    var hang = PLQ_OPEN.test(title) ? 9 : 0, tail = PLQ_CLOSE.test(title) ? 9 : 0;
+    var x0 = xr - Math.max(l1, wt - hang - tail) + (1 - e) * 14, x = x0;
+    g.save(); g.globalAlpha = a * e; g.textAlign = "left"; g.textBaseline = "alphabetic";
+    g.fillStyle = "#5fd4ff"; g.fillRect(x0 - 12, yt, 2, 38);
+    g.font = "13px " + F.sans; g.fillStyle = "#6f93ad";
+    for(i = 0; i < cc.ch.length; i++){ g.fillText(cc.ch[i], x, yt + 12); x += cc.adv[i] + LS; }
+    g.font = fa; g.fillStyle = "#8fb3cc"; g.fillText(author, x0 + w1 + 13, yt + 12);
+    g.font = ft; g.fillStyle = "#e3f2ff"; g.fillText(title, x0 - hang, yt + 36);
+    g.restore();
+  }
+  // 字型暖身：某個字型＋字第一次出現時要找字型、排字、點陣化字形，會整格卡住（2.8 第一句字幕、34.6 說明牌，30–70ms）
+  // 開場前把字幕與說明牌的字全部量一次、照原樣（描邊＋影子）在主畫布上畫一次 —— 字形快取是跟著畫布走的；
+  // 檔尾第一次 show() 的 frame() 會先整張清掉，這些字不會留在畫面上
+  (function(){
+    var list = [], i;
+    for(i = 0; i < SUBS.length; i++) list.push(["500 34px " + F.sans, SUBS[i][2]]);
+    [PLQ_ONE, PLQ_FIN].forEach(function(P){
+      plqChars(P[0]); plqW(PLQ_FA, P[2]); plqW(PLQ_FT, P[1]);
+      list.push(["13px " + F.sans, P[0]], [PLQ_FA, P[2]], [PLQ_FT, P[1]]);
+    });
+    g.save(); g.drawImage(SCRIM, 0, H - 180);
+    g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round"; g.lineWidth = 5;
+    g.strokeStyle = "rgba(3,8,16,.7)"; g.fillStyle = "#f4f9ff"; g.shadowColor = "rgba(0,0,0,.6)";
+    for(i = 0; i < list.length; i++){
+      g.font = list[i][0]; g.shadowBlur = 8; g.strokeText(list[i][1], W / 2, H - 64); g.shadowBlur = 0; g.fillText(list[i][1], W / 2, H - 64);
+    }
+    g.restore();
+  })();
+  // 畫的偏光：館藏圖縮小再模糊當光源，用 'lighter' 灑到畫框外的暗處。圖一讀到就建（warm()），之後只貼；只畫不讀像素
+  // tint 可省略：source-atop 蓋一層色把光拉向牆色 —— 黃綠的畫直接加上去會把深藍的牆染成灰橄欖
+  var BIAS = {};
+  function bias(key, im, tint){
+    if(BIAS[key]) return BIAS[key];
+    if(!ready(im)) return null;
+    var o = mk(320, 180), c = o.getContext("2d");
+    if(c.filter !== undefined){ c.filter = "blur(18px)"; c.drawImage(im, 50, 28, 220, 124); c.filter = "none"; }
+    else c.drawImage(im, 140, 80, 40, 22);                              // 不支援 filter：縮成極小，放大時的平滑就當模糊
+    if(tint){ c.globalCompositeOperation = "source-atop"; c.fillStyle = tint; c.fillRect(0, 0, 320, 180); }
+    return (BIAS[key] = o);
+  }
+
+  // ── M 記憶住在哪裡（34–42）：館藏《不足百分之一的重量》兩拍 Ken Burns ──
+  // 第一拍整幅：芙莉蓮、費倫跟淡淡發光的勇者一行同框（這幅畫的構圖本身就是「現在與回憶並肩走」），只輕推到 1.05
+  // 第二拍 37.4 起往右推近勇者一行（回憶），42.4 到 1.38；畫是 1376 寬、框 860，zoom 1.6 才 1:1，這段一路都是縮小取樣，不糊
+  // S4 開頭的馬賽克收合也讀這兩支，擺位才接得上
+  function memCam(t){
+    var pk = ease(seg(t, 37.4, 40.6));
+    var zoom = 1 + 0.05 * easeInOutSine(seg(t, 34.0, 37.6)) + 0.33 * easeInOutSine(seg(t, 37.2, 42.4));
+    return { zoom: zoom, px: lerp(0, -0.9, pk), py: lerp(0, 0.1, pk) };
+  }
+  var MEM_R = [0, 0, 0, 0];
+  function memRect(t){                                                  // 畫框整場從 0.96 推到 1.0（繞 640,310），不漂
+    var sc = lerp(0.96, 1.0, easeOutCubic(seg(t, 34, 42)));
+    MEM_R[0] = 640 - 430 * sc; MEM_R[1] = 310 - 240 * sc; MEM_R[2] = 860 * sc; MEM_R[3] = 480 * sc;
+    return MEM_R;
+  }
+  // 41.0 起畫面碎成馬賽克，格線錨在 S4 網格 (436,150)、格 34 —— 42 秒那一格剛好填滿 12×8 網格
+  var GRID_R = [436, 150, 408, 272];
+  function memMosaic(t, alpha, clip){
+    var r = memRect(t), c = memCam(t);
+    pixelate("one", r[0], r[1], r[2], r[3], c.zoom, c.px, c.py, alpha, lerp(1, 34, easeInCubic(seg(t, 41.0, 41.9))), 436, 150, clip);
+  }
+  var MEM_SKY = [[6, 13, 22], [2, 4, 8]], S4_SKY = [[7, 16, 25], [3, 7, 12]];
+  var SKY_MEM = skyBake(MEM_SKY[0], MEM_SKY[1]), SKY_S4 = skyBake(S4_SKY[0], S4_SKY[1]);
+  // 偏光直接烤進牆色：SKY_MEMB＝牆色＋偏光（畫框停在 1.0 的位置；0.96→1.0 那點縮放對一團模糊的光看不出來）
+  // 每格只貼牆色、再疊 alpha＝a·hk 的 SKY_MEMB —— 省掉每格把 320×180 放大成 1634×1056 的加法貼圖
+  // 偏光壓暗、拉向深藍（tint）且只給 .3：牆要留在近黑的藍，畫框才浮得起來，字幕底下也不會起霧
+  var SKY_MEMB = null, MEM_BIAS_A = 0.3;
+  function memBias(){
+    if(SKY_MEMB) return SKY_MEMB;
+    var bo = bias("one", IMG.one, "rgba(14,30,56,.6)"); if(!bo) return null;
+    var o = mk(W, H), c = o.getContext("2d");
+    c.drawImage(SKY_MEM, 0, 0); c.globalCompositeOperation = "lighter"; c.globalAlpha = MEM_BIAS_A;
+    c.drawImage(bo, 210 - 860 * 0.45, 70 - 480 * 0.6, 860 * 1.9, 480 * 2.2);
+    return (SKY_MEMB = o);
+  }
+  // 玻璃反光：35.2–37.6 一道斜光帶掃過畫面一次（寬淡＋窄亮兩層）
+  function glassSheen(r, t, a){
+    var k = seg(t, 35.2, 37.6); if(k <= 0 || k >= 1 || a <= 0) return;
+    var sl = r[3] * 0.35, bx = lerp(r[0] - 140, r[0] + r[2] + sl + 80, easeInOutSine(k)), y0 = r[1], y1 = r[1] + r[3];
+    g.save(); g.beginPath(); g.rect(r[0], r[1], r[2], r[3]); g.clip(); g.globalAlpha = a;
+    g.fillStyle = "rgba(255,255,255,.03)";
+    g.beginPath(); g.moveTo(bx - 40, y0); g.lineTo(bx + 100, y0); g.lineTo(bx + 100 - sl, y1); g.lineTo(bx - 40 - sl, y1); g.closePath(); g.fill();
+    g.fillStyle = "rgba(255,255,255,.07)";
+    g.beginPath(); g.moveTo(bx, y0); g.lineTo(bx + 60, y0); g.lineTo(bx + 60 - sl, y1); g.lineTo(bx - sl, y1); g.closePath(); g.fill();
+    g.restore();
+  }
+  // 暖色浮塵：呼應畫裡的螢火，在畫框前慢慢往上飄；位置全由種子＋t 算出
+  function motes(r, t, a){
+    if(a <= 0) return;
+    g.save(); g.globalCompositeOperation = "lighter";
+    for(var i = 0; i < 20; i++){
+      var R = r[3] + 80, v = 7 + rnd(i + 1200) * 12, u = ((t * v + rnd(i + 1210) * R) % R) / R;   // u：0 底 → 1 頂
+      var x = r[0] - 30 + rnd(i + 1220) * (r[2] + 60) + Math.sin(t * 0.7 + i * 1.9) * 12, y = r[1] + r[3] + 40 - u * R;
+      var tw = 0.6 + 0.4 * Math.sin(t * (1.5 + rnd(i + 1230) * 2) + i * 2.3);
+      var al = a * (0.3 + 0.3 * rnd(i + 1240)) * tw * Math.sin(Math.PI * u);
+      if(al < 0.01) continue;
+      g.fillStyle = "rgba(255,220,150," + al.toFixed(3) + ")";
+      g.beginPath(); g.arc(x, y, 0.8 + rnd(i + 1250) * 0.8, 0, 6.2832); g.fill();
+    }
+    g.restore();
+  }
+  function sMem(t){
+    var a = ease(seg(t, 34.0, 35.0)), hk = 1 - ease(seg(t, 41.0, 41.6));   // hk：收合前先把牌子、光暈、浮塵收掉
+    var sk = seg(t, 41.0, 42.0);                                          // 底色在 42 前換成 S4 的，交棒那格不跳色
+    // 牆色 → 偏光（a·hk）→ S4 的牆色（sk）三張疊；圖讀不到就沒有偏光那張
+    g.drawImage(SKY_MEM, 0, 0);
+    var mb = memBias();
+    if(mb && a * hk > 0){ g.save(); g.globalAlpha = a * hk; g.drawImage(mb, 0, 0); g.restore(); }
+    if(sk > 0){ g.save(); g.globalAlpha = Math.min(1, sk); g.drawImage(SKY_S4, 0, 0); g.restore(); }
+    if(hk > 0) bubbles(t, 20, 0.35 * hk);
+    var r = memRect(t), x = r[0], y = r[1], w = r[2], h = r[3];
+    // 41.6–42.0 裁切框收進 S4 的網格；淡出被拿掉 —— 馬賽克撐到 42 秒整格交給 S4
+    var ck = easeInOutCubic(seg(t, 41.6, 42.0)), clip = null;
+    if(ck > 0) clip = [lerp(x, 436, ck), lerp(y, 150, ck), lerp(w, 408, ck), lerp(h, 272, ck)];
+    memMosaic(t, a, clip);
+    glassSheen(r, t, a * hk);
+    if(clip) frameBox(clip[0], clip[1], clip[2], clip[3], a * lerp(1, 0.35, ck)); else frameBox(x, y, w, h, a);
+    motes(r, t, a * hk);
+    plaque(x + w, y + h + 14, PLQ_ONE, a * hk, 34, t);
+  }
+
+  // ── S4 收尾：像素燒進畫裡，〈微光潮汐與小鯊魚背鰭〉從那十格長出來 ──
+  // 擺位（mock_match 驗過）：49.0 前畫裡的鰭正好疊在像素鰭上，之後 4.2 秒拉回全景
+  var FIN_F = [190, 60, 900, 506];
+  // 膠卷格（S5）：第 3 格是這幅畫，53–54 秒畫框縮進去（FLIP），落地時大小位置完全一致
+  function stripCell(i, t){ return { x: 512 + (3 - i) * 276 - (t - 54.6) * 40, y: 478, w: 256, h: 144 }; }
+  function finPainting(t){
+    if(t < 48.4 || !ready(IMG.fin)) return;                               // 圖讀不到：像素照樣燒掉，畫框這層整個跳過
+    var pa = easeOutCubic(seg(t, 48.4, 48.7)), m = easeInOutCubic(seg(t, 49.0, 53.2));
+    var gk = easeOutCubic(seg(t, 48.7, 50.2)), fk = easeInOutCubic(seg(t, 53.0, 54.0));
+    var rx = FIN_F[0], ry = FIN_F[1], rw = FIN_F[2], rh = FIN_F[3];
+    // 裁切框：像素鰭的外框 (572,218,136,136) 長成畫框；畫的擺位照 F 算，框變大時畫不跟著跳
+    var cx = lerp(572, rx, gk), cy = lerp(218, ry, gk), cw = lerp(136, rw, gk), ch = lerp(136, rh, gk);
+    if(fk > 0){
+      var sc = stripCell(3, t);
+      rx = lerp(rx, sc.x, fk); ry = lerp(ry, sc.y, fk); rw = lerp(rw, sc.w, fk); rh = lerp(rh, sc.h, fk);
+      cx = rx; cy = ry; cw = rw; ch = rh;
+    }
+    var bo = bias("fin", IMG.fin), ha = 0.4 * ease(seg(gk, 0.5, 1)) * (1 - fk) * pa;
+    if(bo && ha > 0){
+      g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = ha;
+      g.drawImage(bo, cx - cw * 0.45, cy - ch * 0.6, cw * 1.9, ch * 2.2); g.restore();
+    }
+    // 馬賽克格線錨在網格 (436,150)：一開始每格正好是一顆像素那麼大，48.6–50.0 解析成清楚的畫
+    pixelate("fin", rx, ry, rw, rh, lerp(1.4, 1.0, m), lerp(0.9, 0, m), lerp(0.28, 0, m), pa,
+      lerp(34, 1, easeInCubic(seg(t, 48.6, 50.0))), 436, 150, [cx, cy, cw, ch]);
+    frameBox(cx, cy, cw, ch, pa, lerp(3, 1.5, fk), 1 - fk);
+  }
+
+  // ── S5 膠卷：館藏一格一格流過，可讀的前景層 ───────────────
+  // 縮圖第一次 ready 時用高品質縮一次就快取：每格直接縮 1000+px 的原圖又慢、移動時還會閃
+  var STRIP_KEYS = ["s1", "s2", "s3", "fin", "s4", "s5", "one"], THUMB = {};
+  function thumb(key){
+    if(THUMB[key]) return THUMB[key];
+    var im = IMG[key]; if(!ready(im)) return null;
+    var o = mk(256, 144), c = o.getContext("2d"), s = Math.max(256 / im.naturalWidth, 144 / im.naturalHeight);
+    c.imageSmoothingQuality = "high";
+    c.drawImage(im, (256 - im.naturalWidth * s) / 2, (144 - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s);
+    return (THUMB[key] = o);
+  }
+  // 圖一讀到就把它用得到的快取全建好（解碼、偏光、縮圖、馬賽克的縮小串）：原本在第一次用到的那格才建，34.0／48.4／54.0 各卡一下
+  // 'one'／'fin' 會整張畫進主畫布，先在主畫布上貼一次 1×1 讓解碼／上傳 GPU 也發生在這裡；onload 緊接著 show() 重畫整格，蓋掉這一點
+  function warm(k){
+    if(k === "one"){ memBias(); mips(k); g.drawImage(IMG.one, 0, 0, 1, 1); }
+    if(k === "fin"){ bias("fin", IMG.fin); mips(k); g.drawImage(IMG.fin, 0, 0, 1, 1); }
+    if(STRIP_KEYS.indexOf(k) >= 0) thumb(k);
+  }
+  function filmstrip(t){
+    var e3 = easeOutCubic(seg(t, 54.0, 54.8)), on = ease(seg(t, 54.0, 55.0));
+    g.save();
+    for(var i = 0; i < STRIP_KEYS.length; i++){
+      var c = stripCell(i, t); if(c.x + c.w < -80 || c.x > W + 80) continue;
+      var a = i === 3 ? lerp(1, 0.3, e3) : 0.3 * on; if(a <= 0) continue;
+      var th = thumb(STRIP_KEYS[i]); if(!th) continue;                  // 圖讀不到：整格不畫，不留空框
+      g.globalAlpha = a; g.drawImage(th, c.x, c.y, c.w, c.h);
+      if(i === 3 && e3 < 1){                                              // 剛落地那格：先接住 S4 畫框的亮細框，再退成膠卷框
+        g.globalAlpha = 1; g.lineWidth = lerp(1.5, 1, e3);
+        g.strokeStyle = "rgba(" + Math.round(lerp(220, 200, e3)) + "," + Math.round(lerp(240, 230, e3)) + ",255," + (lerp(0.85, 0.6, e3) * a).toFixed(3) + ")";
+      } else { g.globalAlpha = a; g.lineWidth = 1; g.strokeStyle = "rgba(200,230,255,.6)"; }
+      g.strokeRect(c.x, c.y, c.w, c.h);
+    }
+    g.restore();
   }
 
   // ── S1 深海 ──────────────────────────────────────────────
-  function s1(t){
-    sky("#03101f", "#000207"); rays(t, 0.6); bubbles(t, 50, 1);
-    var a = fade(t, 0.4, 6.8, 1.2);
-    g.save(); g.globalAlpha = a; g.textAlign = "center"; g.fillStyle = "#dff3ff";
-    g.font = "300 26px 'Noto Sans TC',sans-serif"; g.fillText("gura 🦈 presents", W / 2, 250);
-    g.font = "bold 92px 'Noto Serif TC','Microsoft JhengHei',serif";
-    g.shadowColor = "rgba(95,212,255,.6)"; g.shadowBlur = 30; g.fillText("潮與刻痕", W / 2, 360);
-    g.shadowBlur = 0; g.font = "300 24px sans-serif"; g.fillStyle = "#8fb3cc"; g.fillText("Tide & Engraving", W / 2, 410);
+  // 標題四字各烤一張（含 30px 光暈），每格只貼圖，省掉 92px 字的即時 shadowBlur；
+  // 烤 2 倍解析度，鏡頭推到 1.06 也不糊。單字圖邊長 200（光暈約外擴 45px，150 會切到光暈邊）
+  var TITLE = "潮與刻痕", TITLE_SPR = [], TITLE_ADV = [], TS = 2, TBOX = 200, TBASE = 133;  // TBASE：圖內基線 y
+  var PRESENTS = Array.from("gura 🦈 presents"), PRESENTS_ADV = [];   // Array.from：🦈 是代理對，不能拆成兩半
+  var ENG = Array.from("Tide & Engraving"), ENG_ADV = [];
+  var DIVIDER = mk(260, 1);
+  (function(){
+    var m = mk(8, 8).getContext("2d"), i;
+    m.font = "bold 92px " + F.serif;
+    for(i = 0; i < TITLE.length; i++){
+      TITLE_ADV.push(m.measureText(TITLE[i]).width);
+      var o = mk(TBOX * TS, TBOX * TS), c = o.getContext("2d");
+      c.scale(TS, TS); c.font = "bold 92px " + F.serif; c.textAlign = "center";
+      var gr = c.createLinearGradient(0, TBASE - 80, 0, TBASE + 8); gr.addColorStop(0, "#ffffff"); gr.addColorStop(1, "#a8dcff");
+      c.fillStyle = gr; c.shadowColor = "rgba(95,212,255,.6)"; c.shadowBlur = 30 * TS;   // shadowBlur 不吃 scale，要自己乘
+      c.fillText(TITLE[i], TBOX / 2, TBASE);
+      TITLE_SPR.push(o);
+    }
+    m.font = "300 22px " + F.sans;
+    for(i = 0; i < PRESENTS.length; i++) PRESENTS_ADV.push(m.measureText(PRESENTS[i]).width);
+    m.font = "400 20px " + F.serif;
+    for(i = 0; i < ENG.length; i++) ENG_ADV.push(m.measureText(ENG[i]).width);
+    var dc = DIVIDER.getContext("2d"), dg = dc.createLinearGradient(0, 0, 260, 0);
+    dg.addColorStop(0, "rgba(159,216,255,0)"); dg.addColorStop(0.5, "rgba(159,216,255,.5)"); dg.addColorStop(1, "rgba(159,216,255,0)");
+    dc.fillStyle = dg; dc.fillRect(0, 0, 260, 1);
+  })();
+  // 字距固定的那兩行（gura 🦈 presents 全程、Tide & Engraving 字距收完的 3.8 秒後）各烤一張 2 倍解析度的整行圖，每格只貼一次：
+  // 逐字 fillText 每格三十幾次，軟體繪圖下要 2–3ms。字的位置照原本的算法（含小數）烤進圖裡，排版不變
+  function lineSprite(chars, adv, ls, font, color, base){
+    var tot = 0, i, x;
+    for(i = 0; i < adv.length; i++) tot += adv[i] + (i ? ls : 0);
+    var x0 = W / 2 - tot / 2, X0 = Math.floor(x0) - 8, w = Math.ceil(tot) + 18, h = 40;
+    var o = mk(w * TS, h * TS), c = o.getContext("2d");
+    c.scale(TS, TS); c.font = font; c.fillStyle = color; c.textAlign = "left"; c.textBaseline = "alphabetic";
+    for(x = x0 - X0, i = 0; i < chars.length; i++){ c.fillText(chars[i], x, 28); x += adv[i] + ls; }
+    return { im: o, x: X0, y: base - 28, w: w, h: h };
+  }
+  var PRESENTS_LINE = lineSprite(PRESENTS, PRESENTS_ADV, 3.3, "300 22px " + F.sans, "#dff3ff", 248);
+  var ENG_LINE = lineSprite(ENG, ENG_ADV, 7, "400 20px " + F.serif, "#8fb3cc", 418);
+  // 水面亮帶（世界 y -160..100：上浮時世界往下沉，水面上方那段也要有東西；往下淡掉）
+  // 整條先在世界座標畫進 BAND（1320×260，左上對世界 (-20,-160)），每格只上鏡頭一次（一張加法貼圖）。
+  // 軟體繪圖下「要內插取樣」的填色每像素約 4ns（全螢幕 4ms），整數對齊的貼圖／圖樣只要十分之一，所以 BAND 裡一律整數對齊：
+  //   焦散兩種壓扁平鋪（強度 .2／.12 烤進圖）各預烤 4×4 個 1/4 像素相位 —— 每格挑相位、整數平移，紋路照樣平滑地流
+  //   往下淡出（世界 y 0→100 線性到 0，跟舊的 .9／.7／.5／.3／.1 分條在每條中線同值，只是沒有台階）與水面光暈預烤成整張貼上
+  //   只處理鏡頭看得到的那幾列（平常只有世界 y≥-10 那一百多列，上浮時才往上多開）
+  var BAND = mk(W + 40, 260), BANDC = BAND.getContext("2d"), CAU_SQ_W = [256, 410], CAU_SQ_H = [90, 143], CAU_PH = [];
+  (function(){
+    for(var n = 0; n < 2; n++){
+      var w = CAU_SQ_W[n], h = CAU_SQ_H[n], base = mk(w, h), c = base.getContext("2d"), ph = [], dx, dy;
+      c.globalAlpha = n ? 0.12 : 0.2;
+      for(dx = -1; dx <= 1; dx++) for(dy = -1; dy <= 1; dy++) c.drawImage(CAUSTIC_IMG, dx * w, dy * h, w, h);  // 九宮格貼：縮放取樣到邊也是接續的紋，平鋪不留縫
+      for(var py = 0; py < 4; py++) for(var px = 0; px < 4; px++){
+        var o = mk(w, h), oc = o.getContext("2d");
+        for(dx = -1; dx <= 1; dx++) for(dy = -1; dy <= 1; dy++) oc.drawImage(base, px / 4 + dx * w, py / 4 + dy * h);
+        ph.push(o);
+      }
+      CAU_PH.push(ph);
+    }
+  })();
+  var BAND_MASK = mk(W + 40, 260), BAND_GLOW = mk(W + 40, 260);         // 以下都是 BAND 座標（世界 y＋160）
+  (function(){
+    var c = BAND_MASK.getContext("2d"), gr = c.createLinearGradient(0, 160, 0, 260);
+    gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(1, "rgba(0,0,0,0)"); c.fillStyle = gr; c.fillRect(0, 0, W + 40, 260);
+    c = BAND_GLOW.getContext("2d"); gr = c.createLinearGradient(0, 160, 0, 250);   // 光暈在世界 y<0 停在最亮那格
+    gr.addColorStop(0, "rgba(120,200,240,.22)"); gr.addColorStop(1, "rgba(120,200,240,0)"); c.fillStyle = gr; c.fillRect(0, 0, W + 40, 250);
+  })();
+  // S3 淹水礁石的第二層焦散（放大 1.6 倍）：預烤成 410×410 平鋪，每格只平移，不在那裡每格 scale 取樣
+  var CAU_BIG = mk(410, 410);
+  (function(){
+    var c = CAU_BIG.getContext("2d");
+    for(var dx = -1; dx <= 1; dx++) for(var dy = -1; dy <= 1; dy++) c.drawImage(CAUSTIC_IMG, dx * 410, dy * 410, 410, 410);
+  })();
+  function surfaceBand(t, alpha, cam){
+    var m = camMat(cam, 1), r0 = clamp(Math.floor(-m[2] / m[0]) + 158, 0, 260), rh = 260 - r0;   // 畫面最上緣落在 BAND 的哪一列
+    if(rh <= 0) return;
+    var c = BANDC;
+    c.globalCompositeOperation = "source-over"; c.clearRect(0, r0, W + 40, rh);
+    for(var n = 0; n < 2; n++){
+      // 圖樣原點＝世界 (ox,oy)；取模：t 再大座標也不會飄，同一個 t 同一片紋
+      // 第二層也用 source-over（圖樣配 lighter 在軟體繪圖下又是慢路徑）；兩層都很淡、亮線又稀，疊起來跟相加看不出差
+      var w = CAU_SQ_W[n], h = CAU_SQ_H[n];
+      var ox = (n ? -((t * 9) % w) : (t * 14) % w) + 20, oy = ((n ? 1.05 : 1.4) * t) % h + 160;
+      var ix = Math.floor(ox), iy = Math.floor(oy), fx = Math.round((ox - ix) * 4), fy = Math.round((oy - iy) * 4);
+      if(fx === 4){ ix++; fx = 0; }
+      if(fy === 4){ iy++; fy = 0; }
+      tileFill(c, CAU_PH[n][fy * 4 + fx], ix, iy, 0, r0, W + 40, rh);
+    }
+    c.globalCompositeOperation = "destination-in"; c.drawImage(BAND_MASK, 0, r0, W + 40, rh, 0, r0, W + 40, rh);
+    c.globalCompositeOperation = "lighter"; c.drawImage(BAND_GLOW, 0, r0, W + 40, rh, 0, r0, W + 40, rh);
+    g.save(); g.globalCompositeOperation = "lighter"; if(alpha < 1) g.globalAlpha = alpha;
+    g.drawImage(BAND, 0, r0, W + 40, rh, -20, r0 - 160, W + 40, rh); g.restore();
+  }
+  var SKY_S1 = skyBake("#03101f", "#000207");
+  var FIN_SIL = g.createLinearGradient(0, -66, 0, 0);                    // 鰭的局部座標（fin() 縮放後才套用），建一次
+  FIN_SIL.addColorStop(0, "#2c5274"); FIN_SIL.addColorStop(0.55, "#0c1d2e"); FIN_SIL.addColorStop(1, "#030b16");
+  function s1Cam(t){
+    var k = easeInOutSine(seg(t, 0.4, 6.8));
+    // 不 clamp：結尾上浮讓世界往下沉約 74px，底色不跟鏡頭（f=0），靠各層的外擴範圍撐住頂端
+    return { x: 640 + 8 * k, y: lerp(360, 330, k) - 70 * easeInCubic(seg(t, 6.2, 7.6)), s: lerp(1, 1.06, k) };
+  }
+  function s1Title(t){
+    var gA = 1 - easeInOutCubic(seg(t, 5.8, 6.6));                      // 整組原地淡出，不上飄；6.4 擦拭開始前大半已退
+    if(gA <= 0) return;
+    var i, x, tot, a;
+    g.save(); g.textBaseline = "alphabetic"; g.textAlign = "left";
+    // gura 🦈 presents：字距約 .15em
+    a = gA * easeOutCubic(seg(t, 0.4, 1.2));
+    if(a > 0){ g.globalAlpha = a; g.drawImage(PRESENTS_LINE.im, PRESENTS_LINE.x, PRESENTS_LINE.y, PRESENTS_LINE.w, PRESENTS_LINE.h); }
+    // 標題四字：0.22 秒錯開浮上來，字距從 36 收到 8
+    var gap = lerp(36, 8, easeOutCubic(seg(t, 0.9, 2.6)));
+    for(tot = 0, i = 0; i < TITLE_ADV.length; i++) tot += TITLE_ADV[i] + (i ? gap : 0);
+    for(x = W / 2 - tot / 2, i = 0; i < TITLE.length; i++){
+      var ai = easeOutCubic(seg(t, 0.9 + i * 0.22, 1.6 + i * 0.22));
+      if(ai > 0){
+        g.globalAlpha = gA * ai;
+        g.drawImage(TITLE_SPR[i], x + TITLE_ADV[i] / 2 - TBOX / 2, 360 - TBASE + (1 - ai) * 14, TBOX, TBOX);
+      }
+      x += TITLE_ADV[i] + gap;
+    }
+    // 分隔線從中間長出來
+    var dw = 260 * easeOutCubic(seg(t, 2.0, 2.8));
+    if(dw > 0.5){ g.globalAlpha = gA; g.drawImage(DIVIDER, W / 2 - dw / 2, 384, dw, 1); }
+    // Tide & Engraving：逐字擺，字距 .6em 收到 .35em
+    a = gA * easeOutCubic(seg(t, 2.4, 3.2));
+    if(a > 0 && t >= 3.8){ g.globalAlpha = a; g.drawImage(ENG_LINE.im, ENG_LINE.x, ENG_LINE.y, ENG_LINE.w, ENG_LINE.h); }
+    else if(a > 0){
+      var ls = lerp(12, 7, easeOutCubic(seg(t, 2.4, 3.8)));
+      g.globalAlpha = a; g.fillStyle = "#8fb3cc"; g.font = "400 20px " + F.serif;
+      for(tot = 0, i = 0; i < ENG_ADV.length; i++) tot += ENG_ADV[i] + (i ? ls : 0);
+      for(x = W / 2 - tot / 2, i = 0; i < ENG.length; i++){ g.fillText(ENG[i], x, 418); x += ENG_ADV[i] + ls; }
+    }
     g.restore();
-    fin(lerp(-80, W + 80, t / 7), 560 + Math.sin(t * 2) * 6, 1, 0.5, -1);
+  }
+  function s1(t){
+    var c = s1Cam(t);
+    camReset(); g.drawImage(SKY_S1, 0, 0);                             // f=0：水色本身不動
+    rays(t, 0.6, c, 0.8);                                               // f=0.8；自己處理鏡頭，回來時是單位矩陣
+    applyCam(c, 1); surfaceBand(t, 1, c);
+    applyCam(c, 0.4); bubbles(t, 40, 0.25, "far"); marineSnow(t, 0, 1);
+    applyCam(c, 0.6);                                                   // 遠處小鰭慢慢巡過（壓低到 500，不貼著英文副標）
+    fin(lerp(-80, W + 80, t / 7) + 30 * Math.sin(t * 0.9), 500, 0.5, 0.35, -1, { rot: Math.cos(t * 2) * 0.06 });
+    applyCam(c, 1); marineSnow(t, 1, 1); bubbles(t, 30, 1, "mid");
+    s1Title(t);
+    applyCam(c, 1.5); marineSnow(t, 2, 1); bubbles(t, 6, 1, "near", 500);  // 近景大泡壓在標題前面
+    if(t > 4.2 && t < 6.0){                                             // 前景巨大背鰭剪影一閃而過
+      // 底部本來就近黑，純黑剪影會隱形：鰭尖帶一點頂光、往下沉進黑裡，再描極淡的光邊，形狀才讀得出來
+      var nk = seg(t, 4.2, 6.0);
+      fin(lerp(-300, W + 300, nk), 760, 3.2, 0.9, -1, { fill: FIN_SIL, stroke: "rgba(140,205,240,.5)", lw: 0.7 });
+    }
+    camReset();
   }
 
   // ── S2 沙上的字 ──────────────────────────────────────────
-  function s2(t){
-    var k = seg(t, 7, 9);
-    sky(mix([3,16,31],[255,196,150],k * 0.85), mix([0,2,7],[250,140,110],k * 0.9));   // 深海浮到黃昏海邊
-    g.fillStyle = mix([20,30,40],[214,180,140],k); g.fillRect(0, 300, W, H - 300);     // 沙灘
-    var write = seg(t, 8.0, 11.0), sweepX = lerp(-200, W + 400, seg(t, 12.6, 16.6));
-    // 浪：從左邊推過去再退回
-    var reach = seg(t, 12.4, 15.6) - seg(t, 16.0, 19.0);
-    var front = lerp(-260, W + 260, reach);
-    g.save(); g.beginPath(); g.moveTo(-10, 300);
-    for(var y = 300; y <= H; y += 10) g.lineTo(front + Math.sin(y / 30 + t * 4) * 26, y);
-    g.lineTo(-10, H); g.closePath();
-    var gr = g.createLinearGradient(front - 300, 0, front, 0);
-    gr.addColorStop(0, "rgba(40,140,190,.92)"); gr.addColorStop(1, "rgba(200,240,255,.95)");
-    g.fillStyle = gr; g.fill(); g.restore();
-    // 字的點畫在浪上面 —— 被捲走的那段才看得見（畫在浪底下＝直接消失，像沒寫過）
-    for(var i = 0; i < sandPts.length; i++){
-      var p = sandPts[i];
-      if((p.x - 190) / 900 > write) continue;                                        // 還沒寫到
-      var hit = p.x < sweepX - 120 * rnd(p.s);                                        // 浪頭過了沒
-      var x = p.x, y = p.y, a = 0.9;
-      if(hit){
-        var dt = (sweepX - p.x) / 300;                                                // 被捲走多久
-        x += dt * (60 + rnd(p.s + 1) * 140); y += Math.sin(dt * 3 + p.s) * 18 - dt * 20 * rnd(p.s + 2);
-        a = clamp(0.9 - dt * 0.7, 0, 0.9);
-      }
-      if(a <= 0) continue;
-      g.fillStyle = "rgba(110,72,40," + a + ")"; g.fillRect(x, y, 3, 3);
+  // 單一平面（全部 f=1）。鏡頭：7.0–8.4 往下帶接住上浮、8.4–12.2 輕推字、12.2–12.8 拉回全景給浪、16.8–19.6 推向背鰭
+  function s2Cam(t){
+    var x = 640, y, s, k;
+    if(t < 8.4){ k = easeInOutSine(seg(t, 7.0, 8.4)); s = lerp(1.12, 1.04, k); y = lerp(320, 380, k); }
+    else if(t < 12.2){ k = easeInOutSine(seg(t, 8.4, 12.2)); s = lerp(1.04, 1.08, k); y = lerp(380, 420, k); }
+    else if(t < 16.8){ k = easeInOutCubic(seg(t, 12.2, 12.8)); s = lerp(1.08, 1, k); y = lerp(420, 360, k); }
+    else { k = easeInOutSine(seg(t, 16.8, 19.6)); s = lerp(1, 1.3, k); x = lerp(640, 790, k); y = lerp(360, 300, k); }
+    return camClamp({ x: x, y: y, s: s });
+  }
+  // 浪只有一條前緣函式：水體、白沫、濕沙、沙粒被捲走的時刻全讀它，彼此才不會錯位
+  // 斜的（往下越靠左）＝浪從左上方的海那邊斜斜打上來
+  function s2Swash(t){ return easeOutCubic(seg(t, 12.4, 15.0)); }
+  function s2Front(t){
+    var bw = easeInOutSine(seg(t, 15.6, 18.4));
+    var sl = (t > 15.0 && t < 15.6) ? 15 * Math.sin((t - 15) * 10.5) : 0;   // 衝到頂晃一下（0.6 秒剛好一整圈，頭尾都是 0）
+    return lerp(-300, 1200, s2Swash(t) * (1 - bw)) + sl;
+  }
+  function s2Edge(y, F, t){ return F - (y - 300) * 0.5 + 22 * Math.sin(y / 30 + t * 4); }
+  // 只看推進（不含退潮、晃動）的前緣：沙粒被捲走的時刻、凹痕字被抹掉的界線都用它 —— 字只會被吃掉、不會又冒回來
+  function s2EdgeMax(y, t){ return s2Edge(y, lerp(-300, 1200, s2Swash(t)), t); }
+  var S2_PEAK_T = 15.3;                                                 // 濕沙的上緣定格在浪最高那刻的波形，乾濕交界才不會跟著扭
+  var S2_REFL = g.createLinearGradient(0, 300, 0, H);                   // 浪面映著夕陽（不隨時間變，建一次）
+  S2_REFL.addColorStop(0, "rgba(255,170,130,.18)"); S2_REFL.addColorStop(1, "rgba(255,170,130,0)");
+  var S2_WETSHEEN = g.createLinearGradient(0, 300, 0, 520);
+  S2_WETSHEEN.addColorStop(0, "rgba(255,190,150,.25)"); S2_WETSHEEN.addColorStop(1, "rgba(255,190,150,0)");
+  // 矩形 ∩ 半平面 x+y ≤ cc，加進目前的 path（寫字的斜向筆順裁切）
+  function halfPlanePoly(xa, ya, xb, yb, cc){
+    var P = [xa, ya, xb, ya, xb, yb, xa, yb], out = [];
+    for(var i = 0; i < 4; i++){
+      var ax = P[i * 2], ay = P[i * 2 + 1], bx = P[(i * 2 + 2) % 8], by = P[(i * 2 + 3) % 8];
+      var fa = ax + ay - cc, fb = bx + by - cc;
+      if(fa <= 0) out.push(ax, ay);
+      if((fa < 0) !== (fb < 0) && fa !== fb){ var u = fa / (fa - fb); out.push(ax + (bx - ax) * u, ay + (by - ay) * u); }
     }
-    // 遠方海面
-    g.fillStyle = mix([5,20,40],[70,120,170],k); g.fillRect(0, 270, W, 34);
-    if(t > 16.8) fin(lerp(W * 0.8, W * 0.55, seg(t, 16.8, 20)), 292, 0.55, fade(t, 16.8, 20.4, 0.8));
+    if(out.length < 6) return;
+    g.moveTo(out[0], out[1]); for(var j = 2; j < out.length; j += 2) g.lineTo(out[j], out[j + 1]); g.closePath();
+  }
+  function s2WriteK(i, t){ return easeOutQuad(seg(t, SW0 + SW_STEP * i, SW0 + SW_STEP * i + SW_DUR)); }
+  // 筆尖：在第 i 字的斜向寫字前緣上來回掃，吸到前緣附近最近的筆畫點上（不在空沙上劃），18Hz 抖 4px
+  function s2Tip(i, t){
+    var kk = s2WriteK(i, t), x0 = 320 + 128 * i, cc = x0 + 330 + kk * 308;
+    var ya = Math.max(360, cc - (x0 + 128)), yb = Math.min(490, cc - x0);
+    if(ya > yb) return null;
+    var u = 0.5 + 0.5 * Math.sin((t - SW0 - SW_STEP * i) * 14), y = lerp(ya, yb, u), x = cc - y, best = 1e9;
+    for(var n = 0; n < sandPts.length; n++){
+      var p = sandPts[n]; if(p.ci !== i || p.d > kk || p.d < kk - 0.04) continue;
+      var dd = Math.abs(p.y - y); if(dd < best){ best = dd; x = p.x; y = p.y; }
+    }
+    var j = Math.floor(t * 18);
+    return { x: x + (rnd(j * 1.3 + i) - 0.5) * 4, y: y + (rnd(j * 2.7 + i + 50) - 0.5) * 4 };
+  }
+  // 岸上的折線一律從沙灘線 304 起（再往上會壓到海面帶，留下一條灰邊），每 10px 一點、最後補到 H
+  var S2_YS = [];
+  (function(){ for(var y = 304; y < H; y += 10) S2_YS.push(y); S2_YS.push(H); })();
+  function s2EdgePath(F, t, right){                                     // 前緣折線＋往左／右收邊
+    g.beginPath(); g.moveTo(right ? W + 60 : -20, 304);
+    for(var n = 0; n < S2_YS.length; n++) g.lineTo(s2Edge(S2_YS[n], F, t), S2_YS[n]);
+    g.lineTo(right ? W + 60 : -20, H); g.closePath();
+  }
+  // 背鰭：16.4 冒出來、17.0 氣呼呼地甩頭、18.4 翻面、19.1 潛下去 —— 逆光剪影，鰭緣一圈暖光
+  var S2_FIN_X = W * 0.62, S2_FIN_WL = 294;                             // 水線：剪影只畫在這條線以上
+  function s2Fin(t){
+    if(t < 16.4 || t > 19.75) return;
+    var k = seg(t, 16.4, 16.8), eb = easeOutBack(k);
+    var sc = lerp(0.55, 0.7, easeOutCubic(k));
+    var sq = lerp(0.45, 1, Math.min(eb, 1)) + Math.max(0, eb - 1) * 1.5;   // 冒出時先扁再拉長到 1.15 再回 1
+    var y = 297 + (1 - eb) * 14 + easeInCubic(seg(t, 19.1, 19.7)) * 34;
+    var rot = t > 17 ? Math.sin((t - 17) * 2 * Math.PI * 4) * 0.24 * (1 - easeInCubic(seg(t, 17, 17.6))) : 0;  // 甩頭：前段甩足、最後才收（鰭小，0.17 看不出來）
+    var dir = lerp(-1, 1, easeInOutSine(seg(t, 18.4, 18.9)));
+    if(Math.abs(dir) < 0.04) dir = dir < 0 ? -0.04 : 0.04;              // fin() 把 0 當成 1，翻面經過 0 要閃開
+    g.save(); g.beginPath(); g.rect(S2_FIN_X - 120, 150, 240, S2_FIN_WL - 150); g.clip();
+    fin(S2_FIN_X, y, sc, 1, dir, { rot: rot, sq: sq, fill: "#2a3550", stroke: "rgba(255,200,150,.7)", lw: 1.5 });
+    g.restore();
+    // 水線上的一抹反光＋冒出／潛入時的水花
+    var wl = (1 - seg(t, 19.4, 19.75)) * seg(t, 16.4, 16.55);
+    if(wl > 0){ g.fillStyle = "rgba(255,225,190," + (0.6 * wl) + ")"; g.fillRect(S2_FIN_X - 26 * sc / 0.7, S2_FIN_WL - 1, 52 * sc / 0.7, 1.5); }
+    s2Splash(t, 16.4, 11); s2Splash(t, 19.15, 23);
+  }
+  function s2Splash(t, t0, seed){
+    var age = t - t0; if(age < 0 || age > 0.5) return;
+    g.fillStyle = "rgba(255,235,210," + (0.8 * (1 - age / 0.5)) + ")";
+    for(var i = 0; i < 4; i++){
+      var vx = (rnd(seed + i) - 0.5) * 90, vy = -(60 + rnd(seed + i + 10) * 60);
+      g.fillRect(S2_FIN_X + (rnd(seed + i + 20) - 0.5) * 30 + vx * age, S2_FIN_WL + vy * age + 200 * age * age, 2, 2);
+    }
+  }
+  function s2(t){
+    var c = s2Cam(t), i, p, F = s2Front(t), sw = s2Swash(t), Fmax = lerp(-300, 1200, sw);
+    // 不另鋪保底天空：鏡頭恆 s≥1 且 clamp，SUNSET 一定蓋滿畫面，多鋪一層全螢幕漸層只是白花填充率
+    applyCam(c, 1); g.drawImage(SUNSET, 0, 0);
+    // 太陽倒影的碎光：越近海平線越細越密
+    g.save(); g.globalCompositeOperation = "lighter";
+    for(i = 0; i < 80; i++){
+      var gy = 272 + Math.pow(rnd(i + 600), 1.4) * 30, spr = 10 + (gy - 270) * 4.5;
+      var gxp = 860 + (rnd(i + 700) - 0.5) * spr * 2 + Math.sin(t * 1.3 + i) * 3, gw = 4 + (gy - 270) * 0.9;
+      var ga = 0.55 * Math.max(0, Math.sin(t * 4 + i * 2.3));
+      if(ga > 0.01){ g.fillStyle = "rgba(255,226,180," + ga + ")"; g.fillRect(gxp - gw / 2, gy, gw, 1.6); }
+    }
+    g.restore();
+    // 沙上的凹痕字：只露出「已經寫到」而且「浪還沒碰到」的部分
+    g.save(); g.beginPath();
+    var anyW = false;
+    for(i = 0; i < 5; i++){
+      var kk = s2WriteK(i, t); if(kk <= 0) continue; anyW = true;
+      var x0 = 320 + 128 * i, xa = x0 - (i === 0 ? 30 : 0), xb = x0 + 128 + (i === 4 ? 30 : 0);
+      if(kk >= 1) g.rect(xa, 330, xb - xa, 180); else halfPlanePoly(xa, 330, xb, 510, x0 + 330 + kk * 308);
+    }
+    if(anyW){
+      g.clip();
+      if(sw > 0){                                                       // 浪頭（含波紋）前方 30px 以外才留字：字在白沫那條線上散成沙
+        g.beginPath(); g.moveTo(W + 60, 320);
+        for(var cy = 320; cy <= 520; cy += 10) g.lineTo(s2EdgeMax(cy, t) + 30, cy);
+        g.lineTo(W + 60, 520); g.closePath(); g.clip();
+      }
+      g.drawImage(GROOVE, 190, 330);
+      // 寫完後的一道暖光掠過字面
+      if(t > 11.2 && t < 12.3){
+        var bx = lerp(300, 980, seg(t, 11.2, 12.3));
+        g.beginPath(); g.rect(bx - 30, 300, 60, 260); g.clip();
+        g.globalCompositeOperation = "lighter"; g.globalAlpha = 0.5; g.drawImage(GROOVE, 190, 330); g.drawImage(GROOVE, 190, 330);
+      }
+    }
+    g.restore();
+    // 筆尖＋撥起的沙
+    g.save();
+    for(i = 0; i < 5; i++){
+      var st = SW0 + SW_STEP * i;
+      if(t < st || t > st + SW_DUR + 0.45) continue;
+      if(t < st + SW_DUR){
+        var tp = s2Tip(i, t);
+        if(tp){ g.globalCompositeOperation = "lighter"; g.fillStyle = "rgba(255,230,190,.9)"; g.fillRect(tp.x - 2, tp.y - 2, 4, 4); g.globalCompositeOperation = "source-over"; }
+      }
+      for(var j = 0; j < 6; j++){
+        var tb = st + j * (SW_DUR / 6), fa = t - tb; if(fa < 0 || fa > 0.4) continue;
+        var o = s2Tip(i, tb); if(!o) continue;
+        var vx = 70 + rnd(i * 10 + j) * 90, vy = -(60 + rnd(i * 10 + j + 5) * 70);
+        g.fillStyle = "rgba(120,80,45," + (0.8 * (1 - fa / 0.4)) + ")";
+        g.fillRect(o.x + vx * fa, o.y + vy * fa + 300 * fa * fa, 2, 2);
+      }
+    }
+    // 暖光掠過時字上幾點閃光
+    var tw = fade(t, 11.2, 12.3, 0.2);
+    if(tw > 0){
+      g.globalCompositeOperation = "lighter";
+      for(i = 0; i < 12; i++){
+        p = sandPts[Math.floor(rnd(i + 3000) * sandPts.length)];
+        var ta = tw * Math.pow(Math.max(0, Math.sin(t * 6 + i)), 4); if(ta < 0.02) continue;
+        g.fillStyle = "rgba(255,240,210," + ta + ")";
+        g.fillRect(p.x - 0.75, p.y - 4, 1.5, 8); g.fillRect(p.x - 4, p.y - 0.75, 8, 1.5); g.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+      }
+    }
+    g.restore();
+    // 退潮後的濕沙：夾在目前前緣與最高水位之間，暗一階再映一點天光，17.4–19.4 曬乾
+    var wet = 1 - seg(t, 17.4, 19.4);
+    if(t > 15.6 && wet > 0){
+      g.save(); g.beginPath(); var n;
+      for(n = 0; n < S2_YS.length; n++){ var wy = S2_YS[n]; if(n) g.lineTo(s2Edge(wy, F, t), wy); else g.moveTo(s2Edge(wy, F, t), wy); }
+      for(n = S2_YS.length - 1; n >= 0; n--) g.lineTo(s2Edge(S2_YS[n], 1200, S2_PEAK_T), S2_YS[n]);
+      g.closePath();
+      g.fillStyle = "rgba(95,60,40," + (0.28 * wet) + ")"; g.fill();
+      g.globalCompositeOperation = "lighter"; g.globalAlpha = wet; g.fillStyle = S2_WETSHEEN; g.fill();
+      g.restore();
+    }
+    // 浪：水體（沿推進方向漸層、前緣最淺）＋映夕陽
+    if(F > -40){
+      g.save(); s2EdgePath(F, t, false);
+      var ex = F - 105, ey = 510, gr = g.createLinearGradient(ex - 375.6, ey - 187.8, ex, ey);  // 沿 (1,0.5) 方向 420px
+      gr.addColorStop(0, "rgba(28,104,146,.92)"); gr.addColorStop(0.7, "rgba(110,190,206,.82)"); gr.addColorStop(1, "rgba(225,242,245,.75)");
+      g.fillStyle = gr; g.fill();
+      g.globalCompositeOperation = "lighter"; g.fillStyle = S2_REFL; g.fill();
+      g.restore();
+    }
+    // 被浪捲走的沙粒：剛好在浪頭碰到的那刻離開字面，邊漂邊被泡成白沫
+    var lo = 0, hi = SAND_ORD.length, cq = -1;
+    while(lo < hi){ var mid = (lo + hi) >> 1; if(t - sandPts[SAND_ORD[mid]].th >= 1.1) lo = mid + 1; else hi = mid; }   // 第一粒還沒飄完的
+    g.save();
+    for(i = lo; i < SAND_ORD.length; i++){
+      p = sandPts[SAND_ORD[i]]; var age = t - p.th;
+      if(age < 0) break;                                                // 之後的都還沒被浪碰到
+      var wk = clamp(age / 0.35, 0, 1), d = age * p.sp, q = Math.round(wk * 32);
+      var px = p.x + d * 0.9 + 1.5 * Math.sin(age * 23 + p.s), py = p.y + d * 0.45 + age * age * 30 * p.gy + 1.5 * Math.cos(age * 19 + p.s);
+      if(q !== cq){ g.fillStyle = SAND_COL[q]; cq = q; }
+      g.globalAlpha = 0.9 * (1 - age / 1.1);
+      g.fillRect(px - p.sz / 2, py - p.sz / 2, p.sz, p.sz);
+    }
+    g.restore();
+    // 浪頭白沫：只描前緣那條線（先寬淡、再細亮），後面撒一點碎沫
+    if(F > -40){
+      g.save(); g.beginPath(); g.rect(-60, 304, W + 120, H); g.clip();   // 寬的那筆白沫不要戳進海面帶
+      g.beginPath();
+      for(var fn = 0; fn < S2_YS.length; fn++){ var fy = S2_YS[fn], fx = s2Edge(fy, F, t); if(fn) g.lineTo(fx, fy); else g.moveTo(fx, fy); }
+      g.lineJoin = "round"; g.strokeStyle = "rgba(255,255,255,.22)"; g.lineWidth = 16; g.stroke();
+      g.strokeStyle = "rgba(255,250,240,.9)"; g.lineWidth = 4; g.stroke();
+      for(i = 0; i < 60; i++){
+        var oy = 304 + rnd(i + 800) * (H - 304), ox = s2Edge(oy, F, t) - rnd(i + 900) * 70;
+        g.fillStyle = "rgba(255,255,255," + (0.5 * rnd(i + 950)) + ")"; g.fillRect(ox, oy, 2 + rnd(i) * 3, 2);
+      }
+      g.restore();
+    }
+    s2Fin(t);
+    camReset();
+    // 太陽沉下去：整張往藍調壓（multiply），接 S3 的夜色
+    var bh = seg(t, 18.6, 20);
+    if(bh > 0){
+      g.save(); g.globalCompositeOperation = "multiply"; g.fillStyle = "rgba(20,30,70," + (0.55 * bh) + ")"; g.fillRect(0, 0, W, H); g.restore();
+    }
   }
 
   // ── S3 礁石的刻痕 ────────────────────────────────────────
-  var CARVE = "字句留存", CARVE_T0 = 21.0, CARVE_STEP = 1.4;
-  function rock(){
-    g.beginPath(); g.moveTo(330, 640); g.lineTo(360, 330); g.lineTo(470, 250); g.lineTo(640, 230);
-    g.lineTo(830, 270); g.lineTo(930, 360); g.lineTo(960, 640); g.closePath();
-    var gr = g.createLinearGradient(0, 230, 0, 640); gr.addColorStop(0, "#5a6672"); gr.addColorStop(1, "#262c33");
-    g.fillStyle = gr; g.fill(); g.strokeStyle = "rgba(255,255,255,.12)"; g.lineWidth = 3; g.stroke();
-    g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 2;                                // 岩紋
+  var CARVE = "字句留存";
+  // 刻痕字預先烤成 160×160 小圖（每格 fillText＋大 shadowBlur 太貴）。開鑿時刻見 CARVE_T／CARVE_CUT。
+  // CARVE_GROOVE[i]：石頭上的凹槽，月光從右上來 —— 右上內壁暗、左下槽底亮
+  // CARVE_GLOW[i]：同字形的發光版，'lighter' 疊上去用（餘燼轉場也靠它）
+  var CARVE_GROOVE = [], CARVE_GLOW = [];
+  (function(){
+    for(var i = 0; i < CARVE.length; i++){
+      var ch = CARVE[i], cv1 = mk(160, 160), c = cv1.getContext("2d");
+      c.font = "bold 110px " + F.serif; c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillStyle = "#151a20"; c.fillText(ch, 80, 80);                     // 槽底
+      c.globalCompositeOperation = "source-atop";                          // 只畫在槽裡：偏移的同字形蓋出受光面
+      c.fillStyle = "#3a4652"; c.fillText(ch, 77, 84);
+      c.globalAlpha = 0.5; c.fillStyle = "#4b5966"; c.fillText(ch, 75, 87);
+      c.globalAlpha = 1; c.fillStyle = "rgba(255,255,255,.06)";            // 鑿痕顆粒
+      for(var j = 0; j < 120; j++) c.fillRect(Math.floor(rnd(i * 1000 + j) * 160), Math.floor(rnd(i * 1000 + j + 500) * 160), 1, 1);
+      // 槽緣反光墊在最底：先畫的話會被上面的 source-atop 蓋成暗色，只好改用 destination-over 補在後面
+      c.globalCompositeOperation = "destination-over";
+      c.fillStyle = "rgba(255,255,255,.16)"; c.fillText(ch, 78.5, 82);
+      CARVE_GROOVE.push(cv1);
+      var cv2 = mk(160, 160), d = cv2.getContext("2d");
+      d.font = "bold 110px " + F.serif; d.textAlign = "center"; d.textBaseline = "middle";
+      d.shadowColor = "rgba(95,212,255,.9)"; d.shadowBlur = 16; d.fillStyle = "#7fdcff"; d.fillText(ch, 80, 80);
+      CARVE_GLOW.push(cv2);
+    }
+  })();
+  // S3 共用時刻（音效也讀，聲畫才不會錯拍）：每字三鑿 tc+0／0.23／0.46，鑿完＝tc+0.7
+  var STRIKES = [], CARVE_DONE = [];
+  (function(){
+    for(var i = 0; i < CARVE_T.length; i++){
+      STRIKES.push(CARVE_T[i], CARVE_T[i] + 0.23, CARVE_T[i] + 0.46); CARVE_DONE.push(CARVE_T[i] + CARVE_CUT);
+    }
+  })();
+  var SPLASH_T = 26.35;                                                 // 背鰭從礁石跳回水裡
+  // 潮位（y，越小越高；612＝平常水線）：27.2 漲（easeOutBack 浪頭衝過頭）、28.8 停住晃、30.2 退、31.8 回原位
+  function tideLvl(t){
+    if(t <= 27.2 || t >= 31.8) return 612;
+    if(t < 28.8) return Math.max(150, lerp(612, 180, easeOutBack(seg(t, 27.2, 28.8))));
+    var hold = 180 + 6 * Math.sin((t - 28.8) * 2.2);
+    if(t < 30.2) return hold;
+    return lerp(hold, 612, easeInOutCubic(seg(t, 30.2, 31.8)));
+  }
+  function tideAmt(t){ return clamp((612 - tideLvl(t)) / 432, 0, 1); }
+  // 浪頭衝過 300（打上礁石頂）與退到 495（字露出水面）的時刻：初始化取樣一次，畫面與音效共用
+  var T_CREST = 27.55, TU = 31.15;
+  (function(){
+    var prev = 612, ct = -1, ut = -1;
+    for(var n = 0; n <= 920; n++){
+      var tt = 27.2 + n * 0.005, l = tideLvl(tt);
+      if(ct < 0 && prev > 300 && l <= 300) ct = tt;
+      if(ut < 0 && tt > 30.2 && prev < 495 && l >= 495) ut = tt;
+      prev = l;
+    }
+    if(ct > 0) T_CREST = ct;
+    if(ut > 0) TU = ut;
+  })();
+  // S3 的鏡頭：全景 → 跟著刻刀（一個字鑿完才滑到下一個字）→ 拉回全景 → 隨潮水浮沉 → 推近發光字 → 33.2 起定格
+  // 餘燼轉場用 s3Cam(33.2) 對位，所以必須是 t 的純函數（手持漂移也算在裡面）
+  function s3FollowX(t){
+    var i = 0; while(i < 3 && t >= CARVE_T[i + 1]) i++;
+    var e = i < 3 ? easeInOutCubic(seg(t, CARVE_T[i] + CARVE_CUT, CARVE_T[i + 1])) : 0;
+    return 620 + 118 * (i + e);
+  }
+  function s3Cam(t){
+    if(t > 33.2) t = 33.2;
+    var x = 640, y = 360, s = 1, k;
+    if(t >= 20.9 && t < 25.9){
+      k = easeInOutCubic(seg(t, 20.9, 21.5));
+      x = lerp(640, s3FollowX(t), k); y = lerp(360, 430, k); s = lerp(1, 1.4, k);
+    } else if(t >= 25.9 && t < 27.2){
+      k = easeInOutCubic(seg(t, 25.9, 27.2));
+      x = lerp(620 + 118 * 3, 640, k); y = lerp(430, 360, k); s = lerp(1.4, 1, k);
+    } else if(t >= 27.2 && t < 31.8){
+      s = lerp(1, 1.03, easeInOutSine(seg(t, 27.2, 31.8))); y = 360 + Math.sin(t * 1.4) * 5 * tideAmt(t);
+    } else if(t >= 31.8){
+      k = easeInOutCubic(seg(t, 31.8, 33.2));
+      s = lerp(1.03, 1.15, k); x = lerp(640, 647, k); y = lerp(360, 440, k);
+    }
+    var d = camDrift(t, 0.4 * clamp((s - 1) / 0.1, 0, 1));             // 推近才晃，全景不晃
+    return camClamp({ x: x + d.x, y: y + d.y, s: s });
+  }
+  // ── S3 預烤圖層 ──
+  // NIGHT（f=0）：藍調天空、星、月亮與光暈、右下殘餘的晚霞；FARREEF（f≈0.4）遠礁剪影；ROCK 礁石本體
+  var NIGHT = mk(W, H), FARREEF = mk(W + 200, 160), ROCK = mk(666, 544), ROCK_X = 312, ROCK_Y = 222;
+  var ROCK_PTS = [322, 760, 360, 330, 470, 250, 640, 230, 830, 270, 930, 360, 968, 760];   // 底邊壓到 760：石腳藏在前景水下
+  function rockPath(c){
+    c = c || g; c.beginPath(); c.moveTo(ROCK_PTS[0], ROCK_PTS[1]);
+    for(var i = 2; i < ROCK_PTS.length; i += 2) c.lineTo(ROCK_PTS[i], ROCK_PTS[i + 1]);
+    c.closePath();
+  }
+  var SPILL = mk(170, 170), FLASH = mk(80, 80), GLOW_ROW = mk(520, 160);   // GLOW_ROW：四個發光字排成一列，水下折射一條一條切
+  (function(){
+    var c = NIGHT.getContext("2d"), gr = c.createLinearGradient(0, 0, 0, 560), i;
+    gr.addColorStop(0, "#0a1830"); gr.addColorStop(1, "#2c3a64");
+    c.fillStyle = gr; c.fillRect(0, 0, W, H);
+    for(i = 0; i < 70; i++){
+      var sz = rnd(i + 7300) < 0.85 ? 1 : 1.6;
+      c.fillStyle = "rgba(220,235,255," + (0.15 + rnd(i + 7000) * 0.45) + ")"; c.fillRect(rnd(i + 7100) * W, rnd(i + 7200) * 380, sz, sz);
+    }
+    // 晚霞帶：左冷右暖、上下柔邊（暫存畫布只在初始化開一次）
+    var o = mk(W, 120), oc = o.getContext("2d"), ag = oc.createLinearGradient(0, 0, W, 0);
+    ag.addColorStop(0, "rgba(255,140,100,0)"); ag.addColorStop(1, "rgba(255,140,100,.22)");
+    oc.fillStyle = ag; oc.fillRect(0, 0, W, 120);
+    oc.globalCompositeOperation = "destination-in";
+    var vg = oc.createLinearGradient(0, 0, 0, 120); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(0.7, "rgba(0,0,0,1)"); vg.addColorStop(1, "rgba(0,0,0,.7)");
+    oc.fillStyle = vg; oc.fillRect(0, 0, W, 120);
+    c.drawImage(o, 0, 490);
+    c.save(); c.globalCompositeOperation = "lighter";
+    var mh = c.createRadialGradient(1040, 120, 0, 1040, 120, 180); mh.addColorStop(0, "rgba(190,215,255,.25)"); mh.addColorStop(1, "rgba(190,215,255,0)");
+    c.fillStyle = mh; c.fillRect(860, 0, 360, 300); c.restore();
+    c.beginPath(); c.arc(1040, 120, 26, 0, 6.2832); c.fillStyle = "#eef4ff"; c.fill();
+    // 遠礁：兩層低矮剪影（後面那層淺一點＝空氣透視）；畫布原點對世界 (-100, 460)
+    var fc = FARREEF.getContext("2d"), L, x;
+    for(L = 0; L < 2; L++){
+      fc.beginPath(); fc.moveTo(0, 160);
+      for(x = 0; x <= W + 200; x += 30){
+        var h = (L ? 18 : 30) + (L ? 38 : 60) * Math.max(0, Math.sin(x / (L ? 160 : 230) + L * 1.7)) + 10 * rnd(x + L * 50);
+        fc.lineTo(x, 140 - h);
+      }
+      fc.lineTo(W + 200, 160); fc.closePath(); fc.fillStyle = L ? "#0b1d30" : "#0e2539"; fc.fill();
+    }
+    // 礁石：底色漸層、左側背光、斑點、岩紋、月光冷邊（右上）＋晚霞暖邊（右下），左緣留暗
+    var rc = ROCK.getContext("2d");
+    rc.translate(-ROCK_X, -ROCK_Y);
+    var rg = rc.createLinearGradient(0, 230, 0, 700); rg.addColorStop(0, "#5a6672"); rg.addColorStop(1, "#262c33");
+    rockPath(rc); rc.fillStyle = rg; rc.fill();
+    rc.save(); rockPath(rc); rc.clip();
+    var sg = rc.createLinearGradient(322, 0, 968, 0); sg.addColorStop(0, "rgba(4,8,16,.35)"); sg.addColorStop(0.45, "rgba(4,8,16,0)"); sg.addColorStop(1, "rgba(160,190,230,.06)");
+    rc.fillStyle = sg; rc.fillRect(ROCK_X, ROCK_Y, 666, 544);
+    for(i = 0; i < 2500; i++){
+      var ss = 1 + rnd(i + 8100) * 1.5;
+      rc.fillStyle = rnd(i + 8000) < 0.5 ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.08)";
+      rc.fillRect(ROCK_X + rnd(i + 8200) * 666, ROCK_Y + rnd(i + 8300) * 544, ss, ss);
+    }
+    rc.lineWidth = 2;
     [[400,380,520,330],[700,300,880,380],[420,560,600,520],[720,580,900,540]].forEach(function(l){
-      g.beginPath(); g.moveTo(l[0], l[1]); g.quadraticCurveTo((l[0]+l[2])/2, l[1]-20, l[2], l[3]); g.stroke();
+      rc.strokeStyle = "rgba(0,0,0,.25)";                                // 岩紋＋下緣一絲反光＝有深度的裂縫
+      rc.beginPath(); rc.moveTo(l[0], l[1]); rc.quadraticCurveTo((l[0] + l[2]) / 2, l[1] - 20, l[2], l[3]); rc.stroke();
+      rc.strokeStyle = "rgba(255,255,255,.05)";
+      rc.beginPath(); rc.moveTo(l[0], l[1] + 2); rc.quadraticCurveTo((l[0] + l[2]) / 2, l[1] - 18, l[2], l[3] + 2); rc.stroke();
     });
+    rc.restore();
+    rc.lineJoin = "round"; rc.lineWidth = 2;
+    rc.strokeStyle = "rgba(200,225,255,.35)"; rc.beginPath(); rc.moveTo(470, 250); rc.lineTo(640, 230); rc.lineTo(830, 270); rc.lineTo(930, 360); rc.stroke();
+    rc.strokeStyle = "rgba(255,170,130,.25)"; rc.beginPath(); rc.moveTo(930, 360); rc.lineTo(968, 760); rc.stroke();
+    rc.strokeStyle = "rgba(0,0,0,.3)"; rc.beginPath(); rc.moveTo(322, 760); rc.lineTo(360, 330); rc.lineTo(470, 250); rc.stroke();
+    // 字溢出的光、鑿擊的閃光
+    var sc = SPILL.getContext("2d"), sp = sc.createRadialGradient(85, 85, 0, 85, 85, 85);
+    sp.addColorStop(0, "rgba(95,212,255,1)"); sp.addColorStop(1, "rgba(95,212,255,0)"); sc.fillStyle = sp; sc.fillRect(0, 0, 170, 170);
+    var fl = FLASH.getContext("2d"), fg = fl.createRadialGradient(40, 40, 0, 40, 40, 40);
+    fg.addColorStop(0, "rgba(255,250,235,1)"); fg.addColorStop(0.35, "rgba(255,210,140,.5)"); fg.addColorStop(1, "rgba(255,180,100,0)");
+    fl.fillStyle = fg; fl.fillRect(0, 0, 80, 80);
+    var rw = GLOW_ROW.getContext("2d");
+    for(i = 0; i < CARVE_GLOW.length; i++) rw.drawImage(CARVE_GLOW[i], i * 118, 0);   // 原點對世界 (390, 360)
+  })();
+  function carveK(i, t){ return easeInOutSine(seg(t, CARVE_T[i], CARVE_T[i] + CARVE_CUT)); }
+  function chisel(i, k){ return { x: 470 + 118 * i + Math.sin(k * Math.PI * 3) * 42, y: 385 + k * 110 }; }   // 刻刀尖：之字形由上往下鑿
+  // 字的亮度：鑿的時候微亮 .15；鑿完閃到 1 再 0.6 秒落回呼吸般的 .55±.12
+  function glyphGlow(i, t){
+    var tc = CARVE_T[i], td = tc + CARVE_CUT;
+    if(t < tc) return 0;
+    if(t < td) return 0.15;
+    return lerp(1.0, 0.55 + 0.12 * Math.sin(t * 2.5 + i), easeOutCubic((t - td) / 0.6));
+  }
+  // 鑿擊震動：找「t 之前最後一次鑿擊或完成」—— 掃常數表，不留狀態
+  function s3Shake(t){
+    var last = -1, i;
+    for(i = 0; i < STRIKES.length; i++) if(STRIKES[i] <= t && STRIKES[i] > last) last = STRIKES[i];
+    for(i = 0; i < CARVE_DONE.length; i++) if(CARVE_DONE[i] <= t && CARVE_DONE[i] > last) last = CARVE_DONE[i];
+    var dt = t - last;
+    return (last < 0 || dt > 0.5) ? 0 : 2 * Math.exp(-dt * 14) * Math.sin(dt * 90);
+  }
+  function rockTop(u){                                                  // 礁石頂邊折線上的點，u ∈ [0,1)
+    var P = ROCK_PTS, f = u * 4, k = Math.min(3, Math.floor(f)), a = 2 + k * 2;
+    f -= k; return { x: lerp(P[a], P[a + 2], f), y: lerp(P[a + 1], P[a + 3], f) };
+  }
+  // 浪頭水花：每滴在「水面漲到它那一點」時才飛起（初始化對潮位取樣一次）；初速比規格快，否則被漲得更快的水面吞掉
+  var CREST_DROPS = [];
+  (function(){
+    for(var j = 0; j < 24; j++){
+      var rp = rockTop(rnd(j + 9500)), t0 = -1, prev = 612;
+      for(var n = 0; n <= 320; n++){ var tt = 27.2 + n * 0.005, l = tideLvl(tt); if(prev > rp.y && l <= rp.y){ t0 = tt; break; } prev = l; }
+      if(t0 > 0) CREST_DROPS.push({ x: rp.x, y: rp.y, t0: t0, vx: (rnd(j + 9530) - 0.5) * 220, vy: -(420 + rnd(j + 9560) * 260) });
+    }
+  })();
+  // ── S3 背鰭＝刻字的人：跳上礁石、鰭尖釘在刻刀上、字與字之間跳過去、跳回水裡得意地蹦兩下、再騎著潮水 ──
+  var FIN_CS = 0.65;                                                    // 刻字時的縮放
+  function carveRot(t){ return -0.35 + Math.sin(t * 40) * 0.08; }
+  function tipBase(tx, ty, s, dir, rot){ var o = finTip(0, 0, s, dir, rot); return { x: tx - o.x, y: ty - o.y }; }  // 要讓鰭尖落在 (tx,ty) 的鰭根
+  // 拋物線（二次貝茲）：頂點比較高那端再高 h；hopVY 是對 u 的導數（轉角用）
+  function hopC(y0, y1, h){ var m = Math.min(y0, y1) - h; return m - Math.sqrt((m - y0) * (m - y1)); }
+  function hopY(u, y0, y1, h){ var yc = hopC(y0, y1, h); return (1 - u) * (1 - u) * y0 + 2 * u * (1 - u) * yc + u * u * y1; }
+  function hopVY(u, y0, y1, h){ var yc = hopC(y0, y1, h); return 2 * (1 - u) * (yc - y0) + 2 * u * (y1 - yc); }
+  function velRot(vx, vy){ var sx = vx < 0 ? -1 : 1; return clamp(Math.atan2(vy * sx, vx * sx) * 0.35, -0.5, 0.5); }  // 往哪飛鰭頭就朝哪抬
+  function s3FinState(t){
+    var R = { x: 1010, y: 618, s: 0.9, dir: -1, rot: 0, sq: 1, layer: 0 }, u, B, P, i;
+    var restY = 618 + Math.sin(t * 2.2) * 3;
+    if(t < 20.0){ R.x = 1180 + (20 - t) * 300; R.y = restY; R.dir = 1; return R; }
+    if(t < 20.55){ u = seg(t, 20.0, 20.55); R.x = lerp(1180, 640, u * (0.6 + 0.4 * u)); R.y = restY; R.dir = 1; return R; }
+    if(t < 21.0){                                                       // 衝出水面，空中翻身，落在第一刀的位置
+      u = seg(t, 20.55, 21.0); P = chisel(0, 0);
+      var rE = carveRot(21.0), y0 = 618 + Math.sin(20.55 * 2.2) * 3;
+      B = tipBase(P.x, P.y, FIN_CS, -1, rE);
+      R.x = lerp(640, B.x, u); R.y = hopY(u, y0, B.y, 60); R.s = lerp(0.9, FIN_CS, u);
+      R.dir = lerp(1, -1, easeInOutSine(seg(u, 0.3, 0.7)));
+      R.rot = lerp(velRot(B.x - 640, hopVY(u, y0, B.y, 60)), rE, easeInOutSine(seg(u, 0.6, 1)));
+      return R;
+    }
+    if(t < 25.9){
+      i = 0; while(i < 3 && t >= CARVE_T[i + 1]) i++;
+      var tc = CARVE_T[i], td = tc + CARVE_CUT, tx, ty, rot;
+      R.s = FIN_CS;
+      if(t < td){                                                       // 鑿：鰭尖＝刻刀尖，身體在右下（還沒鑿的那側），不擋已刻好的字
+        P = chisel(i, carveK(i, t));
+        var jit = Math.sin(t * 60) * 2 * Math.sin(Math.PI * seg(t, tc, td));   // 頭尾歸零，接跳躍時不跳格
+        tx = P.x + jit; ty = P.y + jit * 0.5; rot = carveRot(t);
+      } else {                                                          // 跳到下一個字的起刀點
+        u = seg(t, td, CARVE_T[i + 1]);
+        var Pa = chisel(i, 1), Pb = chisel(i + 1, 0);
+        tx = lerp(Pa.x, Pb.x, u); ty = hopY(u, Pa.y, Pb.y, 50);
+        rot = lerp(carveRot(td), carveRot(CARVE_T[i + 1]), u) - 0.3 * Math.sin(Math.PI * u);
+      }
+      B = tipBase(tx, ty, R.s, -1, rot); R.x = B.x; R.y = B.y; R.rot = rot;
+      return R;
+    }
+    if(t < SPLASH_T){                                                   // 跳回水裡
+      u = seg(t, 25.9, SPLASH_T); P = chisel(3, 1);
+      var r0 = carveRot(25.9);
+      B = tipBase(P.x, P.y, FIN_CS, -1, r0);
+      var vr = velRot(1010 - B.x, hopVY(u, B.y, 618, 40));
+      R.s = lerp(FIN_CS, 0.9, u); R.x = lerp(B.x, 1010, u); R.y = hopY(u, B.y, 618, 40);
+      R.rot = u < 0.25 ? lerp(r0, vr, u / 0.25) : lerp(vr, 0, seg(u, 0.75, 1));
+      return R;
+    }
+    if(t < 27.2){                                                       // 得意地原地蹦兩下：落地壓扁、離地拉長
+      var env = 1 - seg(t, SPLASH_T, 27.0), hs = Math.abs(Math.sin((t - SPLASH_T) * 9));
+      R.y = 618 - hs * 14 * env + Math.sin(t * 2.2) * 3 * (1 - env);
+      R.sq = 1 + lerp(-0.15, 0.1, hs) * env;
+      return R;
+    }
+    if(t < 32.1){                                                       // 騎在潮水面上：先往左游到中間、29.5 回頭
+      var x = t < 29.5 ? lerp(1010, 760, easeInOutSine(seg(t, 27.2, 29.5))) : lerp(760, 1010, easeInOutSine(seg(t, 29.5, 31.8)));
+      var lv = tideLvl(t), bl = Math.min(seg(t, 27.2, 27.45), 1 - seg(t, 31.8, 32.1));
+      R.x = x; R.y = lerp(restY, waveY(x, t, lv, 14, 110, 1.4) + 6, bl);
+      R.rot = Math.atan(waveSlope(x, t, 14, 110, 1.4)) * 0.8 * bl;
+      R.dir = lerp(lerp(-1, 1, easeInOutSine(seg(t, 27.3, 27.7))), -1, easeInOutSine(seg(t, 29.35, 29.75)));
+      R.layer = 1;
+      return R;
+    }
+    R.y = restY;
+    return R;
+  }
+  function drawS3Fin(R, ox, oy){
+    var dir = R.dir; if(Math.abs(dir) < 0.04) dir = dir < 0 ? -0.04 : 0.04;   // fin() 把 0 當成 1，翻面經過 0 要閃開
+    fin(R.x + ox, R.y + oy, R.s, 1, dir, { rot: R.rot, sq: R.sq });
+  }
+  // 四個發光字疊在刻痕位置（中心 470+118i, 440）；cam 讓它跟 S3 鏡頭對齊
+  function drawCarveGlow(alpha, cam){
+    if(alpha <= 0) return;
+    g.save(); applyCam(cam); g.globalCompositeOperation = "lighter"; g.globalAlpha = alpha;
+    for(var i = 0; i < CARVE_GLOW.length; i++) g.drawImage(CARVE_GLOW[i], 470 + 118 * i - 80, 440 - 80);
+    g.restore();
+  }
+  // 四個發光字直接疊在目前的鏡頭下（不另外 applyCam）
+  function glowAll(alpha){
+    if(alpha <= 0.005) return;
+    g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, alpha);
+    for(var i = 0; i < CARVE_GLOW.length; i++) g.drawImage(CARVE_GLOW[i], 470 + 118 * i - 80, 360);
+    g.restore();
   }
   function s3(t){
-    sky("#0b2238", "#06111d"); rays(t, 0.35);
-    waveLine(t, 600, 10, 120, 0.9, "rgba(20,70,110,.9)");
-    rock();
-    // 刻字：一字一字出現，冒火花
-    g.save(); g.textAlign = "center"; g.textBaseline = "middle";
-    g.font = "bold 110px 'Noto Serif TC','Microsoft JhengHei',serif";
-    for(var i = 0; i < CARVE.length; i++){
-      var tc = CARVE_T0 + i * CARVE_STEP, k = seg(t, tc, tc + 0.9);
-      if(k <= 0) continue;
-      var cx = 470 + i * 118, cy = 440;
-      var glow = 0.35 + 0.65 * (t > 31 ? 0.6 + 0.4 * Math.sin(t * 2.5 + i) : k);
-      g.shadowColor = "rgba(95,212,255," + glow + ")"; g.shadowBlur = 24;
-      g.fillStyle = "rgba(205,240,255," + (0.25 + 0.75 * k) + ")"; g.fillText(CARVE[i], cx, cy);
-      if(k < 1){                                                                       // 火花
-        g.shadowBlur = 0;
-        for(var j = 0; j < 14; j++){
-          var ang = rnd(i * 50 + j) * 6.283, r = k * (30 + rnd(j + i) * 60);
-          g.fillStyle = "rgba(255,230,160," + (1 - k) + ")";
-          g.fillRect(cx + Math.cos(ang) * r, cy + Math.sin(ang) * r - 20, 3, 3);
+    var c = s3Cam(t), lvl = tideLvl(t), tide = clamp((612 - lvl) / 432, 0, 1), sh = s3Shake(t);
+    var fs = s3FinState(t), i, j, k, a, cx, P;
+    camReset(); g.drawImage(NIGHT, 0, 0);                              // f=0：天空、月亮、晚霞
+    applyCam(c, 0.4); g.drawImage(FARREEF, -100, 460);
+    applyCam(c, 1);
+    waveLine(t, 600, 10, 120, 0.9, "rgba(18,44,78,.95)");
+    // ── 礁石＋刻字（鑿擊時一起震；字幕、畫框不震）──
+    g.save(); g.translate(sh, sh * 0.4);
+    g.drawImage(ROCK, ROCK_X, ROCK_Y);
+    var wet = 0.18 * seg(t, 27.4, 28.0) * (1 - seg(t, TU, TU + 1.8));  // 淹過又退的石頭濕亮一陣
+    if(wet > 0.002){ rockPath(); g.fillStyle = "rgba(150,200,230," + wet + ")"; g.fill(); }
+    g.save(); rockPath(); g.clip(); g.globalCompositeOperation = "lighter";   // 字溢到石面上的光，墊在刻痕底下
+    for(i = 0; i < 4; i++){ a = glyphGlow(i, t); if(a > 0){ g.globalAlpha = Math.min(1, 0.16 * a); g.drawImage(SPILL, 470 + 118 * i - 85, 355); } }
+    g.restore();
+    for(i = 0; i < 4; i++){
+      k = carveK(i, t); if(k <= 0) continue;
+      cx = 470 + 118 * i; a = glyphGlow(i, t);
+      g.save();
+      if(k < 1){                                                        // 只露出刻刀已經走過的上半：斜斜的切線往下推
+        var yf = 382 + k * 116;
+        g.beginPath(); g.moveTo(cx - 80, 360); g.lineTo(cx + 80, 360); g.lineTo(cx + 80, yf + 12); g.lineTo(cx - 80, yf - 12); g.closePath(); g.clip();
+      }
+      g.drawImage(CARVE_GROOVE[i], cx - 80, 360);
+      g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, a); g.drawImage(CARVE_GLOW[i], cx - 80, 360);
+      g.restore();
+    }
+    // 火花（加法、短拖尾）、接觸閃光、完成光圈
+    g.save(); g.globalCompositeOperation = "lighter"; g.lineCap = "round";
+    for(i = 0; i < 4; i++){
+      var tc = CARVE_T[i], td = tc + CARVE_CUT;
+      if(t < tc || t > td + 0.4) continue;
+      if(t < td){                                                       // 刀尖的熱點：火花都從這裡噴出去
+        P = chisel(i, carveK(i, t)); var hr = 13 + 3 * Math.sin(t * 47);
+        g.globalAlpha = 0.55; g.drawImage(FLASH, P.x - hr, P.y - hr, hr * 2, hr * 2);
+      }
+      g.lineWidth = 2;
+      for(j = 0; j < 20; j++){
+        var tb = tc + j * 0.035, sa = t - tb; if(sa < 0 || sa > 0.35) continue;
+        var o = chisel(i, carveK(i, tb)), vx = (rnd(i * 100 + j) - 0.5) * 420, vy = -160 - rnd(i * 100 + j + 50) * 260, s0 = Math.max(0, sa - 0.03);
+        g.strokeStyle = sa < 0.07 ? "#ffffff" : sa < 0.2 ? "#ffd88a" : "#ff9a4a"; g.globalAlpha = 1 - sa / 0.35 * 0.6;
+        g.beginPath(); g.moveTo(o.x + vx * s0, o.y + vy * s0 + 450 * s0 * s0); g.lineTo(o.x + vx * sa, o.y + vy * sa + 450 * sa * sa); g.stroke();
+      }
+      for(j = 0; j < 3; j++){
+        var ts = tc + j * 0.23, fa = t - ts; if(fa < 0 || fa > 0.12) continue;
+        P = chisel(i, carveK(i, ts)); var fr = lerp(8, 40, fa / 0.12);
+        g.globalAlpha = 0.6 * (1 - fa / 0.12); g.drawImage(FLASH, P.x - fr, P.y - fr, fr * 2, fr * 2);
+      }
+      var ra = t - td;
+      if(ra >= 0 && ra < 0.3){
+        g.globalAlpha = 0.5 * (1 - ra / 0.3); g.strokeStyle = "#78e6ff"; g.lineWidth = 2.5;
+        g.beginPath(); g.arc(470 + 118 * i, 440, lerp(10, 70, ra / 0.3), 0, 6.2832); g.stroke();
+      }
+    }
+    g.restore();
+    for(i = 0; i < 4; i++){                                             // 碎石屑往下掉
+      for(j = 0; j < 6; j++){
+        var cb = CARVE_T[i] + j * 0.12, ca = t - cb; if(ca < 0 || ca > 0.6) continue;
+        var co = chisel(i, carveK(i, cb)), cvx = (rnd(i * 60 + j + 700) - 0.5) * 160, cvy = -40 - rnd(i * 60 + j + 760) * 100;
+        g.fillStyle = "rgba(150,160,170," + (0.9 * (1 - ca / 0.6)) + ")";
+        g.fillRect(co.x + cvx * ca - 1.5, co.y + cvy * ca + 450 * ca * ca - 1.5, 3, 3);
+      }
+    }
+    g.restore();
+    if(fs.layer === 0) drawS3Fin(fs, t < 25.9 ? sh : 0, t < 25.9 ? sh * 0.4 : 0);   // 刻字時鰭跟著石頭震
+    // ── 前景水（f=1.05，蓋住石腳與鰭根）──
+    applyCam(c, 1.05);
+    waveFill(t, 612, 9, 95, 1.2, "rgba(14,52,84,.94)", -40, W + 40);
+    wavePath(t, 612, 9, 95, 1.2, -40, W + 40); g.strokeStyle = "rgba(190,220,255,.35)"; g.lineWidth = 1; g.stroke();
+    applyCam(c, 1);
+    // 月光碎影：x 取「月亮正下方」的世界座標 —— 鏡頭怎麼移，倒影都對著月亮
+    var mx = c.x + (1040 - W / 2) / c.s;
+    g.save(); g.globalCompositeOperation = "lighter";
+    for(i = 0; i < 50; i++){
+      var my = 604 + rnd(i + 9000) * 116, spread = 10 + (my - 600) * 0.45, mw = 5 + (my - 600) * 0.12;
+      var ma = 0.4 * Math.max(0, Math.sin(t * 3 + i * 1.7)); if(ma < 0.02) continue;
+      g.fillStyle = "rgba(200,225,255," + ma + ")"; g.fillRect(mx + (rnd(i + 9100) - 0.5) * 2 * spread - mw / 2, my, mw, 1.5);
+    }
+    g.restore();
+    // 跳回水裡的水花：一圈扁橢圓＋幾滴
+    var spa = t - SPLASH_T;
+    if(spa >= 0 && spa < 0.6){
+      var rx = 10 + 90 * spa;
+      g.save(); g.globalAlpha = 1 - spa / 0.6; g.strokeStyle = "rgba(210,235,255,.9)"; g.lineWidth = 2;
+      g.beginPath(); g.ellipse(1010, 614, rx, rx * 0.22, 0, 0, 6.2832); g.stroke();
+      g.fillStyle = "rgba(220,240,255,.9)";
+      for(j = 0; j < 8; j++){
+        var dvx = (rnd(j + 9700) - 0.5) * 240, dvy = -(150 + rnd(j + 9710) * 200);
+        g.fillRect(1010 + dvx * spa - 1.5, 612 + dvy * spa + 450 * spa * spa - 1.5, 3, 3);
+      }
+      g.restore();
+    }
+    // ── 漲潮：水體、焦散、水下更亮的字、水面高光、浪頭水花 ──
+    if(tide > 0){
+      // 水體（lvl 處 rgba(40,110,160,.62) → 底部 rgba(6,28,52,.88) 的直向漸層）：漸層填色每像素都要內插，軟體繪圖下一大片要 3ms，
+      // 改成「波面裁切＋24 條實色橫帶」，每條帶取漸層在帶中線的顏色，相鄰兩條差不到 2 階，蓋上顆粒看不出台階。
+      // 橫帶對齊螢幕的整數列（裁切留在鏡頭座標）：帶的邊落在半個像素上，兩條半透明帶會疊出一條亮縫
+      g.save(); g.beginPath(); g.moveTo(0, H);
+      for(var wx = 0; wx <= W; wx += 8) g.lineTo(wx, waveY(wx, t, lvl, 14, 110, 1.4));
+      g.lineTo(W, H); g.closePath(); g.clip();
+      var cm = camMat(c, 1), wy0 = clamp(Math.floor(cm[0] * (lvl - 20) + cm[2]), 0, H), wbh = Math.ceil((H - wy0) / 24);
+      camReset();
+      for(var wb = wy0; wb < H; wb += wbh){
+        var wk = clamp(((wb + wbh / 2 - cm[2]) / cm[0] - lvl) / (H - lvl), 0, 1);
+        g.fillStyle = "rgba(" + Math.round(lerp(40, 6, wk)) + "," + Math.round(lerp(110, 28, wk)) + "," + Math.round(lerp(160, 52, wk)) + "," + lerp(0.62, 0.88, wk).toFixed(3) + ")";
+        g.fillRect(0, wb, W, Math.min(wbh, H - wb));
+      }
+      g.restore();
+      waveLine(t, lvl + 18, 9, 70, -1.1, "rgba(120,200,240,.12)");
+      // 焦散只落在淹水的礁石上（不鋪滿整個畫面，否則像泳池）
+      // 只裁礁石輪廓一次；水面以上那段由各個填色框自己從 lvl+12 起算擋掉（原本多疊一層矩形裁切，結果一樣）
+      g.save(); rockPath(); g.clip();
+      g.fillStyle = "rgba(6,28,52," + (0.32 * tide) + ")"; g.fillRect(ROCK_X, lvl + 12, 670, 768 - lvl);   // 淹著的石頭壓深一階，水才有深度、字才跳得出來
+      g.globalCompositeOperation = "lighter";
+      var ox1 = (t * 18) % 256, oy1 = (t * 7) % 256;
+      // 強度比規格（.12／.08）再降：深色水上加法很顯眼，原值整塊石頭像貼了泳池磁磚
+      g.globalAlpha = 0.07 * tide; tileFill(g, CAUSTIC_IMG, ox1, oy1, ROCK_X, lvl + 12, 670, 770 - lvl);
+      // 第二層是放大 1.6 倍的紋：預先烤成 410px 的平鋪（CAU_BIG），不在這裡每格 scale 取樣
+      var ox2 = -((t * 13) % 410), oy2 = (t * 11) % 410;
+      g.globalAlpha = 0.05 * tide; tileFill(g, CAU_BIG, ox2, oy2, ROCK_X, lvl + 12, 670, 770 - lvl);
+      g.restore();
+      // 字在水裡反而更亮：發光字切成 6px 橫條、每條左右擺（折射）；29.5 心跳那一下再亮一階
+      var hb = Math.exp(-Math.pow((t - 29.5) / 0.3, 2)), top = lvl + 6;
+      g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, 0.55 * tide + 0.8 * hb * tide);
+      for(var sy = 0; sy < 160; sy += 6){
+        var y0 = 360 + sy; if(y0 + 6 <= top) continue;
+        var ys = Math.max(y0, top), hh = y0 + 6 - ys;
+        g.drawImage(GLOW_ROW, 0, ys - 360, 520, hh, 390 + 3 * Math.sin(ys / 16 + t * 3.2) * tide, ys, 520, hh);
+      }
+      g.restore();
+      wavePath(t, lvl, 14, 110, 1.4, 0, W); g.strokeStyle = "rgba(210,240,255," + (0.55 * tide) + ")"; g.lineWidth = 2; g.stroke();
+    }
+    if(t > T_CREST - 0.5 && t < T_CREST + 1.4){                         // 浪頭打上礁石頂：水珠從頂邊飛起，落回水裡就不畫
+      g.save(); g.fillStyle = "rgb(215,240,255)";
+      for(j = 0; j < CREST_DROPS.length; j++){
+        var cd = CREST_DROPS[j], cra = t - cd.t0; if(cra < 0 || cra > 0.8) continue;
+        var cdx = cd.x + cd.vx * cra, cdy = cd.y + cd.vy * cra + 450 * cra * cra;
+        if(cdy > waveY(cdx, t, lvl, 14, 110, 1.4) - 2) continue;
+        g.globalAlpha = 0.9 * (1 - cra / 0.8); g.fillRect(cdx - 1.25, cdy - 3, 2.5, 6);   // 拉長成短條＝飛行中的水珠，不會被看成星星
+      }
+      g.restore();
+    }
+    // ── 字重新浮出水面（TU）：一閃、一道斜光掃過、水珠滴下 ──
+    glowAll(0.9 * Math.exp(-Math.pow((t - TU) / 0.25, 2)));
+    var sk = seg(t, TU, TU + 0.8);
+    if(sk > 0 && sk < 1){
+      var bx = lerp(400, 900, sk);
+      g.save(); g.beginPath(); g.moveTo(bx + 10, 360); g.lineTo(bx + 70, 360); g.lineTo(bx - 10, 520); g.lineTo(bx - 70, 520); g.closePath(); g.clip();
+      glowAll(0.8); g.restore();
+    }
+    if(t > TU && t < TU + 1.5){
+      g.save(); g.fillStyle = "#8ee6ff";
+      for(i = 0; i < 4; i++) for(j = 0; j < 3; j++){
+        var sd = i * 10 + j + 9800, dage = t - TU - rnd(sd) * 0.4; if(dage < 0 || dage >= 1) continue;
+        g.globalAlpha = 0.6 * (1 - dage);
+        g.fillRect(470 + 118 * i + (rnd(sd + 40) - 0.5) * 80 - 1, 490 + 260 * dage * dage, 2, 8);
+      }
+      g.restore();
+    }
+    // 騎在潮水上的鰭畫在水的上面，只裁掉水面以下那一點（鰭根沒進水裡）
+    if(fs.layer === 1){
+      var lv2 = tideLvl(t);
+      g.save(); g.beginPath(); g.moveTo(fs.x - 80, fs.y - 200);
+      for(var xx = fs.x - 80; xx <= fs.x + 80; xx += 8) g.lineTo(xx, waveY(xx, t, lv2, 14, 110, 1.4));
+      g.lineTo(fs.x + 80, fs.y - 200); g.closePath(); g.clip();
+      drawS3Fin(fs, 0, 0); g.restore();
+    }
+    camReset();
+  }
+
+  // ── S4 十顆像素 ──────────────────────────────────────────
+  // 網格 12×8、格 34，左上 (436,150)、中心 (640,286)；M 的馬賽克收合、館藏畫的馬賽克都錨在這套格子上
+  var CELL = 34, GX = 436, GY = 150, BLOOM_T = 48.4;
+  var PX_BASE = [[191, 230, 255], [79, 159, 216]], PX_WAVE = [234, 248, 255], PX_FLARE = [159, 244, 255];
+  // 畫布的地光：落下幾顆就亮幾分（預烤一張徑向光，每格只調 alpha）
+  var FLOOR = mk(480, 480);
+  (function(){
+    var c = FLOOR.getContext("2d"), gr = c.createRadialGradient(240, 240, 0, 240, 240, 240);
+    gr.addColorStop(0, "rgba(95,212,255,1)"); gr.addColorStop(1, "rgba(95,212,255,0)");
+    c.fillStyle = gr; c.fillRect(0, 0, 480, 480);
+  })();
+  // 像素的光暈預烤兩張（blur 14／24，只有光、沒有方塊），每格貼圖取代 shadowBlur：
+  // 軟體繪圖下 10 個方塊各帶一次 'lighter' 影子要 50ms 以上，貼圖幾乎不花錢；光暈先全部貼完再畫方塊，鄰格的光不會蓋到方塊上
+  var PXG_S = 130, PX_GLOW = [14, 24].map(function(bl){
+    var o = mk(PXG_S, PXG_S), c = o.getContext("2d"), q = (PXG_S - CELL + 2) / 2;
+    c.shadowColor = "rgba(95,212,255,.7)"; c.shadowBlur = bl; c.shadowOffsetX = 1000;
+    c.fillStyle = "#000"; c.fillRect(q - 1000, q, CELL - 2, CELL - 2);
+    return o;
+  });
+  // 計數器：等寬字、三段 fillText；寬度初始化量一次，數字靠右擺進兩格寬的槽，9→10 整行不會跳
+  var CNT_A = "pixel ", CNT_C = " / 10　　history = 0 → 1", CNT_W = [];
+  (function(){
+    var m = mk(8, 8).getContext("2d"); m.font = "18px " + F.mono;
+    CNT_W.push(m.measureText(CNT_A).width, m.measureText("10").width, m.measureText(CNT_C).width);
+  })();
+  function gridLines(t, alpha){                                         // 全部線加進同一條 path，一次 stroke
+    if(alpha <= 0 || t < 42.1) return;
+    var c, r, st, lg, x, y;
+    g.beginPath();
+    for(c = 0; c <= 12; c++){                                           // 每條線從網格中心往兩頭長，離中心越遠越晚出發
+      st = 42.1 + Math.abs(c - 6) * 0.03; lg = easeOutCubic(seg(t, st, st + 0.52)) * 136;
+      if(lg > 0){ x = GX + c * CELL + 0.5; g.moveTo(x, 286 - lg); g.lineTo(x, 286 + lg); }
+    }
+    for(r = 0; r <= 8; r++){
+      st = 42.1 + Math.abs(r - 4) * 0.03; lg = easeOutCubic(seg(t, st, st + 0.52)) * 204;
+      if(lg > 0){ y = GY + r * CELL + 0.5; g.moveTo(640 - lg, y); g.lineTo(640 + lg, y); }
+    }
+    g.save(); g.globalAlpha = alpha; g.strokeStyle = "rgba(120,170,210,.18)"; g.lineWidth = 1; g.stroke(); g.restore();
+  }
+  function s4Pixels(t){
+    var fa = 1 - ease(seg(t, 48.6, 49.2));
+    if(fa <= 0 || t < PX_T[0]) return;
+    var fl = t >= BLOOM_T, fc = seg(t, BLOOM_T, 48.8), fs = 1 + 0.15 * easeOutCubic(seg(t, 48.6, 49.2)), i, n, k, cx, cy;
+    g.save(); g.globalCompositeOperation = "lighter"; g.lineWidth = 1.5;
+    for(i = 0; i < FIN_PX.length; i++){                                 // 落地光圈；最後一顆兩圈、放大 1.5 倍
+      cx = GX + FIN_PX[i][0] * CELL + CELL / 2; cy = GY + FIN_PX[i][1] * CELL + CELL / 2;
+      for(n = 0; n < (i === 9 ? 2 : 1); n++){
+        k = seg(t, PX_T[i] + n * 0.12, PX_T[i] + n * 0.12 + 0.4); if(k <= 0 || k >= 1) continue;
+        g.strokeStyle = "rgba(159,228,255," + (0.5 * (1 - k)).toFixed(3) + ")";
+        g.beginPath(); g.arc(cx, cy, CELL * (0.6 + 1.6 * k) * (i === 9 ? 1.5 : 1), 0, 6.2832); g.stroke();
+      }
+    }
+    // 48.4 起改用 'lighter' 疊在畫上：像素轉青、放大、燒進馬賽克裡淡掉；光暈只在這段從 14 換到 24
+    g.globalCompositeOperation = fl ? "lighter" : "source-over";
+    for(n = 0; n < 2; n++){
+      var ga = fa * (n ? fc : 1 - fc); if(ga <= 0) continue;
+      g.globalAlpha = ga;
+      for(i = 0; i < FIN_PX.length; i++){
+        k = seg(t, PX_T[i], PX_T[i] + 0.3); if(k <= 0) continue;
+        var gs = PXG_S * easeOutBack(k) * fs;                           // 跟方塊同一個縮放
+        cx = GX + FIN_PX[i][0] * CELL + CELL / 2; cy = GY + FIN_PX[i][1] * CELL + CELL / 2 - 12 * (1 - easeOutCubic(k));
+        g.drawImage(PX_GLOW[n], cx - gs / 2, cy - gs / 2, gs, gs);
+      }
+    }
+    g.globalAlpha = fa;
+    for(i = 0; i < FIN_PX.length; i++){
+      k = seg(t, PX_T[i], PX_T[i] + 0.3); if(k <= 0) continue;
+      var sz = CELL * easeOutBack(k) * fs; if(sz <= 2) continue;     // 從 0 長出來、衝過頭再回來，同時從上方 12px 落下
+      cx = GX + FIN_PX[i][0] * CELL + CELL / 2; cy = GY + FIN_PX[i][1] * CELL + CELL / 2 - 12 * (1 - easeOutCubic(k));
+      // 47.9 亮度波：索引倒過來剛好是鰭根那排 → 鰭尖，一顆接一顆亮起又退回
+      var w0 = 47.9 + (9 - i) * 0.05, wv = easeOutQuad(seg(t, w0, w0 + 0.25)) * (1 - ease(seg(t, w0 + 0.25, w0 + 0.5)));
+      var b = PX_BASE[i < 3 ? 0 : 1];
+      g.fillStyle = "rgb(" + Math.round(lerp(lerp(b[0], PX_WAVE[0], wv), PX_FLARE[0], fc)) + "," +
+        Math.round(lerp(lerp(b[1], PX_WAVE[1], wv), PX_FLARE[1], fc)) + "," + Math.round(lerp(lerp(b[2], PX_WAVE[2], wv), PX_FLARE[2], fc)) + ")";
+      g.fillRect(cx - sz / 2 + 1, cy - sz / 2 + 1, sz - 2, sz - 2);
+    }
+    g.restore();
+  }
+  function s4Counter(t){
+    var a = easeOutCubic(seg(t, 42.5, 43.0)) * (1 - ease(seg(t, 47.9, 48.5)));
+    if(a <= 0) return;
+    var n = 0, last = -1, j;
+    for(j = 0; j < PX_T.length; j++) if(t >= PX_T[j]){ n++; last = PX_T[j]; }
+    var x = W / 2 - (CNT_W[0] + CNT_W[1] + CNT_W[2]) / 2, y = 468, ds = "" + n, dw = CNT_W[1] / 2 * ds.length;
+    var dx = x + CNT_W[0] + CNT_W[1] - dw, ps = last < 0 ? 1 : lerp(1.25, 1, easeOutCubic(seg(t, last, last + 0.2)));  // 數字跳一下：讀最近一次落點，不留狀態
+    g.save(); g.globalAlpha = a; g.font = "18px " + F.mono; g.textAlign = "left"; g.textBaseline = "alphabetic";
+    g.fillStyle = "#6f93ad"; g.fillText(CNT_A, x, y); g.fillText(CNT_C, x + CNT_W[0] + CNT_W[1], y);
+    g.fillStyle = "#dff3ff"; g.translate(dx + dw / 2, y - 6); g.scale(ps, ps); g.fillText(ds, -dw / 2, 6);
+    g.restore();
+  }
+  // 順序：天空 → 地光 → 網格 → 畫（馬賽克 → 清楚）→ 畫框 → 像素（燒進畫裡）→ 計數器 → 說明牌
+  function s4(t){
+    g.drawImage(SKY_S4, 0, 0);
+    if(t < 42.5){                                                       // M 留下的馬賽克：網格自己畫出來的同時，畫從格子裡退掉
+      var ma = 1 - easeInOutCubic(seg(t, 42.0, 42.5));
+      memMosaic(t, ma, GRID_R); frameBox(GRID_R[0], GRID_R[1], GRID_R[2], GRID_R[3], 0.35 * ma);
+    }
+    var n = 0, i;
+    for(i = 0; i < PX_T.length; i++) n += easeOutCubic(seg(t, PX_T[i], PX_T[i] + 0.3));
+    var fa = 0.025 * n * (1 - ease(seg(t, 48.6, 50.2)));
+    if(fa > 0.002){ g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = fa; g.drawImage(FLOOR, 400, 46); g.restore(); }
+    gridLines(t, 1 - ease(seg(t, 48.2, 48.8)));
+    finPainting(t);
+    s4Pixels(t);
+    s4Counter(t);
+    if(ready(IMG.fin)) plaque(FIN_F[0] + FIN_F[2], FIN_F[1] + FIN_F[3] + 14, PLQ_FIN, 1 - ease(seg(t, 52.6, 53.0)), 50.0, t);
+  }
+
+  // ── S5 收束：第一道晨光 ──────────────────────────────────
+  // 信條與署名的字串一字不改；只換排版、時間與光
+  var CREED = ["潮水退去時礁石仍在，", "喧囂散盡時字句留存。"], CREED_Y = [268, 340], CREED_T0 = [54.6, 56.2];
+  var SIG = "—— gura　wake #78　2026-10-01　a~", SIG_T = 58.0, SEAL_T = 58.8;
+  var S5_TOP = [[5, 16, 28], [13, 34, 56]], BLACK = [0, 0, 0];
+  // 天空三張：S4 的牆色（54.0–54.8 接過來）→ 黎明前 SKY_S5A → 天亮 SKY_S5B，每格最多兩張交叉疊
+  // 晨光（壓扁成橢圓的暖色徑向光，貼在海平線上，強度 .6）跟天空換色走同一個 dk，直接烤進 SKY_S5B：
+  // A 上疊 alpha＝dk 的 B ＝「天空 mix(dk)＋晨光 .6·dk」，省掉一張全螢幕的加法貼圖
+  var SKY_S5A = skyBake(S5_TOP[0], BLACK), SKY_S5B = skyBake(S5_TOP[1], BLACK);
+  (function(){
+    var c = SKY_S5B.getContext("2d"); c.globalCompositeOperation = "lighter"; c.globalAlpha = 0.6;
+    c.translate(W / 2, 650); c.scale(1, 0.29);
+    var gr = c.createRadialGradient(0, 0, 0, 0, 0, 900);
+    gr.addColorStop(0, "rgba(255,170,120,.55)"); gr.addColorStop(0.5, "rgba(255,120,100,.15)"); gr.addColorStop(1, "rgba(255,120,100,0)");
+    c.fillStyle = gr; c.fillRect(-900, -900, 1800, 1800);
+  })();
+  var S5_WATER = g.createLinearGradient(0, 652, 0, H);
+  S5_WATER.addColorStop(0, "rgba(30,80,120,.55)"); S5_WATER.addColorStop(1, "rgba(5,20,40,.92)");
+  // 信條逐字預烤：字芯一張、青光暈一張、暖光暈一張。光暈用「字在畫布外、影子位移進來」烤成只有光，
+  // 兩色交叉淡換時字芯一直是滿的，不會在中間變淡。礁石仍在／字句留存（各行第 5–8 字）字芯偏青、光暈更大
+  var CR_BOX = 136, CR_BASE = 84, CR_CORE = [[], []], CR_CYAN = [[], []], CR_WARM = [[], []], CR_CX = [[], []];
+  function crKey(i){ return i >= 5 && i <= 8; }
+  function crSprite(ch, fill, glow, blur){
+    var o = mk(CR_BOX, CR_BOX), c = o.getContext("2d");
+    c.font = "bold 46px " + F.serif; c.textAlign = "center"; c.textBaseline = "alphabetic";
+    if(glow){ c.shadowColor = glow; c.shadowBlur = blur; c.shadowOffsetX = 1000; c.fillStyle = "#000"; c.fillText(ch, CR_BOX / 2 - 1000, CR_BASE); }
+    else { c.fillStyle = fill; c.fillText(ch, CR_BOX / 2, CR_BASE); }
+    return o;
+  }
+  (function(){
+    var m = mk(8, 8).getContext("2d"); m.font = "bold 46px " + F.serif;
+    for(var L = 0; L < 2; L++){
+      var s = CREED[L], adv = [], tot = 0, i, x;
+      for(i = 0; i < s.length; i++){ adv.push(m.measureText(s[i]).width); tot += adv[i]; }
+      x = W / 2 - tot / 2 + 11;                                         // 句尾全形標點只佔左半格：整行往右補約 1/4 字才看起來置中
+      for(i = 0; i < s.length; i++){
+        CR_CX[L].push(x + adv[i] / 2); x += adv[i];
+        CR_CORE[L].push(crSprite(s[i], crKey(i) ? "#9fe4ff" : "#e8f6ff"));
+        CR_CYAN[L].push(crSprite(s[i], null, "rgba(95,212,255,.5)", crKey(i) ? 28 : 20));
+        CR_WARM[L].push(crSprite(s[i], null, "rgba(255,205,160,.45)", crKey(i) ? 28 : 20));
+      }
+    }
+  })();
+  var CR_RULE = mk(420, 1);
+  (function(){
+    var c = CR_RULE.getContext("2d"), gr = c.createLinearGradient(0, 0, 420, 0);
+    gr.addColorStop(0, "rgba(159,216,255,0)"); gr.addColorStop(0.5, "rgba(159,216,255,.45)"); gr.addColorStop(1, "rgba(159,216,255,0)");
+    c.fillStyle = gr; c.fillRect(0, 0, 420, 1);
+  })();
+  // 署名：同一行、同一串字、同一個順序；只依詞換字型（gura、a~ 襯線 24px 亮色，其餘無襯線 18px 暗色）
+  var SIG_P = [], SIG_W = 0;
+  (function(){
+    var i1 = SIG.indexOf("gura"), i3 = SIG.lastIndexOf("a~"), m = mk(8, 8).getContext("2d");
+    var fs = "18px " + F.sans, fg = "24px " + F.serif;
+    [[0, i1, fs, "#6f93ad"], [i1, i1 + 4, fg, "#cfe9ff"], [i1 + 4, i3, fs, "#6f93ad"], [i3, SIG.length, fg, "#cfe9ff"]].forEach(function(p){
+      var s = SIG.slice(p[0], p[1]); m.font = p[2];
+      var w = m.measureText(s).width; SIG_P.push({ s: s, f: p[2], c: p[3], w: w }); SIG_W += w;
+    });
+  })();
+  // 印章：圓角方塊挖空一片背鰭與內框（destination-out），預烤一次
+  var SEAL = mk(44, 44);
+  (function(){
+    var c = SEAL.getContext("2d");
+    c.beginPath(); c.moveTo(6, 0); c.arcTo(44, 0, 44, 44, 6); c.arcTo(44, 44, 0, 44, 6); c.arcTo(0, 44, 0, 0, 6); c.arcTo(0, 0, 44, 0, 6); c.closePath();
+    c.fillStyle = "rgba(196,58,46,.88)"; c.fill();
+    c.globalCompositeOperation = "destination-out";
+    c.lineWidth = 1.2; c.strokeRect(3.5, 3.5, 37, 37);
+    c.translate(23.3, 36); c.scale(0.42, 0.42);                         // 跟 fin() 同一條輪廓
+    c.beginPath(); c.moveTo(-36, 0); c.bezierCurveTo(-22, -26, -4, -56, 22, -66); c.quadraticCurveTo(6, -36, 30, 0); c.closePath(); c.fill();
+  })();
+  function s5Cam(t){                                                    // 以 (640,320) 為軸心慢推 1.00→1.04
+    var s = lerp(1, 1.04, easeInOutSine(seg(t, 54.8, 62)));
+    return { x: 640, y: 320 + 40 / s, s: s };
+  }
+  function backS(k, s){ k = clamp(k, 0, 1); var u = k - 1; return 1 + (s + 1) * u * u * u + s * u * u; }   // 衝過頭幅度可調：s=0.85 約 2.7%
+  // 背鰭：58.0 從右邊游進來（鰭頭朝左），59.7 回頭，60.2 往右後方游遠、變小沉下去；鰭根一直騎在浪面下 6px
+  function s5Fin(t){
+    if(t < SIG_T) return;
+    var al = 1 - seg(t, 61.0, 61.8); if(al <= 0) return;
+    var sk = easeInOutSine(seg(t, 60.2, 61.8));
+    var x = lerp(lerp(W + 60, W / 2 + 250, backS(seg(t, SIG_T, SIG_T + 0.8), 0.85)), W / 2 + 380, sk);
+    var dir = lerp(1, -1, easeInOutSine(seg(t, 59.7, 60.2)));
+    if(Math.abs(dir) < 0.04) dir = dir < 0 ? -0.04 : 0.04;              // fin() 把 0 當成 1，翻面經過 0 要閃開
+    var y = waveY(x, t, 662, 8, 140, 0.6) + 6 + Math.sin(t * 2) * 2 + 4 * sk;
+    fin(x, y, lerp(0.8, 0.3, sk), al, dir, { rot: Math.atan(waveSlope(x, t, 8, 140, 0.6)) * 0.6 });
+  }
+  function creed(t){
+    var w = easeInOutSine(seg(t, 58, 61.5)), sw = 0.6 * Math.exp(-Math.pow((t - 57.3) / 0.35, 2));
+    g.save();
+    for(var L = 0; L < 2; L++){
+      var T0 = CREED_T0[L];
+      for(var i = 0; i < CREED[L].length; i++){
+        var a = easeOutCubic(seg(t, T0 + i * 0.07, T0 + i * 0.07 + 0.6)); if(a <= 0) continue;
+        var x = CR_CX[L][i] - CR_BOX / 2, y = CREED_Y[L] - CR_BASE + (1 - a) * 10, k = crKey(i);
+        g.globalCompositeOperation = "source-over";
+        if(w < 1){ g.globalAlpha = a * (1 - w); g.drawImage(CR_CYAN[L][i], x, y); }   // 58 秒後光暈慢慢轉暖（天亮了）
+        if(w > 0){ g.globalAlpha = a * w; g.drawImage(CR_WARM[L][i], x, y); }
+        g.globalAlpha = a * (k ? 1 : 0.9); g.drawImage(CR_CORE[L][i], x, y);
+        if(L === 1 && k && sw > 0.005){                                 // 字句留存再亮一次：呼應 S3 刻在礁石上的那四個字
+          g.globalCompositeOperation = "lighter"; g.globalAlpha = a * sw;
+          g.drawImage(CR_CYAN[L][i], x, y); g.drawImage(CR_CORE[L][i], x, y);
         }
       }
     }
     g.restore();
-    // 小鯊魚在礁石邊
-    fin(lerp(1180, 1010, ease(seg(t, 20, 22))), 610 + Math.sin(t * 2.2) * 5, 0.9, 1);
-    // 漲潮淹過礁石再退
-    var tide = ease(seg(t, 27.6, 29.6)) - ease(seg(t, 30.4, 32.8));
-    if(tide > 0){
-      var lvl = lerp(640, 180, tide);
-      waveLine(t, lvl, 14, 110, 1.4, "rgba(40,120,170,.78)");
-      waveLine(t, lvl + 18, 9, 70, -1.1, "rgba(120,200,240,.25)");
-    }
-    bubbles(t, 18, 0.6);
   }
-
-  // ── S4 十顆像素 ──────────────────────────────────────────
-  function s4(t){
-    sky("#071019", "#03070c");
-    var cell = 34, gx = W / 2 - 6 * cell, gy = 150, cols = 12, rows = 8;
-    var a = fade(t, 42, 54, 0.8) * (1 - ease(seg(t, 48.4, 50.4)));
-    g.save(); g.globalAlpha = a;
-    g.strokeStyle = "rgba(120,170,210,.18)"; g.lineWidth = 1;
-    for(var c = 0; c <= cols; c++){ g.beginPath(); g.moveTo(gx + c * cell, gy); g.lineTo(gx + c * cell, gy + rows * cell); g.stroke(); }
-    for(var r = 0; r <= rows; r++){ g.beginPath(); g.moveTo(gx, gy + r * cell); g.lineTo(gx + cols * cell, gy + r * cell); g.stroke(); }
-    for(var i = 0; i < FIN_PX.length; i++){
-      var tp = PX_T0 + i * 0.55, k = seg(t, tp, tp + 0.25);
-      if(k <= 0) continue;
-      var px = FIN_PX[i], pop = 1 + (1 - k) * 0.6, s = cell * pop;
-      var cx = gx + px[0] * cell + cell / 2, cy = gy + px[1] * cell + cell / 2;
-      g.fillStyle = i < 3 ? "#bfe6ff" : "#4f9fd8";
-      g.shadowColor = "rgba(95,212,255,.7)"; g.shadowBlur = 14 * k;
-      g.fillRect(cx - s / 2 + 1, cy - s / 2 + 1, s - 2, s - 2);
+  function creedFrame(t){                                               // 上下兩條細線、署名、印章
+    var rw = 420 * easeOutCubic(seg(t, 54.6, 55.8)), i, x;
+    if(rw > 0.5){ g.drawImage(CR_RULE, W / 2 - rw / 2, 206, rw, 1); g.drawImage(CR_RULE, W / 2 - rw / 2, 372, rw, 1); }
+    var sa = ease(seg(t, SIG_T, SIG_T + 0.8));
+    if(sa > 0){
+      g.save(); g.globalAlpha = sa; g.textAlign = "left"; g.textBaseline = "alphabetic";
+      for(x = W / 2 - SIG_W / 2, i = 0; i < SIG_P.length; i++){ g.font = SIG_P[i].f; g.fillStyle = SIG_P[i].c; g.fillText(SIG_P[i].s, x, 420); x += SIG_P[i].w; }
+      g.restore();
     }
-    g.shadowBlur = 0; g.fillStyle = "#8fb3cc"; g.textAlign = "center";
-    g.font = "20px 'Noto Sans TC',sans-serif";
-    var n = 0; for(var j = 0; j < FIN_PX.length; j++) if(t >= PX_T0 + j * 0.55) n++;
-    g.fillText("pixel " + n + " / 10　　history = 0 → 1", W / 2, gy + rows * cell + 46);
-    g.restore();    finPainting(t);
+    var k = seg(t, SEAL_T, SEAL_T + 0.18);
+    if(k > 0){                                                          // 蓋章：從 1.25 倍壓下來
+      var ss = lerp(1.25, 1, easeOutCubic(k));
+      g.save(); g.globalAlpha = k; g.translate(W / 2 + SIG_W / 2 + 30, 412); g.rotate(-4 * Math.PI / 180); g.scale(ss, ss);
+      g.drawImage(SEAL, -22, -22); g.restore();
+    }
   }
-
-  // ── S5 收束 ──────────────────────────────────────────────
   function s5(t){
-    sky("#05101c", "#000"); filmstrip(t); bubbles(t, 30, 0.5);
-    waveLine(t, 640, 8, 140, 0.6, "rgba(20,60,95,.8)");
-    var a1 = fade(t, 54.4, 62.2, 1.2), a2 = fade(t, 56.0, 62.2, 1.0), a3 = fade(t, 58.0, 62.2, 0.8);
-    g.save(); g.textAlign = "center"; g.fillStyle = "#e8f6ff";
-    g.font = "bold 46px 'Noto Serif TC','Microsoft JhengHei',serif";
-    g.shadowColor = "rgba(95,212,255,.5)"; g.shadowBlur = 20;
-    g.globalAlpha = a1; g.fillText("潮水退去時礁石仍在，", W / 2, 300);
-    g.globalAlpha = a2; g.fillText("喧囂散盡時字句留存。", W / 2, 372);
-    g.shadowBlur = 0; g.globalAlpha = a3; g.font = "24px 'Noto Sans TC',sans-serif"; g.fillStyle = "#8fb3cc";
-    g.fillText("—— gura　wake #78　2026-10-01　a~", W / 2, 460);
+    var fi = easeOutCubic(seg(t, 54.0, 54.8)), dk = easeInOutSine(seg(t, 56, 61.5)), c = s5Cam(t), i;
+    // 膠卷以外全部在 54.0–54.8 淡入；天空從 S4 的顏色接過來，交棒那格不跳
+    camReset();
+    if(fi < 1) skyMix(SKY_S4, SKY_S5A, fi); else skyMix(SKY_S5A, SKY_S5B, dk);
+    applyCam(c, 1);
+    s5Fin(t);                                                           // 鰭先畫、水後蓋：鰭根藏在水裡
+    g.save(); g.globalAlpha = fi;
+    waveLine(t, 662, 8, 140, 0.6, S5_WATER);
+    wavePath(t, 662, 8, 140, 0.6, -40, W + 40); g.lineWidth = 1.5;
+    g.strokeStyle = "rgba(190,220,255,.18)"; g.stroke();
+    if(dk > 0){ g.strokeStyle = "rgba(255,210,170," + (0.5 * dk).toFixed(3) + ")"; g.stroke(); }   // 水線接住晨光
+    g.globalCompositeOperation = "lighter";
+    for(i = 0; i < 40; i++){                                            // 浮游生物：水面下一閃一閃
+      var px = (rnd(i + 1500) * W + t * (3 + rnd(i + 1510) * 6)) % W, py = 668 + rnd(i + 1520) * 47 + Math.sin(t * 0.8 + i) * 2;
+      g.fillStyle = "rgba(120,240,255," + (0.3 + 0.3 * Math.sin(t * 3 + i)).toFixed(3) + ")";
+      g.beginPath(); g.arc(px, py, 1 + rnd(i + 1530) * 1.5, 0, 6.2832); g.fill();
+    }
     g.restore();
-    fin(W / 2 + 230, 640 + Math.sin(t * 2) * 5, 0.8, a3);
+    applyCam(c, 1.3); filmstrip(t);
+    applyCam(c, 1); creedFrame(t); creed(t);
+    camReset();
   }
 
+  // ── 轉場 ─────────────────────────────────────────────────
+  // 每個交界有自己的手法，不再一律黑場：7 秒鏡頭穿出水面、20 秒潮線漫上來、34 秒只剩刻字還亮著；
+  // 42／54 秒由場景自己交棒（B3、B5），這裡不加任何全域效果。
+  function sceneAt(t){ return t < 7 ? s1 : t < 20 ? s2 : t < 34 ? s3 : t < 42 ? sMem : t < 54 ? s4 : s5; }
+  // edge(x,t,k)：交界線的 y；into<0 ＝ 新場景在線的上方，>0 ＝ 在下方；strokes 由粗到細描邊
+  var WIPES = [
+    { a: 6.4, b: 7.6, from: s1, to: s2, into: -1,                       // 鏡頭往上穿出水面：水面線往下掃，上方先變成黃昏
+      edge: function(x, t, k){ return lerp(-60, H + 60, k) + 10 * Math.sin(x / 90 + t * 3) + 4 * Math.sin(x / 37 - t * 5); },
+      strokes: [[12, "rgba(255,235,210,.22)"], [2.5, "rgba(255,245,230,.85)"]] },
+    { a: 19.5, b: 20.4, from: s2, to: s3, into: 1,                      // 潮水漫上來，水線以下已是藍調礁岩
+      edge: function(x, t, k){ return lerp(H + 60, -80, k) + 14 * Math.sin(x / 110 + t * 1.4) + 5 * Math.sin(x / 41 - t * 2.4); },
+      strokes: [[14, "rgba(255,255,255,.22)"], [4, "rgba(240,250,255,.9)"]] }
+  ];
+  function activeWipe(t){
+    for(var i = 0; i < WIPES.length; i++) if(t >= WIPES[i].a && t < WIPES[i].b) return WIPES[i];
+    return null;
+  }
+  function edgePath(w, t, k, close){                                   // 每格從數學重建（不留狀態），每 16px 取一點
+    g.beginPath();
+    for(var x = -16; x <= W + 16; x += 16){ var y = w.edge(x, t, k); if(x === -16) g.moveTo(x, y); else g.lineTo(x, y); }
+    if(close){ var yy = w.into < 0 ? -200 : H + 200; g.lineTo(W + 16, yy); g.lineTo(-16, yy); g.closePath(); }
+  }
+  function drawWipe(w, t){
+    w.from(t); camReset(); g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+    var k = easeInOutCubic(seg(t, w.a, w.b));
+    g.save(); edgePath(w, t, k, true); g.clip(); w.to(t); g.restore(); camReset();
+    g.save(); g.lineJoin = "round"; edgePath(w, t, k, false);
+    for(var i = 0; i < w.strokes.length; i++){ g.lineWidth = w.strokes[i][0]; g.strokeStyle = w.strokes[i][1]; g.stroke(); }
+    if(w.into < 0){                                                     // 穿出水面那一下的曝光；上限 0.22，再高就爆白
+      var f = Math.max(0, 1 - Math.abs(t - 7.0) / 0.35);
+      if(f > 0){ g.globalCompositeOperation = "lighter"; g.fillStyle = "rgba(255,225,190," + (0.2 * f * f) + ")"; g.fillRect(0, 0, W, H); }
+    }
+    g.restore();
+  }
+  // 餘燼：33.2 起全黑壓下來，只有刻字還亮著；34 秒黑幕從 M 掀開，字最後才熄 —— 喧囂散盡時字句留存
+  function afterglow(t){
+    if(t < 33.2 || t >= 34.6) return;
+    var cam = s3Cam(33.2), blk, ga;
+    // 黑幕壓掉多少、發光字就補多少：字的亮度一路不變，33.2 那一格也不會突然一閃
+    if(t < 34){ blk = easeInOutCubic(seg(t, 33.2, 34.0)); ga = blk; }
+    else { blk = 1 - easeInOutCubic(seg(t, 34.0, 34.5)); ga = 1 - easeInOutCubic(seg(t, 34.0, 34.6)); }
+    if(blk > 0){ g.fillStyle = "rgba(0,0,0," + blk + ")"; g.fillRect(0, 0, W, H); }
+    drawCarveGlow(ga, cam);
+  }
+
+  // ── 成片質感：暗角＋底片顆粒（都預先烤好，每格只貼圖）──────
+  // ⚠ 軟體繪圖下全螢幕貼圖只要帶 globalAlpha<1 就掉進慢路徑（暗角 0.6→1.6ms、顆粒 0.35→2.6ms），所以濃度一律烤進圖裡
+  // 暗角濃度：S2 黃昏要亮、館藏畫框輕一點，其餘全強度
+  var VIG_A = [[0,1],[6.4,1],[7.6,.55],[19.5,.55],[20.4,1],[34,1],[34.5,.8],[54,.8],[54.8,1],[62,1]];
+  // 三種平台濃度各烤一張；只有濃度在變的那幾段（共約 3 秒）才拿全強度那張配 globalAlpha
+  function vigBake(k){
+    var o = mk(W, H), c = o.getContext("2d"), gr = c.createRadialGradient(W / 2, H * .46, H * .32, W / 2, H * .5, H * .98);
+    gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(.6, "rgba(0,0,0," + (.18 * k) + ")"); gr.addColorStop(1, "rgba(0,0,0," + (.6 * k) + ")");
+    c.fillStyle = gr; c.fillRect(0, 0, W, H); return o;
+  }
+  var VIG = vigBake(1), VIG_BY = { 1: VIG, 0.8: vigBake(0.8), 0.55: vigBake(0.55) };
+  // 顆粒：黑白斑點，透明度直接烤進圖（最多 .032），每格 source-over 鋪一次 —— overlay＋screen 兩趟要 9ms，這樣不到 0.5ms
+  // 白點比黑點重：暗部（S4 的黑底）靠白點長出顆粒，亮部的黑點輕一點才不髒
+  var GRAIN = [];
+  (function(){
+    for(var n = 0; n < 4; n++){
+      var cv3 = mk(256, 256), c = cv3.getContext("2d"), im = c.createImageData(256, 256), d = im.data;
+      for(var p = 0; p < 256 * 256; p++){
+        var s = rnd(p * 0.731 + n * 917.3) * 2 - 1, v = s > 0 ? 255 : 0;
+        d[p * 4] = d[p * 4 + 1] = d[p * 4 + 2] = v; d[p * 4 + 3] = Math.round(Math.abs(s) * (s > 0 ? 255 : 150) * .032);
+      }
+      c.putImageData(im, 0, 0); GRAIN.push(cv3);
+    }
+  })();
+  function vigA(t){
+    for(var i = 1; i < VIG_A.length; i++){
+      var p = VIG_A[i - 1], q = VIG_A[i];
+      if(t <= q[0]) return lerp(p[1], q[1], seg(t, p[0], q[0]));
+    }
+    return VIG_A[VIG_A.length - 1][1];
+  }
+  function post(t){
+    var va = vigA(t), vc = VIG_BY[va];
+    g.save();
+    if(vc) g.drawImage(vc, 0, 0); else { g.globalAlpha = va; g.drawImage(VIG, 0, 0); g.globalAlpha = 1; }
+    // 顆粒以 24fps 換格（跟膠片一樣），位移由格號算出 —— 同一個 t 永遠同一片顆粒
+    // 只鋪 W×H、整數位移：一個多餘的像素都不碰，貼圖走不內插的快路徑
+    var fi = Math.floor(t * 24);
+    tileFill(g, GRAIN[(fi % 4 + 4) % 4], -((fi * 73 % 256 + 256) % 256), -((fi * 151 % 256 + 256) % 256), 0, 0, W, H);   // 取模先轉正：t<0 也不會取到空的
+    g.restore();
+  }
+
+  // 規則：場景函式在名義區間外 0.6 秒內也要畫得出像樣的一格（轉場會提前／延後叫它），
+  // 而且離開時 context 必須乾淨：save/restore 成對、globalAlpha 1、source-over、單位矩陣。
   function frame(t){
-    g.clearRect(0,0,W,H);
-    if(t < 7) s1(t); else if(t < 20) s2(t); else if(t < 34) s3(t); else if(t < 42) sMem(t); else if(t < 54) s4(t); else s5(t);
-    // 場景交界的黑場（0.6 秒）
-    [7,20,34,42,54].forEach(function(b){
-      var d = Math.abs(t - b); if(d < 0.6){ g.fillStyle = "rgba(0,0,0," + (1 - d / 0.6) + ")"; g.fillRect(0,0,W,H); }
-    });
+    camReset(); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, W, H);
+    var w = activeWipe(t);
+    if(w) drawWipe(w, t); else sceneAt(t)(t);
+    camReset(); g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+    afterglow(t);
+    post(t);
     if(t > DUR - 0.8){ g.fillStyle = "rgba(0,0,0," + seg(t, DUR - 0.8, DUR) + ")"; g.fillRect(0,0,W,H); }
     sub(t);
   }
 
   // ── 聲音（按下播放才建）──────────────────────────────────
-  var ac = null, master = null, muted = false;
-  var EVENTS = [];                                                   // 有聲音的瞬間
-  for(var i = 0; i < CARVE.length; i++) EVENTS.push({ t: CARVE_T0 + i * CARVE_STEP, f: 660 + i * 110, kind: "chime" });
-  for(var j = 0; j < FIN_PX.length; j++) EVENTS.push({ t: PX_T0 + j * 0.55, f: 880 + j * 44, kind: "blip" });
-  EVENTS.push({ t: 12.6, kind: "wave" }); EVENTS.push({ t: 27.6, kind: "wave" });
+  // 事件時刻全部讀上面的共用常數（畫面也讀同一份），改一處聲畫一起動；只在 t 跨過 ev.t（prev < ev.t ≤ t）時響，不靠計時器
+  // 主音量 master 只給靜音鍵動 —— 這裡從不排程它，否則靜音、重播會被蓋掉
+  var ac = null, master = null, muted = false, noiseBuf = null, whiteBuf = null, noiseGain = null;
+  var EVENTS = [];
+  function addEv(t, kind, f, x){ EVENTS.push({ t: t, kind: kind, f: f || 0, x: x || 0 }); }
+  (function(){
+    var i;
+    addEv(6.5, "whoosh", 1); addEv(41.0, "whoosh", -1); addEv(53.0, "whoosh", 1);   // f＝掃頻方向：1 往上、-1 往下（碎成馬賽克那一下）
+    for(i = 0; i < SAND_TEXT.length; i++) addEv(SW0 + SW_STEP * i, "sand", 660 + 110 * i);   // 沙上每寫一個字
+    addEv(12.4, "wave", 0, 0.8); addEv(19.5, "wave", 0, 0.3); addEv(27.2, "wave", 0, 0.8);   // x＝起音秒數（潮線轉場那次短）
+    addEv(13.6, "drown"); addEv(15.6, "backwash"); addEv(30.2, "backwash");
+    for(i = 0; i < STRIKES.length; i++) addEv(STRIKES[i], "strike");
+    for(i = 0; i < CARVE_DONE.length; i++) addEv(CARVE_DONE[i], "chime", 660 + 110 * i);     // 字鑿完、亮起那一刻
+    addEv(SPLASH_T, "splash"); addEv(29.5, "thump"); addEv(TU, "chord");                     // 字浮出水面：四個字的音一起回來
+    for(i = 0; i < PX_T.length; i++) addEv(PX_T[i], "blip", 880 + 44 * i, i === PX_T.length - 1 ? 1 : 0);
+    addEv(BLOOM_T, "bloom");
+    addEv(CREED_T0[0], "creed", 523); addEv(CREED_T0[1], "creed", 659); addEv(SIG_T, "creed", 784, 196);
+    addEv(SEAL_T, "thunk");
+  })();
   function initAudio(){
     if(ac) return;
     try{ ac = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return; }
@@ -376,51 +1844,99 @@
       o.frequency.value = f; gn.gain.value = 0.06; lfo.frequency.value = 0.07 + i * 0.03; lg.gain.value = 0.04;
       lfo.connect(lg); lg.connect(gn.gain); o.connect(gn); gn.connect(master); o.start(); lfo.start();
     });
-    // 海浪底噪：棕噪音過低通
-    var len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0), last = 0;
-    for(var k = 0; k < len; k++){ last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[k] = last * 3.5; }
-    var src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+    // 噪音素材建一次：棕噪音（海浪底噪、潮聲）＋白噪音（沙沙、鑿擊、水花要高頻，棕噪音那裡幾乎沒能量）。用固定種子的 LCG，不用瀏覽器亂數
+    var len = ac.sampleRate * 2, last = 0, seed = 20261001, k, r;
+    noiseBuf = ac.createBuffer(1, len, ac.sampleRate); whiteBuf = ac.createBuffer(1, len, ac.sampleRate);
+    var d = noiseBuf.getChannelData(0), wd = whiteBuf.getChannelData(0);
+    for(k = 0; k < len; k++){
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; r = seed / 2147483648 - 1;
+      wd[k] = r; last = (last + 0.02 * r) / 1.02; d[k] = last * 3.5;
+    }
+    var src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
     var lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 500;
-    var ng = ac.createGain(); ng.gain.value = 0.25; src.connect(lp); lp.connect(ng); ng.connect(master); src.start();
-    window.__noiseGain = ng;
+    noiseGain = ac.createGain(); noiseGain.gain.value = 0.25; src.connect(lp); lp.connect(noiseGain); noiseGain.connect(master); src.start();
+  }
+  // 一次性的音：每個事件現開節點、排好包絡、自己停掉
+  function envAt(gn, t0, peak, atk, dur){
+    gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(peak, t0 + atk); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  }
+  function biq(type, f, q, out){
+    var b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if(q) b.Q.value = q; b.connect(out || master); return b;
+  }
+  function tone(type, f, t0, peak, atk, dur, out){
+    var o = ac.createOscillator(), gn = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t0); envAt(gn, t0, peak, atk, dur);
+    o.connect(gn); gn.connect(out || master); o.start(t0); o.stop(t0 + dur + 0.05); return o;
+  }
+  function noise(buf, type, f, q, t0, peak, atk, dur){                  // 回傳濾波器，呼叫端可以再排它的頻率（掃頻）
+    var s = ac.createBufferSource(), gn = ac.createGain(), b = ac.createBiquadFilter();
+    s.buffer = buf; s.loop = true; b.type = type; b.frequency.setValueAtTime(f, t0); if(q) b.Q.value = q;
+    envAt(gn, t0, peak, atk, dur); s.connect(b); b.connect(gn); gn.connect(master);
+    s.start(t0, (t0 * 0.37) % 1.5); s.stop(t0 + dur + 0.05); return b;   // 起點錯開：連發的鑿擊不會每下都同一段噪音
+  }
+  function swell(peak, atk, rel){                                       // 海浪底噪的音量包絡（不是主音量）
+    var gp = noiseGain.gain, now = ac.currentTime;
+    gp.cancelScheduledValues(now); gp.setValueAtTime(gp.value, now);
+    gp.linearRampToValueAtTime(peak, now + atk); gp.linearRampToValueAtTime(0.25, now + atk + rel);
   }
   function fire(ev){
     if(!ac || muted) return;
-    var now = ac.currentTime;
-    if(ev.kind === "wave"){
-      var ng = window.__noiseGain; ng.gain.cancelScheduledValues(now);
-      ng.gain.setValueAtTime(ng.gain.value, now); ng.gain.linearRampToValueAtTime(0.9, now + 1.6); ng.gain.linearRampToValueAtTime(0.25, now + 5);
+    var now = ac.currentTime, k = ev.kind, i, b, o;
+    if(k === "wave"){ swell(0.9, ev.x, 3.4); return; }
+    if(k === "backwash"){ swell(0.5, 1.25, 1.25); return; }
+    if(k === "whoosh"){
+      b = noise(whiteBuf, "bandpass", ev.f > 0 ? 300 : 1600, 1.2, now, 0.35, 0.25, 0.85);
+      b.frequency.exponentialRampToValueAtTime(ev.f > 0 ? 1600 : 300, now + 0.7); return;
+    }
+    if(k === "sand"){
+      tone("triangle", ev.f, now, 0.05, 0.01, 0.5, biq("lowpass", 900));
+      noise(whiteBuf, "highpass", 2000, 0, now, 0.12, 0.005, 0.18); return;
+    }
+    if(k === "drown"){                                                  // 字被浪吞掉：音往下沉、聲音被水悶住
+      b = biq("lowpass", 2000); b.frequency.setValueAtTime(2000, now); b.frequency.exponentialRampToValueAtTime(300, now + 1.4);
+      o = tone("sine", 660, now, 0.06, 0.02, 1.4, b); o.frequency.exponentialRampToValueAtTime(220, now + 1.4);
+      noise(whiteBuf, "bandpass", 3000, 1, now, 0.1, 0.05, 1.2); return;
+    }
+    if(k === "strike"){ noise(whiteBuf, "highpass", 3000, 0, now, 0.2, 0.002, 0.05); return; }
+    if(k === "chime"){ tone("sine", ev.f, now, 0.22, 0.01, 2.2); return; }
+    if(k === "splash"){ noise(whiteBuf, "bandpass", 1500, 0.8, now, 0.3, 0.01, 0.2); return; }
+    if(k === "thump"){ o = tone("sine", 110, now, 0.3, 0.008, 0.3); o.frequency.exponentialRampToValueAtTime(70, now + 0.3); return; }
+    if(k === "chord"){ for(i = 0; i < 4; i++) tone("sine", 660 + 110 * i, now + i * 0.05, 0.12, 0.01, 3); return; }   // 撥弦：50ms 一根
+    if(k === "blip"){ tone("triangle", ev.x ? ev.f * 2 : ev.f, now, 0.12, 0.01, ev.x ? 0.8 : 0.35); return; }        // 第十顆高八度、拖長
+    if(k === "bloom"){                                                  // 十顆像素的音快速琶音一遍，接一片長出來的和聲
+      for(i = 0; i < PX_T.length; i++) tone("triangle", 880 + 44 * i, now + i * 0.025, 0.06, 0.005, 0.3);
+      for(i = 0; i < 3; i++) tone("sine", [440, 554, 659][i], now, 0.08, 0.6, 4.1);
       return;
     }
-    var o = ac.createOscillator(), gn = ac.createGain();
-    o.type = ev.kind === "chime" ? "sine" : "triangle"; o.frequency.value = ev.f;
-    var dur = ev.kind === "chime" ? 2.2 : 0.35;
-    gn.gain.setValueAtTime(0.0001, now); gn.gain.exponentialRampToValueAtTime(ev.kind === "chime" ? 0.22 : 0.12, now + 0.01);
-    gn.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    o.connect(gn); gn.connect(master); o.start(now); o.stop(now + dur + 0.05);
+    if(k === "creed"){ tone("sine", ev.f, now, 0.1, 0.15, 2.5); if(ev.x) tone("sine", ev.x, now, 0.08, 0.15, 2.5); return; }
+    if(k === "thunk"){ o = tone("sine", 120, now, 0.25, 0.004, 0.15); o.frequency.exponentialRampToValueAtTime(80, now + 0.15); return; }
   }
 
   // ── 播放控制 ─────────────────────────────────────────────
   var stage = document.getElementById("stage"), cover = document.getElementById("cover");
   var seek = document.getElementById("seek"), timeEl = document.getElementById("time");
   var bPlay = document.getElementById("bPlay"), bMute = document.getElementById("bMute");
-  var t = 0, playing = false, lastNow = 0, seeking = false;
+  var t = 0, playing = false, lastNow = 0, seeking = false, raf = 0;
   function fmt(s){ s = Math.floor(s); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
   function show(){ frame(t); if(!seeking) seek.value = t; timeEl.textContent = fmt(t) + " / " + fmt(DUR); }
   function play(){
     initAudio(); if(ac && ac.state === "suspended") ac.resume();
     if(t >= DUR) t = 0;
     playing = true; cover.style.display = "none"; bPlay.textContent = "⏸"; lastNow = performance.now();
-    requestAnimationFrame(tick);
+    // 永遠只留一條 tick 迴圈：播放中按重播、同一格內暫停又播放，舊的那個 rAF 先取消，否則每格會畫兩次
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(tick);
   }
-  function pause(){ playing = false; bPlay.textContent = "▶"; }
+  function pause(){ playing = false; bPlay.textContent = "▶"; if(raf){ cancelAnimationFrame(raf); raf = 0; } }
   function tick(now){
+    raf = 0;
     if(!playing) return;
-    var prev = t; t = Math.min(DUR, t + (now - lastNow) / 1000); lastNow = now;
+    // rAF 給的 now 是這一格開始的時間，可能比 play() 記下的 performance.now() 還早一點 —— 時間只准往前走，t 不會變成負的
+    var prev = t; t = Math.min(DUR, t + Math.max(0, now - lastNow) / 1000); lastNow = now;
     EVENTS.forEach(function(ev){ if(ev.t > prev && ev.t <= t) fire(ev); });
     show();
     if(t >= DUR){ pause(); bPlay.textContent = "⟲"; return; }
-    requestAnimationFrame(tick);
+    raf = requestAnimationFrame(tick);
   }
   cover.addEventListener("click", play);
   bPlay.addEventListener("click", function(){ playing ? pause() : play(); });
@@ -441,6 +1957,12 @@
   var q = new URLSearchParams(location.search);
   if(q.has("t")) t = clamp(parseFloat(q.get("t")) || 0, 0, DUR);
   if(q.get("still") === "1") stage.classList.add("still");
+  // 預烤圖暖身：GPU 繪圖下一張圖第一次被畫時要整張上傳，會在那一格卡一下（例：6.4 秒第一次貼 SUNSET）；
+  // 開場前全部在主畫布上貼一次 1×1，緊接著的 show() 整格重畫、蓋掉
+  [SUNSET, NIGHT, FARREEF, ROCK, GROOVE, SCRIM, SPILL, FLASH, GLOW_ROW, FLOOR, RAY, CAUSTIC_IMG, CAU_BIG, BAND_MASK, BAND_GLOW,
+   SKY_S1, SKY_MEM, SKY_S4, SKY_S5A, SKY_S5B, VIG_BY[1], VIG_BY[0.8], VIG_BY[0.55], DIVIDER, CR_RULE, SEAL, PRESENTS_LINE.im, ENG_LINE.im]
+    .concat(TITLE_SPR, CARVE_GROOVE, CARVE_GLOW, PX_GLOW, GRAIN, CAU_PH[0], CAU_PH[1], CR_CORE[0], CR_CORE[1], CR_CYAN[0], CR_CYAN[1], CR_WARM[0], CR_WARM[1])
+    .forEach(function(c){ g.drawImage(c, 0, 0, 1, 1); });
   show();
 })();
 </script>
