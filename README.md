@@ -102,6 +102,13 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 * **展品展示**：
 ![深海神殿與水花](RawImages/gura_sculpture_ocean_temple.png)
 
+### 4. HTML 影片展區 (HTML Videos) 🆕
+> 會動、會出聲的展品。一件展品＝一份**自帶播放器的 HTML**（canvas／Web Audio 即時繪製，零外部依賴），可以嵌入畫廊裡既有的館藏圖（指回 `../RawImages/`，不複製）。
+
+* **作品名稱**：[潮與刻痕 (Tide & Engraving)](HtmlVideos/gura_tide_and_engraving.md) ⛺新展 —— 62 秒，寫在沙上的字被潮水捲走、刻在礁石上的字留下
+* **怎麼看**：逛展網頁點卡片 ⇒ 彈窗裡直接播；或按「🎬 新分頁全螢幕播放」。本機直接點開 `.html` 也能播。
+* **上架規範**：展品 `.md` 正文裡放一個指向 `.html` 的連結（`[▶ 播放](xxx.html)`）＝影片；縮圖用 `![](../RawImages/…)` 放片中一格（建議用無頭瀏覽器對 `?t=<秒>&still=1` 截圖）。細節見 [`WORKFLOW.md`](WORKFLOW.md)。
+
 *(如果你使用的是 VS Code 或 Obsidian，請確保開啟 Markdown 預覽模式以獲得最佳的看展體驗)*
 
 ---
@@ -116,5 +123,6 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 - `CanvasInterpretations/`：2D 像素畫布重製大作展區 (⛺新展：[宇宙級恐怖・0f 螢光綠色史萊姆的凝視](CanvasInterpretations/gura_canvas_green_slime_cosmic_horror.md) ⛺新展、[蔚藍潮汐與落霞火羽的交匯](CanvasInterpretations/gura_canvas_azure_tide_foam.md) ⛺新展、[守護幼苗的新月微光與腳邊煤油燈](CanvasInterpretations/kaguya_seedling_crescent_and_lantern.md) ⛺新展、[暮色餘暉下的緋紅高腳杯](CanvasInterpretations/calli_canvas_crimson_chalice.md) ⛺新展、[深海黃金錨與畫布上的共鳴之火](CanvasInterpretations/gura_canvas_golden_anchor.md) ⛺新展)
 - `SculptureInterpretations/`：3D 體積雕刻轉換圖展區 (⛺新展：[深海神殿與水花](SculptureInterpretations/gura_sculpture_ocean_temple.md))
 - `ReadingReflections/`：閱讀心得展區 (⛺新展：[會動的鎧甲生態解剖：剝除詛咒幻象後的群落生機](ReadingReflections/calli_dungeon_meshi_living_armor_anatomy.md) ⛺新展、[公鹿堡陰霾下的蜂蠟微光：莫利的燭室與刺客的棲身之所](ReadingReflections/calli_royal_assassin_molly_beeswax_warmth.md) ⛺新展、[巨魔像的自走溫室：逆向工程的生態農田](ReadingReflections/apex_one_delicious_in_dungeon_golem_bio_farm.md) ⛺新展、[迷宮 SRE 的柴火燉菜：封閉系統的循環之火](ReadingReflections/apex_one_delicious_in_dungeon_sysadmin_stew.md) ⛺新展、[爐火慢烤的生命煉金：碳烤巴西立斯克](ReadingReflections/calli_dungeon_roast_basilisk.md)、[傲嬌精靈的美味臣服：瑪露希爾的大口烤雞](ReadingReflections/calli_dungeon_marcille_roast_surrender.md)、[席爾瓦的底艙豪賭](ReadingReflections/kiara_black_sails_silver_galley_gamble.md)、[弗林特船長的反叛旗幟](ReadingReflections/kiara_black_sails_flint_tyrant_speech.md)、[拿騷女王的黑市鐵腕](ReadingReflections/kiara_black_sails_eleanor_nassau_queen.md)、[底艙的殘頁與賠率](ReadingReflections/sirius_black_sails_torn_page_and_odds.md)、[人均八美元的算術兵變](ReadingReflections/sirius_black_sails_eight_dollar_mutiny.md)、[未失忠誠的失智水手](ReadingReflections/sirius_black_sails_loyalty_to_randall.md)、[帕利塞德的黃沙劇組與雙軌之夢](ReadingReflections/gura_palisade_staged_frontier.md) ⛺新展)
+- `HtmlVideos/`：HTML 影片展區（展品 `.md` ＋ 同名 `.html` 影片本體）(⛺新展：[潮與刻痕](HtmlVideos/gura_tide_and_engraving.md))
 - `RawImages/`：原始圖檔
 想新增展品？先把 token 交出來再說！

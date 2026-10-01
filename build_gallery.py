@@ -53,6 +53,7 @@ SECTIONS = {
     "CanvasInterpretations": "畫布重製",
     "SculptureInterpretations": "3D 雕刻",
     "TRPG": "TRPG",
+    "HtmlVideos": "HTML 影片",
 }
 
 SKIP_NAMES = {"README.md", "ARTBOOK.md", "DRAWING_MEMO.md", "NAMING.md", "template.md"}
@@ -68,6 +69,8 @@ COMIC_SKIP_DIRS = {"template"}
 
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)
 IMG_RE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)")
+# HTML 影片：正文裡第一個指向 .html 的連結（`[▶ 播放](x.html)`）。圖片語法前面有 `!`，不會被這條吃到。
+VIDEO_RE = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+\.html)\)")
 H1_RE = re.compile(r"^#\s+(.+)$", re.M)
 
 
@@ -198,6 +201,19 @@ def collect(dates: dict) -> list:
                     print(f"⚠ {rel} 的圖片不存在：{img}", file=sys.stderr)
                     img = None
 
+            # 影片同樣換算成相對於 repo 根；檔案不存在就不收（壞的播放鈕比沒有播放鈕難查）
+            video = None
+            mv = VIDEO_RE.search(text)
+            if mv:
+                cand = (md.parent / mv.group(1)).resolve()
+                try:
+                    video = cand.relative_to(ROOT).as_posix()
+                except ValueError:
+                    video = None
+                if video and not (ROOT / video).is_file():
+                    print(f"⚠ {rel} 的影片不存在：{video}", file=sys.stderr)
+                    video = None
+
             if rel in dates:
                 date, date_src = dates[rel], "git"
             else:
@@ -213,6 +229,7 @@ def collect(dates: dict) -> list:
                 "section": sec_name,
                 "section_dir": sec_dir,
                 "image": img,
+                "video": video,
                 "date": date,
                 "date_src": date_src,
             })
@@ -330,10 +347,11 @@ def main() -> int:
             + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n")
 
     n_img = sum(1 for i in items if i["image"])
+    n_vid = sum(1 for i in items if i.get("video"))
     n_mtime = sum(1 for i in items if i["date_src"] == "mtime")
     n_ch = sum(w["chapter_count"] for w in comics)
     n_pg = sum(w["page_count"] for w in comics)
-    summary = (f"展品 {len(items)} 件（有圖 {n_img} / 純文字 {len(items) - n_img}）"
+    summary = (f"展品 {len(items)} 件（有圖 {n_img} / 純文字 {len(items) - n_img} / 影片 {n_vid}）"
                f"｜漫畫 {len(comics)} 部 / {n_ch} 話 / {n_pg} 頁"
                f"｜日期來源：git {len(items) - n_mtime}、mtime {n_mtime}")
 

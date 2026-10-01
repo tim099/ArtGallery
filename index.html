@@ -58,6 +58,12 @@
                color:var(--dim); font-size:13px; background:
                linear-gradient(135deg,var(--panel2),var(--panel)); }
   .meta{ padding:10px 12px 12px; }
+  /* HTML 影片：卡片角落的 ▶ 標記（縮圖是影片裡的一格，不標的話看起來就是一張普通的圖） */
+  .card .vwrap{ position:relative; }
+  .card .vbadge{ position:absolute; right:8px; bottom:8px; background:rgba(0,0,0,.7); color:#fff;
+                 border:1px solid rgba(255,255,255,.5); border-radius:6px; padding:2px 8px; font-size:12px; }
+  /* 彈窗裡的影片：16:9，寬度吃滿左欄；iframe 只給 allow-scripts（展品是一份 HTML，不讓它碰本頁） */
+  .sheet .player{ width:100%; aspect-ratio:16/9; border:0; background:#000; display:block; align-self:center; }
   .t{ font-size:14px; font-weight:600; margin:0 0 4px; }
   .m{ color:var(--dim); font-size:12px; display:flex; gap:8px; flex-wrap:wrap; }
   .tag{ border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
@@ -330,7 +336,7 @@
       a3.appendChild(b3); row2.appendChild(a3);
     }
     var close = document.createElement("button"); close.textContent = "關閉";
-    close.addEventListener("click", function(){ $("dlg").close(); });
+    close.addEventListener("click", closeDlg);
     row2.appendChild(close);
     body.appendChild(row2);
     sheet.appendChild(body);
@@ -394,7 +400,15 @@
       if(it.image){
         var img = document.createElement("img");
         img.className = "thumb"; img.loading = "lazy"; img.alt = it.title; img.src = it.image;
-        card.appendChild(img);
+        if(it.video){                       // 影片展品：縮圖是片中一格，角落標 ▶
+          var vw = document.createElement("div"); vw.className = "vwrap"; vw.appendChild(img);
+          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = "▶ HTML 影片";
+          vw.appendChild(vb); card.appendChild(vw);
+        }else card.appendChild(img);
+      }else if(it.video){
+        var vph = document.createElement("div");
+        vph.className = "thumb text"; vph.textContent = "🎬 HTML 影片";
+        card.appendChild(vph);
       }else{
         var ph = document.createElement("div");
         ph.className = "thumb text"; ph.textContent = "📝 文字展品";
@@ -431,7 +445,10 @@
   function inlineMd(t){
     return esc(t)
       .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      // [文字](網址) 只留文字、⛔ 不生 <a>：正文誰都能寫，生連結＝讓人塞 javascript: 網址。
+      // 影片展品的播放連結由下方「🎬 新分頁全螢幕播放」鈕負責（網址來自建置時驗過存在的路徑）。
+      .replace(/(?<!!)\[([^\]]+)\]\([^)\s]+\)/g, "$1");
   }
   function renderMd(src){
     var out = [], list = null;
@@ -454,8 +471,15 @@
   function open(it){
     var sheet = $("sheet");
     sheet.textContent = "";
-    sheet.className = it.image ? "sheet" : "sheet noimg";
-    if(it.image){
+    sheet.className = (it.image || it.video) ? "sheet" : "sheet noimg";
+    if(it.video){
+      // 直接在彈窗裡播：sandbox 只開 allow-scripts —— 展品是一份會跑腳本的 HTML，
+      // 不給 allow-same-origin 它就碰不到本頁的 DOM 與儲存。關彈窗時清掉 src，聲音才會停。
+      var fr = document.createElement("iframe");
+      fr.className = "player"; fr.src = it.video; fr.title = it.title;
+      fr.setAttribute("sandbox", "allow-scripts"); fr.setAttribute("allow", "autoplay; fullscreen");
+      sheet.appendChild(fr);
+    }else if(it.image){
       var img = document.createElement("img"); img.src = it.image; img.alt = it.title;
       sheet.appendChild(img);
     }
@@ -475,6 +499,12 @@
     }
 
     var row = document.createElement("div"); row.className = "row";
+    if(it.video){
+      var va = document.createElement("a");
+      va.className = "btn"; va.target = "_blank"; va.rel = "noopener"; va.href = it.video;
+      var vbtn = document.createElement("button"); vbtn.textContent = "🎬 新分頁全螢幕播放";
+      va.appendChild(vbtn); row.appendChild(va);
+    }
     if(DATA.repo_web_base){                       // 取不到 remote 就不生按鈕（壞連結比沒連結難查）
       var a = document.createElement("a");
       a.className = "btn"; a.target = "_blank"; a.rel = "noopener";
@@ -483,7 +513,7 @@
       a.appendChild(b); row.appendChild(a);
     }
     var close = document.createElement("button"); close.textContent = "關閉";
-    close.addEventListener("click", function(){ $("dlg").close(); });
+    close.addEventListener("click", closeDlg);
     row.appendChild(close);
     body.appendChild(row);
     sheet.appendChild(body);
@@ -502,7 +532,13 @@
   });
   $("sec").addEventListener("change", function(){ state.sec = this.value; render(); });
   $("q").addEventListener("input", function(){ state.q = this.value; render(); });
-  $("dlg").addEventListener("click", function(e){ if(e.target === this) this.close(); });
+  $("dlg").addEventListener("click", function(e){ if(e.target === this) closeDlg(); });
+  // 關彈窗＝把影片 iframe 拿掉（只是隱藏的話，裡面的聲音會繼續播）。
+  // ⚠ 主路徑是**動作本身**（closeDlg）而不是 close 事件：分頁在背景時事件會被延後派發
+  //   （2026-10-01 實測：dialog 已關、close 事件 0 次、iframe 還在）。事件只留給 Esc 那條路。
+  function dropPlayer(){ var f = $("sheet").querySelector("iframe"); if(f) f.remove(); }
+  function closeDlg(){ dropPlayer(); $("dlg").close(); }
+  $("dlg").addEventListener("close", dropPlayer);
 
   // ── 起手
   readURL();
