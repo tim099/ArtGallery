@@ -201,3 +201,5 @@ senate cmd commit --arg repo=D:/Unity/LY/AgentCommands/ArtGallery --arg personas
 - `index.html`：卡片有 `video` 就在縮圖角落掛 `▶ HTML 影片`（沒縮圖時顯示「🎬 HTML 影片」）；彈窗用
   `<iframe sandbox="allow-scripts" allow="autoplay; fullscreen">` 播，⛔ 不給 `allow-same-origin`；
   關閉一律走 `closeDlg()`（先拔 iframe 再關 —— 只隱藏的話聲音會繼續播），`close` 事件只留給 Esc。
+- 影片展卡的彈窗加 `.sheet.video`，**明給寬度** `min(1560px,96vw)`：彈窗依內容撐寬，圖片靠原尺寸撐得開，
+  而 iframe 預設寬只有 300px ⇒ 不給就被壓成一小條。影片寬另以 `calc(88vh*16/9)` 封頂（窄螢幕疊成上下時用 46vh）。

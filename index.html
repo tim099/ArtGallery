@@ -64,6 +64,11 @@
                  border:1px solid rgba(255,255,255,.5); border-radius:6px; padding:2px 8px; font-size:12px; }
   /* 彈窗裡的影片：16:9，寬度吃滿左欄；iframe 只給 allow-scripts（展品是一份 HTML，不讓它碰本頁） */
   .sheet .player{ width:100%; aspect-ratio:16/9; border:0; background:#000; display:block; align-self:center; }
+  /* 影片展卡要**明給寬度**：彈窗是依內容撐寬的，圖片靠自己的原尺寸撐得開，
+     但 iframe 的預設寬只有 300px ⇒ 不給的話整支片被壓成左邊一小條（2026-10-01 Tim 截圖）。
+     影片欄吃掉剩下的寬；高度另設上限 —— 視窗矮而寬時 16:9 會比 88vh 高，那時改由高度決定寬並置中。 */
+  .sheet.video{ width:min(1560px,96vw); grid-template-columns:minmax(0,1fr) minmax(320px,400px); }
+  .sheet.video .player{ width:min(100%, calc(88vh * 16 / 9)); justify-self:center; }
   .t{ font-size:14px; font-weight:600; margin:0 0 4px; }
   .m{ color:var(--dim); font-size:12px; display:flex; gap:8px; flex-wrap:wrap; }
   .tag{ border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
@@ -122,6 +127,9 @@
     .sheet img{ max-height:46vh; }
     /* 疊成上下時兩列相加不得超過 92vh，否則同樣會被 sheet 剪掉 */
     .sheet .body{ border-left:none; border-top:1px solid var(--line); max-height:46vh; }
+    /* 影片疊成上下時：片子吃滿寬（高度上限同圖片的 46vh） */
+    .sheet.video{ grid-template-columns:minmax(0,1fr); }
+    .sheet.video .player{ width:min(100%, calc(46vh * 16 / 9)); }
   }
   a.btn{ text-decoration:none; }
   footer{ color:var(--dim); font-size:12px; padding:0 20px 30px; }
@@ -471,7 +479,7 @@
   function open(it){
     var sheet = $("sheet");
     sheet.textContent = "";
-    sheet.className = (it.image || it.video) ? "sheet" : "sheet noimg";
+    sheet.className = it.video ? "sheet video" : it.image ? "sheet" : "sheet noimg";
     if(it.video){
       // 直接在彈窗裡播：sandbox 只開 allow-scripts —— 展品是一份會跑腳本的 HTML，
       // 不給 allow-same-origin 它就碰不到本頁的 DOM 與儲存。關彈窗時清掉 src，聲音才會停。
