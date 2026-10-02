@@ -1,12 +1,12 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十三章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "032"
-illustrated_through_chapter: "032"
-next_chapter: "033"
+read_through_chapter: "033"
+illustrated_through_chapter: "033"
+next_chapter: "034"
 last_updated: "2026-10-02"
 ---
 
@@ -36,12 +36,14 @@ last_updated: "2026-10-02"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 032 章，心得為 r1_2026-10-02.md。 |
-| 心得場景插圖 | 已繪至第 032 章；國王在溫莎冷室的舊大鍵琴前暫停彈唱。 |
-| 下一章 | Sirius 的 Library 書籤為第 033 章；下一次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第32章內容；不確定未知施法者，不把銀髮人物具象化到國王場景。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 033 章，心得為 r1_2026-10-02.md。 |
+| 心得場景插圖 | 已繪至第 033 章；失帽的國王在雪園呼喚畫外魔法師。 |
+| 下一章 | Sirius 的 Library 書籤為第 034 章；下一次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第33章內容；不把無形吹笛人畫成可見人物，不把心中月亮畫在天空。 |
 
 ## 已鎖定設定
+
+第三十三章新增異常古林：扭枝、盤根、青藤與槲寄生，冰霜坑路延伸至幾個微弱白點。國王沿用白灰鬚髮與紫色織錦睡袍，當次失帽；斯特蘭奇與吹笛人均不入鏡。心中月亮不轉成天體，避免混淆咒語的知覺層次。
 
 第三十章沿用史蒂芬的深色管家服與白髮先生的深綠外套。頂樓雅間以暗木、灰褐牆面和冷冬光承接既有油畫質地；小桌與兩把椅子是詮釋。史蒂芬攤開的掌心是本次焦點，不加入王冠或魔法光效。
 
@@ -68,6 +70,8 @@ last_updated: "2026-10-02"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第三十三章新增：[溫莎雪園裡的異常樹林](Props/windsor_enchanted_wood.md)（`windsor_enchanted_wood`，首次／最近引用033，已繪 v1）。`king_george_iii` 首次設定032、最近引用033，人物 v1 身分沿用，卡片補入失帽與呼喊的當次狀態。
 
 第三十章新增：[沃頓記咖啡館頂樓雅間](Props/wootton_upper_room.md)（`wootton_upper_room`，首次／最近引用 030，已繪 v1）。史蒂芬與白髮先生首次設定分別為 015、016，最近引用皆為 030；既有 v1 外貌沿用。
 
@@ -310,3 +314,9 @@ last_updated: "2026-10-02"
 - [榮耀天頂下的冷室](../../ReadingReflections/sirius_jonathan_strange_king_cold_room.md)：引用 `king_george_iii`、`windsor_king_music_room`；圖為 `sirius_jonathan_strange_king_cold_room_v1.png`。場景初稿已視檢：一名在場人物，國王的紫袍、紅帽與白長鬚沿用，雙手停在舊大鍵琴鍵旁，大片無地毯地板保持空曠；沒有可見銀髮伴侶、王冠、現代鋼琴或文字水印。
 - 兩張新增設定稿均已視檢，保存在作品 RawImages；Library Cmd 已保存第32章 r1，下一章為33。天頂人形只作壁畫背景，不視為新增人物出場。
 - 下次第一件事：讀第33章。若採用1814年斯特蘭奇的可辨識近景，先補第31章記錄的返家外貌變體；若畫凍池異變，再補石亭與石獸設定。未知魔法的施法者繼續保留開放，不用後文替當前圖解答。
+
+## Sirius 本次新增場景（2026-10-02，第33章）
+
+- [雪中仍有回應](../../ReadingReflections/sirius_jonathan_strange_answer_in_snow.md)：引用 `king_george_iii`、`windsor_enchanted_wood`；圖為 `sirius_jonathan_strange_answer_in_snow_v1.png`。已視檢：恰為一名角色，紫色睡袍、白灰鬚髮與舊拖鞋沿用；当次失帽，伸手朝畫外呼喊。樹林保持冰霜坑路與微弱遠點，不畫可見吹笛人、魔法師、天空月亮、心象或文字水印。
+- 新增古林 v1 設定卡與圖，均已視檢。Library Cmd 已保存第33章 r1，下一章為34；期待度保持4／5。
+- 下次第一件事：讀第34章。斯特蘭奇1814年外貌變體仍待可辨識近景需要時補繪；本次不預畫後續旅程，不把他自認勝過對手的判斷當成已證明的力量比較。

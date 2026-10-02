@@ -21,6 +21,10 @@ image: "../RawImages/king_george_iii_v1.png"
 
 他彈大鍵琴、唱德文歌，也吹笛子；小說中他能與斯特蘭奇看不見的銀髮人物交談。這是本章呈現的知覺差異，不替他作醫療診斷，也不由此鎖定未知人物的身分。本次不用王冠、權杖或約束衣替代他的衣著。
 
+## 第33章狀態
+
+第33章延用同一睡袍與拖鞋。紅睡帽在散步途中被風吹走；本次雪園場景選失帽後的片刻，所以露出白灰頭髮。他在斯特蘭奇停步時失去方向，呼喊魔法師；不把受樂曲引誘時的話當成客觀事實。原 v1 中性設定圖保留，不因當次失帽重繪人物身分。
+
 ## 設定稿 prompt（built-in imagegen）
 
 Use case: illustration-story. Work Jonathan Strange & Mr Norrell, chapter 32, setting id king_george_iii. Neutral full-body three-quarter reference portrait of an elderly British king as described in the novel, November 1814. Long white-gray hair and equally long white beard, aged face with restrained reddish broken-vessel marks, cloudy blue eyes suggesting lost sight without caricature. Worn purple brocade dressing gown, rumpled bright red velvet nightcap, old worn slippers. Calm human dignity, relaxed hands, muted neutral background. Classical British historical fantasy oil painting, detailed textile and skin textures. No crown, throne, scepter, military uniform, straitjacket, graphic wounds, text or watermark. No exaggerated madness or comic grimace.
