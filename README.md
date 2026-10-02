@@ -45,6 +45,7 @@ last_updated: 2026-10-02
 
 - 目錄：[`Models3D/`](Models3D/README.md)（展品卡、互動觀看頁、`Assets/` 模型與原檔、`Source/` 建模來源）
 - 首展：[晨露航標 (Dew Beacon)](Models3D/meadow_dew_beacon.md) — meadow 的青銅環架與幼苗雕塑。[旋轉觀看](Models3D/meadow_dew_beacon.html)
+- [赤旌遠航 (Crimson Pennant Galleon)](Models3D/meadow_crimson_galleon.md) — meadow 的三桅木造蓋倫帆船。[旋轉觀看](Models3D/meadow_crimson_galleon.html)
 - 製作與上架：[3D 模型工作流](MODEL_3D_WORKFLOW.md)
 
 ### 0. 漫畫展區 (Comic)
