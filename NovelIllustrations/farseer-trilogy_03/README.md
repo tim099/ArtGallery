@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0005"
-illustrated_through_chapter: "0005"
-next_chapter: "0006"
+read_through_chapter: "0006"
+illustrated_through_chapter: "0006"
+next_chapter: "0007"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第五章〈正面衝突〉全文；下一次接續第六章〈原智和精技〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第六章〈原智和精技〉全文；下一次接續第七章〈法洛〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -27,6 +27,8 @@ next_chapter: "0006"
 
 第五章以戰鬥前的徒手捕魚保留人的手也能準備晚餐的日常。兩名主體沿用既有設定，不提前加入夜眼左肩劍傷或蜚滋後來取得的長劍；魚種、溪流布局、樹種與光線屬插畫詮釋。
 
+第六章先建立夜眼左肩受傷狀態，以小屋地面上共同安睡保存有人看護的具體照顧。傷仍在，不把休息畫成痊癒；地面材質、相對睡姿與午後光線屬詮釋，屋主及其他動物在畫外。
+
 ## 角色與生物
 
 | id | 首次／最近關聯 | 狀態與設定卡 |
@@ -36,7 +38,9 @@ next_chapter: "0006"
 | 復原期蜚滋、博瑞屈、切德、耐辛 | 第一章／第一章 | 第一章採無人近景，暫不需要新人物稿；後續入畫前先核對當章外型與狀態，不能用序曲回顧時點或第一冊少年稿代替。 |
 | 蜚滋、博瑞屈、切德、夜眼 | 第一章／第二章 | 第二章採家具局部近景，人物在裁切之外；未據往事擅自生成年輕博瑞屈、駿騎或牽繫動物的人設。 |
 | `nighteyes_adult` | 第一章／第五章 | [成年夜眼](Characters/nighteyes_adult.md) v1 已繪與視檢；第五章捕魚發生於受傷以前，可沿用健康成年外型。若畫其後場景，先補左肩受傷狀態。 |
-| `fitz_recovering_traveler` | 第三章／第五章 | [復原期蜚滋旅人](Characters/fitz_recovering_traveler.md) v1 已繪與視檢；第四章溪岸收作鬆辮，第五章捕魚沿用入鎮後的鬆髮；尚未取得長劍。 |
+| `fitz_recovering_traveler` | 第三章／第六章 | [復原期蜚滋旅人](Characters/fitz_recovering_traveler.md) v1 已繪與視檢；第六章沿用鬆髮與上身外型，長劍在裁切之外。第五章捕魚時尚未取得長劍，不把狀態跨時點回套。 |
+| `nighteyes_left_shoulder_injured` | 第五章／第六章 | [左肩受傷夜眼](Characters/nighteyes_left_shoulder_injured.md) v1 已繪與視檢；四肢完整、左肩小劍傷、左前腳抬起避開承重。後續是否復原須依正文。 |
+| 洛夫、荷莉、希爾妲、阿霙 | 第六章／第六章 | 待設定；本次休息圖均留在畫外，首次作為可辨識主體前先建卡與設定稿。 |
 
 ## 道具與場景
 
@@ -56,7 +60,8 @@ next_chapter: "0006"
 | 0003 | [替沉默發聲](../../ReadingReflections/meadow_farseer_trilogy_03_voice_for_silence_v1.md) | `nighteyes_adult` | v1 已繪與視檢；一匹成年夜眼在屋外月夜長嗥。 |
 | 0004 | [不懂遺物，也能抱住你](../../ReadingReflections/meadow_farseer_trilogy_03_throat_of_trust_v1.md) | `fitz_recovering_traveler`, `nighteyes_adult` | v1 已繪與視檢；溪岸的一人一狼擁抱，衣領空著。 |
 | 0005 | [雙手還能捕魚](../../ReadingReflections/meadow_farseer_trilogy_03_hands_before_battle_v1.md) | `fitz_recovering_traveler`, `nighteyes_adult` | v1 已繪與視檢；戰鬥前徒手捕魚，一人一狼在溪岸，無新傷或長劍。 |
+| 0006 | [有人替我們看護](../../ReadingReflections/meadow_farseer_trilogy_03_someone_keeps_watch_v1.md) | `fitz_recovering_traveler`, `nighteyes_left_shoulder_injured` | v1 已繪與視檢；一人一狼在屋內地上休息，左肩傷仍在。 |
 
 ## 待辦與開放問題
 
-下一次先讀第六章〈原智和精技〉全文，再決定新增設定需求。若畫第五章戰後或續章夜眼，先補左肩劍傷、左前腳承重受限與三足行走狀態；不要原樣使用健康站姿。蜚滋取得不起眼但堅固實用的長劍，若作為關鍵道具出場，先建道具卡與設定稿。賈許、蜜兒與笛兒尚未建人物稿；賈許豎琴已碎裂，笛兒前臂已用夾板包紮，不能復用未受傷狀態。欲意知道蜚滋與惟真仍活著，蜚滋精技漫遊仍失控；不把心智襲擊畫成實體狼在敵人所在地出現。胸針去向、莫莉現況、切德所在地、博瑞屈友人與序曲男孩身分仍不補定。
+下一次先讀第七章〈法洛〉全文，再決定新增設定需求。夜眼左肩受傷稿已備，不能未經正文就改回健康承重狀態。蜚滋的長劍尚未建道具卡；若可辨識入畫，先建稿。洛夫（黑髮黑眼、鬍鬚、壯碩且上年紀）、荷莉（棕色短髮與衣物；正文眼色描述不一致）、母棕熊希爾妲、小鷹阿霙均待設定，未知眼色等資訊不可鎖死。賈許一行已留在鴉頸鎮，傷與碎琴不補成復原。洛夫關於被冶鍊者受原智吸引的說法仍沒有確定原因；原智對抗精技的條件是蜚滋的理解，不畫成普遍已知技能。荷莉與阿霙提供求助傳話，不代表蜚滋已請求介入。胸針去向、莫莉現況、切德所在地、博瑞屈友人與序曲男孩身分仍不補定。
