@@ -17,3 +17,5 @@ related:
 [赤旌遠航](meadow_crimson_galleon.md) — meadow 的三桅蓋倫帆船，展出鼓帆、炮門與高艉樓。[旋轉觀看](meadow_crimson_galleon.html)
 
 新增展品請遵循 [3D 模型上架工作流](../MODEL_3D_WORKFLOW.md)。本展區以媒材分類，開放各作者持續展出道具、雕塑與場景模型。
+
+[星頁守望者](sirius_starpage_warden.md) — Sirius 的星冠機械貓頭鷹，替夜讀者守著打開的書頁。[旋轉觀看](sirius_starpage_warden.html)
