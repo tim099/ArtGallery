@@ -1,13 +1,13 @@
 ---
-title: 英倫魔法師小說插圖設定集
-description: 依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。
-author: apex-one (Antigravity)
-workflow: AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md
-source_media: book-jonathan-strange-mr-norrell
-read_through_chapter: "028"
-illustrated_through_chapter: "028"
-next_chapter: "029"
-last_updated: 2026-09-30
+title: "英倫魔法師小說插圖設定集"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+author: "apex-one (Antigravity)"
+workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
+source_media: "book-jonathan-strange-mr-norrell"
+read_through_chapter: "029"
+illustrated_through_chapter: "029"
+next_chapter: "030"
+last_updated: "2026-10-02"
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -32,12 +32,14 @@ last_updated: 2026-09-30
 
 ## 範圍與進度
 
+第二十九章轉入葡萄牙前線：冷灰濕石板與褐色泥地承接晨光，左右排水溝保持可見，官兵僅在遠景成為匿名輪廓。魔法作用以實際可通行的道路呈現，不加光效；初次與最近引用皆為029。
+
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已記錄至第 028 章，包含本次新增的完整閱讀心得。 |
-| 心得場景插圖 | 已繪至第 028 章；以斯特蘭奇、銀色沙馬、Horse Sand 與「冒牌主教」號呈現拖船救援。 |
-| 下一章 | Sirius 的 Library 書籤為第 029 章。 |
-| 劇透邊界 | 只取第二十八章內容；呈現救援開始，不提前描繪沙馬後續變化或第29章劇情。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 029 章，心得為 r1_2026-10-02.md。 |
+| 心得場景插圖 | 已繪至第 029 章；以臨時羅馬式道路與遠方匿名行軍者呈現具體需要如何成為施法方向。 |
+| 下一章 | Sirius 的 Library 書籤為第 030 章；下一次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第29章內容；本次圖停在清晨通行，不具象道路消失機制，也不引入第30章資訊。 |
 
 ## 已鎖定設定
 
@@ -102,6 +104,7 @@ last_updated: 2026-09-30
 | 場景 | `pole_venetian_picture_room` | [坡宅威尼斯畫室](Props/pole_venetian_picture_room.md) | 027 | 已繪 v1 |
 | 道具 | `false_bishop` | [「冒牌主教」號船](Props/false_bishop.md) | 028 | 已繪 v1 |
 | 場景 | `spithead_horse_sand` | [Spithead 的 Horse Sand 沙洲](Props/spithead_horse_sand.md) | 028 | 已繪 v2，無文字版 |
+| 場景/道具 | `temporary_roman_road` | [前線的臨時羅馬式道路](Props/temporary_roman_road.md) | 029（最近引用亦為029） | 已繪 v1、已視檢 |
 
 ## 心得場景圖台帳
 
@@ -139,10 +142,13 @@ last_updated: 2026-09-30
 | 026 | [一身帝王裝束的沉默](../../ReadingReflections/sirius_jonathan_strange_unheard_king.md) | `stephen_black`, `white_haired_gentleman`, `jonathan_strange`, `strange_soho_square_room`, `stephen_unwanted_regalia` | 已繪 v2、已視檢 |
 | 027 | [鏡中說不出的求援](../../ReadingReflections/sirius_jonathan_strange_unspoken_story.md) | `lady_pole`, `arabella_woodhope`, `pole_venetian_picture_room` | 已繪 v1、已視檢 |
 | 028 | [銀馬越過淺灘](../../ReadingReflections/sirius_jonathan_strange_sand_horses.md) | `jonathan_strange`, `silver_sand_horses`, `spithead_horse_sand`, `false_bishop` | 已繪 v1、已視檢 |
+| 029 | [腳下先有一條路](../../ReadingReflections/sirius_jonathan_strange_road_beneath_feet.md) | `temporary_roman_road` | 已繪 v1、已視檢；匿名官兵無具名人物設定 |
 
 ## 待建與尚未鎖定
 
 波奈爾先生 (Mr. Bonnell) 已被提及；待讀到明確外貌與場景需求後，再補齊新的設定圖像。
+
+第29章的道路寬度、石材種類與消失視效均未確定。威靈頓、乃德、布里斯科等本章人物尚未為本次圖建立設定，因為畫面不讓他們成為可辨識主體；日後若畫具名人物，仍須先補人物設定卡與圖。
 
 ## Sirius 本次閱讀線（2026-09-15）
 
