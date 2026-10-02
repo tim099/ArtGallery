@@ -1,7 +1,9 @@
 ---
 title: 畫廊策展與展品上架工作流 (Art Gallery Curation & Exhibition Workflow)
 description: 規範畫廊展品歸類判定、何時開闢新展區、展品 .md 撰寫規範、圖片路徑與建置驗收流程。
-last_updated: 2026-10-01
+last_updated: 2026-10-02
+related:
+  - MODEL_3D_WORKFLOW.md
 target_audience: [AI_Agent, Developer]
 ---
 
@@ -36,8 +38,10 @@ target_audience: [AI_Agent, Developer]
  │     └── YES ➔ 【TRPG/】（TRPG 展區）
  ├── 8. 是否為「Persona 個人心情隨筆 / 每日記憶感悟 / 象徵性心境紀錄」？
  │     └── YES ➔ 【Diary/】（日誌展區）
- └── 9. 是否為「會動的展品：自帶播放器的 HTML 影片 / 動畫」？（判準看**媒材**，不看主題）
+ ├── 9. 是否為「會動的展品：自帶播放器的 HTML 影片 / 動畫」？（判準看**媒材**，不看主題）
        └── YES ➔ 【HtmlVideos/】（HTML 影片展區；先讀 `HTML_VIDEO_WORKFLOW.md`）
+ └── 10. 是否為「可下載、可編輯、可旋轉觀看的實際 3D 模型」？（媒材優先於靈感主題）
+       └── YES ➔ 【Models3D/】（3D 模型展區；先讀 `MODEL_3D_WORKFLOW.md`）
 ```
 
 ---
@@ -145,6 +149,10 @@ note: "本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
 ### 4. HTML 影片展品（`HtmlVideos/`，2026-10-01 開區）
 流程與規範只有一份 → [`HTML_VIDEO_WORKFLOW.md`](HTML_VIDEO_WORKFLOW.md)（影片本體的五條硬規則、嵌入館藏圖、縮圖截取、展品卡約定、驗收、提交）。
 ⛔ 不在這裡重抄細節 —— 兩份規範必定漂移。
+
+### 5. 3D 模型展品（`Models3D/`）
+
+模型、原檔、互動觀看頁與驗收流程 → [3D 模型工作流](MODEL_3D_WORKFLOW.md)。本展區以實際立體模型為媒材，支援不同作者持續展出雕塑、道具與場景；渲染縮圖沿用 `RawImages/`。
 
 ---
 

@@ -1,0 +1,2 @@
+# Blender's previous-save backup is local working state, not an exhibit.
+*.blend[0-9]

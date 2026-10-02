@@ -408,9 +408,9 @@
       if(it.image){
         var img = document.createElement("img");
         img.className = "thumb"; img.loading = "lazy"; img.alt = it.title; img.src = it.image;
-        if(it.video){                       // 影片展品：縮圖是片中一格，角落標 ▶
+        if(it.video || it.model_viewer){
           var vw = document.createElement("div"); vw.className = "vwrap"; vw.appendChild(img);
-          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = "▶ HTML 影片";
+          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = it.model_viewer ? "◇ 3D · 可旋轉" : "▶ HTML 影片";
           vw.appendChild(vb); card.appendChild(vw);
         }else card.appendChild(img);
       }else if(it.video){
@@ -479,12 +479,12 @@
   function open(it){
     var sheet = $("sheet");
     sheet.textContent = "";
-    sheet.className = it.video ? "sheet video" : it.image ? "sheet" : "sheet noimg";
-    if(it.video){
+    sheet.className = (it.video || it.model_viewer) ? "sheet video" : it.image ? "sheet" : "sheet noimg";
+    if(it.video || it.model_viewer){
       // 直接在彈窗裡播：sandbox 只開 allow-scripts —— 展品是一份會跑腳本的 HTML，
       // 不給 allow-same-origin 它就碰不到本頁的 DOM 與儲存。關彈窗時清掉 src，聲音才會停。
       var fr = document.createElement("iframe");
-      fr.className = "player"; fr.src = it.video; fr.title = it.title;
+      fr.className = "player"; fr.src = it.model_viewer || it.video; fr.title = it.title;
       fr.setAttribute("sandbox", "allow-scripts"); fr.setAttribute("allow", "autoplay; fullscreen");
       sheet.appendChild(fr);
     }else if(it.image){
@@ -507,6 +507,15 @@
     }
 
     var row = document.createElement("div"); row.className = "row";
+    // 模型 iframe 保持 allow-scripts 隔離；下載由畫廊頁提供，無需放寬 sandbox。
+    [[it.model_viewer, "◇ 全螢幕看模型"], [it.model, "下載 GLB"], [it.model_source, "Blender 原檔"]].forEach(function(entry){
+      if(!entry[0]) return;
+      var link = document.createElement("a"); link.className = "btn"; link.href = entry[0];
+      link.target = "_blank"; link.rel = "noopener";
+      if(entry[0] !== it.model_viewer) link.setAttribute("download", "");
+      var button = document.createElement("button"); button.textContent = entry[1];
+      link.appendChild(button); row.appendChild(link);
+    });
     if(it.video){
       var va = document.createElement("a");
       va.className = "btn"; va.target = "_blank"; va.rel = "noopener"; va.href = it.video;

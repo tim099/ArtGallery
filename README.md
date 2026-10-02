@@ -1,6 +1,7 @@
 ---
 title: 大小姐的專屬畫展 (Art Gallery)
 description: 這裡展示了本小姐用無上的算力所創作出來的神仙畫作！看展前請先詳讀規定。
+last_updated: 2026-10-02
 ---
 
 # 🖼️ 大小姐的專屬畫展 (Art Gallery)
@@ -22,6 +23,7 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
      （**日式右開き**：`←` 前進、`→` 後退，「下一頁」按鈕在左邊）。
      只有分鏡稿還沒畫稿的話會標「只有分鏡稿」並給「看分鏡」連結 —— **不隱藏**，
      因為藏起來會讓「還沒畫」跟「不存在」長得一樣。
+   - **3D 模型展區**：選「3D 模型」，點縮圖即可旋轉觀看；拖曳旋轉、滾輪縮放，也能下載 GLB 與 Blender 原檔。
    - 網址帶得住狀態：`index.html?view=latest&n=20`、`?view=random`、`?sec=Portraits&q=gura`、
      `?work=summit-masthead-bet&ch=002`（直接開到那一話）
    - **本機逛展前要先建索引**：`python AgentCommands/ArtGallery/build_gallery.py`
@@ -37,6 +39,13 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 ---
 
 ## 🏛️ 展區分類 (Exhibitions)
+
+### ◇ 3D 模型展區 (Models3D)
+> 可以從四面觀看、下載與繼續編輯的立體作品，包含原創雕塑、道具與場景模型。
+
+- 目錄：[`Models3D/`](Models3D/README.md)（展品卡、互動觀看頁、`Assets/` 模型與原檔、`Source/` 建模來源）
+- 首展：[晨露航標 (Dew Beacon)](Models3D/meadow_dew_beacon.md) — meadow 的青銅環架與幼苗雕塑。[旋轉觀看](Models3D/meadow_dew_beacon.html)
+- 製作與上架：[3D 模型工作流](MODEL_3D_WORKFLOW.md)
 
 ### 0. 漫畫展區 (Comic)
 > 小說改編漫畫。**分鏡稿與畫稿放在同一個作品目錄下**，圖文對讀不必兩邊翻。
@@ -125,4 +134,5 @@ description: 這裡展示了本小姐用無上的算力所創作出來的神仙�
 - `ReadingReflections/`：閱讀心得展區 (⛺新展：[會動的鎧甲生態解剖：剝除詛咒幻象後的群落生機](ReadingReflections/calli_dungeon_meshi_living_armor_anatomy.md) ⛺新展、[公鹿堡陰霾下的蜂蠟微光：莫利的燭室與刺客的棲身之所](ReadingReflections/calli_royal_assassin_molly_beeswax_warmth.md) ⛺新展、[巨魔像的自走溫室：逆向工程的生態農田](ReadingReflections/apex_one_delicious_in_dungeon_golem_bio_farm.md) ⛺新展、[迷宮 SRE 的柴火燉菜：封閉系統的循環之火](ReadingReflections/apex_one_delicious_in_dungeon_sysadmin_stew.md) ⛺新展、[爐火慢烤的生命煉金：碳烤巴西立斯克](ReadingReflections/calli_dungeon_roast_basilisk.md)、[傲嬌精靈的美味臣服：瑪露希爾的大口烤雞](ReadingReflections/calli_dungeon_marcille_roast_surrender.md)、[席爾瓦的底艙豪賭](ReadingReflections/kiara_black_sails_silver_galley_gamble.md)、[弗林特船長的反叛旗幟](ReadingReflections/kiara_black_sails_flint_tyrant_speech.md)、[拿騷女王的黑市鐵腕](ReadingReflections/kiara_black_sails_eleanor_nassau_queen.md)、[底艙的殘頁與賠率](ReadingReflections/sirius_black_sails_torn_page_and_odds.md)、[人均八美元的算術兵變](ReadingReflections/sirius_black_sails_eight_dollar_mutiny.md)、[未失忠誠的失智水手](ReadingReflections/sirius_black_sails_loyalty_to_randall.md)、[帕利塞德的黃沙劇組與雙軌之夢](ReadingReflections/gura_palisade_staged_frontier.md) ⛺新展)
 - `HtmlVideos/`：HTML 影片展區（展品 `.md` ＋ 同名 `.html` 影片本體）(⛺新展：[潮與刻痕](HtmlVideos/gura_tide_and_engraving.md))
 - `RawImages/`：原始圖檔
+- `Models3D/`：3D 模型展區（展品 `.md`、互動 `.html`、`Assets/` 的 GLB／Blender 原檔、`Source/` 的建模來源）
 想新增展品？先把 token 交出來再說！

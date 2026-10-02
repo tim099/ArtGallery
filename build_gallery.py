@@ -54,6 +54,7 @@ SECTIONS = {
     "SculptureInterpretations": "3D 雕刻",
     "TRPG": "TRPG",
     "HtmlVideos": "HTML 影片",
+    "Models3D": "3D 模型",
 }
 
 SKIP_NAMES = {"README.md", "ARTBOOK.md", "DRAWING_MEMO.md", "NAMING.md", "template.md"}
@@ -61,7 +62,7 @@ SKIP_NAMES = {"README.md", "ARTBOOK.md", "DRAWING_MEMO.md", "NAMING.md", "templa
 # 只收目錄第一層的展區：`Comic/` 底下的**子目錄是一部作品**（見 collect_comics），
 # 不是一堆各自獨立的展品 —— 整篇 rglob 會把每一話都當成單幅畫作丟進隨機逛展，
 # 而一頁漫畫離開它的話數就不再是展品。第一層那幾個 .md 則是真的單幅作品，照收。
-FLAT_ONLY_SECTIONS = {"Comic"}
+FLAT_ONLY_SECTIONS = {"Comic", "Models3D"}
 
 COMIC_DIR = ROOT / "Comic"
 # 樣板不是展品（它是給下一部作品用的骨架）。列舉而不是猜規則 —— 這是策展決定。
@@ -203,7 +204,7 @@ def collect(dates: dict) -> list:
 
             # 影片同樣換算成相對於 repo 根；檔案不存在就不收（壞的播放鈕比沒有播放鈕難查）
             video = None
-            mv = VIDEO_RE.search(text)
+            mv = VIDEO_RE.search(text) if sec_dir != "Models3D" else None
             if mv:
                 cand = (md.parent / mv.group(1)).resolve()
                 try:
@@ -213,6 +214,26 @@ def collect(dates: dict) -> list:
                 if video and not (ROOT / video).is_file():
                     print(f"⚠ {rel} 的影片不存在：{video}", file=sys.stderr)
                     video = None
+
+            # 職責：只登記畫廊內存在的模型資產，避免外部路徑進入下載與 iframe。
+            # 物理意義：展品卡是事實源；模型、原檔與觀看頁各自有明確媒材欄位。
+            # 數值影響：缺檔會明確告警並移除該連結，不影響其他展區。
+            model_assets = {}
+            if sec_dir == "Models3D":
+                for field, suffix in (("model", ".glb"), ("model_source", ".blend"), ("model_viewer", ".html")):
+                    value = fm.get(field)
+                    if not value:
+                        continue
+                    candidate = (md.parent / value).resolve()
+                    try:
+                        asset = candidate.relative_to(ROOT).as_posix()
+                    except ValueError:
+                        print(f"⚠ {rel} 的 {field} 超出畫廊目錄", file=sys.stderr)
+                        continue
+                    if candidate.suffix.lower() != suffix or not candidate.is_file():
+                        print(f"⚠ {rel} 的 {field} 缺檔或格式不符：{asset}", file=sys.stderr)
+                        continue
+                    model_assets[field] = asset
 
             if rel in dates:
                 date, date_src = dates[rel], "git"
@@ -230,6 +251,7 @@ def collect(dates: dict) -> list:
                 "section_dir": sec_dir,
                 "image": img,
                 "video": video,
+                **model_assets,
                 "date": date,
                 "date_src": date_src,
             })
