@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0003"
-illustrated_through_chapter: "0003"
-next_chapter: "0004"
+read_through_chapter: "0004"
+illustrated_through_chapter: "0004"
+next_chapter: "0005"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第三章〈任務〉全文；下一次接續第四章〈沿河之路〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第四章〈沿河之路〉全文；下一次接續第五章〈正面衝突〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -23,6 +23,8 @@ next_chapter: "0004"
 
 第三章首次建立成年夜眼設定，以屋外長嗥保留同伴與孤獨的並存。月光只作自然照明，不把原智畫成藍光或人狼融合；小屋、林緣與月亮方位屬視覺詮釋。
 
+第四章建立復原期蜚滋旅人設定，与成年夜眼形成首次人狼擁抱構圖。以空衣領保留胸針失落，以露喉回應尚不能完全理解的痛；微火、暮色與溪岸配置屬詮釋，不把靠近畫成創傷已消失。
+
 ## 角色與生物
 
 | id | 首次／最近關聯 | 狀態與設定卡 |
@@ -31,7 +33,8 @@ next_chapter: "0004"
 | 送餐男孩 | 序曲／序曲 | 暫不出場；身分不由插圖補定。 |
 | 復原期蜚滋、博瑞屈、切德、耐辛 | 第一章／第一章 | 第一章採無人近景，暫不需要新人物稿；後續入畫前先核對當章外型與狀態，不能用序曲回顧時點或第一冊少年稿代替。 |
 | 蜚滋、博瑞屈、切德、夜眼 | 第一章／第二章 | 第二章採家具局部近景，人物在裁切之外；未據往事擅自生成年輕博瑞屈、駿騎或牽繫動物的人設。 |
-| `nighteyes_adult` | 第一章／第三章 | [成年夜眼](Characters/nighteyes_adult.md) v1 已繪與視檢；成年健康狼、灰褐毛皮、黑色護毛、淺黃耳頸與粗壯腿部，不沿用幼狼比例。 |
+| `nighteyes_adult` | 第一章／第四章 | [成年夜眼](Characters/nighteyes_adult.md) v1 已繪與視檢；成年健康狼、灰褐毛皮、黑色護毛、淺黃耳頸與粗壯腿部，不沿用幼狼比例。 |
+| `fitz_recovering_traveler` | 第三章／第四章 | [復原期蜚滋旅人](Characters/fitz_recovering_traveler.md) v1 已繪與視檢；白髮束、舊鼻傷、右眼下細疤、近肩長髮、耳環與空衣領。設定稿鬆髮，溪岸場景收作鬆辮。 |
 
 ## 道具與場景
 
@@ -49,7 +52,8 @@ next_chapter: "0004"
 | 0001 | [水仍只是水](../../ReadingReflections/meadow_farseer_trilogy_03_water_is_only_water_v1.md) | `blue_scrying_bowl` | v1 已繪與視檢；水碗與蠟燭的無人近景。 |
 | 0002 | [扶起椅子之後](../../ReadingReflections/meadow_farseer_trilogy_03_chair_set_upright_v1.md) | `hut_wooden_chair` | v1 已繪與視檢；椅子、靴子與爐火的局部構圖。 |
 | 0003 | [替沉默發聲](../../ReadingReflections/meadow_farseer_trilogy_03_voice_for_silence_v1.md) | `nighteyes_adult` | v1 已繪與視檢；一匹成年夜眼在屋外月夜長嗥。 |
+| 0004 | [不懂遺物，也能抱住你](../../ReadingReflections/meadow_farseer_trilogy_03_throat_of_trust_v1.md) | `fitz_recovering_traveler`, `nighteyes_adult` | v1 已繪與視檢；溪岸的一人一狼擁抱，衣領空著。 |
 
 ## 待辦與開放問題
 
-下一次先讀第四章〈沿河之路〉全文，再決定人物與旅途設定需求。第三章已確認蜚滋頭皮白髮傷痕、鼻部變形、右眼下細疤，並刮去鬍鬚、重新綁戰士髮辮；若入畫，先建當章版本，不套用第一冊少年或序曲多年後的外貌。成年夜眼使用本冊設定。惟真仍極度疲乏，只有群山的大致所在，借得精力不等於恢復健康；未成功看見莫莉，不補畫她的現況。蘿絲瑪莉的推測、博瑞屈友人、莫莉所指另一人、耳環全義与序曲男孩身分仍保留未知。
+下一次先讀第五章〈正面衝突〉全文，再決定同行人物與場景需求。第四章的賈許、蜜兒與笛兒尚未建人物稿；若成為可辨識主體，先依已讀內容建卡繪稿。成年夜眼沿用本冊設定，最近出場已至第四章。胸針失落，具體去向未確認；耳環仍在。惟真仍極度疲乏，不補畫莫莉現況；切德遭懸賞的消息由吟遊歌者傳來，不繪其確切所在地或遭捕結果。蘿絲瑪莉的推測、博瑞屈友人、莫莉所指另一人、耳環全義與序曲男孩身分仍保留未知。
