@@ -1,12 +1,12 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十一章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "031"
-illustrated_through_chapter: "031"
-next_chapter: "032"
+read_through_chapter: "032"
+illustrated_through_chapter: "032"
+next_chapter: "033"
 last_updated: "2026-10-02"
 ---
 
@@ -36,16 +36,18 @@ last_updated: "2026-10-02"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 031 章，心得為 r1_2026-10-02.md。 |
-| 心得場景插圖 | 已繪至第 031 章；聚焦1812年阿爾瓦兵器塔的監看近景。 |
-| 下一章 | Sirius 的 Library 書籤為第 032 章；下一次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第31章內容；不把1814年返家的白髮、眉上傷疤套入1812年場景。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 032 章，心得為 r1_2026-10-02.md。 |
+| 心得場景插圖 | 已繪至第 032 章；國王在溫莎冷室的舊大鍵琴前暫停彈唱。 |
+| 下一章 | Sirius 的 Library 書籤為第 033 章；下一次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第32章內容；不確定未知施法者，不把銀髮人物具象化到國王場景。 |
 
 ## 已鎖定設定
 
 第三十章沿用史蒂芬的深色管家服與白髮先生的深綠外套。頂樓雅間以暗木、灰褐牆面和冷冬光承接既有油畫質地；小桌與兩把椅子是詮釋。史蒂芬攤開的掌心是本次焦點，不加入王冠或魔法光效。
 
 第三十一章的兵器塔以粗石牆、緊閉窗板、散落書紙和寬沿淺銀盆組成。光只從水面映出，林木與岩石沒有可辨識地標。沿用斯特蘭奇 v1 身分，近景保留疲憊與專注，不預演復生或歸家。
+
+第三十二章以橡木牆圍、彩繪天頂、冷冬光與大片無地毯地板呈現宮室；國王的紫色織錦睡袍與紅天鵝絨睡帽為小塊色彩焦點。大鍵琴保持舊樂器的木身，無其他生活家具。不把病痛畫成滑稽外貌，也不給他王者徽物。
 
 | 類別 | id | 用途 |
 |---|---|---|
@@ -70,6 +72,8 @@ last_updated: "2026-10-02"
 第三十章新增：[沃頓記咖啡館頂樓雅間](Props/wootton_upper_room.md)（`wootton_upper_room`，首次／最近引用 030，已繪 v1）。史蒂芬與白髮先生首次設定分別為 015、016，最近引用皆為 030；既有 v1 外貌沿用。
 
 第三十一章新增：[阿爾瓦兵器塔的幻影室](Props/alba_tower_scrying_room.md)（`alba_tower_scrying_room`，首次／最近引用031，已繪 v1）。`jonathan_strange` 首次設定022，最近引用031，沿用 v1；歸家後外貌變體暫待需要時補繪。舊 `silver_basin_of_visions` 只供材質與形體參考，不確認兩只銀盆是同一物件。
+
+第三十二章新增：[喬治國王](Characters/king_george_iii.md)（`king_george_iii`）與[冷室／大鍵琴](Props/windsor_king_music_room.md)（`windsor_king_music_room`），首次／最近引用皆032，均已繪 v1。威利斯兄弟、護工與凍池石像只在未選場景需要時補設定，本次不作可辨識主體。
 
 | 類別 | id | 設定卡 | 首次關聯章節 | 狀態 |
 |---|---|---|---|---|
@@ -300,3 +304,9 @@ last_updated: "2026-10-02"
 - [照見，卻不知何處](../../ReadingReflections/sirius_jonathan_strange_sight_without_location.md)：引用 `jonathan_strange`、`alba_tower_scrying_room`，圖為 `sirius_jonathan_strange_sight_without_location_v1.png`。初稿已視檢：一名可辨識角色，紅棕髮與深色外套沿用；銀盆寬沿淺身，窗板緊閉，林石幻影沒有地標、人物或船隻。懷特上尉在近景之外；不提早加入歸家外貌。
 - 兵器塔設定稿 v1 已視檢，房間與銀盆在同一張設定中固定。Library Cmd 已保存第31章 r1，書籤接續32。
 - 下次第一件事：讀第32章。若畫1814年歸家後的斯特蘭奇，先補更瘦、更黑、白髮增多與左眉上方舊疤的時間變體設定稿；本次不預畫後續場景。十七名死者、軍官與歸家客廳只在未選的場景需要時建檔。
+
+## Sirius 本次新增場景（2026-10-02，第32章）
+
+- [榮耀天頂下的冷室](../../ReadingReflections/sirius_jonathan_strange_king_cold_room.md)：引用 `king_george_iii`、`windsor_king_music_room`；圖為 `sirius_jonathan_strange_king_cold_room_v1.png`。場景初稿已視檢：一名在場人物，國王的紫袍、紅帽與白長鬚沿用，雙手停在舊大鍵琴鍵旁，大片無地毯地板保持空曠；沒有可見銀髮伴侶、王冠、現代鋼琴或文字水印。
+- 兩張新增設定稿均已視檢，保存在作品 RawImages；Library Cmd 已保存第32章 r1，下一章為33。天頂人形只作壁畫背景，不視為新增人物出場。
+- 下次第一件事：讀第33章。若採用1814年斯特蘭奇的可辨識近景，先補第31章記錄的返家外貌變體；若畫凍池異變，再補石亭與石獸設定。未知魔法的施法者繼續保留開放，不用後文替當前圖解答。
