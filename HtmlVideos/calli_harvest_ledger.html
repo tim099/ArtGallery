@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>收穫帳 · The Harvest Ledger</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0e0b18;color:#e9dcc0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;display:grid;place-items:center;min-height:100vh;overflow:hidden}
+#stage{position:relative;width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16/9;background:#0e0b18}
+canvas{width:100%;height:100%;display:block}
+.bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:14px 18px;background:linear-gradient(transparent,#0e0b18e8);font-size:13px;transition:opacity .45s}
+.idle{cursor:none}.idle .bar{opacity:0}.idle .bar:has(:focus-visible){opacity:1}
+button{font:inherit;color:inherit;background:#1d1630cc;border:1px solid #e8b04a55;border-radius:4px;padding:8px 12px;cursor:pointer}
+button:hover{background:#2c2244}
+button:focus-visible,input:focus-visible{outline:2px solid #e8b04a;outline-offset:3px}
+input[type=range]{flex:1;min-width:30px;accent-color:#d9a441}
+#time{white-space:nowrap;font-variant-numeric:tabular-nums}
+#sound{font-size:11px;color:#b9ab8d;white-space:nowrap}
+.cover{position:absolute;inset:0;display:grid;place-items:center;background:#0e0b1838}
+.cover button{padding:22px 42px;background:#120e20e6;font-size:20px;letter-spacing:.2em;line-height:1.7;border-color:#e8b04a88}
+.cover small{font-size:12px;letter-spacing:.14em;color:#cbb994}
+.still .bar,.still .cover{display:none}
+@media(max-width:600px){.bar{gap:5px;padding:8px;font-size:11px}button{padding:6px 8px}#sound{display:none}}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="收穫帳，60 秒藝術短片">
+<canvas id="canvas" width="1280" height="720" aria-label="播種、生長、收割、熟成、對帳五幕動畫；右側帳本的每個數字都隨畫面即時計算"></canvas>
+<div class="cover" id="cover"><button id="start" aria-label="開始播放收穫帳">▶ 收穫帳<br><small>60 秒 · calli</small></button></div>
+<nav class="bar" aria-label="影片控制">
+<button id="play" aria-label="播放">▶</button><button id="restart" aria-label="從頭播放">↺</button>
+<input id="seek" aria-label="播放進度，秒" type="range" min="0" max="60" step="0.01" value="0">
+<span id="time">0:00 / 1:00</span><button id="mute" aria-label="靜音" aria-pressed="false">聲音</button><span id="sound">按播放啟用聲音</span>
+</nav>
+</main>
+<script>
+// 《收穫帳 (The Harvest Ledger)》—— calli
+// 整支片只有一個入口 frame(t)：同一個 t 永遠畫出同一格。沒有 Math.random、沒有逐格累積的狀態。
+// 帳本上的每個數字都從同一份田的資料 P（fate 陣列）在當下 t 算出來 —— 畫面上的數字＝畫面上真的畫了幾株。
+(()=>{
+'use strict';
+const DUR=60,W=1280,H=720,FW=952,HORIZON=480;   // FW：左邊田的視窗寬；FW..W 是帳本欄
+const FONT='"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif';
+const MONO='"Consolas","Courier New",monospace';
+const INK='#2b1d14',INK_DIM='#6e5d4b',PARCH='#e9dcc0',AMBER='#c8741f';
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+const stage=document.getElementById('stage'),cover=document.getElementById('cover'),seek=document.getElementById('seek'),timeEl=document.getElementById('time'),playBtn=document.getElementById('play'),muteBtn=document.getElementById('mute'),sound=document.getElementById('sound');
+
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};
+const lerp=(a,b,k)=>a+(b-a)*k;
+const env=(t,a,b,f)=>ease((t-a)/f)*ease((b-t)/f);
+const rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+const RGB={};
+const rgb=h=>RGB[h]||(RGB[h]=[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
+const mix=(a,b,k,al=1)=>{const A=rgb(a),B=rgb(b);return `rgba(${Math.round(lerp(A[0],B[0],k))},${Math.round(lerp(A[1],B[1],k))},${Math.round(lerp(A[2],B[2],k))},${al})`};
+
+// ── 田：48 株，6 列 × 8 欄，固定種子 ─────────────────────────────
+// fate：恰好 5 株未發芽。用寫死的索引陣列（分鏡允許）；⛔ 不用「每株 10% 機率」—— 那樣總數不固定，帳就對不起來。
+// 挑法：前後排、左右都錯開，才不會被前排的麥擋住。
+const DUDS=[9,22,28,34,45];
+const P=[];
+for(let i=0;i<48;i++){
+ const r=Math.floor(i/8),c=i%8,sc=.62+r*.08,spread=.78+r*.045;
+ P.push({i,r,sc,
+  x:476+((c+.5)/8-.5)*900*spread+(rnd(i*3+1)-.5)*50*sc+(r%2?22:-22)*sc,
+  y:500+r*22+(rnd(i*3+2)-.5)*6,
+  h:(92+rnd(i*3+3)*26)*sc,
+  fate:DUDS.includes(i)?0:1,
+  ph:rnd(i+200)*6.283});
+}
+const GROWERS=P.filter(p=>p.fate);
+const TOTAL=P.length,GROW_TOTAL=GROWERS.length;
+// 落地順序：大致由左往右撒（跟第三幕刀光同向），帶一點亂。第 k 顆落地 = 1.0 + k × 0.17 秒。
+P.slice().sort((a,b)=>(a.x+rnd(a.i+77)*170)-(b.x+rnd(b.i+77)*170)).forEach((p,k)=>{p.land=1+k*.17});
+P.forEach(p=>{p.sprout=10.6+rnd(p.i+50)*3.4;p.gd=5+rnd(p.i+60)*1.5;p.ripe=15.5+rnd(p.i+70)*2.5});
+// 刀光：x 是 t 的單調函數（中段快、兩端慢）；某株被收 = 刀光的 x 越過它的 x 的那一刻（二分法反解，純函數）
+const bladeX=t=>{const p=clamp((t-28)/6,0,1);return -90+1132*(p-.55*Math.sin(2*Math.PI*p)/(2*Math.PI))};
+const crossTime=x=>{let a=28,b=34;for(let n=0;n<32;n++){const m=(a+b)/2;if(bladeX(m)<x)a=m;else b=m}return b};
+// 第四幕：每束在 dep 化成 SPARKS 顆光點，飛 TRAVEL 秒進杯；最後一顆到杯 = 這一束「入桶」
+const SPARKS=6,LAG=.1,TRAVEL=2.7;
+// dep 從 38.0 起：第四幕的土退場前，麥束就要開始化光（否則最後幾束會浮在酒窖圖上）
+P.forEach(p=>{p.cut=p.fate?crossTime(p.x):Infinity;p.dep=38+rnd(p.i+90)*2.4;p.arr=p.fate?p.dep+LAG*(SPARKS-1)+TRAVEL:Infinity});
+// 「收穫」的定義＝畫面上看得到它倒下：倒下角度 th = lie·fe 過半（fe ≥ .5）那一刻才記一筆，⛔ 不是刀光一碰到就算。
+// fallen() 的 fe = 1-(1-f)³、f = (t-cut)/FALL ⇒ fe = .5 ⇔ f = 1-∛.5。帳本 K、劃記、閃光全用這個 down 時刻。
+const FALL=.55;
+P.forEach(p=>{p.down=p.cut+FALL*(1-Math.cbrt(.5))});
+// 倒下的姿勢：每束角度、長度、落點各自抖動，少數往回倒 —— 同一個角度排成格子會讀成一排排箭矢
+const LIE=1.42;    // 倒下的基準角（弧度，從直立量起；順著刀光往右倒）
+const SHEAF=.66;   // 倒下的麥束長度（相對株高）：太長會在畫面下緣疊成一片亮黃
+P.forEach(p=>{const back=rnd(p.i+140)<.16;p.lie=(back?-1.2:LIE)+(rnd(p.i+130)-.5)*.5;p.sl=SHEAF*(.82+rnd(p.i+150)*.36);
+ p.bdx=(rnd(p.i+160)-.5)*12*p.sc;p.bdy=(rnd(p.i+170)-.5)*4*p.sc;p.bend=(rnd(p.i+180)-.5)*.14;
+ // 最右欄往右倒的麥束，穗尖會越過田的視窗 FW 被切掉 ⇒ 收小角度，讓整束留在田裡
+ const room=(FW-14-p.x-p.bdx)/(p.h*p.sl);if(p.lie>0&&room<1&&Math.sin(p.lie)>room)p.lie=Math.asin(Math.max(0,room))});
+const SHEAF_END=Math.max(...GROWERS.map(p=>p.dep))+.9;   // 最後一束化完光的時刻：土要撐到這裡才退完
+const ROWS=[0,1,2,3,4,5].map(r=>P.filter(p=>p.r===r).sort((a,b)=>a.x-b.x));
+const sorted=a=>a.slice().sort((x,y)=>x-y);
+const LAND_T=sorted(P.map(p=>p.land)),DOWN_T=sorted(GROWERS.map(p=>p.down)),ARR_T=sorted(GROWERS.map(p=>p.arr));
+const lastAt=(arr,t)=>{let v=-1e9;for(const x of arr){if(x<=t)v=x;else break}return v};
+const count=f=>P.reduce((n,p)=>n+(f(p)?1:0),0);
+// 帳：一律從 P 在當下 t 數出來，⛔ 沒有任何寫死的數字字串
+function ledger(t){
+ const L={planted:count(p=>t>=p.land),grown:count(p=>p.fate&&t>=p.sprout),dud:count(p=>!p.fate&&t>=p.land),
+  harvested:count(p=>p.fate&&t>=p.down),barreled:count(p=>p.fate&&t>=p.down&&t>=p.arr)};   // 收穫＝畫面上已倒過半（見 p.down）；入桶串在「已收」後面：沒收的不可能入桶
+ const checks=[L.planted-(L.grown+L.dud),L.grown-L.harvested,L.harvested-L.barreled];
+ L.diff=checks.find(d=>d!==0)||0;   // 有一條對不上就印那條的差；全對才是 0
+ return L;
+}
+
+// ── 館藏圖 ─────────────────────────────────────────────────
+const IMG={reaper:load('../RawImages/calli_reaper_sickle_barley_harvest.png'),amber:load('../RawImages/calli_whiskey_amber_stack.png')};
+function load(src){const im=new Image();im.onload=im.onerror=()=>{if(!playing)show()};im.src=src;return im}
+const ready=im=>im&&im.complete&&im.naturalWidth>0;
+// Ken Burns：讓圖上 (fx,fy) 盡量落在畫面 (tx,ty)，再夾住不露邊。讀不到圖也照算（glass 位置要用）。
+function kb(im,fx,fy,zoom,tx,ty){
+ const iw=im.naturalWidth||1376,ih=im.naturalHeight||768,s=Math.max(FW/iw,H/ih)*zoom;
+ return{s,iw,ih,ox:clamp(tx-fx*s,FW-iw*s,0),oy:clamp(ty-fy*s,H-ih*s,0)};
+}
+const kbReaper=t=>kb(IMG.reaper,1000,300,1+.13*clamp((t-24)/15,0,1),476,330);   // 推向死神的臉與鐮刀
+const kbAmber=t=>kb(IMG.amber,740,440,1+.16*clamp((t-38)/12,0,1),476,380);      // 推向提燈與酒杯之間
+function drawKB(im,K,al){if(!ready(im)||al<=0)return;ctx.globalAlpha=al;ctx.drawImage(im,K.ox,K.oy,K.iw*K.s,K.ih*K.s);ctx.globalAlpha=1}
+const glassAt=K=>({x:932*K.s+K.ox,y:440*K.s+K.oy,s:K.s});   // 圖上酒杯裡琥珀色那一段
+
+// ── 共用畫筆 ───────────────────────────────────────────────
+// 新月形：dir=+1 凸向右（刀光），dir=-1 凸向左（月亮）
+function crescent(cx,cy,ry,ax,bx,dir){
+ ctx.beginPath();ctx.moveTo(cx,cy-ry);
+ if(dir>0){ctx.ellipse(cx,cy,ax,ry,0,-Math.PI/2,Math.PI/2,false);ctx.ellipse(cx,cy,bx,ry,0,Math.PI/2,-Math.PI/2,true)}
+ else{ctx.ellipse(cx,cy,ax,ry,0,-Math.PI/2,Math.PI/2,true);ctx.ellipse(cx,cy,bx,ry,0,Math.PI/2,Math.PI*1.5,false)}
+ ctx.closePath();
+}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)}
+
+// ── 天、地 ─────────────────────────────────────────────────
+const SKY=[[0,'#0b0920','#1a1430','#2f2656'],[8,'#120e2c','#221a44','#463768'],[13,'#271d4c','#47335f','#9a6478'],[20,'#35264f','#87505a','#e8b04a']];
+function sky(t){
+ let a=SKY[SKY.length-1],b=a,k=0;
+ for(let n=0;n<SKY.length-1;n++)if(t>=SKY[n][0]&&t<SKY[n+1][0]){a=SKY[n];b=SKY[n+1];k=(t-a[0])/(b[0]-a[0])}
+ if(t<SKY[0][0]){a=b=SKY[0]}
+ const g=ctx.createLinearGradient(0,0,0,HORIZON);
+ g.addColorStop(0,mix(a[1],b[1],k));g.addColorStop(.62,mix(a[2],b[2],k));g.addColorStop(1,mix(a[3],b[3],k));
+ ctx.fillStyle=g;ctx.fillRect(0,0,FW,HORIZON);
+}
+function stars(t){
+ const a=1-ease((t-6)/6);if(a<=0)return;
+ for(let n=0;n<90;n++){
+  const x=rnd(n+400)*FW,y=rnd(n+500)*HORIZON*.78,tw=.55+.45*Math.sin(t*(1.2+rnd(n+600)*2)+n),sz=1+rnd(n+800)*1.2;
+  ctx.fillStyle=`rgba(233,226,250,${a*tw*(.25+.6*rnd(n+700))*(1-y/HORIZON*.7)})`;ctx.fillRect(x,y,sz,sz);
+ }
+}
+function moon(t){   // 黎明前的殘月（亮面朝左）—— 跟第三幕的刀光是同一個形狀
+ const a=.85*(1-ease((t-13)/6));if(a<=0)return;
+ ctx.save();ctx.globalAlpha*=a;ctx.fillStyle='#efe6cf';ctx.shadowColor='rgba(239,230,207,.55)';ctx.shadowBlur=14;
+ crescent(742,104,15,15,6,-1);ctx.fill();ctx.restore();
+}
+function sun(t){
+ const a=ease((t-12)/8);if(a<=0)return;
+ const g=ctx.createRadialGradient(250,HORIZON-6,0,250,HORIZON-6,430);
+ g.addColorStop(0,`rgba(255,204,120,${.6*a})`);g.addColorStop(.35,`rgba(232,150,74,${.22*a})`);g.addColorStop(1,'rgba(232,150,74,0)');
+ ctx.fillStyle=g;ctx.fillRect(0,0,FW,HORIZON+20);
+}
+function hills(t){
+ const k=ease((t-11)/9);
+ const layer=(base,amp,col,seed)=>{ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,HORIZON+10);
+  for(let x=0;x<=FW;x+=16)ctx.lineTo(x,base-amp*(.6+.5*Math.sin(x*.0062+seed)+.35*Math.sin(x*.017+seed*2.3)));
+  ctx.lineTo(FW,HORIZON+10);ctx.closePath();ctx.fill()};
+ layer(HORIZON-6,16,mix('#1e1836','#4a3045',k),1.3);
+ layer(HORIZON+2,9,mix('#140f24','#2a1a22',k),3.1);
+}
+function soil(imgMix,fieldA){
+ if(fieldA<=0)return;
+ // 上緣羽化：館藏圖淡入的途中，土的上緣才不會切成一條硬邊
+ const fe=12+90*Math.min(1,imgMix*3),y0=HORIZON-4-fe*.5,span=H-y0;
+ const g=ctx.createLinearGradient(0,y0,0,H);
+ g.addColorStop(0,'rgba(42,28,20,0)');
+ g.addColorStop(fe/span,`rgba(42,28,20,${fieldA*(1-.88*imgMix)})`);
+ g.addColorStop(clamp((fe+70)/span,0,1),`rgba(30,20,13,${fieldA*(1-.42*imgMix)})`);
+ g.addColorStop(1,`rgba(16,10,6,${fieldA*(1-.06*imgMix)})`);
+ ctx.fillStyle=g;ctx.fillRect(0,y0,FW,span);
+ ctx.strokeStyle=`rgba(118,84,54,${.22*fieldA*(1-.4*imgMix)})`;ctx.lineWidth=1;   // 畦
+ for(let r=0;r<6;r++){const y=503+r*22,half=470*(.78+r*.045);ctx.beginPath();ctx.moveTo(476-half,y);
+  for(let x=-half;x<=half;x+=24)ctx.lineTo(476+x,y+Math.sin(x*.03+r)*.8);ctx.stroke()}
+ // 第三幕的地面帶：館藏圖浮現後，前景麥田底下壓一條半透明暗土色 —— 程序麥子與倒下的麥束才「躺在地上」，
+ // 不跟館藏圖裡的麥田混成一片。只壓下 1/3（上緣羽化），⛔ 不蓋掉館藏圖；跟土一起在第四幕退場。
+ const ga=imgMix*fieldA;
+ if(ga>0){const gb=ctx.createLinearGradient(0,462,0,H);
+  gb.addColorStop(0,'rgba(26,17,11,0)');gb.addColorStop(.14,`rgba(26,17,11,${.55*ga})`);gb.addColorStop(.6,`rgba(22,14,9,${.62*ga})`);gb.addColorStop(1,`rgba(16,10,6,${.66*ga})`);
+  ctx.fillStyle=gb;ctx.fillRect(0,462,FW,H-462)}
+}
+
+// ── 麥 ─────────────────────────────────────────────────────
+function ear(x,y,ang,sc,eg,c,al,cut){   // cut：收下來的麥束，顏色壓暗一點（不要一片亮黃）
+ const L=28*sc*eg,ca=Math.cos(ang),sa=Math.sin(ang),nx=-sa,ny=ca,off=2.3*sc*eg;
+ ctx.globalAlpha=al;
+ ctx.strokeStyle=cut?'rgba(214,176,104,.6)':mix('#b9cf86','#f0cf86',c,.75);ctx.lineWidth=Math.max(.5,.7*sc);ctx.beginPath();
+ for(let k=0;k<7;k++){const s=(k+.6)/7*L,sd=k&1?1:-1,gx=x+ca*s+nx*sd*off,gy=y+sa*s+ny*sd*off,aa=ang+sd*.22,al2=(cut?10:17)*sc*eg;
+  ctx.moveTo(gx,gy);ctx.lineTo(gx+Math.cos(aa)*al2,gy+Math.sin(aa)*al2)}
+ ctx.stroke();
+ ctx.fillStyle=cut?'#b8893a':mix('#9dbb62','#e2ae4c',c);ctx.strokeStyle=cut?'rgba(58,36,14,.7)':'rgba(58,36,14,.5)';ctx.lineWidth=.7;
+ for(let k=0;k<7;k++){const s=(k+.5)/7*L,sd=k&1?1:-1;
+  ctx.beginPath();ctx.ellipse(x+ca*s+nx*sd*off,y+sa*s+ny*sd*off,4.2*sc*eg+.01,2.2*sc*eg+.01,ang+sd*.25,0,Math.PI*2);ctx.fill();ctx.stroke()}
+ ctx.globalAlpha=1;
+}
+function standing(p,t,g){
+ const sc=p.sc,c=ease((t-p.ripe)/4);
+ const sway=(Math.sin(t*1.7+p.x*.013+p.ph)*.055+Math.sin(t*.63+p.x*.005)*.045)*(.2+.8*g);   // 風＝sin(t, i) 的純函數
+ const hh=p.h*(.05+.95*g),x0=p.x,y0=p.y,x2=x0+Math.sin(sway)*hh,y2=y0-Math.cos(sway)*hh,x1=x0+Math.sin(sway*.45)*hh*.5,y1=y0-hh*.55;
+ ctx.lineCap='round';ctx.strokeStyle=mix('#6f9a45','#c39437',c);ctx.lineWidth=Math.max(1.1,2.1*sc);
+ ctx.beginPath();ctx.moveTo(x0,y0);ctx.quadraticCurveTo(x1,y1,x2,y2);ctx.stroke();
+ const lg=Math.min(1,g*1.5);ctx.strokeStyle=mix('#5f8c3c','#a8823a',c);ctx.lineWidth=Math.max(.8,1.3*sc);
+ for(let L=0;L<2;L++){const u=.26+L*.24,sd=(L^(p.i&1))?1:-1,
+  lx=(1-u)*(1-u)*x0+2*(1-u)*u*x1+u*u*x2,ly=(1-u)*(1-u)*y0+2*(1-u)*u*y1+u*u*y2,len=16*sc*lg;
+  ctx.beginPath();ctx.moveTo(lx,ly);ctx.quadraticCurveTo(lx+sd*len*.55,ly-len*.55,lx+sd*len,ly-len*(.15-.45*c)+Math.sin(t*1.7+p.ph)*1.2*sc);ctx.stroke()}
+ if(g>.42)ear(x2,y2,Math.atan2(y2-y1,x2-x1)+.38*c,sc,ease((g-.42)/.58),c,1);
+}
+const sheafAlpha=(p,t)=>(1-ease((t-p.dep)/.9))*lerp(1,.62,ease((t-38)/1.5));   // 第四幕：田退成半透明的前景
+function sheafCenter(p){const len=p.h*p.sl;return{x:p.x+p.bdx+Math.sin(p.lie)*len*.5,y:p.y-2*p.sc+p.bdy-Math.cos(p.lie)*len*.5*.85}}
+function fallen(p,t,fieldA){
+ const sc=p.sc,f=clamp((t-p.cut)/FALL,0,1),fe=1-Math.pow(1-f,3),th=p.lie*fe,len=p.h*lerp(.92,p.sl,fe);
+ const bx=p.x+p.bdx*fe,by=p.y-2*sc+p.bdy*fe;   // 束腳從麥茬滑到它落地的位置
+ if(fieldA>0){ctx.globalAlpha=fieldA;ctx.strokeStyle='#8a6a34';ctx.lineWidth=Math.max(1,1.6*sc);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.5,p.y-5*sc);ctx.stroke();ctx.globalAlpha=1}   // 麥茬
+ const al=sheafAlpha(p,t);if(al<=0)return;
+ ctx.lineCap='round';
+ if(fe>.6){   // 貼地的影子：麥束是「躺在地上」，不是浮在畫面上
+  ctx.globalAlpha=al*(fe-.6)/.4;ctx.strokeStyle='rgba(14,8,4,.55)';ctx.lineWidth=6*sc;
+  ctx.beginPath();ctx.moveTo(bx,by+2.5*sc);ctx.lineTo(bx+Math.sin(th)*len*1.1,by+2.5*sc-Math.cos(th)*len*.85);ctx.stroke()}
+ for(let s=-1;s<=1;s++){   // 倒下後收成一束（三莖）：散開 ±.18、長短不一、各自微彎
+  const a=th+(s*.18+(rnd(p.i*3+s+200)-.5)*.08)*fe,ls=len*(1-.08*Math.abs(s)+(rnd(p.i*3+s+210)-.5)*.14*fe),
+   tx=bx+Math.sin(a)*ls,ty=by-Math.cos(a)*ls*(1-.15*fe),bend=(p.bend+s*.03)*fe,
+   cx=(bx+tx)/2-(ty-by)*bend,cy=(by+ty)/2+(tx-bx)*bend;
+  ctx.globalAlpha=al;ctx.strokeStyle='#a97d2f';ctx.lineWidth=Math.max(1,1.6*sc);ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(cx,cy,tx,ty);ctx.stroke();
+  ear(tx,ty,Math.atan2(ty-cy,tx-cx),sc*.9,1,1,al,true);
+ }
+ const tie=ease((t-p.cut-.5)/.35);
+ if(tie>0){const mx=bx+Math.sin(th)*len*.42,my=by-Math.cos(th)*len*.42*(1-.15*fe),nx=Math.cos(th),ny=Math.sin(th);
+  ctx.globalAlpha=al*tie;ctx.strokeStyle='#6b4720';ctx.lineWidth=Math.max(1.4,2.4*sc);
+  ctx.beginPath();ctx.moveTo(mx-nx*5*sc,my-ny*5*sc);ctx.lineTo(mx+nx*5*sc,my+ny*5*sc);ctx.stroke()}
+ ctx.globalAlpha=1;
+}
+function plant(p,t,fieldA){
+ const sc=p.sc;
+ if(t<p.land){   // 還在空中落下
+  const u=t-(p.land-1);if(u<=0)return;
+  const y=-16+(p.y-1.5+16)*u*u,x=p.x+(1-u)*(rnd(p.i+900)-.5)*46;
+  ctx.strokeStyle=`rgba(233,205,140,${.25*u})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y-14*u);ctx.lineTo(x,y);ctx.stroke();
+  ctx.save();ctx.shadowColor='rgba(240,205,130,.7)';ctx.shadowBlur=6;ctx.fillStyle='#ecca82';ctx.beginPath();ctx.ellipse(x,y,3.3*sc,2*sc,u*7+p.i,0,Math.PI*2);ctx.fill();ctx.restore();
+  return;
+ }
+ const since=t-p.land;
+ if(fieldA>0){
+  ctx.globalAlpha=fieldA;const mg=ease(since/.25);
+  ctx.fillStyle='#46301e';ctx.beginPath();ctx.ellipse(p.x,p.y,10*sc*mg+.01,4*sc*mg+.01,0,Math.PI,0);ctx.fill();   // 土包
+  ctx.strokeStyle='rgba(150,108,70,.55)';ctx.lineWidth=.9;ctx.beginPath();ctx.ellipse(p.x,p.y,10*sc*mg+.01,4*sc*mg+.01,0,Math.PI*1.15,Math.PI*1.85);ctx.stroke();
+  if(since<.45){const u=since/.45;ctx.fillStyle=`rgba(150,112,76,${.5*(1-u)})`;
+   for(let k=0;k<5;k++){const a=Math.PI*(1.1+k*.2);ctx.beginPath();ctx.arc(p.x+Math.cos(a)*12*sc*ease(u),p.y+Math.sin(a)*8*sc*ease(u),1.2*sc,0,7);ctx.fill()}}
+  if(!p.fate||t<p.sprout+.3){   // 半埋的種子；沒發芽的那顆一直留在原地，慢慢失色
+   ctx.fillStyle=p.fate?'#d9b36a':mix('#d9b36a','#6a573a',ease((t-12)/4));
+   ctx.beginPath();ctx.ellipse(p.x,p.y-1.6*sc,3*sc,1.9*sc,0,0,Math.PI*2);ctx.fill()}
+  ctx.globalAlpha=1;   // 未發芽的空心圓不在這裡畫 —— 見 dudMarks()（所有麥株畫完後另一個 pass）
+ }
+ if(p.fate&&t>=p.sprout){
+  if(t<p.cut)standing(p,t,ease((t-p.sprout)/p.gd));else fallen(p,t,fieldA);
+ }
+}
+
+// 沒長出來的，上方畫一個很淡的空心圓：被看見，而不是被當成空地。
+// 在所有麥株畫完後另一個 pass 畫（刀光之前）：跟麥株同一個 pass 的話，前排的麥／倒下的麥束會把後排的圓蓋掉，5 個就數不齊。
+// 36.4–37.8 秒淡出：第三→四幕交界前退完，不出現在酒窖圖上。
+function dudMarks(t,fieldA){
+ const out=1-ease((t-36.4)/1.4);
+ for(const p of P){
+  if(p.fate||t<p.land)continue;
+  const m=ease((t-14.6)/1.6)*fieldA*out,boost=.3*env(t,16.4,18.6,.6);
+  // 半徑 3.2+2.6·sc（≥4.8 px，後排也數得出來，仍保留前大後小）；「很淡」靠細線寬 1.1 維持
+  if(m>0){ctx.globalAlpha=1;ctx.strokeStyle=`rgba(233,220,192,${(.7+boost)*m})`;ctx.lineWidth=1.1;ctx.beginPath();ctx.arc(p.x,p.y-16*p.sc,3.2+2.6*p.sc,0,7);ctx.stroke()}
+ }
+}
+
+// ── 第三幕：刀光（畫在麥子上面）──────────────────────────────
+function blade(t){
+ const a=ease((t-27.8)/.5)*(1-ease((t-34)/.6));if(a<=0)return;
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(let k=6;k>=0;k--){   // 殘影＝同一條路徑上稍早的位置（間隔 .09 秒才分得開）；每一層各自帶當時的傾角 ⇒ 疊成一片扇形
+  const tk=t-k*.09,p=clamp((tk-28)/6,0,1),x=bladeX(tk),y=532-18*Math.sin(Math.PI*p);
+  ctx.globalAlpha=a*(k?.24*(1-k/7):1);
+  ctx.setTransform(1,0,0,1,x,y);ctx.rotate(-.35+.5*p);   // 揮砍：上端從後仰轉到前傾
+  const g=ctx.createLinearGradient(-40,0,30,0);
+  g.addColorStop(0,'rgba(230,236,245,0)');g.addColorStop(.7,'rgba(230,236,245,.55)');g.addColorStop(1,'rgba(255,255,255,1)');
+  ctx.fillStyle=g;
+  if(!k){ctx.shadowColor='rgba(230,236,245,.9)';ctx.shadowBlur=18}
+  crescent(0,0,96,30,12,1);ctx.fill();ctx.shadowBlur=0;
+ }
+ ctx.restore();
+}
+
+// ── 第四幕：麥束化成光點流向酒杯 ─────────────────────────────
+function sparks(t,G){
+ if(t<38||t>46)return;
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(const p of GROWERS){
+  const s0=sheafCenter(p);
+  for(let j=0;j<SPARKS;j++){
+   const u=(t-p.dep-j*LAG)/TRAVEL;if(u<=0||u>=1)continue;   // 位置 = f(rnd, t)，不累積
+   const sd=p.i*31+j*7,ax=s0.x+(rnd(sd+1)-.5)*p.h*.8,ay=s0.y+(rnd(sd+2)-.5)*6,
+    ex=G.x+(rnd(sd+3)-.5)*16*G.s,ey=G.y+(rnd(sd+4)-.5)*10*G.s,
+    cx=(ax+ex)/2+(rnd(sd+5)-.5)*280,cy=Math.min(ay,ey)-60-rnd(sd+6)*150,rad=1.5+rnd(sd+7)*1.8,
+    base=Math.pow(Math.sin(Math.PI*u),.6)*.85;
+   for(let k=3;k>=0;k--){
+    const e=ease(u-k*.03),x=(1-e)*(1-e)*ax+2*(1-e)*e*cx+e*e*ex,y=(1-e)*(1-e)*ay+2*(1-e)*e*cy+e*e*ey,al=base*(1-k*.26);
+    ctx.fillStyle=`rgba(255,212,140,${al})`;ctx.beginPath();ctx.arc(x,y,rad*(1-k*.16),0,7);ctx.fill();
+    if(!k){ctx.fillStyle=`rgba(232,150,60,${al*.1})`;ctx.beginPath();ctx.arc(x,y,rad*2.8,0,7);ctx.fill()}
+   }
+  }
+ }
+ ctx.restore();
+}
+function glassGlow(t,G,wa){   // 進杯的越多，杯子越亮
+ if(wa<=0)return;
+ let f=0;for(const p of GROWERS)f+=ease((t-p.arr+.2)/.8);f/=GROW_TOTAL;
+ const r=58*G.s*(1+.5*f),pulse=.92+.08*Math.sin(t*2.3);
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ const g=ctx.createRadialGradient(G.x,G.y,0,G.x,G.y,r);
+ g.addColorStop(0,`rgba(255,196,110,${(.05+.38*f)*pulse*wa})`);g.addColorStop(1,'rgba(200,116,31,0)');
+ ctx.fillStyle=g;ctx.fillRect(G.x-r,G.y-r,r*2,r*2);ctx.restore();
+}
+
+// ── 第五幕：鐮刀剪影 ───────────────────────────────────────
+function scythe(t){
+ const a=ease((t-51)/1.8);if(a<=0)return;
+ const gleam=.06+.84*(1-ease((t-52.6)/6.6));   // 刃口反光慢慢變暗：刀會鈍
+ // 位置：外形 y ∈ [-73, 43.5] × .72 ⇒ 畫面 444–529，夾在帳本頁（底 436）與結尾第一行字幕（框頂 537）之間
+ ctx.save();ctx.translate(640,497);ctx.scale(.72,.72);ctx.globalAlpha=a;
+ const halo=ctx.createRadialGradient(10,-20,10,10,-20,300);
+ halo.addColorStop(0,'rgba(233,220,192,.11)');halo.addColorStop(1,'rgba(233,220,192,0)');ctx.fillStyle=halo;ctx.fillRect(-300,-330,620,620);   // 矩形要蓋滿整個漸層半徑，否則邊緣會切出硬邊
+ const handle=()=>{ctx.beginPath();ctx.moveTo(-230,40);ctx.quadraticCurveTo(-10,30,200,4)},
+  pegs=()=>{ctx.beginPath();ctx.moveTo(-118,36);ctx.lineTo(-124,14);ctx.moveTo(58,21);ctx.lineTo(52,-1)},
+  edge=()=>{ctx.beginPath();ctx.moveTo(206,6);ctx.quadraticCurveTo(152,-80,-48,-72);ctx.quadraticCurveTo(118,-48,190,18);ctx.closePath()};
+ // 暖色邊光（固定 alpha .13，不跟 gleam 變暗）：先描一圈加粗的暖色外框，再用黑剪影蓋上去 ⇒ 輪廓外緣留約 1px 細邊光＋淡淡背光。
+ // 刀會鈍的是刃口反光（gleam），不是刀本身 —— 剪影輪廓到最後一格都要看得見。
+ ctx.save();ctx.strokeStyle='rgba(236,178,104,.13)';ctx.shadowColor='rgba(236,178,104,.13)';ctx.shadowBlur=10;ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.lineWidth=7+3.4;handle();ctx.stroke();ctx.lineWidth=5+3.4;pegs();ctx.stroke();ctx.lineWidth=3.4;edge();ctx.stroke();ctx.restore();
+ ctx.strokeStyle='#040308';ctx.lineCap='round';ctx.lineWidth=7;handle();ctx.stroke();
+ ctx.lineWidth=5;pegs();ctx.stroke();
+ ctx.fillStyle='#040308';edge();ctx.fill();
+ const g=ctx.createLinearGradient(-48,-72,190,18);
+ g.addColorStop(0,`rgba(230,236,245,${gleam})`);g.addColorStop(.55,`rgba(230,236,245,${gleam*.55})`);g.addColorStop(1,'rgba(230,236,245,0)');
+ ctx.strokeStyle=g;ctx.lineWidth=2.2;ctx.shadowColor=`rgba(230,236,245,${gleam*.8})`;ctx.shadowBlur=12*gleam;
+ ctx.beginPath();ctx.moveTo(-48,-72);ctx.quadraticCurveTo(118,-48,190,18);ctx.stroke();
+ ctx.restore();
+}
+
+// ── 帳本：右側直欄 → 第五幕滑到中央放大成一頁 ─────────────────
+const COL={x:970,y:24,w:286,h:672},PAGE={x:410,y:12,w:460,h:424};   // 第五幕：頁、鐮刀（444–529）、結尾字幕（537–637）由上而下排開，互不重疊
+const ROWDEF=[
+ {key:'planted',label:'播種',at:.5,cy:136,py:144,of:TOTAL,tally:LAND_T,flash:LAND_T},
+ {key:'grown',label:'長成',at:16,cy:228,py:186},
+ {key:'dud',label:'未發芽',at:16.6,cy:274,py:228,dim:true},
+ {key:'harvested',label:'收穫',at:27.6,cy:320,py:270,of:GROW_TOTAL,tally:DOWN_T,flash:DOWN_T},
+ {key:'barreled',label:'入桶',at:40.9,cy:412,py:312,flash:ARR_T},   // 第一束 41.29 入桶：列要先寫好，數字才從 0 開始跳
+];
+function tally(times,t,x0,yb,al){   // 每一株記一筆：四豎一斜
+ if(al<=0)return;
+ ctx.save();ctx.globalAlpha=al;ctx.strokeStyle=INK;ctx.lineWidth=1.4;ctx.lineCap='round';
+ for(let n=0;n<times.length;n++){
+  const w=ease((t-times[n])/.16);if(w<=0)break;
+  const gx=x0+Math.floor(n/5)*23,m=n%5;let ax,ay,bx,by;
+  if(m<4){ax=gx+m*4.2+(rnd(n+1500)-.5);ay=yb-16;bx=ax+1.2;by=yb-1}else{ax=gx-2;ay=yb-4;bx=gx+16;by=yb-13}
+  ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(lerp(ax,bx,w),lerp(ay,by,w));ctx.stroke();
+ }
+ ctx.restore();
+}
+function drawLedger(t){
+ const L=ledger(t),k=ease((t-50)/2.4);
+ const bx=lerp(COL.x,PAGE.x,k),by=lerp(COL.y,PAGE.y,k),bw=lerp(COL.w,PAGE.w,k),bh=lerp(COL.h,PAGE.h,k),fs=lerp(1,1.25,k),pad=lerp(24,40,k);
+ ctx.save();
+ ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=28;ctx.shadowOffsetY=8;ctx.fillStyle=PARCH;ctx.fillRect(bx,by,bw,bh);
+ ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ ctx.beginPath();ctx.rect(bx,by,bw,bh);ctx.clip();
+ const vg=ctx.createRadialGradient(bx+bw/2,by+bh*.45,Math.min(bw,bh)*.25,bx+bw/2,by+bh/2,Math.hypot(bw,bh)*.6);
+ vg.addColorStop(0,'rgba(140,96,50,0)');vg.addColorStop(1,'rgba(120,80,40,.32)');ctx.fillStyle=vg;ctx.fillRect(bx,by,bw,bh);
+ for(let n=0;n<70;n++){ctx.fillStyle=`rgba(90,60,30,${.04+.06*rnd(n+1200)})`;ctx.beginPath();ctx.arc(bx+rnd(n+1000)*bw,by+rnd(n+1100)*bh,.6+rnd(n+1300)*1.6,0,7);ctx.fill()}
+ ctx.strokeStyle='rgba(110,78,48,.2)';ctx.lineWidth=1;
+ for(let y=by+lerp(136,144,k)+9;y<by+bh-14;y+=lerp(46,42,k)){ctx.beginPath();ctx.moveTo(bx+14,Math.round(y)+.5);ctx.lineTo(bx+bw-14,Math.round(y)+.5);ctx.stroke()}
+ ctx.strokeStyle='rgba(160,70,52,.28)';ctx.beginPath();ctx.moveTo(bx+pad-9.5,by+110);ctx.lineTo(bx+pad-9.5,by+bh-14);ctx.stroke();
+ ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillStyle=INK;
+ ctx.font=`700 ${26*fs}px ${FONT}`;ctx.fillText('收穫帳',bx+pad,by+lerp(56,62,k));
+ if('letterSpacing' in ctx)ctx.letterSpacing='2px';
+ ctx.font=`${10.5*fs}px ${MONO}`;ctx.fillStyle='#7a6248';ctx.fillText('THE HARVEST LEDGER',bx+pad,by+lerp(80,88,k));
+ if('letterSpacing' in ctx)ctx.letterSpacing='0px';
+ ctx.fillStyle=INK;ctx.fillRect(bx+pad-6,by+lerp(96,104,k),bw-2*pad+12,1.6);ctx.fillRect(bx+pad-6,by+lerp(100,108,k),bw-2*pad+12,.8);
+ for(const R of ROWDEF){
+  const rev=ease((t-R.at)/.7);if(rev<=0)continue;
+  const y=by+lerp(R.cy,R.py,k),col=R.dim?INK_DIM:INK,n=L[R.key];
+  ctx.save();ctx.beginPath();ctx.rect(bx,y-40*fs,bw*rev,60*fs);ctx.clip();   // 逐列「寫」出來
+  ctx.fillStyle=col;ctx.textAlign='left';ctx.font=`${20*fs}px ${FONT}`;ctx.fillText(R.label,bx+pad,y);
+  if(R.dim){const lw=ctx.measureText(R.label).width;ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(bx+pad+lw+12*fs,y-7*fs,4.5*fs,0,7);ctx.stroke()}
+  const fl=R.flash?clamp(Math.exp(-(t-lastAt(R.flash,t))*4),0,1):0;   // 數字剛變時閃一下琥珀色
+  ctx.fillStyle=R.dim?col:mix(INK,AMBER,fl*.9);ctx.textAlign='right';ctx.font=`${22*fs}px ${MONO}`;
+  const rx=bx+bw-pad;
+  if(R.of!==undefined&&k<1){ctx.globalAlpha=1-k;ctx.fillText(`${n}／${R.of}`,rx,y);ctx.globalAlpha=k;ctx.fillText(String(n),rx,y)}
+  else ctx.fillText(String(n),rx,y);
+  ctx.restore();
+  if(R.tally)tally(R.tally,t,bx+pad,y+46-6,1-ease(k*1.6));
+ }
+ const dA=ease((t-52.6)/.8);
+ if(dA>0){   // 差 = 算出來的，不是印上去的
+  const rw=(bw-2*pad+12)*dA;ctx.fillStyle=INK;ctx.fillRect(bx+pad-6,by+340,rw,1.4);ctx.fillRect(bx+pad-6,by+344,rw,1.4);
+  ctx.globalAlpha=dA;ctx.textAlign='left';ctx.font=`700 ${20*fs}px ${FONT}`;ctx.fillText('差',bx+pad,by+396);
+  ctx.textAlign='right';ctx.font=`700 ${24*fs}px ${MONO}`;ctx.fillText(String(L.diff),bx+bw-pad,by+396);ctx.globalAlpha=1;
+ }
+ ctx.restore();
+}
+
+// ── 字幕、章名、出處 ─────────────────────────────────────────
+const SUBS=[
+ {a:2,b:8,s:'鐮刀原本是農具。'},
+ {a:15,b:22,s:'長不出來的那幾株，也記一筆。'},
+ {a:30,b:37,s:'死神的工作是收穫，不是殺戮。'},
+ {a:41,b:48,s:'消逝，給了它重量。'},
+ // 結尾兩行：第二行底襯下緣 = 614+24/2+11 = 637 ≤ 640，控制列（約 658 起）浮出時也蓋不到；上下兩框間隔 4px
+ {a:53,b:61,s:'刀只有承認自己會鈍，才配一直當刀。',x:640,y:562},
+ {a:54.6,b:61,s:'Memento Mori，也 Memento Vivere。☠️',x:640,y:614,size:24},
+];
+function subtitle(s,x,y,size,al){
+ if(al<=0)return;
+ ctx.save();ctx.globalAlpha=al;ctx.font=`${size}px ${FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';
+ const w=ctx.measureText(s).width;
+ ctx.shadowColor='rgba(10,8,18,.6)';ctx.shadowBlur=16;ctx.fillStyle='rgba(10,8,18,.46)';rr(x-w/2-22,y-size*.5-11,w+44,size+22,8);ctx.fill();
+ ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=8;ctx.shadowOffsetY=1;ctx.fillStyle='#f4ecd9';ctx.fillText(s,x,y);
+ ctx.restore();
+}
+const CHAPTERS=[[-1,10,'I','播種','Sow'],[10,24,'II','生長','Vivere'],[24,38,'III','收割','Harvest'],[38,50,'IV','熟成','Amber'],[50,61,'V','對帳','The Ledger']];
+function chapter(t){
+ for(const[a,b,n,zh,en]of CHAPTERS){const al=env(t,a,b,.9)*.78;if(al<=0)continue;
+  ctx.save();ctx.globalAlpha=al;ctx.font=`13px ${FONT}`;ctx.fillStyle=PARCH;ctx.shadowColor='rgba(0,0,0,.85)';ctx.shadowBlur=6;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.fillText(`${n}　${zh}　${en}`,28,40);ctx.restore()}
+}
+function credit(s,al){
+ if(al<=0)return;
+ ctx.save();ctx.globalAlpha=al*.92;ctx.font=`13px ${FONT}`;ctx.fillStyle='#efe4cc';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=6;ctx.textAlign='right';ctx.textBaseline='alphabetic';
+ ctx.fillText(s,FW-24,40);ctx.restore();   // 右上、與章名同一行：放左下會被控制列蓋住
+}
+function strip(){
+ const g=ctx.createLinearGradient(FW,0,W,0);g.addColorStop(0,'#16112a');g.addColorStop(1,'#0f0b1b');
+ ctx.fillStyle=g;ctx.fillRect(FW,0,W-FW,H);ctx.fillStyle='rgba(232,176,74,.22)';ctx.fillRect(FW,0,1,H);
+}
+
+// ── 唯一入口 ───────────────────────────────────────────────
+function frame(T){
+ const t=clamp(T,0,DUR);
+ ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.shadowBlur=0;ctx.shadowColor='transparent';
+ ctx.fillStyle='#0e0b18';ctx.fillRect(0,0,W,H);
+ const dark=ease((t-49.5)/1.5);                 // 第五幕：畫面暗下
+ const rR=ready(IMG.reaper),rA=ready(IMG.amber);   // 讀不到的圖那層不畫 —— 它原本要蓋掉的那層也就不准跟著退
+ const imgMix=ease((t-24)/6);                   // 第三幕：館藏圖 24–30 秒浮現
+ const wa=ease((t-38)/1.5);                     // 時間的琥珀：從上面蓋過死神那張（不是兩張各淡一半 —— 那樣底下的天地會透出來）
+ const amberOn=rA&&wa>=1;                       // 琥珀已全不透明 ⇒ 底下各層不必畫
+ const reaperK=imgMix*(rA?1:1-wa);              // 死神之鐮：第四幕維持住讓琥珀蓋上來；只有琥珀讀不到時才自己淡出
+ const ra=reaperK*.9;                           // 留一成透明，不蓋過前景
+ const procA=amberOn?0:1-(rR?reaperK:0);        // 程序畫的天地：館藏圖浮現多少就退多少（地平線剪影不再切過圖）；退完底下就是暗底色
+ const fieldA=1-ease((t-38.6)/(SHEAF_END-38.6)); // 土與土包在第四幕退場，撐到最後一束化完光（麥束不浮在酒窖圖上）
+ if(dark<1){
+  ctx.save();ctx.beginPath();ctx.rect(0,0,FW,H);ctx.clip();
+  if(procA>0){ctx.globalAlpha=procA;sky(t);stars(t);moon(t);sun(t);hills(t);ctx.globalAlpha=1}
+  const KA=kbAmber(t);
+  if(!amberOn)drawKB(IMG.reaper,kbReaper(t),ra);
+  drawKB(IMG.amber,KA,wa);
+  soil(imgMix,fieldA);
+  for(const row of ROWS)for(const p of row)plant(p,t,fieldA);
+  dudMarks(t,fieldA);                            // 麥株全部畫完才畫：5 個圓不被麥擋
+  blade(t);                                     // 圖層順序＝敘事順序：刀光在麥子上面
+  const G=glassAt(KA);glassGlow(t,G,wa);sparks(t,G);
+  // 兩行出處在同一個位置 ⇒ 先後出場（38.2 前淡完、38.6 才進來），不交叉淡化；圖沒畫上去就不標它的出處
+  if(rR)credit('館藏・日記〈刀承認自己會鈍：暮色麥田的死神之鐮〉　calli',reaperK*(rA?1-ease((t-37.4)/.8):1));
+  if(rA)credit('館藏・日記〈時間的琥珀〉　calli',ease((t-38.6)/.8));
+  ctx.restore();
+ }
+ strip();
+ if(dark>0){ctx.fillStyle=`rgba(14,11,24,${dark})`;ctx.fillRect(0,0,W,H)}
+ const a5=ease((t-50)/2);
+ if(a5>0){const g=ctx.createRadialGradient(640,300,40,640,330,560);g.addColorStop(0,`rgba(200,116,31,${.1*a5})`);g.addColorStop(1,'rgba(200,116,31,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+ scythe(t);
+ drawLedger(t);
+ for(const S of SUBS)subtitle(S.s,S.x||476,S.y||650,S.size||28,env(t,S.a,S.b,.8));
+ chapter(t);
+}
+
+// ── 聲音 ───────────────────────────────────────────────────
+// 瞬間的聲音列成事件表（由同一份 P 產生），播放時用 prev→t 區間觸發；⛔ 不用 setTimeout 排程。
+// 持續的聲音（第一幕的低音、第三幕的刀風）做成「床」：音量與濾波每格由 t 直接算，拖到哪裡就是哪裡。
+const EVENTS=[];
+P.forEach(p=>{EVENTS.push({t:p.land,type:'seed',f:180+rnd(p.i+300)*70});if(p.fate)EVENTS.push({t:p.cut,type:'rustle',s:p.i})});
+EVENTS.push({t:ARR_T[0],type:'barrel',f:74},{t:ARR_T[ARR_T.length-1],type:'barrel',f:62},{t:53,type:'bell',f:293.66});
+EVENTS.sort((a,b)=>a.t-b.t);
+let t=0,playing=false,muted=false,raf=0,lastNow=0,ac=null,master=null,beds=null,noiseBuf=null,voices=[],idleTimer=0;
+function initAudio(){
+ if(ac)return;
+ const A=window.AudioContext||window.webkitAudioContext;
+ if(!A){sound.textContent='靜音觀看';return}
+ try{
+  ac=new A();master=ac.createGain();master.gain.value=muted?0:.24;master.connect(ac.destination);
+  const len=ac.sampleRate*2|0;noiseBuf=ac.createBuffer(1,len,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let n=0;n<len;n++)d[n]=rnd(n*.37+5)*2-1;
+  const droneGain=ac.createGain();droneGain.gain.value=0;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=260;
+  for(const[f,v,type,det]of[[55,.5,'sine',0],[82.41,.3,'sine',3],[110,.12,'triangle',-4]]){const o=ac.createOscillator();o.type=type;o.frequency.value=f;o.detune.value=det;const g=ac.createGain();g.gain.value=v;o.connect(g);g.connect(lp);o.start()}
+  lp.connect(droneGain);droneGain.connect(master);
+  const ns=ac.createBufferSource();ns.buffer=noiseBuf;ns.loop=true;const bp=ac.createBiquadFilter();bp.type='bandpass';bp.Q.value=.9;bp.frequency.value=600;
+  const wg=ac.createGain();wg.gain.value=0;ns.connect(bp);bp.connect(wg);wg.connect(master);ns.start();
+  beds={droneGain,bp,wg};sound.textContent='合成聲音';
+ }catch(e){ac=null;beds=null;sound.textContent='靜音觀看'}
+}
+const droneLevel=t=>ease(t/1.5)*(1-ease((t-10)/6))*.9;
+function whoosh(t){const p=clamp((t-28)/6,0,1),v=1-.55*Math.cos(2*Math.PI*p),a=ease((t-27.8)/.5)*(1-ease((t-33.8)/.8));return{g:a*(.2+.8*v/1.55)*.55,f:500+2600*p+300*v}}
+function updateBeds(t){if(!beds)return;const now=ac.currentTime,w=whoosh(t);beds.droneGain.gain.setTargetAtTime(droneLevel(t),now,.08);beds.wg.gain.setTargetAtTime(w.g,now,.05);beds.bp.frequency.setTargetAtTime(w.f,now,.05)}
+function env1(g,now,peak,att,dec){g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(peak,now+att);g.gain.exponentialRampToValueAtTime(.0001,now+att+dec)}
+function noise(now,dur,type,freq,q,peak,att,dec,off){
+ const s=ac.createBufferSource();s.buffer=noiseBuf;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;const g=ac.createGain();env1(g,now,peak,att,dec);
+ s.connect(f);f.connect(g);g.connect(master);s.start(now,off%1.5);s.stop(now+dur);voices.push(s);s.onended=()=>{try{s.disconnect();f.disconnect();g.disconnect()}catch(e){}voices=voices.filter(v=>v!==s)};
+}
+function tone(now,f0,f1,glide,peak,att,dec,type='sine'){
+ const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f0,now);if(f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,now+glide);
+ env1(g,now,peak,att,dec);o.connect(g);g.connect(master);o.start(now);o.stop(now+att+dec+.05);voices.push(o);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(e){}voices=voices.filter(v=>v!==o)};
+}
+function fire(ev){
+ if(!ac||ac.state!=='running'||muted)return;
+ const now=ac.currentTime;
+ if(ev.type==='seed'){tone(now,ev.f*1.7,ev.f,.03,.28,.004,.13);noise(now,.05,'highpass',2000,.7,.05,.003,.03,ev.f*.01)}         // 木質的「篤」
+ else if(ev.type==='rustle')noise(now,.4,'bandpass',3000+rnd(ev.s+40)*1200,.7,.11,.03,.3,ev.s*.037);                            // 沙沙
+ else if(ev.type==='barrel'){tone(now,ev.f*1.5,ev.f,.25,.8,.01,1.4);tone(now,ev.f*2.02,ev.f*2.02,0,.12,.01,.5);noise(now,.35,'lowpass',260,.7,.25,.005,.25,.3)}   // 木桶「咚」
+ else if(ev.type==='bell')for(const[m,v,dec]of[[1,.32,7],[2,.12,4.5],[3,.06,3],[4.07,.03,2],[5.43,.015,1.5]])tone(now,ev.f*m,ev.f*m,0,v,.012,dec);              // 鐘：正弦＋泛音、長尾
+}
+function stopNotes(){for(const v of voices){try{v.stop()}catch(e){}}voices=[]}
+
+// ── 播放器 ─────────────────────────────────────────────────
+const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+function show(){frame(t);seek.value=t;seek.setAttribute('aria-valuetext',`${t.toFixed(1)} 秒`);timeEl.textContent=`${fmt(t)} / ${fmt(DUR)}`}
+function poke(){stage.classList.remove('idle');clearTimeout(idleTimer);if(playing)idleTimer=setTimeout(()=>{if(playing)stage.classList.add('idle')},2600)}
+function pause(){playing=false;if(raf)cancelAnimationFrame(raf);raf=0;stopNotes();if(ac)ac.suspend().catch(()=>{});playBtn.textContent='▶';playBtn.setAttribute('aria-label','播放');poke()}
+function play(){
+ initAudio();if(ac)ac.resume().catch(()=>{sound.textContent='靜音觀看'});
+ if(t>=DUR)t=0;playing=true;cover.style.display='none';playBtn.textContent='Ⅱ';playBtn.setAttribute('aria-label','暫停');
+ lastNow=performance.now();if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);poke();
+}
+function tick(now){
+ raf=0;if(!playing)return;
+ // rAF 的時間戳可能比 play() 時記下的 performance.now() 還早 ⇒ 夾在 [0, .25]：時間只往前走、切回分頁也不暴衝
+ const prev=t;t=Math.min(DUR,t+clamp((now-lastNow)/1000,0,.25));lastNow=Math.max(lastNow,now);
+ for(const ev of EVENTS)if(ev.t>prev&&ev.t<=t)fire(ev);
+ updateBeds(t);show();
+ if(t>=DUR)pause();else raf=requestAnimationFrame(tick);
+}
+function jump(v){stopNotes();t=clamp(v,0,DUR);lastNow=performance.now();cover.style.display='none';updateBeds(t);show();if(t>=DUR)pause()}
+document.getElementById('start').addEventListener('click',play);
+playBtn.addEventListener('click',()=>playing?pause():play());
+document.getElementById('restart').addEventListener('click',()=>{jump(0);play()});
+seek.addEventListener('input',()=>jump(Number(seek.value)));
+muteBtn.addEventListener('click',()=>{muted=!muted;if(master)master.gain.value=muted?0:.24;muteBtn.textContent=muted?'靜音':'聲音';muteBtn.setAttribute('aria-pressed',String(muted));muteBtn.setAttribute('aria-label',muted?'取消靜音':'靜音')});
+document.addEventListener('keydown',e=>{
+ poke();
+ if(e.ctrlKey||e.metaKey||e.altKey)return;   // Ctrl+M、Alt+← 這些是瀏覽器／系統的，不搶
+ if(e.code==='Space'){if(e.target.matches('button'))return;e.preventDefault();if(!e.repeat)playing?pause():play()}   // 按住不放不連切
+ else if(e.key==='ArrowRight'){e.preventDefault();jump(t+5)}
+ else if(e.key==='ArrowLeft'){e.preventDefault();jump(t-5)}
+ else if(e.key.toLowerCase()==='m'){if(!e.repeat)muteBtn.click()}
+});
+stage.addEventListener('pointermove',poke);stage.addEventListener('pointerdown',poke);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause()});
+const q=new URLSearchParams(location.search);
+if(q.has('t')){t=clamp(parseFloat(q.get('t'))||0,0,DUR);cover.style.display='none'}
+if(q.get('still')==='1')stage.classList.add('still');
+show();
+})();
+</script>
+</body>
+</html>
