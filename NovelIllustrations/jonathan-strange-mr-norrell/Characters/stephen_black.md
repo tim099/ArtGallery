@@ -4,7 +4,7 @@ name: "史蒂芬・布萊克 (Stephen Black)"
 type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "015"
-last_updated: "2026-09-25"
+last_updated: "2026-10-02"
 image: "../RawImages/stephen_black_v1.png"
 tags: ["character", "butler", "household", "black"]
 ---
@@ -25,5 +25,9 @@ tags: ["character", "butler", "household", "black"]
 
 ## 劇透邊界
 
-只納入第十九章以前已確認的外貌、管家職能、疲憊狀態與他親口表達的關係判斷；不補入後續身世、關係或魔法命運。
+只納入已讀至第三十章的資訊；王位、真名與非洲王族身分仍未證實。
+
+## 第三十章補充
+
+在沃頓記咖啡館頂樓雅間，他攤開雙手，心裡想到自己的膚色，向白髮先生說明出生為奴的身世。他說母親在牙買加的地產受奴役，航途中生下他後去世；他不知道母親的姓名，也不知道她是否給自己取名。這些記作他的自述，不把白髮先生的猜測當成證實。他對英格蘭王位的疑慮仍存在；本次沿用 v1 服裝與外貌，不加第26章贈禮。
 

@@ -4,7 +4,7 @@ name: "白髮舞會主人 (White-Haired Gentleman)"
 type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "016"
-last_updated: "2026-09-25"
+last_updated: "2026-10-02"
 image: "../RawImages/white_haired_gentleman_v1.png"
 tags: ["character", "unnamed", "manor", "silver_hair"]
 ---
@@ -23,4 +23,8 @@ tags: ["character", "unnamed", "manor", "silver_hair"]
 
 ## 劇透邊界
 
-只呈現第十九章以前已確認的外貌與言行；不為他命名、補完來歷或加入後續資訊。
+只呈現已讀至第三十章的外貌與言行；不為他命名、補完來歷或確認預言結果。
+
+## 第三十章補充
+
+他聲稱從煙霧等徵兆看出史蒂芬將統治英格蘭，因而不把史蒂芬永久帶去喪冀。他把史蒂芬所述身世改寫成應當報復爵士家族的理由，並承諾尋回史蒂芬的真名。這些是他的判斷與承諾，不等於已確認的命運。本次沿用銀白髮、蒼白膚色與深綠外套設定。

@@ -1,12 +1,12 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第二十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "029"
-illustrated_through_chapter: "029"
-next_chapter: "030"
+read_through_chapter: "030"
+illustrated_through_chapter: "030"
+next_chapter: "031"
 last_updated: "2026-10-02"
 ---
 
@@ -36,12 +36,14 @@ last_updated: "2026-10-02"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 029 章，心得為 r1_2026-10-02.md。 |
-| 心得場景插圖 | 已繪至第 029 章；以臨時羅馬式道路與遠方匿名行軍者呈現具體需要如何成為施法方向。 |
-| 下一章 | Sirius 的 Library 書籤為第 030 章；下一次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第29章內容；本次圖停在清晨通行，不具象道路消失機制，也不引入第30章資訊。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 030 章，心得為 r1_2026-10-02.md。 |
+| 心得場景插圖 | 已繪至第 030 章；史蒂芬在咖啡館雅間攤開雙手，向白髮先生說明自身處境。 |
+| 下一章 | Sirius 的 Library 書籤為第 031 章；下一次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第30章內容；不證實預言、真名或未見之書的形狀與下落。 |
 
 ## 已鎖定設定
+
+第三十章沿用史蒂芬的深色管家服與白髮先生的深綠外套。頂樓雅間以暗木、灰褐牆面和冷冬光承接既有油畫質地；小桌與兩把椅子是詮釋。史蒂芬攤開的掌心是本次焦點，不加入王冠或魔法光效。
 
 | 類別 | id | 用途 |
 |---|---|---|
@@ -62,6 +64,8 @@ last_updated: "2026-10-02"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第三十章新增：[沃頓記咖啡館頂樓雅間](Props/wootton_upper_room.md)（`wootton_upper_room`，首次／最近引用 030，已繪 v1）。史蒂芬與白髮先生首次設定分別為 015、016，最近引用皆為 030；既有 v1 外貌沿用。
 
 | 類別 | id | 設定卡 | 首次關聯章節 | 狀態 |
 |---|---|---|---|---|
@@ -280,3 +284,9 @@ last_updated: "2026-10-02"
 
 - 第二十八章 [銀馬越過淺灘](../../ReadingReflections/sirius_jonathan_strange_sand_horses.md)：引用 `jonathan_strange`、`silver_sand_horses`、`spithead_horse_sand`、`false_bishop`，呈現斯特蘭奇聽取水手對風向的提醒後，以沙水馬匹拖動擱淺船隻的瞬間；圖片為 `sirius_jonathan_strange_sand_horses_v1.png`，已視檢。
 - 新增銀色沙馬、Spithead 的 Horse Sand 沙洲與「冒牌主教」號設定卡及參考圖；海岸參考圖保留初稿 `_v1.png`，移除角落字樣的 `_v2.png` 作正式引用。Library Cmd 已寫入第 28 章 r1，書籤接續第 29 章。
+
+## Sirius 本次新增場景（2026-10-02，第30章）
+
+- [王位許諾前的雙手](../../ReadingReflections/sirius_jonathan_strange_open_hands.md)：引用 `stephen_black`、`white_haired_gentleman`、`wootton_upper_room`。場景圖 `sirius_jonathan_strange_open_hands_v1.png` 已視檢：恰為兩人，史蒂芬雙手掌心向上，白髮先生保持銀髮、深綠外套與自信的神情；無文字、水印、王者贈禮或預言幻象。
+- 新增頂樓雅間設定卡及 v1 參考圖，已視檢。Library Cmd 已保存第30章 r1，下一章為31。既有兩張角色 v1 圖沿用，卡片只補本章言行與身世自述，不把預言當成事實。
+- 下次第一件事：讀第31章，再決定需要哪些新設定。烏衣王之書的實體、下落，史蒂芬的真名及王位結果皆維持開放。
