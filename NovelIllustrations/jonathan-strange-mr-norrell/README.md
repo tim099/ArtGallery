@@ -1,12 +1,12 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十五章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "034"
-illustrated_through_chapter: "034"
-next_chapter: "035"
+read_through_chapter: "035"
+illustrated_through_chapter: "035"
+next_chapter: "036"
 last_updated: "2026-10-03"
 ---
 
@@ -36,10 +36,10 @@ last_updated: "2026-10-03"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 034 章，心得為 r1_2026-10-03.md。 |
-| 心得場景插圖 | 已繪至第 034 章；史蒂芬在市集婉拒購買地毯。 |
-| 下一章 | Sirius 的 Library 書籤為第 035 章；下一次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第34章內容；地毯囚禁仍為構想，不畫成已生效法術；不鎖定城鎮國別或祖籍。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 035 章，心得為 r1_2026-10-03.md。 |
+| 心得場景插圖 | 已繪至第 035 章；阿拉貝拉在散紙邊等待畫外丈夫回應。 |
+| 下一章 | Sirius 的 Library 書籤為第 036 章；下一次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第35章內容；冒名授課仍待查證，不畫下一章鏡中道路或未知法術。 |
 
 ## 已鎖定設定
 
@@ -70,6 +70,8 @@ last_updated: "2026-10-03"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第三十五章新增：[客廳稿紙與家用帳簿](Props/soho_manuscripts_household_ledger.md)（`soho_manuscripts_household_ledger`，首次／最近引用035，已繪 v1）。`arabella_woodhope` 首次設定022、最近引用035；角色 v1 的系列身分沿用，時間推進至1814年。
 
 第三十四章新增：[白色市集與織毯](Props/desert_edge_market_carpet.md)（`desert_edge_market_carpet`，首次／最近引用034，已繪 v1）。`stephen_black` 首次設定015、`white_haired_gentleman` 首次設定016，兩者最近引用034；角色 v1 沿用，卡片補當次言行。
 
@@ -328,3 +330,9 @@ last_updated: "2026-10-03"
 - [地毯前的一次婉拒](../../ReadingReflections/sirius_jonathan_strange_carpet_refusal.md)：引用 `stephen_black`、`white_haired_gentleman`、`desert_edge_market_carpet`；正式圖 `sirius_jonathan_strange_carpet_refusal_v1.png` 已視檢。恰為兩人，管家深色服裝與銀髮綠外套沿用；叫價師在畫外，抬手是詮釋，不畫囚犯、光效、文字或水印。
 - 新增市集／織毯設定卡與 v1，已先視檢再提供場景參考。織紋、低木支架、座位及部分建築细節標為詮釋，不作國別、宗教或祖籍證據。Library Cmd 已保存第34章 r1，下一章35，期待度4／5。
 - 下次第一件事：讀第35章，再確認新鄉紳或其他人物是否需要設定。斯特蘭奇1814年外貌變體仍待可辨識近景需要時補繪；史蒂芬王位、真名與後續報復結果繼續保留開放。
+
+## Sirius 本次新增場景（2026-10-03，第35章）
+
+- [沒被聽見的要緊事](../../ReadingReflections/sirius_jonathan_strange_unheard_concern.md)：引用 `arabella_woodhope`、`soho_manuscripts_household_ledger`；正式圖 `sirius_jonathan_strange_unheard_concern_v1.png` 已視檢。恰為一人，灰綠裙、棕色盤髮與披肩沿用，喬納森在畫外；姿態及帳簿放置是詮釋，無文字、水印或魔法效果。
+- 新增客廳稿紙／家用帳簿設定卡與 v1，先視檢再用於場景生成。新設定不確認與第26章房間為同一間；沒有搬家行李或稻草。Library Cmd 已保存第35章 r1，下一章36，期待度4／5。
+- 下次第一件事：讀第36章，再按正文確認鏡子與古道的可見形狀；若採用斯特蘭奇近景，先補1814年外貌變體。本次未選的鄉紳、軍官、雙人肖像與台球室暫不建設定，不將函授疑點提前寫成結案。
