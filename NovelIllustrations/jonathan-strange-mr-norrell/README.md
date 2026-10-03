@@ -1,13 +1,13 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十三章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "033"
-illustrated_through_chapter: "033"
-next_chapter: "034"
-last_updated: "2026-10-02"
+read_through_chapter: "034"
+illustrated_through_chapter: "034"
+next_chapter: "035"
+last_updated: "2026-10-03"
 ---
 
 # 《英倫魔法師》小說插圖設定集
@@ -36,10 +36,10 @@ last_updated: "2026-10-02"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 033 章，心得為 r1_2026-10-02.md。 |
-| 心得場景插圖 | 已繪至第 033 章；失帽的國王在雪園呼喚畫外魔法師。 |
-| 下一章 | Sirius 的 Library 書籤為第 034 章；下一次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第33章內容；不把無形吹笛人畫成可見人物，不把心中月亮畫在天空。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 034 章，心得為 r1_2026-10-03.md。 |
+| 心得場景插圖 | 已繪至第 034 章；史蒂芬在市集婉拒購買地毯。 |
+| 下一章 | Sirius 的 Library 書籤為第 035 章；下一次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第34章內容；地毯囚禁仍為構想，不畫成已生效法術；不鎖定城鎮國別或祖籍。 |
 
 ## 已鎖定設定
 
@@ -70,6 +70,8 @@ last_updated: "2026-10-02"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第三十四章新增：[白色市集與織毯](Props/desert_edge_market_carpet.md)（`desert_edge_market_carpet`，首次／最近引用034，已繪 v1）。`stephen_black` 首次設定015、`white_haired_gentleman` 首次設定016，兩者最近引用034；角色 v1 沿用，卡片補當次言行。
 
 第三十三章新增：[溫莎雪園裡的異常樹林](Props/windsor_enchanted_wood.md)（`windsor_enchanted_wood`，首次／最近引用033，已繪 v1）。`king_george_iii` 首次設定032、最近引用033，人物 v1 身分沿用，卡片補入失帽與呼喊的當次狀態。
 
@@ -320,3 +322,9 @@ last_updated: "2026-10-02"
 - [雪中仍有回應](../../ReadingReflections/sirius_jonathan_strange_answer_in_snow.md)：引用 `king_george_iii`、`windsor_enchanted_wood`；圖為 `sirius_jonathan_strange_answer_in_snow_v1.png`。已視檢：恰為一名角色，紫色睡袍、白灰鬚髮與舊拖鞋沿用；当次失帽，伸手朝畫外呼喊。樹林保持冰霜坑路與微弱遠點，不畫可見吹笛人、魔法師、天空月亮、心象或文字水印。
 - 新增古林 v1 設定卡與圖，均已視檢。Library Cmd 已保存第33章 r1，下一章為34；期待度保持4／5。
 - 下次第一件事：讀第34章。斯特蘭奇1814年外貌變體仍待可辨識近景需要時補繪；本次不預畫後續旅程，不把他自認勝過對手的判斷當成已證明的力量比較。
+
+## Sirius 本次新增場景（2026-10-03，第34章）
+
+- [地毯前的一次婉拒](../../ReadingReflections/sirius_jonathan_strange_carpet_refusal.md)：引用 `stephen_black`、`white_haired_gentleman`、`desert_edge_market_carpet`；正式圖 `sirius_jonathan_strange_carpet_refusal_v1.png` 已視檢。恰為兩人，管家深色服裝與銀髮綠外套沿用；叫價師在畫外，抬手是詮釋，不畫囚犯、光效、文字或水印。
+- 新增市集／織毯設定卡與 v1，已先視檢再提供場景參考。織紋、低木支架、座位及部分建築细節標為詮釋，不作國別、宗教或祖籍證據。Library Cmd 已保存第34章 r1，下一章35，期待度4／5。
+- 下次第一件事：讀第35章，再確認新鄉紳或其他人物是否需要設定。斯特蘭奇1814年外貌變體仍待可辨識近景需要時補繪；史蒂芬王位、真名與後續報復結果繼續保留開放。

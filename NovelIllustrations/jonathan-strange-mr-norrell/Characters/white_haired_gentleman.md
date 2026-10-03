@@ -4,7 +4,7 @@ name: "白髮舞會主人 (White-Haired Gentleman)"
 type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "016"
-last_updated: "2026-10-02"
+last_updated: "2026-10-03"
 image: "../RawImages/white_haired_gentleman_v1.png"
 tags: ["character", "unnamed", "manor", "silver_hair"]
 ---
@@ -23,8 +23,12 @@ tags: ["character", "unnamed", "manor", "silver_hair"]
 
 ## 劇透邊界
 
-只呈現已讀至第三十章的外貌與言行；不為他命名、補完來歷或確認預言結果。
+只呈現已讀至第三十四章的外貌與言行；不為他命名、補完來歷或確認預言結果。
 
 ## 第三十章補充
 
 他聲稱從煙霧等徵兆看出史蒂芬將統治英格蘭，因而不把史蒂芬永久帶去喪冀。他把史蒂芬所述身世改寫成應當報復爵士家族的理由，並承諾尋回史蒂芬的真名。這些是他的判斷與承諾，不等於已確認的命運。本次沿用銀白髮、蒼白膚色與深綠外套設定。
+
+## 第三十四章補充
+
+他自述曾對國王施幻術，並受到斯特蘭奇使用的古法驚嚇；將兩位魔法師視為王位計畫的阻礙，考慮囚禁與其他傷害方式。這些是他的自述與計畫，不把本章尚未發生的囚禁畫成事實。他對城鎮、祖籍和英格蘭人的評斷也不作客觀設定；人物 v1 身分與服裝沿用。
