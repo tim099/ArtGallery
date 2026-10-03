@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0013"
-illustrated_through_chapter: "0013"
-next_chapter: "0014"
+read_through_chapter: "0014"
+illustrated_through_chapter: "0014"
+next_chapter: "0015"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第十三章〈藍湖〉全文；下一次接續第十四章〈走私者〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第十四章〈走私者〉全文；下一次接續第十五章〈水壺〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -42,6 +42,8 @@ next_chapter: "0014"
 第十二章以沙地中的鑰匙保留求生與責任並存：只有一枚小物件，不畫勝利光束，不將開鎖視為赦免。沙粒、低角度夕照、金屬材質與鑰匙精確輪廓為詮釋。
 
 第十三章以屋頂上的小白鼬與乾肉保存失去之後仍能送達的援手。微霜屋瓦、象牙白毛、黑尾尖、低光與排列屬詮釋；不畫復仇成敗，不把短暫餵食視為悲痛已治癒。
+
+第十四章沿用耳環設定，在爐火前被拎起的微距近景保存割捨的代價。只有裁切邊緣少量指尖，人物不可辨認；寶石不發光，不畫渡河或已交付的結果。
 
 ## 角色與生物
 
@@ -72,6 +74,8 @@ next_chapter: "0014"
 
 第十三章新增狀態：蜚滋抵達藍湖買冬衣、籃子與糧食，肩痛仍在；本次人物全在畫外，不將傷已淡去画為完全痊癒。大白鼬已死，但姓名與死因未知。椋音衣著為黑厚羊毛斗篷、黃刺繡邊、小銀耳環，弟弟傑曾被蜚滋救過、後來戰死；本次全在畫外，後續入畫前另建設定。
 
+第十四章人物狀態：蜚滋經椋音修髮，眉上平直瀏海遮掩白髮，鬍鬚整理為沿下巴與臉頰，不可沿用早先未修髮鬚。尼克・錦渥約二十五歲、棕髮藍眼、高大皮衣；妹妹纈財約十二歲、皮束腰上衣、乳黃色羊毛內衣、皮褲皮靴，年齡為蜚滋估計。人物與灰鴿本次均不作可辨認主體，後續入畫須先建設定。
+
 ## 道具與場景
 
 | setting_id | 設定卡 | 首次／最近章節 | 狀態 |
@@ -80,7 +84,7 @@ next_chapter: "0014"
 | `blue_scrying_bowl` | [藍釉淺碗](Props/blue_scrying_bowl.md) | 0001／0001 | v1 已繪與視檢；大淺碗、藍釉內側、乾淨清水。 |
 | `hut_wooden_chair` | [小屋木椅](Props/hut_wooden_chair.md) | 0002／0002 | v1 已繪與視檢；完整四腿方座、兩道橫木椅背、磨舊木材。 |
 | `tradeford_hall_gardens` | [商業灘殿堂與花園](Props/tradeford_hall_gardens.md) | 0008／0008 | v2 已繪與視檢；低牆與優雅住宅，觀景塔無箭孔，非要塞。v1 類字樣門楣未採用。 |
-| `freedman_sapphire_earring` | [自由人藍寶石耳環](Props/freedman_sapphire_earring.md) | 0010／0010 | v1 已繪與視檢；單一藍寶石被細銀絲網住，上端小鉤；是否原屬博瑞屈祖母仍未確認。 |
+| `freedman_sapphire_earring` | [自由人藍寶石耳環](Props/freedman_sapphire_earring.md) | 0010／0014 | v1 已繪與視檢；單一藍寶石被細銀絲網住，上端小鉤。第十四章承諾安全渡河後交付，章末仍戴著；祖母來源未確認。 |
 | `camp_red_tea_cup` | [營火旁紅陶茶杯](Props/camp_red_tea_cup.md) | 0011／0011 | v1 已繪與視檢；厚口、圓腹紅褐陶杯，單把手與形制為詮釋。 |
 | `rough_shackle_key` | [粗製鐐銬鑰匙](Props/rough_shackle_key.md) | 0012／0012 | v1 已繪與視檢；粗製、能開鎖，暗灰鐵與精確輪廓為詮釋。 |
 
@@ -102,10 +106,11 @@ next_chapter: "0014"
 | 0011 | [茶仍溫著，路仍未開](../../ReadingReflections/meadow_farseer_trilogy_03_warmth_without_release_v1.md) | `camp_red_tea_cup` | v1 已繪與視檢；營火旁兩杯的無人近景，不把晚餐與後續衝突合成一刻。 |
 | 0012 | [鑰匙不替人赦免](../../ReadingReflections/meadow_farseer_trilogy_03_key_without_absolution_v1.md) | `rough_shackle_key` | v1 已繪與視檢；沙地中的一枚鑰匙，停在拾起前，不畫求生為赦免。 |
 | 0013 | [警告送到了，悲痛仍在](../../ReadingReflections/meadow_farseer_trilogy_03_small_messenger_v1.md) | `little_weasel_messenger` | v1 已繪與視檢；屋頂上的一隻小白鼬與乾肉，蜚滋全在畫外，不補復仇結果。 |
+| 0014 | [讓連結成為路費](../../ReadingReflections/meadow_farseer_trilogy_03_price_of_connection_v1.md) | `freedman_sapphire_earring` | v1 已繪與視檢；爐火前舉起耳環，少量指尖裁切，不合成後來的交付或戴回。 |
 
 ## 待辦與開放問題
 
-下一次先讀第十四章〈走私者〉全文。第十三章已返回水窪補水、洗衣与處理傷口，抵達藍湖，於陷阱警告後退去，章末留在椋音房間準備睡。她說明走私者可提供途徑，但尚未見面，路線與能否渡湖仍未確認。小白鼬不願同行、復仇結果未知。夜眼仍聯繫蜚滋，不補狼群與伴侶狀態。耳環已尋回戴上；冬衣、藍襯衫、斗篷、蘆葦肩帶籃與傷勢若入畫須另建當時設定。
+下一次先讀第十五章〈水壺〉全文。第十四章已與尼克・錦渥談妥兩人安全渡河後交付耳環、錢幣先作擔保；耳環仍戴在耳上，尚未渡河或履約。天氣合適則翌日出發，章末宿農莊、精技夢見博瑞屈哄嬰兒與莫莉請他冬季搬入屋裡；這不是蜚滋肉身到場，也不定為戀愛關係。小白鼬复仇、狼群接納與伴侶仍未知。冬衣、修髮後蜚滋、斗篷、蘆葦肩帶籃與傷勢若入畫須另建當時設定。
 
 前章回畫界線：第十一章隨商隊前進、與塔絲晚餐後分開；當時耳環裹好藏入腰帶，蜚滋以湯姆化名牧羊，此狀態不可套回第十二章末。鏈章與戒指已售，箭兒已放走。耳環是否原屬博瑞屈祖母仍不得補定。莫莉與未具名女兒由博瑞屈照料，是第十一章精技夢所見；將來相認、原諒或團聚尚未發生。第九章借衣外貌只用於回畫當時場景，不套用到後續時點。
 
