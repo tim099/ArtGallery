@@ -1,12 +1,12 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十六章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "036"
-illustrated_through_chapter: "036"
-next_chapter: "037"
+read_through_chapter: "037"
+illustrated_through_chapter: "037"
+next_chapter: "038"
 last_updated: "2026-10-05"
 ---
 
@@ -24,7 +24,11 @@ last_updated: "2026-10-05"
 
 第二十五章以雪窗冷光與爐火暖色照亮書房對談。構圖停在斯特蘭奇提起戒指法術矛盾、諾瑞爾尚未回應的空隙，不出現戒指或超自然效果。
 
-第二十六章轉入蘇活廣場雨夜後的凌亂新居。史蒂芬頭戴細銀環、手持權杖與沉重寶珠，與白髮先生同處一室；喬納森專心讀書，沒有看見或聽見他們。把尊位贈禮的華麗和史蒂芬求救無門的沉默並置，不畫出透明身體或可見法術。\r\n\r\n第三十六章的長鏡映出黑漆高窗、巨大白月與昏暗長廊；被風吹動的人影尚不可辨認。客廳壁紙、地毯與家具的細節依文字描述作場景詮釋，長廊結構與材質仍未確定。
+第二十六章轉入蘇活廣場雨夜後的凌亂新居。史蒂芬頭戴細銀環、手持權杖與沉重寶珠，與白髮先生同處一室；喬納森專心讀書，沒有看見或聽見他們。把尊位贈禮的華麗和史蒂芬求救無門的沉默並置，不畫出透明身體或可見法術。
+
+第三十六章的長鏡映出黑漆高窗、巨大白月與昏暗長廊；被風吹動的人影尚不可辨認。客廳壁紙、地毯與家具的細節依文字描述作場景詮釋，長廊結構與材質仍未確定。
+
+第三十七章的漢諾威廣場書房沿用爐火、書架、書桌與暗窗；法庭提案稿紙是場景詮釋，不加龍形徽記、刑具或可讀文字。
 
 第二十七章在坡宅的小會客室裡，威尼斯油畫、藍沙發與大型鏡子圍住阿拉貝拉和坡夫人的談話。停在坡夫人掩面、發現自己說出非本意故事的瞬間；鏡中透視只提示她的失向感，不具象成通道。
 
@@ -36,10 +40,10 @@ last_updated: "2026-10-05"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 036 章，心得為 r1_2026-10-05.md。 |
-| 心得場景插圖 | 已繪至第 036 章；鏡中長廊將熟悉房間變成無法辨認終點的道路。 |
-| 下一章 | Sirius 的 Library 書籤為第 037 章；下次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第36章內容；冒名授課仍待查證，鏡中道路去向、人影身分與風險仍未定。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 037 章，心得為 r1_2026-10-05.md。 |
+| 心得場景插圖 | 已繪至第 037 章；斯特蘭奇以正式行禮回應諾瑞爾的權力要求。 |
+| 下一章 | Sirius 的 Library 書籤為第 038 章；下次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第37章內容；五龍法庭未獲接納，後續出版與師徒關係不先推定。 |
 
 ## 已鎖定設定
 
@@ -71,7 +75,9 @@ last_updated: "2026-10-05"
 
 ## 設定資產台帳
 
-第三十六章新增：[鏡中的昏暗長廊](Props/mirror_hall_road.md)（`mirror_hall_road`，首次／最近引用036，已繪 v1、已視檢）。\r\n\r\n第三十五章新增：[客廳稿紙與家用帳簿](Props/soho_manuscripts_household_ledger.md)（`soho_manuscripts_household_ledger`，首次／最近引用035，已繪 v1）。`arabella_woodhope` 首次設定022、最近引用035；角色 v1 的系列身分沿用，時間推進至1814年。
+第三十七章新增：[1814年返家後的喬納森・斯特蘭奇](Characters/jonathan_strange_1814.md)（`jonathan_strange_1814`，沿用第31章返家外貌記錄，最近引用037，設定圖 v2 已視檢；未覆寫早年 v1）。
+
+第三十五章新增：[客廳稿紙與家用帳簿](Props/soho_manuscripts_household_ledger.md)（`soho_manuscripts_household_ledger`，首次／最近引用035，已繪 v1）。`arabella_woodhope` 首次設定022、最近引用035；角色 v1 的系列身分沿用，時間推進至1814年。
 
 第三十四章新增：[白色市集與織毯](Props/desert_edge_market_carpet.md)（`desert_edge_market_carpet`，首次／最近引用034，已繪 v1）。`stephen_black` 首次設定015、`white_haired_gentleman` 首次設定016，兩者最近引用034；角色 v1 沿用，卡片補當次言行。
 
@@ -79,7 +85,7 @@ last_updated: "2026-10-05"
 
 第三十章新增：[沃頓記咖啡館頂樓雅間](Props/wootton_upper_room.md)（`wootton_upper_room`，首次／最近引用 030，已繪 v1）。史蒂芬與白髮先生首次設定分別為 015、016，最近引用皆為 030；既有 v1 外貌沿用。
 
-第三十一章新增：[阿爾瓦兵器塔的幻影室](Props/alba_tower_scrying_room.md)（`alba_tower_scrying_room`，首次／最近引用031，已繪 v1）。`jonathan_strange` 首次設定022，最近引用031，沿用 v1；歸家後外貌變體暫待需要時補繪。舊 `silver_basin_of_visions` 只供材質與形體參考，不確認兩只銀盆是同一物件。
+第三十一章新增：[阿爾瓦兵器塔的幻影室](Props/alba_tower_scrying_room.md)（`alba_tower_scrying_room`，首次／最近引用031，已繪 v1）。`jonathan_strange` 首次設定022，最近引用031，沿用 v1；1814年返家後外貌變體另見 `Characters/jonathan_strange_1814.md`。舊 `silver_basin_of_visions` 只供材質與形體參考，不確認兩只銀盆是同一物件。
 
 第三十二章新增：[喬治國王](Characters/king_george_iii.md)（`king_george_iii`）與[冷室／大鍵琴](Props/windsor_king_music_room.md)（`windsor_king_music_room`），首次／最近引用皆032，均已繪 v1。威利斯兄弟、護工與凍池石像只在未選場景需要時補設定，本次不作可辨識主體。
 
@@ -115,6 +121,7 @@ last_updated: "2026-10-05"
 | 道具 | `twenty_five_mysterious_guineas` | [來歷不明的二十五枚幾尼](Props/twenty_five_mysterious_guineas.md) | 017 | 已繪 v1 |
 | 道具 | `childermass_marseille_tarot` | [齊爾德邁斯的馬賽塔羅](Props/childermass_marseille_tarot.md) | 021 | 已繪 v1 |
 | 人物 | `jonathan_strange` | [喬納森・斯特蘭奇](Characters/jonathan_strange.md) | 022 | 已繪 v1 |
+| 人物變體 | `jonathan_strange_1814` | [1814年返家後的喬納森・斯特蘭奇](Characters/jonathan_strange_1814.md) | 031 | 設定圖 v2 已視檢 |
 | 人物 | `arabella_woodhope` | [阿拉貝拉・伍德霍普](Characters/arabella_woodhope.md) | 022 | 已繪 v1 |
 | 生物 | `silver_sand_horses` | [銀色沙馬](Characters/silver_sand_horses.md) | 028 | 已繪 v1 |
 | 道具 | `spying_mirror_spell` | [刺探咒與乾花鏡面](Props/spying_mirror_spell.md) | 022 | 已繪 v1 |
@@ -124,7 +131,8 @@ last_updated: "2026-10-05"
 | 場景 | `pole_venetian_picture_room` | [坡宅威尼斯畫室](Props/pole_venetian_picture_room.md) | 027 | 已繪 v1 |
 | 道具 | `false_bishop` | [「冒牌主教」號船](Props/false_bishop.md) | 028 | 已繪 v1 |
 | 場景 | `spithead_horse_sand` | [Spithead 的 Horse Sand 沙洲](Props/spithead_horse_sand.md) | 028 | 已繪 v2，無文字版 |
-| 場景/道具 | `temporary_roman_road` | [前線的臨時羅馬式道路](Props/temporary_roman_road.md) | 029（最近引用亦為029） | 已繪 v1、已視檢 |\r\n| 場景 | `mirror_hall_road` | [鏡中的昏暗長廊](Props/mirror_hall_road.md) | 036 | 已繪 v1、已視檢 |
+| 場景/道具 | `temporary_roman_road` | [前線的臨時羅馬式道路](Props/temporary_roman_road.md) | 029（最近引用亦為029） | 已繪 v1、已視檢 |
+| 場景 | `mirror_hall_road` | [鏡中的昏暗長廊](Props/mirror_hall_road.md) | 036 | 已繪 v1、已視檢 |
 
 ## 心得場景圖台帳
 
@@ -162,13 +170,17 @@ last_updated: "2026-10-05"
 | 026 | [一身帝王裝束的沉默](../../ReadingReflections/sirius_jonathan_strange_unheard_king.md) | `stephen_black`, `white_haired_gentleman`, `jonathan_strange`, `strange_soho_square_room`, `stephen_unwanted_regalia` | 已繪 v2、已視檢 |
 | 027 | [鏡中說不出的求援](../../ReadingReflections/sirius_jonathan_strange_unspoken_story.md) | `lady_pole`, `arabella_woodhope`, `pole_venetian_picture_room` | 已繪 v1、已視檢 |
 | 028 | [銀馬越過淺灘](../../ReadingReflections/sirius_jonathan_strange_sand_horses.md) | `jonathan_strange`, `silver_sand_horses`, `spithead_horse_sand`, `false_bishop` | 已繪 v1、已視檢 |
-| 029 | [腳下先有一條路](../../ReadingReflections/sirius_jonathan_strange_road_beneath_feet.md) | `temporary_roman_road` | 已繪 v1、已視檢；匿名官兵無具名人物設定 |\r\n| 036 | [沒有出口保證的鏡子](../../ReadingReflections/sirius_jonathan_strange_mirror_without_exit.md) | `mirror_hall_road` | 已繪 v1、已視檢；人影身分未揭明 |
+| 029 | [腳下先有一條路](../../ReadingReflections/sirius_jonathan_strange_road_beneath_feet.md) | `temporary_roman_road` | 已繪 v1、已視檢；匿名官兵無具名人物設定 |
+| 036 | [沒有出口保證的鏡子](../../ReadingReflections/sirius_jonathan_strange_mirror_without_exit.md) | `mirror_hall_road` | 已繪 v1、已視檢；人影身分未揭明 |
+| 037 | [法庭與個人意志](../../ReadingReflections/sirius_jonathan_strange_five_dragons_court.md) | `jonathan_strange_1814`, `mr_norrell`, `john_childermass`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 
 ## 待建與尚未鎖定
 
 波奈爾先生 (Mr. Bonnell) 已被提及；待讀到明確外貌與場景需求後，再補齊新的設定圖像。
 
-第29章的道路寬度、石材種類與消失視效均未確定。威靈頓、乃德、布里斯科等本章人物尚未為本次圖建立設定，因為畫面不讓他們成為可辨識主體；日後若畫具名人物，仍須先補人物設定卡與圖。\r\n\r\n第36章只確認鏡中長廊、黑窗、白月與不可辨認的人影；不推定道路終點、長廊所在世界或人影身分。
+第29章的道路寬度、石材種類與消失視效均未確定。威靈頓、乃德、布里斯科等本章人物尚未為本次圖建立設定，因為畫面不讓他們成為可辨識主體；日後若畫具名人物，仍須先補人物設定卡與圖。
+
+第36章只確認鏡中長廊、黑窗、白月與不可辨認的人影；不推定道路終點、長廊所在世界或人影身分。
 
 ## Sirius 本次閱讀線（2026-09-15）
 
@@ -311,28 +323,40 @@ last_updated: "2026-10-05"
 
 - [照見，卻不知何處](../../ReadingReflections/sirius_jonathan_strange_sight_without_location.md)：引用 `jonathan_strange`、`alba_tower_scrying_room`，圖為 `sirius_jonathan_strange_sight_without_location_v1.png`。初稿已視檢：一名可辨識角色，紅棕髮與深色外套沿用；銀盆寬沿淺身，窗板緊閉，林石幻影沒有地標、人物或船隻。懷特上尉在近景之外；不提早加入歸家外貌。
 - 兵器塔設定稿 v1 已視檢，房間與銀盆在同一張設定中固定。Library Cmd 已保存第31章 r1，書籤接續32。
-- 下次第一件事：讀第32章。若畫1814年歸家後的斯特蘭奇，先補更瘦、更黑、白髮增多與左眉上方舊疤的時間變體設定稿；本次不預畫後續場景。十七名死者、軍官與歸家客廳只在未選的場景需要時建檔。
+- 下次第一件事：讀第32章。1814年返家外貌變體現見 `Characters/jonathan_strange_1814.md`，未在第32章插圖中使用；本次不預畫後續場景。十七名死者、軍官與歸家客廳只在未選的場景需要時建檔。
 
 ## Sirius 本次新增場景（2026-10-02，第32章）
 
 - [榮耀天頂下的冷室](../../ReadingReflections/sirius_jonathan_strange_king_cold_room.md)：引用 `king_george_iii`、`windsor_king_music_room`；圖為 `sirius_jonathan_strange_king_cold_room_v1.png`。場景初稿已視檢：一名在場人物，國王的紫袍、紅帽與白長鬚沿用，雙手停在舊大鍵琴鍵旁，大片無地毯地板保持空曠；沒有可見銀髮伴侶、王冠、現代鋼琴或文字水印。
 - 兩張新增設定稿均已視檢，保存在作品 RawImages；Library Cmd 已保存第32章 r1，下一章為33。天頂人形只作壁畫背景，不視為新增人物出場。
-- 下次第一件事：讀第33章。若採用1814年斯特蘭奇的可辨識近景，先補第31章記錄的返家外貌變體；若畫凍池異變，再補石亭與石獸設定。未知魔法的施法者繼續保留開放，不用後文替當前圖解答。
+- 下次第一件事：讀第33章。1814年斯特蘭奇外貌變體現見 `Characters/jonathan_strange_1814.md`；若畫凍池異變，再補石亭與石獸設定。未知魔法的施法者繼續保留開放，不用後文替當前圖解答。
 
 ## Sirius 本次新增場景（2026-10-02，第33章）
 
 - [雪中仍有回應](../../ReadingReflections/sirius_jonathan_strange_answer_in_snow.md)：引用 `king_george_iii`、`windsor_enchanted_wood`；圖為 `sirius_jonathan_strange_answer_in_snow_v1.png`。已視檢：恰為一名角色，紫色睡袍、白灰鬚髮與舊拖鞋沿用；当次失帽，伸手朝畫外呼喊。樹林保持冰霜坑路與微弱遠點，不畫可見吹笛人、魔法師、天空月亮、心象或文字水印。
 - 新增古林 v1 設定卡與圖，均已視檢。Library Cmd 已保存第33章 r1，下一章為34；期待度保持4／5。
-- 下次第一件事：讀第34章。斯特蘭奇1814年外貌變體仍待可辨識近景需要時補繪；本次不預畫後續旅程，不把他自認勝過對手的判斷當成已證明的力量比較。
+- 下次第一件事：讀第34章。斯特蘭奇1814年外貌變體現見 `Characters/jonathan_strange_1814.md`；本次不預畫後續旅程，不把他自認勝過對手的判斷當成已證明的力量比較。
 
 ## Sirius 本次新增場景（2026-10-03，第34章）
 
 - [地毯前的一次婉拒](../../ReadingReflections/sirius_jonathan_strange_carpet_refusal.md)：引用 `stephen_black`、`white_haired_gentleman`、`desert_edge_market_carpet`；正式圖 `sirius_jonathan_strange_carpet_refusal_v1.png` 已視檢。恰為兩人，管家深色服裝與銀髮綠外套沿用；叫價師在畫外，抬手是詮釋，不畫囚犯、光效、文字或水印。
 - 新增市集／織毯設定卡與 v1，已先視檢再提供場景參考。織紋、低木支架、座位及部分建築细節標為詮釋，不作國別、宗教或祖籍證據。Library Cmd 已保存第34章 r1，下一章35，期待度4／5。
-- 下次第一件事：讀第35章，再確認新鄉紳或其他人物是否需要設定。斯特蘭奇1814年外貌變體仍待可辨識近景需要時補繪；史蒂芬王位、真名與後續報復結果繼續保留開放。
+- 下次第一件事：讀第35章，再確認新鄉紳或其他人物是否需要設定。斯特蘭奇1814年外貌變體現見 `Characters/jonathan_strange_1814.md`；史蒂芬王位、真名與後續報復結果繼續保留開放。
 
-## Sirius 本次新增場景（2026-10-05，第36章）\r\n\r\n- [沒有出口保證的鏡子](../../ReadingReflections/sirius_jonathan_strange_mirror_without_exit.md)：引用 `mirror_hall_road`；正式圖 `sirius_jonathan_strange_mirror_without_exit_v1.png` 已視檢。客廳取暖色、鏡中長廊取冷色，遠方人影仍不可辨認；無角色近景、文字或水印。\r\n- 新增鏡中長廊設定卡與 v1，先視檢再作場景參考。室內裝潢依文字描述詮釋，未替長廊、白月或人影增添未確認的來源與身分。Library Cmd 已保存第36章 r1，下一章37，期待度4／5。\r\n- 下次第一件事：讀第37章，再確認鏡中道路與人影是否有新的可見資訊；只沿用已讀內容更新設定。\r\n\r\n## Sirius 本次新增場景（2026-10-03，第35章）
+## Sirius 本次新增場景（2026-10-03，第35章）
 
 - [沒被聽見的要緊事](../../ReadingReflections/sirius_jonathan_strange_unheard_concern.md)：引用 `arabella_woodhope`、`soho_manuscripts_household_ledger`；正式圖 `sirius_jonathan_strange_unheard_concern_v1.png` 已視檢。恰為一人，灰綠裙、棕色盤髮與披肩沿用，喬納森在畫外；姿態及帳簿放置是詮釋，無文字、水印或魔法效果。
 - 新增客廳稿紙／家用帳簿設定卡與 v1，先視檢再用於場景生成。新設定不確認與第26章房間為同一間；沒有搬家行李或稻草。Library Cmd 已保存第35章 r1，下一章36，期待度4／5。
-- 第35章工作時記錄的下一步已完成：已讀第36章並按正文建立鏡中長廊設定。本次沒有畫可辨識的斯特蘭奇近景，因此不新增1814年外貌變體；未選的鄉紳、軍官、雙人肖像與台球室仍暫不建設定，函授疑點也沒有提前結案。
+- 第35章工作時記錄的下一步已完成：已讀第36章並按正文建立鏡中長廊設定。本次沒有畫可辨識的斯特蘭奇近景，因此未新增該章角色變體；未選的鄉紳、軍官、雙人肖像與台球室仍暫不建設定，函授疑點也沒有提前結案。
+
+## Sirius 本次新增場景（2026-10-05，第36章）
+
+- [沒有出口保證的鏡子](../../ReadingReflections/sirius_jonathan_strange_mirror_without_exit.md)：引用 `mirror_hall_road`；正式圖 `sirius_jonathan_strange_mirror_without_exit_v1.png` 已視檢。客廳取暖色、鏡中長廊取冷色，遠方人影仍不可辨認；無角色近景、文字或水印。
+- 新增鏡中長廊設定卡與 v1，先視檢再作場景參考。室內裝潢依文字描述詮釋，未替長廊、白月或人影增添未確認的來源與身分。Library Cmd 已保存第36章 r1，下一章37，期待度4／5。
+- 第36章時所列下一步已完成：已讀第37章，該章轉入五龍法庭爭論；未補寫鏡中道路與人影超出已讀範圍的資訊。
+
+## Sirius 本次新增場景（2026-10-05，第37章）
+
+- [法庭與個人意志](../../ReadingReflections/sirius_jonathan_strange_five_dragons_court.md)：引用 `jonathan_strange_1814`、`mr_norrell`、`john_childermass`、`norrell_hanover_square_study`；正式圖 `sirius_jonathan_strange_five_dragons_court_v1.png` 已視檢。三名人物，斯特蘭奇外貌沿用1814變體，諾瑞爾坐於稿紙後，齊爾德邁斯旁觀；無可讀文字、龍形徽記或刑具。
+- 新增 `jonathan_strange_1814` 設定卡；v1 未充分表現時間差異，保留原稿並以 v2 作正式引用。沿用漢諾威廣場書房與其他人物既有設定。Library Cmd 已保存第37章 r1，下一章38，期待度4／5。
+- 下次第一件事：讀第38章，只依新讀到的正文延伸人物、場景與劇透邊界。
