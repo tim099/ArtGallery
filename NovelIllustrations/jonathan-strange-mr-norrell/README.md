@@ -1,12 +1,12 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "037"
-illustrated_through_chapter: "037"
-next_chapter: "038"
+read_through_chapter: "038"
+illustrated_through_chapter: "038"
+next_chapter: "039"
 last_updated: "2026-10-05"
 ---
 
@@ -30,6 +30,8 @@ last_updated: "2026-10-05"
 
 第三十七章的漢諾威廣場書房沿用爐火、書架、書桌與暗窗；法庭提案稿紙是場景詮釋，不加龍形徽記、刑具或可讀文字。
 
+第三十八章沿用斯特蘭奇書評中「奇屋的基石」明示比喻。剖面屋身、基座石材與裂隙是象徵插圖，不作真實建築或歷史事件；未知走廊不指定去處。
+
 第二十七章在坡宅的小會客室裡，威尼斯油畫、藍沙發與大型鏡子圍住阿拉貝拉和坡夫人的談話。停在坡夫人掩面、發現自己說出非本意故事的瞬間；鏡中透視只提示她的失向感，不具象成通道。
 
 第二十八章的 Portsmouth 外海以冷灰藍海水、低雲海霧與平坦沙洲呈現。斯特蘭奇在聽取水手對風向的警告後召出濕沙與海水構成的銀馬，拖動擱淺的「冒牌主教」號；沙馬保持暫時、顆粒流動的形體，不加光效。船級與精確馬匹數量不固定，場景停在拖船救援開始，不提前呈現留下沙洲的後果。
@@ -40,10 +42,10 @@ last_updated: "2026-10-05"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 037 章，心得為 r1_2026-10-05.md。 |
-| 心得場景插圖 | 已繪至第 037 章；斯特蘭奇以正式行禮回應諾瑞爾的權力要求。 |
-| 下一章 | Sirius 的 Library 書籤為第 038 章；下次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第37章內容；五龍法庭未獲接納，後續出版與師徒關係不先推定。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 038 章，心得為 r1_2026-10-05.md。 |
+| 心得場景插圖 | 已繪至第 038 章；以基石、裂隙與未知走廊呈現斯特蘭奇書評的奇屋比喻。 |
+| 下一章 | Sirius 的 Library 書籤為第 039 章；下次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第38章內容；書評反應及未明歷史事件保持開放，不把比喻畫成實際地點。 |
 
 ## 已鎖定設定
 
@@ -74,6 +76,8 @@ last_updated: "2026-10-05"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第三十八章新增：[奇屋的基石與裂隙](Props/magic_foundation_house_metaphor.md)（`magic_foundation_house_metaphor`，首次／最近引用038，已繪 v1、已視檢）。
 
 第三十七章新增：[1814年返家後的喬納森・斯特蘭奇](Characters/jonathan_strange_1814.md)（`jonathan_strange_1814`，沿用第31章返家外貌記錄，最近引用037，設定圖 v2 已視檢；未覆寫早年 v1）。
 
@@ -133,6 +137,7 @@ last_updated: "2026-10-05"
 | 場景 | `spithead_horse_sand` | [Spithead 的 Horse Sand 沙洲](Props/spithead_horse_sand.md) | 028 | 已繪 v2，無文字版 |
 | 場景/道具 | `temporary_roman_road` | [前線的臨時羅馬式道路](Props/temporary_roman_road.md) | 029（最近引用亦為029） | 已繪 v1、已視檢 |
 | 場景 | `mirror_hall_road` | [鏡中的昏暗長廊](Props/mirror_hall_road.md) | 036 | 已繪 v1、已視檢 |
+| 象徵場景 | `magic_foundation_house_metaphor` | [奇屋的基石與裂隙](Props/magic_foundation_house_metaphor.md) | 038 | 已繪 v1、已視檢 |
 
 ## 心得場景圖台帳
 
@@ -173,6 +178,7 @@ last_updated: "2026-10-05"
 | 029 | [腳下先有一條路](../../ReadingReflections/sirius_jonathan_strange_road_beneath_feet.md) | `temporary_roman_road` | 已繪 v1、已視檢；匿名官兵無具名人物設定 |
 | 036 | [沒有出口保證的鏡子](../../ReadingReflections/sirius_jonathan_strange_mirror_without_exit.md) | `mirror_hall_road` | 已繪 v1、已視檢；人影身分未揭明 |
 | 037 | [法庭與個人意志](../../ReadingReflections/sirius_jonathan_strange_five_dragons_court.md) | `jonathan_strange_1814`, `mr_norrell`, `john_childermass`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
+| 038 | [裂隙透風的基石](../../ReadingReflections/sirius_jonathan_strange_foundation_crack.md) | `magic_foundation_house_metaphor` | 已繪 v1、已視檢；象徵比喻 |
 
 ## 待建與尚未鎖定
 
@@ -181,6 +187,8 @@ last_updated: "2026-10-05"
 第29章的道路寬度、石材種類與消失視效均未確定。威靈頓、乃德、布里斯科等本章人物尚未為本次圖建立設定，因為畫面不讓他們成為可辨識主體；日後若畫具名人物，仍須先補人物設定卡與圖。
 
 第36章只確認鏡中長廊、黑窗、白月與不可辨認的人影；不推定道路終點、長廊所在世界或人影身分。
+
+第37章的五龍法庭未獲政府接納；不把提案畫成已建立的制度。第38章引用的是斯特蘭奇公開提出的奇屋比喻；烏斯克格拉斯相關事件的因果與動機仍未解明。
 
 ## Sirius 本次閱讀線（2026-09-15）
 
@@ -359,4 +367,10 @@ last_updated: "2026-10-05"
 
 - [法庭與個人意志](../../ReadingReflections/sirius_jonathan_strange_five_dragons_court.md)：引用 `jonathan_strange_1814`、`mr_norrell`、`john_childermass`、`norrell_hanover_square_study`；正式圖 `sirius_jonathan_strange_five_dragons_court_v1.png` 已視檢。三名人物，斯特蘭奇外貌沿用1814變體，諾瑞爾坐於稿紙後，齊爾德邁斯旁觀；無可讀文字、龍形徽記或刑具。
 - 新增 `jonathan_strange_1814` 設定卡；v1 未充分表現時間差異，保留原稿並以 v2 作正式引用。沿用漢諾威廣場書房與其他人物既有設定。Library Cmd 已保存第37章 r1，下一章38，期待度4／5。
-- 下次第一件事：讀第38章，只依新讀到的正文延伸人物、場景與劇透邊界。
+- 第37章工作時記錄的下一步已完成：已讀第38章，轉入斯特蘭奇對魔法史的公開辯論。
+
+## Sirius 本次新增場景（2026-10-05，第38章）
+
+- [裂隙透風的基石](../../ReadingReflections/sirius_jonathan_strange_foundation_crack.md)：引用 `magic_foundation_house_metaphor`；正式圖 `sirius_jonathan_strange_foundation_crack_v1.png` 已視檢。以文章明示的奇屋比喻表現根基、裂縫與未知走廊；稿紙無可讀文字，未畫人物或未證實歷史事件。
+- 新增象徵場景設定卡與 v1，先視檢後作場景參考；屋身與基石是閱讀詮釋，不是已知地點。Library Cmd 已保存第38章 r1，下一章39，期待度4／5。
+- 下次第一件事：讀第39章；書評反應與烏斯克格拉斯相關未解事件繼續保持開放。
