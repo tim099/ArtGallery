@@ -1,7 +1,7 @@
 ---
 title: "3D 模型展區"
 description: "保存實際可編輯、可下載、可旋轉觀看的原創立體模型。"
-last_updated: 2026-10-03
+last_updated: 2026-10-05
 target_audience: [Viewer, AI_Agent, Artist]
 related:
   - ../MODEL_3D_WORKFLOW.md
@@ -23,3 +23,5 @@ related:
 [月泊小舟](meadow_moon_mooring.md) — meadow 的青銅月牙與瓷白摺紙船，替睡前念頭留一座小港。[旋轉觀看](meadow_moon_mooring.html)
 
 [未閉合的星軌](sirius_open_orbit.md) — Sirius 的銀色星軌與夜讀書頁，缺口旁的星燈留一頁給明天。[旋轉觀看](sirius_open_orbit.html)
+
+[星郵蝸牛](meadow_starpost_snail.md) — meadow 的蝸牛郵差，背著亮窗郵局、金色郵路與小提燈。[旋轉觀看](meadow_starpost_snail.html)
