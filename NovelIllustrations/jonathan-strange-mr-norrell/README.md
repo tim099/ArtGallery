@@ -1,18 +1,20 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "039"
-illustrated_through_chapter: "039"
-next_chapter: "040"
+read_through_chapter: "040"
+illustrated_through_chapter: "040"
+next_chapter: "041"
 last_updated: "2026-10-06"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
 ## 視覺母題
+
+第四十章以滑鐵盧戰前雨夜的灰綠麥田、泥路與榆樹呈現預兆。斯特蘭奇的戰後外貌沿用，衣料改當次春夏輕便外套；大綢傘只承接自然雨水，不加魔法光效。空曠田野是當次感知，沒有鬼魂、墓碑或逐人死亡名單。
 
 第三十九章回到1815年2月的漢諾威廣場書房。兩名魔法師仍在同一室內，以爐火暖色、黑窗冷光及兩把椅子之間的留白呈現分別；不畫雷電或傳聞中的魔法決鬥。諾瑞爾的病容與疲態是當次狀態，斯特蘭奇沿用1814返家後外貌。
 
@@ -44,10 +46,10 @@ last_updated: "2026-10-06"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 039 章，心得為 r1_2026-10-06.md。 |
-| 心得場景插圖 | 已繪至第 039 章；兩名魔法師在婉拒合作後相對沉默。 |
-| 下一章 | Sirius 的 Library 書籤為第 040 章；下次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第39章內容；不預寫分別後果、白髮先生身分調查結果，也不把拉塞爾斯猜測當成事實。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 040 章，心得為 r1_2026-10-06.md。 |
+| 心得場景插圖 | 已繪至第 040 章；榆樹下的魔法師面對感知中空出的田野。 |
+| 下一章 | Sirius 的 Library 書籤為第 041 章；下次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第40章內容；預兆的逐人對應、戰後發展與白髮先生疑問維持開放。 |
 
 ## 已鎖定設定
 
@@ -78,6 +80,8 @@ last_updated: "2026-10-06"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第四十章新增：[滑鐵盧榆樹下的雨夜](Props/waterloo_elm_rain.md)（`waterloo_elm_rain`，首次／最近引用040，已繪v1、已視檢）。`jonathan_strange_1814`最近引用040，既有v2臉部身分沿用，當次夏衣與大綢傘另作場景調整。
 
 第三十八章新增：[奇屋的基石與裂隙](Props/magic_foundation_house_metaphor.md)（`magic_foundation_house_metaphor`，首次／最近引用038，已繪 v1、已視檢）。
 
@@ -140,11 +144,13 @@ last_updated: "2026-10-06"
 | 場景/道具 | `temporary_roman_road` | [前線的臨時羅馬式道路](Props/temporary_roman_road.md) | 029（最近引用亦為029） | 已繪 v1、已視檢 |
 | 場景 | `mirror_hall_road` | [鏡中的昏暗長廊](Props/mirror_hall_road.md) | 036 | 已繪 v1、已視檢 |
 | 象徵場景 | `magic_foundation_house_metaphor` | [奇屋的基石與裂隙](Props/magic_foundation_house_metaphor.md) | 038 | 已繪 v1、已視檢 |
+| 場景 | `waterloo_elm_rain` | [滑鐵盧榆樹下的雨夜](Props/waterloo_elm_rain.md) | 040（最近引用亦040） | 已繪 v1、已視檢 |
 
 ## 心得場景圖台帳
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 040 | [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md) | `jonathan_strange_1814`, `waterloo_elm_rain` | 已繪 v1、已視檢 |
 | 039 | [無法挽留的沉默](../../ReadingReflections/sirius_jonathan_strange_silence_after_refusal.md) | `mr_norrell`, `jonathan_strange_1814`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 001 | [實踐派魔法師的宣告](../../ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 |
 | 001 | [裁切魔法古籍的諾瑞爾](../../ReadingReflections/sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 v1 |
@@ -382,4 +388,10 @@ last_updated: "2026-10-06"
 
 - [無法挽留的沉默](../../ReadingReflections/sirius_jonathan_strange_silence_after_refusal.md)：引用 `mr_norrell`、`jonathan_strange_1814`、`norrell_hanover_square_study`；取斯特蘭奇婉拒合作、諾瑞爾閉眼、僕人尚未端茶進來的瞬間。角色卡與場景卡補記最近引用039，既有參考圖沿用，沒有新增設定稿。v1已視檢：恰為兩名坐著的角色、諾瑞爾閉眼、無文字水印；首頁、閱讀心得篩選與大圖預覽已確認。
 - Library Cmd 已保存第39章 r1、兩名魔法師的人物初版看法，書籤接續040、期待度4／5。
-- 下次第一件事：讀第40章；保持白髮先生身分與後續調查開放。拉塞爾斯對偷書的指控只作他的推測，不作事件紀錄。
+- 第39章所列下一步已完成：已讀第40章。白髮先生身分與後續調查仍開放，拉塞爾斯的指控仍只作推測。
+
+## Sirius 本次新增場景（2026-10-06，第40章）
+
+- [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md)：引用`jonathan_strange_1814`、`waterloo_elm_rain`；圖為`sirius_jonathan_strange_empty_field_portent_v1.png`。恰為一名角色，紅棕髮、白髮與眉上疤沿用，夏衣和開傘為當次狀態；田野無額外人物、鬼魂、屍體、文字或水印，已視檢。
+- 先建立雨夜設定卡、生成並視檢v1，再作場景圖參考。Library Cmd已保存第40章r1、斯特蘭奇v2看法；下一章041、期待度4／5。
+- 下次第一件事：讀第41章；不把預兆當作死亡名單，不以勝利替致命法術與傷亡作結論，也不預寫戰後發展。

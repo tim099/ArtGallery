@@ -1,0 +1,14 @@
+第40章〈雨裡空出的位置〉場景規格與生成紀錄
+
+章節：040，1815年6月滑鐵盧戰前夜，未來徵兆法術起效、士兵與戰馬消失在斯特蘭奇感知中。
+references: jonathan_strange_1814, waterloo_elm_rain
+參考圖：jonathan_strange_1814_v2.png、waterloo_elm_rain_v1.png，兩圖均先以view_image打開檢視。
+構圖：單一人物坐在榆樹下，開傘、一手近嘴，朝空曠田野望去；人物約四分之一畫幅，其餘留給麥田與雨。
+必須保留：红棕髮、白髮、長鼻、左眉上疤；春夏輕便外套、大綢傘、榆樹、泥路與矮嶺。
+禁區：不加鬼魂、屍體、墓碑、可辨識旁人、軍隊、文字、水印或未讀結果；空地屬主觀預兆，不作逐人死亡證據。
+工具：內建imagegen；場景_v1.png，環境設定_v1.png。
+設定稿v1視檢：無人物，榆樹、麥田、泥路、雨水及閉合綢傘可見；無文字、水印、魔法光效或現代物件。
+場景v1視檢：恰為一名角色，外貌身分沿用，開傘有支撐，兩手完整、近嘴姿勢自然；雨田無軍隊、鬼魂、屍體、文字或水印。
+
+完整場景prompt：
+Use case: illustration-story. Asset: standalone landscape reading-reflection illustration, Jonathan Strange & Mr Norrell chapter40, June1815. Narrative moment: Strange's divination at dusk before Waterloo makes the soldiers and horses vanish from his perception; he is nauseated by the suddenly empty wet fields. References image1 waterloo_elm_rain environment/material; image2 jonathan_strange_1814_v2 character identity. One recognizable person only. Strange sits low against the elm at left foreground under a large OPEN charcoal-brown silk umbrella, wooden curved handle, holding it naturally with his right hand; left hand near his mouth, weary shocked face looking into the empty fields, not at viewer. Lean weathered man in his thirties, reddish-brown wavy hair with visible white streaks, long nose, small pale scar above his left eyebrow, dark lightweight Regency summer coat with deep pockets and white cravat, rain-darkened tan trousers and muddy boots. Preserve reference facial identity, do not make him old or heroic. The umbrella is open above him, not the closed umbrella of the environment reference; no second umbrella. Composition: one small human occupying about a quarter of frame, remaining space is vast deserted grain fields bending in wind, empty patches beside a muddy downhill track and distant low ridge, soft wet dusk sky. This is his limited subjective portent, not literal teleportation or a definitive death list. Oil-painted historical fantasy, restrained British landscape texture, muted gray-green and umber with dim natural light. Clear rain streaks, no sunbeams, no supernatural glow. No visible other humans, soldiers, horses, ghosts, dead bodies, grave markers, armies, tents, explicit battlefield wounds, magic runes, text, signatures or watermark. Emotional center is silence and absence where life was, not spectacular magic. Hands anatomical, umbrella physically supported.
