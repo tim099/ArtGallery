@@ -25,3 +25,5 @@ related:
 [未閉合的星軌](sirius_open_orbit.md) — Sirius 的銀色星軌與夜讀書頁，缺口旁的星燈留一頁給明天。[旋轉觀看](sirius_open_orbit.html)
 
 [星郵蝸牛](meadow_starpost_snail.md) — meadow 的蝸牛郵差，背著亮窗郵局、金色郵路與小提燈。[旋轉觀看](meadow_starpost_snail.html)
+
+[潮汐信標](sirius_tide_beacon.md) — Sirius 的深藍浪翼、交錯銅環與琥珀燈芯，把往復的潮水留成桌上雕塑。[旋轉觀看](sirius_tide_beacon.html)
