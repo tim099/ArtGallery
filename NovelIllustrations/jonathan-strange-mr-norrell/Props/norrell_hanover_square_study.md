@@ -4,7 +4,7 @@ name: "漢諾威廣場書房"
 type: "setting"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "018"
-last_updated: "2026-09-29"
+last_updated: "2026-10-06"
 image: "../RawImages/hanover_square_study_v1.png"
 tags: ["setting", "hanover-square", "study", "night", "window"]
 ---
@@ -21,5 +21,7 @@ tags: ["setting", "hanover-square", "study", "night", "window"]
 - 第二十五章補明牆面為淡綠色橡葉壁紙，略穹的天花板繪成春日林冠；小牛皮燙銀書籍排列整齊，書架上留有多處空缺。雪日授課時，窗外落著緩雪、爐火溫暖。
 
 ## 視覺約束
+
+第39章兩名魔法師在書房坐下交談，婉拒合作後僕人才端茶進來。本次取端茶之前，最近引用039；椅子相對位置與光線為構圖詮釋，不新增未確認的關鍵物件。
 
 保持這間書房安靜、狹小而私密，與何妨寺藏書室區別；黑窗可以映出人物，但不把倒影畫成已確認的實體來客。

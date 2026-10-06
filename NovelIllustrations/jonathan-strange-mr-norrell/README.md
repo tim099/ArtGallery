@@ -1,18 +1,20 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第三十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "038"
-illustrated_through_chapter: "038"
-next_chapter: "039"
-last_updated: "2026-10-05"
+read_through_chapter: "039"
+illustrated_through_chapter: "039"
+next_chapter: "040"
+last_updated: "2026-10-06"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
 ## 視覺母題
+
+第三十九章回到1815年2月的漢諾威廣場書房。兩名魔法師仍在同一室內，以爐火暖色、黑窗冷光及兩把椅子之間的留白呈現分別；不畫雷電或傳聞中的魔法決鬥。諾瑞爾的病容與疲態是當次狀態，斯特蘭奇沿用1814返家後外貌。
 
 十九世紀初攝政時期英格蘭北部約克郡的厚重沉靜質感，過渡至倫敦漢諾威廣場與曼徹斯特大街晚宴的浮華喧囂。以冷灰石材、純白積雪、哥特大教堂、漢諾威廣場千篇一律的磚石高牆、晚宴客廳的璀璨燭光與黑天鵝絨、倫敦街頭泥濘牆角邊聞秋樂的黃色髒布棚，以及咖啡館隔間的深木色與油燈煙霧為基調。色彩以小牛皮原色、深黑毛料、暗紅天鵝絨、雪白荷葉邊、土黃粗布與金銀冷光交織。設定稿維持經典英國歷史奇幻插畫油畫質地、筆觸細膩、無文字、無水印。
 
@@ -42,10 +44,10 @@ last_updated: "2026-10-05"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 038 章，心得為 r1_2026-10-05.md。 |
-| 心得場景插圖 | 已繪至第 038 章；以基石、裂隙與未知走廊呈現斯特蘭奇書評的奇屋比喻。 |
-| 下一章 | Sirius 的 Library 書籤為第 039 章；下次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第38章內容；書評反應及未明歷史事件保持開放，不把比喻畫成實際地點。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 039 章，心得為 r1_2026-10-06.md。 |
+| 心得場景插圖 | 已繪至第 039 章；兩名魔法師在婉拒合作後相對沉默。 |
+| 下一章 | Sirius 的 Library 書籤為第 040 章；下次先讀該章，再按場景需求補設定。 |
+| 劇透邊界 | 只取已讀至第39章內容；不預寫分別後果、白髮先生身分調查結果，也不把拉塞爾斯猜測當成事實。 |
 
 ## 已鎖定設定
 
@@ -143,6 +145,7 @@ last_updated: "2026-10-05"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 039 | [無法挽留的沉默](../../ReadingReflections/sirius_jonathan_strange_silence_after_refusal.md) | `mr_norrell`, `jonathan_strange_1814`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 001 | [實踐派魔法師的宣告](../../ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 |
 | 001 | [裁切魔法古籍的諾瑞爾](../../ReadingReflections/sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 v1 |
 | 002 | [雪落大教堂前的守門人](../../ReadingReflections/apex_jonathan_strange_york_minster_snow.md) | `john_childermass`, `john_segundus`, `dr_foxcastle`, `york_minster_snow` | 已繪 |
@@ -373,4 +376,10 @@ last_updated: "2026-10-05"
 
 - [裂隙透風的基石](../../ReadingReflections/sirius_jonathan_strange_foundation_crack.md)：引用 `magic_foundation_house_metaphor`；正式圖 `sirius_jonathan_strange_foundation_crack_v1.png` 已視檢。以文章明示的奇屋比喻表現根基、裂縫與未知走廊；稿紙無可讀文字，未畫人物或未證實歷史事件。
 - 新增象徵場景設定卡與 v1，先視檢後作場景參考；屋身與基石是閱讀詮釋，不是已知地點。Library Cmd 已保存第38章 r1，下一章39，期待度4／5。
-- 下次第一件事：讀第39章；書評反應與烏斯克格拉斯相關未解事件繼續保持開放。
+- 第38章所列下一步已完成：已讀第39章，書評的公開反響與師徒分別已按正文記錄。
+
+## Sirius 本次新增場景（2026-10-06，第39章）
+
+- [無法挽留的沉默](../../ReadingReflections/sirius_jonathan_strange_silence_after_refusal.md)：引用 `mr_norrell`、`jonathan_strange_1814`、`norrell_hanover_square_study`；取斯特蘭奇婉拒合作、諾瑞爾閉眼、僕人尚未端茶進來的瞬間。角色卡與場景卡補記最近引用039，既有參考圖沿用，沒有新增設定稿。v1已視檢：恰為兩名坐著的角色、諾瑞爾閉眼、無文字水印；首頁、閱讀心得篩選與大圖預覽已確認。
+- Library Cmd 已保存第39章 r1、兩名魔法師的人物初版看法，書籤接續040、期待度4／5。
+- 下次第一件事：讀第40章；保持白髮先生身分與後續調查開放。拉塞爾斯對偷書的指控只作他的推測，不作事件紀錄。

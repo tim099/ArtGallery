@@ -1,0 +1,14 @@
+第39章〈無法挽留的沉默〉場景規格與生成紀錄
+
+
+- 章節與時刻：039，婉拒合作後、諾瑞爾合眼、僕人進門之前。
+- 引用：`mr_norrell_v1.png`、`jonathan_strange_1814_v2.png`、`hanover_square_study_v1.png`；三張設定稿已先打開檢視。
+- 構圖：恰為兩名坐著的魔法師，以椅子之間的留白承載分別；諾瑞爾閉眼，斯特蘭奇安靜而堅決。
+- 必須保留：諾瑞爾矮小、灰髮、黑衣與白領巾；斯特蘭奇紅棕髮、白髮、左眉上舊疤與戰後瘦削感；書房狹小私密。
+- 禁止：新人物、魔法光效、雷電、茶盤、鑰匙、未讀資訊、可讀文字、水印。
+- 工具：內建 imagegen；正式 prompt 見下。
+- v1 視檢：恰為兩名坐著的角色；諾瑞爾閉眼、疲態明顯，斯特蘭奇保留紅棕髮、白髮與眉上疤。雙手完整，椅間留白、爐火與黑窗成立，無茶盤、額外人物、魔法光效、可讀文字或水印。
+
+```text
+Use case: illustration-story. Asset: single novel reading-reflection gallery illustration, landscape 3:2. Work Jonathan Strange & Mr Norrell, chapter 39 The Two Magicians, February 1815. Narrative moment: after Strange quietly refuses Norrell's offer of equal partnership and access to his library, Norrell closes his eyes; both are still seated in Norrell's Hanover Square study, before servants arrive. References: mr_norrell (image1 identity), jonathan_strange_1814 (image2 identity), norrell_hanover_square_study (image3 room). Exactly two men. On left Norrell small elderly, receding grey hair, thin wire spectacles, black wool Regency coat waistcoat and white cravat, pale haggard face seeming ten years older with exhaustion; eyes closed, shoulders fallen, hands resting naturally empty in lap. On right Strange taller lean weathered man in his thirties with reddish brown wavy hair, visible white streaks, long nose and small pale scar above his LEFT eyebrow, dark Regency coat with tan waistcoat and white cravat; seated, face quiet regret and firm resolve. They face each other obliquely; broad breathing space between the chairs, neither looking at viewer. Intimate private room, dark calfskin books with some empty shelf spaces, subtle pale green oak-leaf wallpaper, low hearth amber light, black evening window with cool blue light. English historical fantasy oil painting with finely worked faces and fabric and restrained painterly brushwork, subdued umber grey green palette, warm light cannot bridge the emotional distance. Hands anatomically natural. Preserve reference identities but do not reproduce pose, book, or writing from reference1. Not a confrontation or action scene. No tea, keys, extra people, magical effects, ravens, visions, future plot, modern items, legible writing, letters, watermark or captions. The composition is an interpretation of a textual moment, not a literal reconstruction of undocumented furniture.
+```

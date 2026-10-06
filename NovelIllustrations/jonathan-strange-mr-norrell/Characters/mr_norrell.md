@@ -4,7 +4,7 @@ name: 吉爾伯特・諾瑞爾 (Mr. Gilbert Norrell)
 type: character
 work: jonathan-strange-mr-norrell
 first_appearance: "001"
-last_updated: 2026-08-21
+last_updated: "2026-10-06"
 image: ../RawImages/mr_norrell_v1.png
 tags: [character, magician, hurtfew_abbey]
 ---
@@ -19,5 +19,9 @@ tags: [character, magician, hurtfew_abbey]
 - **服飾**：身著素黑羊毛紳士長燕尾服、深色背心、白色領巾與短馬褲，一絲不苟。
 - **行為習慣**：常手持精巧小牛皮典籍；寫字極小（蠅頭小字）；習慣將所有古籍重新裝訂為原色小牛皮壓銀字封面，並親手裁切剔除不合適的書頁。
 
+## 第39章當次狀態
+
+1815年2月，斯特蘭奇覺得他病容明顯、身量縮小、像老了十歲；這是當次疲態與觀感，並非永久年齡改設定。婉拒合作後合上雙眼。沿用 v1 的人物身分與服裝輪廓，無需新建角色；最近引用為039。追尋烏斯克格拉斯的失敗依他的自述記錄，不當作已被獨立查證的歷史。
 ## 敘事與象徵意義
+
 英格蘭百年來第一位真正具備實踐能力的魔法師。但他並非魔法的解放者，而是嚴格的壟斷者與審查者。他試圖將野性、古老且未知的魔法體系封裝進體面、受控的紳士學術框架中。

@@ -3,7 +3,7 @@ name: 喬納森・斯特蘭奇（1814年返家後）
 type: character
 work: jonathan-strange-mr-norrell
 first_appearance: "031"
-last_updated: "2026-10-05"
+last_updated: "2026-10-06"
 image: ../RawImages/jonathan_strange_1814_v2.png
 tags: [character, magician, strange, 1814]
 ---
@@ -19,5 +19,7 @@ tags: [character, magician, strange, 1814]
 - 深色攝政時期外套與白襯衣只作本次設定稿的服裝詮釋，不升格為固定系列服裝。
 
 ## 使用界線
+
+第39章時間為1815年2月，仍沿用此戰後外貌變體；最近引用039。插圖停在他婉拒合作後的沉默，坐姿與克制神情為當次構圖，不作固定姿態。
 
 適用於1814年5月返家後的場景。若章節另有服裝或外貌線索，逐章修正，不覆寫較早年份的 `jonathan_strange` 設定。
