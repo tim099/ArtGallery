@@ -19,7 +19,7 @@ status: "setting_v1_inspected"
 
 ## 設定稿
 
-- 圖檔：[verity_map_v1.png](../RawImages/verity_map_v1.png)
+![惟真留下的古地圖 v1 設定稿](../RawImages/verity_map_v1.png)
 - 完整提示詞：
 
 > Use case: illustration-story setting reference. Create a single clean neutral prop study for a recurring map in a literary fantasy novel, relevant only to chapter 23 of Assassin's Quest / Farseer Trilogy volume 3. A single old parchment map, lying flat and viewed from directly above on a simple neutral warm gray background, entire sheet visible with generous margins. The parchment is faded and old but intact, with faint decorative flower-like lattice grid lines and a few branching ink paths that divide into three routes; their far endpoints are worn into indistinct dark smudges. Keep all map marks abstract and unreadable: absolutely no words, labels, letters, symbols, compass rose, real-world geography, or recognizable place names. Restrained ochre and faded sepia ink, subtle paper grain and worn edges. Realistic painterly book illustration with oil-and-gouache brushwork, neutral diffuse studio light, faithful object-reference plate rather than dramatic scene. No people, hands, other props, frame, title, watermark, or added features. Landscape format.

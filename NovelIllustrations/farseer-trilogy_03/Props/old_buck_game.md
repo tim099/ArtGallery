@@ -19,7 +19,7 @@ status: "setting_v1_inspected"
 
 ## 設定稿
 
-- 圖檔：[old_buck_game_v1.png](../RawImages/old_buck_game_v1.png)
+![古老的公鹿石棋 v1 設定稿](../RawImages/old_buck_game_v1.png)
 - 完整提示詞：
 
 > Use case: reusable prop setting reference. Create a neutral still-life study of the ancient Buck game mentioned in chapter 25 of Assassin's Quest / Farseer Trilogy volume 3. Show a simple piece of woven cloth laid flat, crossed by a modest geometric grid; the grid intersections are visible. On the intersections rest several smooth rounded stones in three distinct colors only: deep charcoal black, muted red, and chalk white. The stones should look polished from handling but natural and handmade, with slight individual differences. Present an uncommitted generic arrangement, not a solved puzzle or recognizable real-world board game. Restrained painterly literary fantasy book illustration, visible oil-and-gouache brushwork and paper grain, muted earth cloth and subdued stones, neutral soft light. Landscape composition, slight overhead angle, isolated setting plate. No people, hands, animals, wolf imagery, tent, fire, magic, runes, letters, numerals, text, frame, or watermark.

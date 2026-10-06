@@ -19,7 +19,7 @@ status: "setting_v1_inspected"
 
 ## 設定稿
 
-- 圖檔：[untracked_mountain_road_v1.png](../RawImages/untracked_mountain_road_v1.png)
+![沒有足跡的古道 v1 設定稿](../RawImages/untracked_mountain_road_v1.png)
 - 完整提示詞：
 
 > Use case: illustration-story reusable setting reference. Create a single landscape establishing study of an ancient road through an untouched mountain forest, relevant only to chapter 24 of Assassin's Quest / Farseer Trilogy volume 3. Show a broad, unnaturally straight, shallow sunken corridor running through a very old dense forest, disappearing into distance beneath branches that nearly arch overhead. The forest floor on both sides is uneven and deeply snow-covered; the road itself is also covered in perfectly smooth pristine snow, slightly lower than the surrounding ground, with absolutely no footprints, animal tracks, fallen branches, roots crossing it, or young trees growing from it. Tall ancient trees stand along both sides, their roots do not intrude into the road. Its long straight geometry should feel subtly uncanny and empty, yet still like a physical path in a literary fantasy landscape. Neutral overcast winter daylight, muted charcoal bark, cool gray-white snow, earth-dark edge shadows, restrained painterly oil-and-gouache book illustration with visible paper grain. Treat this as a reusable location reference plate, not a dramatic action scene. No people, animals, camp, tent, fire, carved stone, paving blocks, signs, symbols, magical light, glowing lines, text, lettering, frame, or watermark. Landscape composition.
