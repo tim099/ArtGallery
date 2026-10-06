@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0021"
-illustrated_through_chapter: "0021"
-next_chapter: "0022"
+read_through_chapter: "0022"
+illustrated_through_chapter: "0022"
+next_chapter: "0023"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第二十一章〈對抗〉全文；下一次接續第二十二章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第二十二章〈啟程〉全文；下一次接續第二十三章〈群山〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -67,7 +67,8 @@ next_chapter: "0022"
 | 復原期蜚滋、博瑞屈、切德、耐辛 | 第一章／第一章 | 第一章採無人近景，暫不需要新人物稿；後續入畫前先核對當章外型與狀態，不能用序曲回顧時點或第一冊少年稿代替。 |
 | 蜚滋、博瑞屈、切德、夜眼 | 第一章／第二章 | 第二章採家具局部近景，人物在裁切之外；未據往事擅自生成年輕博瑞屈、駿騎或牽繫動物的人設。 |
 | `nighteyes_adult` | 第一章／第十七章 | [成年夜眼](Characters/nighteyes_adult.md) v1 已繪與視檢；第五章捕魚在受傷前。第十五至十七章沿用頭臉外型，不以早期健康稿推定傷已復原。第十七章部分毛束仍潮濕、閉眼疲倦，左肩傷部位不可辨識。 |
-| `fitz_recovering_traveler` | 第三章／第六章 | [復原期蜚滋旅人](Characters/fitz_recovering_traveler.md) v1 已繪與視檢；第六章沿用鬆髮與上身外型，長劍在裁切之外。第五章捕魚時尚未取得長劍，不把狀態跨時點回套。 |
+| `fitz_recovering_traveler` | 第三章／第六章 | [復原期蜚滋旅人](Characters/fitz_recovering_traveler.md) v1 已繪與視檢；第六章沿用鬆髮與上身外型，長劍在裁切之外。第五章捕魚時尚未取得長劍，不把狀態跨時點回套。 |
+| `fitz_jhaampe_after_arrow` | [頡昂佩拔箭後的蜚滋](Characters/fitz_jhaampe_after_arrow.md) | 第二十二章／第二十二章 | v1 已繪與視檢；剛洗淨刮鬍、白髮束綁入戰士髮辮，舊面疤與背傷仍在。 |
 | `fitz_farrow_bare_torso` | 第七章／第七章 | [法洛旅途頭肩狀態](Characters/fitz_farrow_bare_torso.md) v2 已繪與視檢；襯衫已收起、日曬皮膚，胸腹與腰腿不入畫。v1 疤痕左右有誤，保存但未作場景參考。 |
 | `nighteyes_left_shoulder_injured` | 第五章／第六章 | [左肩受傷夜眼](Characters/nighteyes_left_shoulder_injured.md) v1 已繪與視檢；四肢完整、左肩小劍傷、左前腳抬起避開承重。後續是否復原須依正文。 |
 | 洛夫、荷莉、希爾妲、阿霙 | 第六章／第六章 | 待設定；本次休息圖均留在畫外，首次作為可辨識主體前先建卡與設定稿。 |
@@ -142,10 +143,11 @@ next_chapter: "0022"
 
 | 0020 | [在那些名字之前](../../ReadingReflections/meadow_farseer_trilogy_03_before_our_names_v1.md) | `fool_jhaampe` | v1 已繪與視檢；床邊靜坐落淚的頭肩近景，其他人與道具在畫外，不補痊癒或預言成真。 |
 | 0021 | [耳環作證](../../ReadingReflections/meadow_farseer_trilogy_03_a_witness_to_truth_v1.md) | `freedman_sapphire_earring` | v1 已繪與視檢；裁切的雙手與耳側呈現椋音替蜚滋戴回耳環，信任仍未修復。 |
+| 0022 | [鏡中，傷痕仍在](../../ReadingReflections/meadow_farseer_trilogy_03_a_changed_gaze_v1.md) | `fitz_jhaampe_after_arrow` | v1 已繪與視檢；蜚滋在澡堂鏡前檢視背傷，面容仍帶舊疤，未畫成痊癒。 |
 
 ## 待辦與開放問題
 
-第二十一章已讀完並建立場景圖：蜚滋以謊言隔開弄臣，椋音帶著耳環向珂翠肯證明他仍活著，並讓莫莉得知真相。此時蜚滋已被照料且熬過拔箭，仍在復原；尋找惟真的旅程尚未開始。後續插圖仍須依新讀內容核對人物狀態，不能把女兒的未來、信任修補或旅程結果提前定案。
+第二十二章已讀完並建立場景圖：蜚滋在精技中拉住惟真，也被惟真的觸碰帶入較完整的視角；傷痕仍在，他對切德與珂翠肯的怒意卻已不同。女兒成為繼承人的安排仍有衝突，蜚滋希望與莫莉共同撫養她；他仍決定去找惟真。下一次先讀第二十三章〈群山〉，不預告後續結果。
 
 前章回畫界線：第十一章隨商隊前進、與塔絲晚餐後分開；當時耳環裹好藏入腰帶，蜚滋以湯姆化名牧羊，此狀態不可套回第十二章末。鏈章與戒指已售，箭兒已放走。耳環是否原屬博瑞屈祖母仍不得補定。莫莉與未具名女兒由博瑞屈照料，是第十一章精技夢所見；將來相認、原諒或團聚尚未發生。第九章借衣外貌只用於回畫當時場景，不套用到後續時點。
 
