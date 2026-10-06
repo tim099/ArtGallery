@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0020"
-illustrated_through_chapter: "0020"
-next_chapter: "0021"
+read_through_chapter: "0021"
+illustrated_through_chapter: "0021"
+next_chapter: "0022"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第二十章〈頡昂佩〉全文；下一次接續第二十一章〈對抗〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第二十一章〈對抗〉全文；下一次接續第二十二章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -141,10 +141,11 @@ next_chapter: "0021"
 | 0019 | [她也有自己的生活](../../ReadingReflections/meadow_farseer_trilogy_03_private_life_v1.md) | `soldier_private_keepsakes` | v1 已繪與視檢；覆土前淺土穴中的私人物件，無人、無狼，不補身世或赦免。 |
 
 | 0020 | [在那些名字之前](../../ReadingReflections/meadow_farseer_trilogy_03_before_our_names_v1.md) | `fool_jhaampe` | v1 已繪與視檢；床邊靜坐落淚的頭肩近景，其他人與道具在畫外，不補痊癒或預言成真。 |
+| 0021 | [耳環作證](../../ReadingReflections/meadow_farseer_trilogy_03_a_witness_to_truth_v1.md) | `freedman_sapphire_earring` | v1 已繪與視檢；裁切的雙手與耳側呈現椋音替蜚滋戴回耳環，信任仍未修復。 |
 
 ## 待辦與開放問題
 
-下一次先讀第二十一章〈對抗〉全文。蜚滋由夜眼帶往人煙處，在頡昂佩獲弄臣、喬馮與療者照料，認出弄臣並相認。背部感染、箭頭與部分箭柄仍在，手腳臉凍傷；療者計畫一週後取箭，本章未完成。若繪可辨識蜚滋，須先建立當章外型與受傷設定，不套早期鬆髮或未修髮鬚稿。夜眼在近處留意，後去獵食休息，舊肩傷未補定痊癒。弄臣報告珂翠肯孩子死產與她認為惟真死亡；戰場遺體不可辨識，不將她的推斷當成惟真死亡證據。蜚滋請弄臣守密，包括對珂翠肯與切德，不同於已團聚；椋音與水壺嬸未確認抵達。古地圖未取得，切德近期回來的消息未由弄臣親見；預言、種族說法與自責均是弄臣所述，不能補成全知規則。喬馮、療者、頡昂佩建築、公共花園、蓝陶盆、杯、木偶或箭傷若成為焦點，先建設定。煤灰與紅兒安好、煤灰懷孕已由弄臣報告；莫莉知悉真相後的回應、耳環交付與前章波爾特結果仍未定。
+第二十一章已讀完並建立場景圖：蜚滋以謊言隔開弄臣，椋音帶著耳環向珂翠肯證明他仍活著，並讓莫莉得知真相。此時蜚滋已被照料且熬過拔箭，仍在復原；尋找惟真的旅程尚未開始。後續插圖仍須依新讀內容核對人物狀態，不能把女兒的未來、信任修補或旅程結果提前定案。
 
 前章回畫界線：第十一章隨商隊前進、與塔絲晚餐後分開；當時耳環裹好藏入腰帶，蜚滋以湯姆化名牧羊，此狀態不可套回第十二章末。鏈章與戒指已售，箭兒已放走。耳環是否原屬博瑞屈祖母仍不得補定。莫莉與未具名女兒由博瑞屈照料，是第十一章精技夢所見；將來相認、原諒或團聚尚未發生。第九章借衣外貌只用於回畫當時場景，不套用到後續時點。
 
