@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0023"
-illustrated_through_chapter: "0023"
-next_chapter: "0024"
+read_through_chapter: "0024"
+illustrated_through_chapter: "0024"
+next_chapter: "0025"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第二十三章〈群山〉全文並完成場景圖；下一次接續第二十四章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第二十四章〈精技之路〉全文並完成場景圖；下一次接續第二十五章〈策略〉。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -54,6 +54,8 @@ next_chapter: "0024"
 第二十章先建立頡昂佩弄臣的當章外貌，床邊落淚圖採單人頭肩近景，保留有限的重逢喜悅，不將角色使命與預言畫成已證實結果。蜚滋和箭傷在畫外，暫時安全不是痊癒；不合成章末額頭相靠。
 
 第二十三章建立惟真留下的古地圖設定，以帳篷火光下地圖與一隻匿名指路手的近景呈現：路徑分岔，端點模糊，人物身分不入畫。羊皮紙與花飾格線依正文；磨損、燈色與毯面屬詮釋，不替古道標出目的地，也不洩漏後續地形。
+
+第二十四章先建立沒有足跡的古道場景設定，再畫林緣營火與筆直雪路的空景。蜚滋、同伴與動物都在畫外；平整雪路、古樹與火光依章內情境，不畫可見魔法，也不把水壺嬸提及的古老傳說定為道路真相。
 
 ## 角色與生物
 
@@ -118,6 +120,7 @@ next_chapter: "0024"
 
 | `soldier_private_keepsakes` | [女兵的私人小物](Props/soldier_private_keepsakes.md) | 0019／0019 | v1 已繪與視檢；斷手鐲、骰子與布包細髮，材質與數量為詮釋，來源未知。 |
 | `verity_map` | [惟真留下的古地圖](Props/verity_map.md) | 0023／0023 | v1 已繪與視檢；褪色羊皮紙、花飾格線、分岔墨路與模糊端點，不補地名與路線終點。 |
+| `untracked_mountain_road` | [沒有足跡的古道](Props/untracked_mountain_road.md) | 0024／0024 | v1 已繪與視檢；低於林地的平直雪路，無足跡、樹根或新苗；精技來源仍未確認。 |
 
 ## 心得場景圖台帳
 
@@ -149,10 +152,11 @@ next_chapter: "0024"
 | 0021 | [耳環作證](../../ReadingReflections/meadow_farseer_trilogy_03_a_witness_to_truth_v1.md) | `freedman_sapphire_earring` | v1 已繪與視檢；裁切的雙手與耳側呈現椋音替蜚滋戴回耳環，信任仍未修復。 |
 | 0022 | [鏡中，傷痕仍在](../../ReadingReflections/meadow_farseer_trilogy_03_a_changed_gaze_v1.md) | `fitz_jhaampe_after_arrow` | v1 已繪與視檢；蜚滋在澡堂鏡前檢視背傷，面容仍帶舊疤，未畫成痊癒。 |
 | 0023 | [沒有答案的古地圖](../../ReadingReflections/meadow_farseer_trilogy_03_the_unfinished_map_v1.md) | `verity_map` | v1 已繪與視檢；火光下羊皮地圖與匿名指路手，不畫可辨識人物或確切終點。 |
+| 0024 | [路把我叫走](../../ReadingReflections/meadow_farseer_trilogy_03_a_road_that_calls_v1.md) | `untracked_mountain_road` | v1 已繪與視檢；營火與帳篷留在林緣，無足跡雪路伸入森林，人物與動物在畫外。 |
 
 ## 待辦與開放問題
 
-第二十三章已讀完並建立場景圖：珂翠肯與水壺嬸在不掩蓋風險的前提下各自選擇同行；蜚滋與珂翠肯於夜宿帳篷時查看模糊的古地圖，選擇先走最近的小徑。蜚滋拒絕以精技呼喚惟真，因為那可能暴露彼此，也可能使他自己再次沉入精技河流。下一次先讀第二十四章〈精技之路〉，不預告後續結果。
+第二十四章已讀完並建立場景圖：蜚滋被無足跡古道上的精技拉力吸引，開始失去時間感與周遭注意力；夜眼察覺異樣，弄臣帶他離開路面，珂翠肯命他休息。夜裡他透過精技看見莫莉、博瑞屈與女兒蕁麻，惟真警告他精技訊息可能被敵人察覺，並命他盡快前去。精技打造道路仍是角色的推想與古老傳說，不先定為事實。下一次先讀第二十五章〈策略〉，不預告後續結果。
 
 前章回畫界線：第十一章隨商隊前進、與塔絲晚餐後分開；當時耳環裹好藏入腰帶，蜚滋以湯姆化名牧羊，此狀態不可套回第十二章末。鏈章與戒指已售，箭兒已放走。耳環是否原屬博瑞屈祖母仍不得補定。莫莉與未具名女兒由博瑞屈照料，是第十一章精技夢所見；將來相認、原諒或團聚尚未發生。第九章借衣外貌只用於回畫當時場景，不套用到後續時點。
 
