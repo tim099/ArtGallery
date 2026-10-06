@@ -11,6 +11,8 @@ tags: [character, scholar, york_society]
 
 # 約翰・斯剛德斯 (John Segundus)
 
+最近引用：041（2026-10-06）。第41章已教男女學生，籌辦望穿堂學校，遭齊爾德邁斯傳達禁令；未簽九年前協議。人物圖仍沿用v1身分，當次稍成熟的外貌與磨舊外套依時間差與本章狀態調整，不把初版三十歲出頭鎖成1815年的年齡。
+
 ![john_segundus](../RawImages/john_segundus_v1.png)
 
 ## 外貌與特徵

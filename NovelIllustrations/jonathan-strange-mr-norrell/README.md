@@ -1,18 +1,20 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十一章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "040"
-illustrated_through_chapter: "040"
-next_chapter: "041"
+read_through_chapter: "041"
+illustrated_through_chapter: "041"
+next_chapter: "042"
 last_updated: "2026-10-06"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
 ## 視覺母題
+
+第四十一章轉入1815年12月望穿堂的門階：深色石屋、棕色荒野與冬日灰光圍住兩人的攔阻談話。門保持開著，不以魔法光效或實體障礙解釋人脈權力；既有人物臉部身分沿用，衣料磨舊與斯剛德斯稍成熟的外貌作當次調整。
 
 第四十章以滑鐵盧戰前雨夜的灰綠麥田、泥路與榆樹呈現預兆。斯特蘭奇的戰後外貌沿用，衣料改當次春夏輕便外套；大綢傘只承接自然雨水，不加魔法光效。空曠田野是當次感知，沒有鬼魂、墓碑或逐人死亡名單。
 
@@ -145,12 +147,14 @@ last_updated: "2026-10-06"
 | 場景 | `mirror_hall_road` | [鏡中的昏暗長廊](Props/mirror_hall_road.md) | 036 | 已繪 v1、已視檢 |
 | 象徵場景 | `magic_foundation_house_metaphor` | [奇屋的基石與裂隙](Props/magic_foundation_house_metaphor.md) | 038 | 已繪 v1、已視檢 |
 | 場景 | `waterloo_elm_rain` | [滑鐵盧榆樹下的雨夜](Props/waterloo_elm_rain.md) | 040（最近引用亦040） | 已繪 v1、已視檢 |
+| 場景 | `starecross_hall_steps` | [望穿堂的門階](Props/starecross_hall_steps.md) | 041（最近引用亦041） | 已繪 v1、已視檢 |
 
 ## 心得場景圖台帳
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
 | 040 | [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md) | `jonathan_strange_1814`, `waterloo_elm_rain` | 已繪 v1、已視檢 |
+| 041 | [開著的門，停住的學校](../../ReadingReflections/sirius_jonathan_strange_school_threshold.md) | `john_segundus`, `john_childermass`, `starecross_hall_steps` | 已繪 v1、已視檢 |
 | 039 | [無法挽留的沉默](../../ReadingReflections/sirius_jonathan_strange_silence_after_refusal.md) | `mr_norrell`, `jonathan_strange_1814`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
 | 001 | [實踐派魔法師的宣告](../../ReadingReflections/apex_jonathan_strange_hurtfew_abbey_library.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 |
 | 001 | [裁切魔法古籍的諾瑞爾](../../ReadingReflections/sirius_jonathan_strange_hurtfew_abbey_censored_manuscript.md) | `mr_norrell`, `john_segundus`, `john_childermass`, `hurtfew_abbey_library` | 已繪 v1 |
@@ -394,4 +398,10 @@ last_updated: "2026-10-06"
 
 - [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md)：引用`jonathan_strange_1814`、`waterloo_elm_rain`；圖為`sirius_jonathan_strange_empty_field_portent_v1.png`。恰為一名角色，紅棕髮、白髮與眉上疤沿用，夏衣和開傘為當次狀態；田野無額外人物、鬼魂、屍體、文字或水印，已視檢。
 - 先建立雨夜設定卡、生成並視檢v1，再作場景圖參考。Library Cmd已保存第40章r1、斯特蘭奇v2看法；下一章041、期待度4／5。
-- 下次第一件事：讀第41章；不把預兆當作死亡名單，不以勝利替致命法術與傷亡作結論，也不預寫戰後發展。
+- 第40章所列下一步已完成：已讀第41章。不把預兆當作死亡名單，也不以勝利替致命法術與傷亡作結論。
+
+## Sirius 本次新增場景（2026-10-06，第41章）
+
+- [開著的門，停住的學校](../../ReadingReflections/sirius_jonathan_strange_school_threshold.md)：引用 `john_segundus`、`john_childermass`、`starecross_hall_steps`。圖為 `sirius_jonathan_strange_school_threshold_v1.png`，已視檢：恰為兩名人物，一站一坐，棕髮學者與黑髮司務身分沿用，無馬、學生、幻象女子、文字或水印。
+- 先完成門階設定稿並視檢，再引用三張圖生成場景；兩張人物卡最近引用更新為041，姿势、冬光與建築細節標明詮釋。Library已保存第41章r1與諾瑞爾v2看法，下一章042、期待度4／5。
+- 下次第一件事：讀第42章。尚未回信的原因、學校結果與缺指少婦幻象繼續保持開放；萊諾克斯夫人若在後續圖中成為可辨認主體，須先建立人物設定。

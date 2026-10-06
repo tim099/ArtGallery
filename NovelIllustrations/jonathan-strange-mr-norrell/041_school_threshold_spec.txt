@@ -1,0 +1,13 @@
+Use case: illustration-story
+Work: Jonathan Strange & Mr Norrell
+Chapter: 041 望穿堂, mid-December 1815
+Narrative moment: Childermass is seated on the entrance steps and tells Segundus to abandon the magic school; their first conversation, before the stable and mounted farewell.
+References: john_segundus, john_childermass, starecross_hall_steps.
+Input1: Segundus identity reference, soft brown wavy hair, slim face, modest dark brown Regency coat, cream trousers, white cravat. Mature slightly after nine years; preserve recognizable identity without inventing scars or grey hair. Coat now worn, as stated in this chapter.
+Input2: Childermass identity reference, tall lean rugged man, unruly long black hair, angular weathered face and dark worn travelling coat, muddy boots. Adopt oil-painting medium rather than the reference's ink style.
+Input3: location reference only; long low dark stone manor, modest open doorway, shallow steps, remote brown moor, bare trees.
+Composition: landscape3:2. Exactly two men, Segundus standing on the paved forecourt to left, slightly arrested midstep and looking at the seated Childermass on right. Childermass relaxed but firm, one hand subtly gesturing; doorway open behind him. No touching, no violence. Their positions show access denied by a person rather than an actual barricade.
+Lighting/mood: midwinter overcast cold grey daylight, faint warm interior, subdued brown and charcoal with classical British literary oil texture. Quiet disappointment, practical threat rather than supernatural doom.
+Constraints: no horse in this earlier moment, no third person, no Norrell, no students, no phantom woman, no dollhouse, no magic effects, no text, no watermark, no readable school signs. Steps and exact posture are interpretation; do not depict future school outcome or infer reason Strange has not replied.
+
+Visual inspection 2026-10-06: v1 has exactly two men, brown-haired Segundus standing and black-haired Childermass seated; worn coats, muddy boots and open dark doorway retained. No text, watermark, horse, additional person or supernatural effect. Reusable setting v1 was inspected before scene generation. Scene image resides in gallery root RawImages; setting image resides in the work's RawImages.

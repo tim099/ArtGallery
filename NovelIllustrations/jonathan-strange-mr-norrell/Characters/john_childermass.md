@@ -11,6 +11,8 @@ tags: [character, steward, hurtfew_abbey]
 
 # 約翰・齊爾德邁斯 (John Childermass)
 
+最近引用：041（2026-10-06）。第41章穿過時破舊的黑外套、泥靴，坐在望穿堂門階上傳達停辦學校的要求；承認曾忽略小規模授課，並提議為普通學校紹介學生。場景沿用v1人物身分，不把有限歉意解作威脅解除。
+
 ![john_childermass](../RawImages/john_childermass_v1.png)
 
 ## 外貌與特徵
