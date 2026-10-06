@@ -4,7 +4,8 @@ name: "史蒂芬・布萊克 (Stephen Black)"
 type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "015"
-last_updated: "2026-10-03"
+last_updated: "2026-10-06"
+last_referenced_chapter: "042"
 image: "../RawImages/stephen_black_v1.png"
 tags: ["character", "butler", "household", "black"]
 ---
@@ -25,7 +26,7 @@ tags: ["character", "butler", "household", "black"]
 
 ## 劇透邊界
 
-只納入已讀至第三十四章的資訊；王位、真名與非洲王族身分仍未證實。
+只納入已讀至第四十二章的資訊；王位、真名與非洲王族身分仍未證實。
 
 ## 第三十章補充
 
@@ -34,4 +35,8 @@ tags: ["character", "butler", "household", "black"]
 ## 第三十四章補充
 
 他不認同白髮先生對祖籍與王位的推斷，在對方考慮用地毯囚禁魔法師時匆忙拒買。這是當次言行，不代表已擺脫控制；沿用 v1，畫面中的抬手手勢是詮釋，沒有新增服飾或王者贈禮。
+
+## 第四十二章補充
+
+他明說不願當國王，並替坡夫人求解咒。突然被帶到沼澤，等待至黎明，再耗費體力取木；完成時累伏地上，返回咖啡館後兩人的好衣服都已破損且糊滿泥。插圖沿用v1臉部、短黑髮、深色管家服與白領巾，當次加濕泥、破口與疲態；沒有王者贈禮。伏地的具體朝向是詮釋，不把他畫成死者。
 

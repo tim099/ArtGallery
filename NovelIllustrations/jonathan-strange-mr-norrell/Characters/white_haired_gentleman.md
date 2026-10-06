@@ -4,7 +4,8 @@ name: "白髮舞會主人 (White-Haired Gentleman)"
 type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "016"
-last_updated: "2026-10-03"
+last_updated: "2026-10-06"
+last_referenced_chapter: "042"
 image: "../RawImages/white_haired_gentleman_v1.png"
 tags: ["character", "unnamed", "manor", "silver_hair"]
 ---
@@ -23,7 +24,7 @@ tags: ["character", "unnamed", "manor", "silver_hair"]
 
 ## 劇透邊界
 
-只呈現已讀至第三十四章的外貌與言行；不為他命名、補完來歷或確認預言結果。
+只呈現已讀至第四十二章的外貌與言行；不為他命名、補完來歷或確認預言結果。
 
 ## 第三十章補充
 
@@ -32,3 +33,7 @@ tags: ["character", "unnamed", "manor", "silver_hair"]
 ## 第三十四章補充
 
 他自述曾對國王施幻術，並受到斯特蘭奇使用的古法驚嚇；將兩位魔法師視為王位計畫的阻礙，考慮囚禁與其他傷害方式。這些是他的自述與計畫，不把本章尚未發生的囚禁畫成事實。他對城鎮、祖籍和英格蘭人的評斷也不作客觀設定；人物 v1 身分與服裝沿用。
+
+## 第四十二章補充
+
+他表示要永久擄走一名未明身分的女士，並要求腐橡木；不把史蒂芬猜她是公主的說法當作事實。他救史蒂芬脫離沼澤，又要求等待九個鐘頭；其歌聲讓史蒂芬感到萬物聆聽。取木時先指揮、最後親自拖拽，完成後欣喜端詳木頭。沿用v1銀白髮、蒼白膚色與深綠外套，當次衣著濕泥破損；髮上露光是自然反射，不畫實體冠冕。木頭用途仍未知。

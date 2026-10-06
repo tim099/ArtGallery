@@ -1,18 +1,20 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十一章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "041"
-illustrated_through_chapter: "041"
-next_chapter: "042"
+read_through_chapter: "042"
+illustrated_through_chapter: "042"
+next_chapter: "043"
 last_updated: "2026-10-06"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
 ## 視覺母題
+
+第四十二章轉入灰暗黎明的蘇格蘭沼澤。黑色腐土、冷霧、露水植物與灰郁群山承接取木後的疲憊；史蒂芬低伏，白髮先生站立欣賞濕黑古木。兩人的v1臉部身分與服裝輪廓沿用，濕泥與破損是当次狀態；不畫未知女士、夢中城市或木頭後續用途。
 
 第四十一章轉入1815年12月望穿堂的門階：深色石屋、棕色荒野與冬日灰光圍住兩人的攔阻談話。門保持開著，不以魔法光效或實體障礙解釋人脈權力；既有人物臉部身分沿用，衣料磨舊與斯剛德斯稍成熟的外貌作當次調整。
 
@@ -48,10 +50,10 @@ last_updated: "2026-10-06"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 040 章，心得為 r1_2026-10-06.md。 |
-| 心得場景插圖 | 已繪至第 040 章；榆樹下的魔法師面對感知中空出的田野。 |
-| 下一章 | Sirius 的 Library 書籤為第 041 章；下次先讀該章，再按場景需求補設定。 |
-| 劇透邊界 | 只取已讀至第40章內容；預兆的逐人對應、戰後發展與白髮先生疑問維持開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 042 章，心得為 r1_2026-10-06.md。 |
+| 心得場景插圖 | 已繪至第 042 章；取木後伏倒的史蒂芬與欣賞木頭的白髮先生。 |
+| 下一章 | Sirius 的 Library 書籤接續第 043 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第42章內容；未知女士身分、木頭用途、擄人與王位結果保持開放。 |
 
 ## 已鎖定設定
 
@@ -82,6 +84,8 @@ last_updated: "2026-10-06"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第四十二章新增：[蘇格蘭沼澤與腐橡木](Props/scottish_bog_oak.md)（`scottish_bog_oak`，首次／最近引用042，已繪v1）。`stephen_black`與`white_haired_gentleman`最近引用042，沿用人物v1，衣著濕泥破損屬本次狀態。
 
 第四十章新增：[滑鐵盧榆樹下的雨夜](Props/waterloo_elm_rain.md)（`waterloo_elm_rain`，首次／最近引用040，已繪v1、已視檢）。`jonathan_strange_1814`最近引用040，既有v2臉部身分沿用，當次夏衣與大綢傘另作場景調整。
 
@@ -404,4 +408,10 @@ last_updated: "2026-10-06"
 
 - [開著的門，停住的學校](../../ReadingReflections/sirius_jonathan_strange_school_threshold.md)：引用 `john_segundus`、`john_childermass`、`starecross_hall_steps`。圖為 `sirius_jonathan_strange_school_threshold_v1.png`，已視檢：恰為兩名人物，一站一坐，棕髮學者與黑髮司務身分沿用，無馬、學生、幻象女子、文字或水印。
 - 先完成門階設定稿並視檢，再引用三張圖生成場景；兩張人物卡最近引用更新為041，姿势、冬光與建築細節標明詮釋。Library已保存第41章r1與諾瑞爾v2看法，下一章042、期待度4／5。
-- 下次第一件事：讀第42章。尚未回信的原因、學校結果與缺指少婦幻象繼續保持開放；萊諾克斯夫人若在後續圖中成為可辨認主體，須先建立人物設定。
+- 第41章所列下一步已完成：已讀第42章。尚未回信的原因、學校結果與缺指少婦幻象繼續保持開放；萊諾克斯夫人若在後續圖中成為可辨認主體，須先建立人物設定。
+
+## Sirius 本次新增場景（2026-10-06，第42章）
+
+- [誰的輕鬆，誰的三個鐘頭](../../ReadingReflections/sirius_jonathan_strange_cost_of_easy.md)：引用 `stephen_black`、`white_haired_gentleman`、`scottish_bog_oak`。正式圖 `sirius_jonathan_strange_cost_of_easy_v3.png` 已視檢：恰為兩人，一伏一立，黑色管家服與深綠外套沾泥破損，濕黑古木仍為普通木段，無王冠、未知女士、文字、水印或後續法術。v1、v2保留，兩次修正只針對木頭粗糙材質，v3採較連續的細滑濕面。
+- 新增沼澤／古木設定卡與v1，先視檢再作場景參考；木段斷面、山谷與工具放置是詮釋。角色沿用v1，兩卡最近引用更新042。Library已保存第42章r1、史蒂芬與白髮先生的初版看法，書籤接續043、期待度4／5。
+- 下次第一件事：讀第43章。未知女士身分、木頭用途、擄人與王位結果皆保持開放；若新人物或重要物件成為主體，先設定再出場。畫廊索引已重建並對帳；browser拒絕本機file URL，網頁互動驗收仍未確認。
