@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0027"
-illustrated_through_chapter: "0027"
-next_chapter: "0028"
+read_through_chapter: "0028"
+illustrated_through_chapter: "0028"
+next_chapter: "0029"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第二十七章〈城市〉全文並完成場景圖；下一次接續第二十八章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第二十八章〈精技小組〉全文並完成場景圖；下一次接續第二十九章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -62,6 +62,8 @@ next_chapter: "0028"
 第二十六章引用成年夜眼頭頸設定，以帳篷內狼頭靠在腿上、手搔耳後的近景保存原智交流中斷時仍能理解的碰觸。人物臉與肩傷部位不可辨識，不補復原結果；暖光與布料為詮釋，不合成救援、幻象旅人或章末圓柱。
 
 ## 角色與生物
+
+第二十八章先建立救援繩索設定，再畫右手握繩與雪覆頁岩的局部近景，保存同伴分擔重量的動作。可辨識人物、弄臣、珂翠肯、傑帕與狼均在畫外；手、袖口、繩材與岩屑排列為詮釋，不合成後段伏擊，不把救援替殺戮結帳。弄臣發燒與自述轉變、珂翠肯救援、水壺嬸多年技巧與自述流亡已讀，若作人物主體須先建當章設定。
 
 第二十七章新增古城高塔臨摹用具設定，以抄好尚未收起的羊皮碎片呈現不漂亮卻可能有用的線索。人物、幽影、龍、白石地圖嵌板與黏土城市模型全在畫外；三種地圖不可混同。石地材質、物件安放與冷暖光屬詮釋，不把惟真曾在此停留的推理畫成親眼證實，也不把重逢畫成安全已完成。
 
@@ -129,6 +131,7 @@ next_chapter: "0028"
 | `untracked_mountain_road` | [沒有足跡的古道](Props/untracked_mountain_road.md) | 0024／0024 | v1 已繪與視檢；低於林地的平直雪路，無足跡、樹根或新苗；精技來源仍未確認。 |
 | `old_buck_game` | [古老的公鹿石棋](Props/old_buck_game.md) | 0025／0025 | v1 已繪與視檢；三色光滑石子放在布面格線交點；完整規則與精確局面未定。 |
 | `tower_copying_kit` | [古城高塔的臨摹用具](Props/tower_copying_kit.md) | 0027／0027 | v1 已繪與視檢；硬黃羊皮碎片、無木柄金屬筆尖與厚壁硬墨瓶。瓶形、塞子與墨痕為詮釋，不替代古地圖或城市模型。 |
+| `landslide_rescue_rope` | [山崩中的救援繩索](Props/landslide_rescue_rope.md) | 0028／0028 | v1 已繪與視檢；粗捻灰褐自然纖維為詮釋，主焦點為拉緊的繩，不是救援操作指引。 |
 
 ## 心得場景圖台帳
 
@@ -164,10 +167,11 @@ next_chapter: "0028"
 | 0025 | [一顆黑石的策略](../../ReadingReflections/meadow_farseer_trilogy_03_one_black_stone_v1.md) | `old_buck_game` | v1 已繪與視檢；黑石落在關閉陷阱的交點，盤面為詮釋。 |
 | 0026 | [還懂得這個碰觸](../../ReadingReflections/meadow_farseer_trilogy_03_a_touch_without_words_v1.md) | `nighteyes_adult` | v1 已繪與視檢；狼頭靠在裁切的腿部衣料上，搔耳後的一隻手，原智交流仍未恢復。 |
 | 0027 | [潦草的圖，也能帶人回去](../../ReadingReflections/meadow_farseer_trilogy_03_a_rough_map_home_v1.md) | `tower_copying_kit` | v1 已繪與視檢；羊皮碎片、無柄金屬筆尖與硬墨瓶的無人近景，不合成後段金龍或重逢。 |
+| 0028 | [分擔一部分重量](../../ReadingReflections/meadow_farseer_trilogy_03_a_share_of_the_weight_v1.md) | `landslide_rescue_rope` | v1 已繪與視檢；成人右手握住拉緊繩索，人物不可辨識，不合成伏擊或安全成果。 |
 
 ## 待辦與開放問題
 
-第二十七章已讀並完成 [潦草的圖，也能帶人回去](../../ReadingReflections/meadow_farseer_trilogy_03_a_rough_map_home_v1.md)，references 為 `tower_copying_kit`；v1 已繪與視檢，三件用具的無人近景。下一次先讀第二十八章正文，再決定插圖焦點；若畫古城建築、白石嵌板、黏土模型、圓柱或金龍，須先依已讀內容另建設定。城市廢棄原因、古靈身分、惟真是否停留與目的地仍未全面確證；章末蜚滋回到夜眼身邊，但離開時長、往返機制與安全狀態不補定。
+第二十八章已讀並完成場景圖。下一次先讀第二十九章，再決定插圖焦點；若畫傑帕、山崩全景、弓、圓柱、古城建築或金龍，須先另建設定。水壺嬸對路標作用的說明是推測；同行者說蜚滋前夜消失，尋找了一夜與大半個白天。精技小組目的未確證，三名營地守衛已死，塔洛為蜚滋舊識；馬匹被趕走後生存未定。弄臣仍發燒，轉變未完整揭露；水壺嬸過去殺同組成員與廢功流亡是本章自述，死者與起因全貌未知。
 
 第二十六章的毀壞岔路若成主焦點，須另建設定；第二十四章無足跡林間道路稿不能替代它。椋音對弄臣的性別與感情是角色說法，珂翠肯是否具有原智仍屬疑問，不鎖成事實。
 
