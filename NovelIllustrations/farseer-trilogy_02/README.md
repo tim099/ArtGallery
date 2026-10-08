@@ -53,6 +53,7 @@ next_chapter: "none in this volume; confirm third-volume media before continuing
 | 場景 | `verity_beacon_tower_training_room` | [冬晨烽火台與斧術訓練場](Props/verity_beacon_tower_training_room.md) | 0015 | 已繪 v1 |
 | 道具 | `white_ship_seen_by_fitz` | [蜚滋所見的白船](Props/white_ship_seen_by_fitz.md) | 0016 | 已繪 v1；只鎖定蜚滋所見 |
 | 道具 | `jhaemy_elderling_scrolls` | [婕敏捎來的古靈捲軸](Props/jhaemy_elderling_scrolls.md) | 0017 | 已繪 v1；只鎖定外觀，不描繪內容 |
+| 場景 | `cliff_beach_cove` | [公鹿堡懸崖下的隱密海灘與營火](Props/cliff_beach_cove.md) | 0017 | 已繪 v1；已視檢 |
 | 場景 | `naisin_hanging_herbs_room` | [耐辛的藥草起居室](Props/naisin_hanging_herbs_room.md) | 0018 | 已繪 v1；不指定藥草功效 |
 | 場景 | `buckkeep_dungeon_cell` | [公鹿堡地牢小室](Props/buckkeep_dungeon_cell.md) | 0030 | 已繪 v1；已視檢 |
 
@@ -76,6 +77,7 @@ next_chapter: "none in this volume; confirm third-volume media before continuing
 | 015 | [把自己的手交回斧頭](../../ReadingReflections/meadow_farseer_trilogy_02_secret_beacon_training_v1.md) | `fitz_young_teen`, `burrich`, `verity`, `verity_beacon_tower_training_room` | 已繪 v1 |
 | 016 | [黑海裡唯一看見的白船](../../ReadingReflections/meadow_farseer_trilogy_02_white_ship_isolation_v1.md) | `fitz_young_teen`, `white_ship_seen_by_fitz` | 已繪 v1 |
 | 017 | [捲軸與顫抖的手](../../ReadingReflections/meadow_farseer_trilogy_02_interlude_shrewd_trembling_v1.md) | `fitz_young_teen`, `king_shrewd`, `king_fool`, `king_shrewd_bedroom_fireplace`, `jhaemy_elderling_scrolls` | 已繪 v1 |
+| 017 | [暴雨將至的心碎海灘](../../ReadingReflections/calli_farseer_trilogy_02_interlude_beach_heartbreak_v1.md) | `fitz_young_teen`, `molly_bundle`, `cliff_beach_cove` | 已繪 v1；已視檢 |
 | 018 | [苦味藥草間的遲來理解](../../ReadingReflections/meadow_farseer_trilogy_02_bitter_herbs_realization_v1.md) | `fitz_young_teen`, `naisin_hanging_herbs_room` | 已繪 v1 |
 | 019 | [沉住門前的怒氣](../../ReadingReflections/meadow_farseer_trilogy_02_before_the_door_opens_v1.md) | `fitz_young_teen`, `ketricken`, `ketricken_quiet_sitting_room` | 已繪 v1 |
 | 020 | [苦果與相握之手](../../ReadingReflections/meadow_farseer_trilogy_02_bitter_loyalty_molly_v1.md) | `fitz_young_teen`, `molly_bundle` | 已繪 v1 |
