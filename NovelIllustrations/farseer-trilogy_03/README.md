@@ -4,16 +4,16 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0029"
-illustrated_through_chapter: "0029"
-next_chapter: "0030"
+read_through_chapter: "0030"
+illustrated_through_chapter: "0030"
+next_chapter: "0031"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第二十九章〈雞冠〉全文並完成場景圖；下一次接續第三十章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第三十章〈石頭花園〉全文並完成場景圖；下一次接續第三十一章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -62,6 +62,12 @@ next_chapter: "0030"
 第二十六章引用成年夜眼頭頸設定，以帳篷內狼頭靠在腿上、手搔耳後的近景保存原智交流中斷時仍能理解的碰觸。人物臉與肩傷部位不可辨識，不補復原結果；暖光與布料為詮釋，不合成救援、幻象旅人或章末圓柱。
 
 ## 角色與生物
+
+第三十章先建立銅棕鷹喙獨角龍設定，場景引用水壺嬸觸摸額部的局部手勢。手、暗袖、鱗片細部與森林構圖屬詮釋；人物不可辨識，未建立完整人物稿。不將冷石觸感或原智生命感知任一方定為完整答案，也不混入牡鹿人面像。椋音的創傷自述與原智分享的隱私問題記在閱讀心得，不畫受難場面。
+
+| setting_id | 設定卡 | 首次／最近章節 | 狀態 |
+|---|---|---|---|
+| `bronze_eagle_stone_dragon` | [銅棕鷹喙獨角龍](Characters/bronze_eagle_stone_dragon.md) | 0030／0030 | v1 已繪與視檢；鷹喙、單螺旋角、回彎長頸、摺翼、環尾；生命性未定。 |
 
 第二十九章沿用石棋設定，取行路時拇指揉搓單一黑石的局部手掌。人物、棋盤、紅白棋、雞冠幻象與狼均在畫外；袖口、手外觀和模糊路肩為詮釋，不補完整人物設定。弄臣當章脫皮與眼色變深，不能直接沿用第二十章人物稿畫可辨識當章主體。
 
@@ -172,7 +178,12 @@ next_chapter: "0030"
 | 0028 | [分擔一部分重量](../../ReadingReflections/meadow_farseer_trilogy_03_a_share_of_the_weight_v1.md) | `landslide_rescue_rope` | v1 已繪與視檢；成人右手握住拉緊繩索，人物不可辨識，不合成伏擊或安全成果。 |
 | 0029 | [從今天所在之處開始](../../ReadingReflections/meadow_farseer_trilogy_03_begin_where_we_are_v1.md) | `old_buck_game` | v1 已繪與視檢；單手掌握磨滑黑石，不畫完整解局、預言或未來結果。 |
 
+| 0030 | [冷石之下，尚未明白](../../ReadingReflections/meadow_farseer_trilogy_03_cold_stone_living_presence_v1.md) | `bronze_eagle_stone_dragon` | v1 已繪與視檢；水壺嬸局部老年手觸額，無可辨識人物、不合成其他石像。 |
+
 ## 待辦與開放問題
+
+
+第三十章已讀及繪畢，下一次第三十一章。金綠冠毛龍、牡鹿人面像、有翼野豬與公牛、其他石像及花園全景若成主體須另建設定。石像來源、生命性與醒來方式未知；蜚滋對冶鍊者的對比仍是探索。椋音所述創傷與生育處境不升格為普遍定律；蜚滋夢中的親友同室與龍棋不作現實成果。弄臣與椋音若畫可辨識當章主體，先依當章狀態建稿，不能套回第二十章外貌。
 
 第二十九章已讀並完成場景圖；下一次第三十章。帝尊技傳中威脅莫莉與蕁麻，不等於家人已被捕；切德是否接到孩子未知。弄臣自述白者血緣與預言的有限解讀，轉變尚不完整；雞冠只在幻象出現，未雕成現世物件。精技小組仍未確認死亡，珂翠肯是否以原智理解夜眼仍是蜚滋疑問，椋音對弄臣性別及幽會的說法不鎖成事實。若畫雞冠、灰石木牌遊戲、岔路圓柱或當章人物，先另建設定。
 
