@@ -4,8 +4,8 @@ name: "史蒂芬・布萊克 (Stephen Black)"
 type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "015"
-last_updated: "2026-10-06"
-last_referenced_chapter: "042"
+last_updated: "2026-10-10"
+last_referenced_chapter: "047"
 image: "../RawImages/stephen_black_v1.png"
 tags: ["character", "butler", "household", "black"]
 ---
@@ -26,7 +26,7 @@ tags: ["character", "butler", "household", "black"]
 
 ## 劇透邊界
 
-只納入已讀至第四十二章的資訊；王位、真名與非洲王族身分仍未證實。
+只納入已讀至第四十七章的資訊；王位結果、真名與非洲王族身分仍未證實。
 
 ## 第三十章補充
 
@@ -39,4 +39,8 @@ tags: ["character", "butler", "household", "black"]
 ## 第四十二章補充
 
 他明說不願當國王，並替坡夫人求解咒。突然被帶到沼澤，等待至黎明，再耗費體力取木；完成時累伏地上，返回咖啡館後兩人的好衣服都已破損且糊滿泥。插圖沿用v1臉部、短黑髮、深色管家服與白領巾，當次加濕泥、破口與疲態；沒有王者贈禮。伏地的具體朝向是詮釋，不把他畫成死者。
+
+## 第四十七章補充
+
+在望穿堂告別，斯剛德斯說他嘴上有紅白玫瑰；他伸手摸嘴，沒有摸到實物，一度想求援，仍未信任而離開。場景取尚未上馬、事故尚未發生時，沿用v1面貌與管家服，不加後續摔傷。手停在嘴旁的具體姿態是詮釋；玫瑰採另一人的知覺，不表示他本人看得見。
 

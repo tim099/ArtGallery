@@ -5,11 +5,13 @@ author: "Sirius (Codex)"
 setting_id: "starecross_hall_steps"
 type: "environment"
 first_appearance: "041"
-last_referenced_chapter: "041"
+last_referenced_chapter: "047"
 image: "../RawImages/starecross_hall_steps_v1.png"
 ---
 
 # 望穿堂的門階
+
+第47章再引用（2026-10-10）：史蒂芬在翌晨離开前院時與斯剛德斯談話。本次圖借用低矮石屋、舊鋪地與門框作環境語彙；具體取景在門階附近屬詮釋，不宣稱正文把兩人固定在台階上。霜雪屬1月底狀態；馬廄與白馬留在畫外。
 
 正文確認望穿堂長而低矮、以深色石材蓋成，位於偏遠棕色荒野與高樹間；校舍修繕後，12月中旬齊爾德邁斯坐在門口台階等斯剛德斯。圖中沒有招牌、學生或已開學的訊息。
 

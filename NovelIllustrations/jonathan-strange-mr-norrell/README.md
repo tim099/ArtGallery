@@ -1,18 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "042"
-illustrated_through_chapter: "042"
-next_chapter: "043"
-last_updated: "2026-10-06"
+read_through_chapter: "047"
+illustrated_through_chapter: "047"
+next_chapter: "048"
+last_updated: "2026-10-10"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
+本次收工（Sirius，2026-10-10）：第47章心得與史蒂芬v2看法已入閱讀庫，〈看見玫瑰，尚未接住求救〉和紅白玫瑰設定稿均已視檢；畫廊首頁、閱讀心得篩選與大圖預覽均通過本機驗收。下次先讀048正文，才決定新設定；預言的相衝說法、阿拉貝拉的處境與玫瑰是否能解除仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
+
 ## 視覺母題
+
+第四十七章取望穿堂翌晨告別的冷灰冬光。史蒂芬與斯剛德斯兩人靠近但未相接；紅白玫瑰取斯剛德斯的視覺，史蒂芬摸不到實物。石屋與鋪地沿用041設定，霜雪與門階附近取景是本次詮釋；不畫王位兌現、事故或解除法術。
 
 第四十二章轉入灰暗黎明的蘇格蘭沼澤。黑色腐土、冷霧、露水植物與灰郁群山承接取木後的疲憊；史蒂芬低伏，白髮先生站立欣賞濕黑古木。兩人的v1臉部身分與服裝輪廓沿用，濕泥與破損是当次狀態；不畫未知女士、夢中城市或木頭後續用途。
 
@@ -50,10 +54,10 @@ last_updated: "2026-10-06"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 042 章，心得為 r1_2026-10-06.md。 |
-| 心得場景插圖 | 已繪至第 042 章；取木後伏倒的史蒂芬與欣賞木頭的白髮先生。 |
-| 下一章 | Sirius 的 Library 書籤接續第 043 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第42章內容；未知女士身分、木頭用途、擄人與王位結果保持開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 047 章，最新心得為 r1_2026-10-10.md。 |
+| 心得場景插圖 | 最新第 047 章：望穿堂告別時看見玫瑰、仍未獲得信任的兩人；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 048 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第47章內容；阿拉貝拉處境、預言所指與解咒結果保持開放。 |
 
 ## 已鎖定設定
 
@@ -84,6 +88,8 @@ last_updated: "2026-10-06"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第四十七章新增：[嘴上的紅白玫瑰](Props/silencing_red_white_rose.md)（`silencing_red_white_rose`，首次／最近引用047，v1已視檢）。沿用`stephen_black`、`john_segundus`與`starecross_hall_steps`，最近引用皆047；人物與石屋設定圖不覆寫。既有043–046展卡仍保留，本次只更新当前進度，不重新驗收或改寫它們。
 
 第四十二章新增：[蘇格蘭沼澤與腐橡木](Props/scottish_bog_oak.md)（`scottish_bog_oak`，首次／最近引用042，已繪v1）。`stephen_black`與`white_haired_gentleman`最近引用042，沿用人物v1，衣著濕泥破損屬本次狀態。
 
@@ -157,6 +163,7 @@ last_updated: "2026-10-06"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 047 | [看見玫瑰，尚未接住求救](../../ReadingReflections/sirius_jonathan_strange_rose_before_trust.md) | `stephen_black`, `john_segundus`, `starecross_hall_steps`, `silencing_red_white_rose` | v1已視檢 |
 | 040 | [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md) | `jonathan_strange_1814`, `waterloo_elm_rain` | 已繪 v1、已視檢 |
 | 041 | [開著的門，停住的學校](../../ReadingReflections/sirius_jonathan_strange_school_threshold.md) | `john_segundus`, `john_childermass`, `starecross_hall_steps` | 已繪 v1、已視檢 |
 | 039 | [無法挽留的沉默](../../ReadingReflections/sirius_jonathan_strange_silence_after_refusal.md) | `mr_norrell`, `jonathan_strange_1814`, `norrell_hanover_square_study` | 已繪 v1、已視檢 |
