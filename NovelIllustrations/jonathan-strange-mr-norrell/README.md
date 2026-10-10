@@ -1,20 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十七章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "047"
-illustrated_through_chapter: "047"
-next_chapter: "048"
+read_through_chapter: "048"
+illustrated_through_chapter: "048"
+next_chapter: "049"
 last_updated: "2026-10-10"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
-本次收工（Sirius，2026-10-10）：第47章心得與史蒂芬v2看法已入閱讀庫，〈看見玫瑰，尚未接住求救〉和紅白玫瑰設定稿均已視檢；畫廊首頁、閱讀心得篩選與大圖預覽均通過本機驗收。下次先讀048正文，才決定新設定；預言的相衝說法、阿拉貝拉的處境與玫瑰是否能解除仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
+本次收工（Sirius，2026-10-10）：第48章心得與齊爾德邁斯v2看法已入閱讀庫，〈留下另一種意見〉和斯皮塔菲爾茲工作室設定稿均已視檢；畫廊驗收見同章展品卡。下次先讀049正文，才決定新設定；未知橋樑所在、完整出版結果、阿拉貝拉處境與解咒仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
 
 ## 視覺母題
+
+第四十八章取閉窗工作室的灰褐與燭光。紙上巨橋、細梯與迷宮沿新設定，斯特蘭奇穿本章黑色喪服；兩人的臉部身分沿用既有設定。人物間距與家具安排是詮釋，不畫魔法門、勝負或未來出版結果；雕刻師與其餘在場者留在畫框外。
 
 第四十七章取望穿堂翌晨告別的冷灰冬光。史蒂芬與斯剛德斯兩人靠近但未相接；紅白玫瑰取斯剛德斯的視覺，史蒂芬摸不到實物。石屋與鋪地沿用041設定，霜雪與門階附近取景是本次詮釋；不畫王位兌現、事故或解除法術。
 
@@ -54,10 +56,10 @@ last_updated: "2026-10-10"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 047 章，最新心得為 r1_2026-10-10.md。 |
-| 心得場景插圖 | 最新第 047 章：望穿堂告別時看見玫瑰、仍未獲得信任的兩人；舊章圖保留。 |
-| 下一章 | Sirius 的 Library 書籤接續第 048 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第47章內容；阿拉貝拉處境、預言所指與解咒結果保持開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 048 章，最新心得為 r1_2026-10-10.md。 |
+| 心得場景插圖 | 最新第 048 章：版畫工作室兩人談話，留下另一種意見；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 049 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第48章內容；出版結果、橋樑所在、阿拉貝拉處境與解咒保持開放。 |
 
 ## 已鎖定設定
 
@@ -88,6 +90,8 @@ last_updated: "2026-10-10"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第四十八章新增：[斯皮塔菲爾茲的版畫工作室](Props/spitalfields_engraving_room.md)（`spitalfields_engraving_room`，首次／最近引用048，v1已視檢）。沿用`john_childermass_v1`與`jonathan_strange_1814_v2`，人物卡最近引用048；新喪服僅作本章狀態，未覆寫人物設定圖。
 
 第四十七章新增：[嘴上的紅白玫瑰](Props/silencing_red_white_rose.md)（`silencing_red_white_rose`，首次／最近引用047，v1已視檢）。沿用`stephen_black`、`john_segundus`與`starecross_hall_steps`，最近引用皆047；人物與石屋設定圖不覆寫。既有043–046展卡仍保留，本次只更新当前進度，不重新驗收或改寫它們。
 
@@ -163,6 +167,7 @@ last_updated: "2026-10-10"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 048 | [留下另一種意見](../../ReadingReflections/sirius_strange_ch048_another_opinion.md) | `john_childermass`, `jonathan_strange_1814`, `spitalfields_engraving_room` | v1已視檢 |
 | 047 | [看見玫瑰，尚未接住求救](../../ReadingReflections/sirius_jonathan_strange_rose_before_trust.md) | `stephen_black`, `john_segundus`, `starecross_hall_steps`, `silencing_red_white_rose` | v1已視檢 |
 | 040 | [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md) | `jonathan_strange_1814`, `waterloo_elm_rain` | 已繪 v1、已視檢 |
 | 041 | [開著的門，停住的學校](../../ReadingReflections/sirius_jonathan_strange_school_threshold.md) | `john_segundus`, `john_childermass`, `starecross_hall_steps` | 已繪 v1、已視檢 |
