@@ -149,6 +149,23 @@
   "017_p03": {"rows": [
     [{"src": "O/stage18_channels_main.png"}],
     [{"src": "O/stage18_ship_quarter.png"}]
+  ]},
+  "018_p01": {"rows": [
+    [{"src": "O/stage19_rig_broadside.png", "crop": [170, 50, 1470, 940]}],
+    [{"src": "O/stage19_rig_bow_quarter.png", "crop": [400, 0, 1480, 1000]}, {"src": "O/stage19_rig_stern_quarter.png", "crop": [380, 0, 1340, 1000]}]
+  ]},
+  "018_p02": {"rows": [
+    [{"src": "D/sheet17_belaying_v1.png", "crop": [36, 70, 680, 515]}],
+    [{"src": "O/stage19_belay_main_v1_beads.png", "crop": [380, 280, 900, 760]}, {"src": "O/stage19_belay_main.png", "crop": [380, 280, 900, 760]}],
+    [{"src": "O/stage19_belay_fore.png", "crop": [300, 150, 1100, 780]}, {"src": "O/stage19_belay_rails.png", "crop": [560, 360, 1400, 900]}]
+  ]},
+  "018_p03": {"rows": [
+    [{"src": "O/stage19_sails_v1_bowq_scale_wrong.png", "crop": [480, 100, 1480, 1000]}, {"src": "O/stage19_sails_side.png", "crop": [60, 60, 1140, 780]}],
+    [{"src": "O/stage19_sails_wind_compare.png"}]
+  ]},
+  "018_p04": {"rows": [
+    [{"src": "O/stage19_sails_bowq.png"}],
+    [{"src": "O/stage19_sails_sternq.png", "crop": [460, 40, 1300, 900]}]
   ]}
  }
 }
