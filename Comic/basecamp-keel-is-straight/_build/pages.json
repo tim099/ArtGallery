@@ -72,6 +72,26 @@
     [{"src": "O/stage8_port_closeup_before.png", "crop": [200, 40, 1200, 960]}, {"src": "O/stage8_port_closeup.png", "crop": [200, 40, 1200, 960]}]]},
   "009_p02": {"rows": [
     [{"src": "O/stage8_view_bow_quarter.png", "fit": "cover", "aspect": 1.25}, {"src": "O/stage8_bow_port_side.png", "crop": [40, 40, 1360, 760]}],
-    [{"src": "O/stage8_view.png", "fit": "cover", "aspect": 1.9}]]}
+    [{"src": "O/stage8_view.png", "fit": "cover", "aspect": 1.9}]]},
+  "010_p01": {"rows": [
+    [{"src": "O/stage8_v12_bow_port_side_before.png", "crop": [250, 130, 680, 560]}, {"src": "O/stage8_v12_bow_port_side_after.png", "crop": [250, 130, 680, 560]}],
+    [{"src": "O/stage8_v12_bow_quarter_before.png"}, {"src": "O/stage8_v12_bow_quarter_after.png"}]
+  ]},
+  "010_p02": {"rows": [
+    [{"src": "O/stage8_cavity_view_before.png", "crop": [100, 80, 940, 760]}, {"src": "O/stage8_cavity_view_after.png", "crop": [100, 80, 940, 760]}],
+    [{"src": "O/stage8_cavity_shadow_diffmap.png", "fit": "cover", "aspect": 1.6}]
+  ]},
+  "011_p01": {"rows": [
+    [{"src": "D/sheet07_interior_v1.png", "crop": [0, 30, 1785, 460]}],
+    [{"src": "O/stage9_hold_fwd_before.png"}, {"src": "O/stage9_hold_fwd.png"}]
+  ]},
+  "011_p02": {"rows": [
+    [{"src": "O/stage9_gundeck_fwd.png", "fit": "cover", "aspect": 2.0}],
+    [{"src": "O/stage9_side_mid.png"}, {"src": "O/stage9_bow_wall.png"}]
+  ]},
+  "011_p03": {"rows": [
+    [{"src": "O/stage9b_top.png", "fit": "cover", "aspect": 2.4}],
+    [{"src": "O/stage9b_main_hold.png"}, {"src": "O/stage9_stern_inside.png"}]
+  ]}
  }
 }
