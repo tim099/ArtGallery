@@ -66,6 +66,12 @@
     [{"src": "O/stage7_view_bow_quarter.png", "fit": "cover", "aspect": 2.0}]]},
   "008_p03": {"rows": [
     [{"src": "O/stage7_view_side.png", "fit": "cover", "aspect": 3.4}],
-    [{"src": "O/stage7_marks_hide_hull.png", "fit": "cover", "aspect": 1.5}, {"src": "O/stage7_view.png", "fit": "cover", "aspect": 1.5}]]}
+    [{"src": "O/stage7_marks_hide_hull.png", "fit": "cover", "aspect": 1.5}, {"src": "O/stage7_view.png", "fit": "cover", "aspect": 1.5}]]},
+  "009_p01": {"rows": [
+    [{"src": "D/sheet06_ports_v1.png", "crop": [0, 20, 2000, 184]}],
+    [{"src": "O/stage8_port_closeup_before.png", "crop": [200, 40, 1200, 960]}, {"src": "O/stage8_port_closeup.png", "crop": [200, 40, 1200, 960]}]]},
+  "009_p02": {"rows": [
+    [{"src": "O/stage8_view_bow_quarter.png", "fit": "cover", "aspect": 1.25}, {"src": "O/stage8_bow_port_side.png", "crop": [40, 40, 1360, 760]}],
+    [{"src": "O/stage8_view.png", "fit": "cover", "aspect": 1.9}]]}
  }
 }
