@@ -182,6 +182,14 @@
   "019_p04": {"rows": [
     [{"src": "O/stage22_ratlines_close.png"}],
     [{"src": "O/stage22_implements_v2_hidden.png", "crop": [300, 0, 1400, 700]}, {"src": "O/stage22_implements_lookup.png", "crop": [300, 0, 1400, 700]}]
+  ]},
+  "020_p01": {"rows": [
+    [{"src": "D/sheet20_ladders_v1.png", "crop": [0, 0, 1270, 850]}],
+    [{"src": "O/stage23_ladders_section_aft.png", "crop": [200, 200, 1180, 730]}]
+  ]},
+  "020_p02": {"rows": [
+    [{"src": "O/stage23_ladders_section_fwd.png", "crop": [380, 180, 1220, 740]}, {"src": "O/stage23_waist_from_above.png", "crop": [150, 0, 1450, 900]}],
+    [{"src": "O/stage23_waist_from_gundeck.png", "crop": [200, 100, 1400, 800]}]
   ]}
  }
 }
