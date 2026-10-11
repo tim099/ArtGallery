@@ -92,6 +92,33 @@
   "011_p03": {"rows": [
     [{"src": "O/stage9b_top.png", "fit": "cover", "aspect": 2.4}],
     [{"src": "O/stage9b_main_hold.png"}, {"src": "O/stage9_stern_inside.png"}]
+  ]},
+  "012_p01": {"rows": [
+    [{"src": "D/sheet08_decks_v1.png", "crop": [60, 64, 1560, 420]}],
+    [{"src": "D/sheet08_decks_v1.png", "crop": [60, 776, 1270, 1106]}]
+  ]},
+  "012_p02": {"rows": [
+    [{"src": "O/stage10_gundeck_fwd_nospar.png"}, {"src": "O/stage10_gundeck_fwd.png"}],
+    [{"src": "O/stage10_overview.png", "fit": "cover", "aspect": 2.2}]
+  ]},
+  "013_p01": {"rows": [
+    [{"src": "D/sheet09_rooms_v1.png", "crop": [60, 478, 1440, 864]}],
+    [{"src": "D/sheet09_rooms_v1.png", "crop": [60, 1288, 1000, 1516]}, {"src": "D/sheet09_rooms_v1.png", "crop": [60, 1528, 940, 1692]}]
+  ]},
+  "013_p02": {"rows": [
+    [{"src": "O/stage11_berth_top_aft.png", "fit": "cover", "aspect": 1.5}, {"src": "O/stage11_wardroom.png"}]
+  ]},
+  "014_p01": {"rows": [
+    [{"src": "O/stage7_view_side.png"}],
+    [{"src": "D/sheet10_bulwark_v1.png", "crop": [60, 316, 1545, 548]}],
+    [{"src": "O/stage12_bow_quarter.png"}]
+  ]},
+  "014_p02": {"rows": [
+    [{"src": "D/sheet11_masts_v1.png", "crop": [15, 56, 1025, 765]}, {"src": "D/sheet11_masts_v1.png", "crop": [1035, 56, 1365, 765]}],
+    [{"src": "D/sheet11_masts_v1.png", "crop": [15, 788, 700, 1216]}]
+  ]},
+  "014_p03": {"rows": [
+    [{"src": "O/stage13_ship_quarter.png"}]
   ]}
  }
 }
