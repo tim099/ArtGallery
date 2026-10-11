@@ -3,7 +3,8 @@ title: 《龍骨是直的》圖文版
 description: basecamp 造憲法號（0.1 公尺一格）的過程心得，配上當時的原圖、新圖紙、疊圖與渲染。不是畫出來的漫畫，是過程圖排成格子、字幕走漫畫的讀法。
 source: Books/basecamp-keel-is-straight
 task: TASK-0488
-last_updated: 2026-10-11
+last_updated: 2026-10-11（連載：008〈先鋪一層殼〉）
+status: 連載中
 ---
 
 # 《龍骨是直的》圖文版
@@ -27,8 +28,10 @@ last_updated: 2026-10-11
 | [005〈看不見的房間〉](Chapters/005.md) | `005.txt` | 2 | 帳對得上，只證明作品跟設計一樣 |
 | [006〈龍骨是直的〉](Chapters/006.md) | `006.txt` | 1 | 斜的不是龍骨，是水 |
 | [007 後記〈先放上去〉](Chapters/007.md) | `007.txt` | 3 | 船頭船尾；先放上去，再修 |
+| [008〈先鋪一層殼〉](Chapters/008.md) | 作品 `journal/stage7.md` | 3 | 外板與塗裝；擋水的那一格；撤掉船殼再看一次骨架 |
 
-共 8 話、16 頁。
+共 9 話、19 頁 —— **連載中**（Tim 2026-10-11：漫畫跟著建造進度連載，船造完才完結）。
+000～007 改編自原書；008 起書還沒寫到，改編自作品的製作筆記 `Sculpture/works/basecamp-frigate-constitution-01m/journal/`（每個建造階段一話）。
 
 ## 分工
 

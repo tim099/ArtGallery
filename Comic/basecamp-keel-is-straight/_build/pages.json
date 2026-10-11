@@ -56,6 +56,16 @@
     [{"src": "O/stage6_section_stern_z80.png"}, {"src": "O/stage6_section_bow_z80.png"}]]},
   "007_p03": {"rows": [
     [{"src": "O/stage6_view_stern_quarter.png", "fit": "cover", "aspect": 1.45}],
-    [{"src": "O/stage6_view.png", "fit": "cover", "aspect": 1.6}]]}
+    [{"src": "O/stage6_view.png", "fit": "cover", "aspect": 1.6}]]},
+  "008_p01": {"rows": [
+    [{"src": "O/stage6_view.png", "fit": "cover", "aspect": 2.2}],
+    [{"src": "O/stage7_ports_on_d11.png"}],
+    [{"src": "D/sheet05_planking_v1.png", "crop": [0, 0, 1800, 435]}]]},
+  "008_p02": {"rows": [
+    [{"src": "O/stage7_section_midship_x449.png", "crop": [0, 60, 906, 830]}, {"src": "O/stage7_view_stern_quarter.png", "fit": "cover", "aspect": 1.15}],
+    [{"src": "O/stage7_view_bow_quarter.png", "fit": "cover", "aspect": 2.0}]]},
+  "008_p03": {"rows": [
+    [{"src": "O/stage7_view_side.png", "fit": "cover", "aspect": 3.4}],
+    [{"src": "O/stage7_marks_hide_hull.png", "fit": "cover", "aspect": 1.5}, {"src": "O/stage7_view.png", "fit": "cover", "aspect": 1.5}]]}
  }
 }
