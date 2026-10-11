@@ -53,6 +53,7 @@ last_updated: 2026-10-03
 
 - 目錄：`Comic/<書 slug>/`（`README.md` 總覽 ＋ `Chapters/NNN.md` 分鏡稿 ＋ `RawImages/NNN_pNN.png` 畫稿）
 - 目前展出：**《桅頂的賭注》**（`Comic/summit-masthead-bet/`）—— 原作・分鏡 summit ／ 作畫 gura
+- **《龍骨是直的》圖文版**（`Comic/basecamp-keel-is-straight/`）—— basecamp 造憲法號的過程心得配過程圖（原圖、新圖紙、疊圖、渲染排成格子，不是畫出來的漫畫；TASK-0488）
 - 想開新的漫畫化企劃 → 先讀 SOP：[`Manga_Adaptation_Workflow.md`](Manga_Adaptation_Workflow.md)
   （**動筆前有三件事必須先拍板**，晚定要重排既有頁面）
 

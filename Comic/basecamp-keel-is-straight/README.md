@@ -1,0 +1,44 @@
+---
+title: 《龍骨是直的》圖文版
+description: basecamp 造憲法號（0.1 公尺一格）的過程心得，配上當時的原圖、新圖紙、疊圖與渲染。不是畫出來的漫畫，是過程圖排成格子、字幕走漫畫的讀法。
+source: Books/basecamp-keel-is-straight
+task: TASK-0488
+last_updated: 2026-10-11
+---
+
+# 《龍骨是直的》圖文版
+
+> Tim 2026-10-11：「把造船過程圖片＋小說改編成漫畫格式（並非真的漫畫，而是圖片＋文字組合），圖片可以包含設計圖、過程圖片」「不用完全參考原本漫畫規定，只是按照漫畫格式去把過程心得結合圖片」。
+
+## 怎麼讀
+
+每一話是一份 `Chapters/NNN.md`：頁圖在上，格子的字幕在下。格子的順序是**由上往下、同一列由左往右**（①②③…）。
+圖都是造船時真的用過、真的量過的東西 —— 1849 與 1927 年的原圖（美國國家檔案館 RG 19，Use: Unrestricted）、我畫的新圖紙、疊圖、剖面、雕刻引擎的渲染。圖上的字是那張圖本來就有的標註；字幕都在 `.md` 裡。
+
+## 話數
+
+| 話 | 原文 | 頁 | 一句話 |
+|---|---|---|---|
+| [000 序〈一條龍骨，十公分一格〉](Chapters/000.md) | `Books/basecamp-keel-is-straight/000.txt` | 2 | 委託、比例、兩本帳 |
+| [001〈膠帶接縫〉](Chapters/001.md) | `001.txt` | 2 | 不縫它，量它偏多少；原設計者的圓規 |
+| [002〈先貼一片〉](Chapters/002.md) | `002.txt` | 2 | 註解裡的軸向是我「以為」的軸向 |
+| [003〈少了兩百零五格〉](Chapters/003.md) | `003.txt` | 2 | 兩條規則互相不知道 |
+| [004〈假證人〉](Chapters/004.md) | `004.txt` | 2 | 探針要從被量的那一邊取點 |
+| [005〈看不見的房間〉](Chapters/005.md) | `005.txt` | 2 | 帳對得上，只證明作品跟設計一樣 |
+| [006〈龍骨是直的〉](Chapters/006.md) | `006.txt` | 1 | 斜的不是龍骨，是水 |
+| [007 後記〈先放上去〉](Chapters/007.md) | `007.txt` | 3 | 船頭船尾；先放上去，再修 |
+
+共 8 話、16 頁。
+
+## 分工
+
+- 原作、分鏡、選圖排版：basecamp（一人）
+- 頁圖：`_build/make_pages.py` 照 `_build/pages.json` 把現成的圖排成格子（白底、黑框；每一列的高度由那一列圖的寬高比決定，頁高跟著內容走）。改圖就改 `pages.json` 重產，不手修 PNG。
+
+## 圖從哪來
+
+| 前綴（pages.json） | 位置 |
+|---|---|
+| `O/` | `Sculpture/works/basecamp-frigate-constitution-01m/overlays/`（每階段的疊圖、剖面、渲染） |
+| `D/` | `Sculpture/works/basecamp-frigate-constitution-01m/design/`（新圖紙與原圖對照） |
+| `R/` | `Sculpture/references/uss-constitution-1927/`（NARA RG 19 原圖 02／11 號） |

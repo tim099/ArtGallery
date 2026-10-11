@@ -1,0 +1,61 @@
+{
+ "note": "《龍骨是直的》圖文版的頁圖規格：一頁幾列、一列幾格，每格一張現成的圖（可裁切）。src 前綴：O＝作品 overlays、D＝作品 design、R＝Sculpture/references/uss-constitution-1927。contain 格照圖的比例；cover 格照 aspect 裁。",
+ "pages": {
+  "000_p01": {"rows": [
+    [{"src": "O/stage1_keel_view.png", "fit": "cover", "aspect": 1.8}],
+    [{"src": "R/RG19_ALPHA_Constitution_1797_02.JPG"}],
+    [{"src": "O/stage1_keel_cross_section.png", "crop": [300, 40, 700, 520]}, {"src": "O/stage1_keel_stern_overlay.png"}]]},
+  "000_p02": {"rows": [
+    [{"src": "O/stage5_view.png", "fit": "cover", "aspect": 2.0}],
+    [{"src": "D/compare02_details_v2.png"}]]},
+  "001_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_02.JPG", "crop": [10800, 1500, 14573, 4500]}],
+    [{"src": "O/stage1_keel_bow_overlay.png"}],
+    [{"src": "D/sheet01_profile_v1.png"}]]},
+  "001_p02": {"rows": [
+    [{"src": "D/sheet01b_details_v1.png", "crop": [560, 40, 1640, 1240]}, {"src": "O/stage2_bow_vs_original.png"}],
+    [{"src": "O/stage2_view.png", "fit": "cover", "aspect": 1.78}]]},
+  "002_p01": {"rows": [
+    [{"src": "O/stage3_view.png", "fit": "cover", "aspect": 1.78}],
+    [{"src": "O/stage4_body_f-30_vs_drawing.png", "crop": [720, 0, 2400, 758]}],
+    [{"src": "O/stage4_first_floor_f+00_section.png"}]]},
+  "002_p02": {"rows": [
+    [{"src": "O/stage4_view.png", "fit": "cover", "aspect": 2.0}],
+    [{"src": "O/stage4_view_above.png", "fit": "cover", "aspect": 2.67}]]},
+  "003_p01": {"rows": [
+    [{"src": "O/stage4_fix_floor_keelson.png"}],
+    [{"src": "O/stage4_fix_floor_keelson.png", "crop": [40, 90, 720, 650]}, {"src": "O/stage4_fix_floor_keelson.png", "crop": [740, 100, 1500, 650]}]]},
+  "003_p02": {"rows": [
+    [{"src": "O/stage4_view_stern.png", "fit": "cover", "aspect": 1.45}, {"src": "O/stage4_view_midship.png", "fit": "cover", "aspect": 1.45}],
+    [{"src": "O/stage4_profile_vs_drawing.png"}]]},
+  "004_p01": {"rows": [
+    [{"src": "O/stage4_profile_vs_drawing_offset3.png"}],
+    [{"src": "O/stage4_body_f+15_vs_drawing.png", "crop": [720, 0, 2400, 758]}],
+    [{"src": "O/stage4_body_f+15_vs_drawing.png", "crop": [1560, 300, 2330, 600]}]]},
+  "004_p02": {"rows": [
+    [{"src": "O/stage4_body_f-30_vs_drawing.png", "crop": [720, 0, 2400, 758]}],
+    [{"src": "O/stage4_body_f+00_vs_d15.png", "crop": [720, 0, 2400, 758]}],
+    [{"src": "O/stage4_view.png", "fit": "cover", "aspect": 2.0}]]},
+  "005_p01": {"rows": [
+    [{"src": "O/stage5_body_f+00_vs_drawing.png", "crop": [560, 0, 2560, 1096]}],
+    [{"src": "O/stage5_first_frame_f+00_section.png"}],
+    [{"src": "D/sheet04_frames_v1.png"}]]},
+  "005_p02": {"rows": [
+    [{"src": "O/stage5_view_inside.png", "fit": "cover", "aspect": 1.45}, {"src": "O/stage5_view.png", "fit": "cover", "aspect": 1.45}],
+    [{"src": "O/stage5_profile_vs_drawing.png"}]]},
+  "006_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_11.JPG", "crop": [300, 1150, 4800, 2550]}],
+    [{"src": "O/stage5_view_side.png", "fit": "cover", "aspect": 2.5}],
+    [{"src": "O/stage1_keel_side_overlay.png"}],
+    [{"src": "O/stage5_view_bow.png", "fit": "cover", "aspect": 1.45}, {"src": "O/stage5_view_stern.png", "fit": "cover", "aspect": 1.45}]]},
+  "007_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_11.JPG", "crop": [300, 1150, 5950, 2550]}],
+    [{"src": "O/stage6_lines_stern_vs_d11.png"}, {"src": "D/sheet03_lines_v2.png"}]]},
+  "007_p02": {"rows": [
+    [{"src": "O/stage6_design_stern_aft.png", "crop": [380, 100, 1020, 860]}, {"src": "O/stage6_view_stern_aft.png", "crop": [430, 30, 1170, 1040]}],
+    [{"src": "O/stage6_section_stern_z80.png"}, {"src": "O/stage6_section_bow_z80.png"}]]},
+  "007_p03": {"rows": [
+    [{"src": "O/stage6_view_stern_quarter.png", "fit": "cover", "aspect": 1.45}],
+    [{"src": "O/stage6_view.png", "fit": "cover", "aspect": 1.6}]]}
+ }
+}
