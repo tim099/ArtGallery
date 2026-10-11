@@ -119,6 +119,36 @@
   ]},
   "014_p03": {"rows": [
     [{"src": "O/stage13_ship_quarter.png"}]
+  ]},
+  "015_p01": {"rows": [
+    [{"src": "D/sheet12_stern_v1.png", "crop": [55, 62, 1440, 452]}],
+    [{"src": "O/stage14_stern_close.png"}]
+  ]},
+  "015_p02": {"rows": [
+    [{"src": "O/stage14_stern_quarter_low.png"}],
+    [{"src": "O/stage14_cabin_windows.png"}]
+  ]},
+  "016_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_11.JPG", "crop": [3780, 1380, 4420, 1960]}],
+    [{"src": "D/sheet13_head_v1.png", "crop": [40, 62, 1385, 590]}]
+  ]},
+  "016_p02": {"rows": [
+    [{"src": "O/stage15_head_quarter.png"}],
+    [{"src": "O/stage15_head_billet.png"}, {"src": "O/stage15_head_front.png"}]
+  ]},
+  "016_p03": {"rows": [
+    [{"src": "O/stage15_ship_bow_far.png"}]
+  ]},
+  "017_p01": {"rows": [
+    [{"src": "D/sheet14_yards_v1.png", "crop": [55, 60, 1045, 730]}, {"src": "D/sheet14_yards_v1.png", "crop": [1085, 60, 1415, 730]}]
+  ]},
+  "017_p02": {"rows": [
+    [{"src": "O/stage16_yards_spanker.png"}, {"src": "O/stage16_yards_main_close.png"}],
+    [{"src": "O/stage17_rudder_quarter.png"}]
+  ]},
+  "017_p03": {"rows": [
+    [{"src": "O/stage18_channels_main.png"}],
+    [{"src": "O/stage18_ship_quarter.png"}]
   ]}
  }
 }
