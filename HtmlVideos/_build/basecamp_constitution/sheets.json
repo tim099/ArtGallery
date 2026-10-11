@@ -1,0 +1,28 @@
+{
+ "note": "片中插入的新圖紙：階段 → 作品 design/ 底下的哪一張、裁哪一塊（比例 x0,y0,x1,y1）、標籤。make_html.py 縮成 JPEG 嵌進 HTML（圖紙是作品的設計稿，不是畫廊展品）",
+ "design": "D:/Unity/Valhalla/Sculpture/works/basecamp-frigate-constitution-01m/design",
+ "sheets": [
+  {"step": 1, "file": "sheet01_profile_v1.png", "crop": [0, 0, 1, 0.9], "label": "新圖紙 01〈側面圖 v1〉"},
+  {"step": 2, "file": "sheet01b_details_v1.png", "crop": [0, 0, 1, 1], "label": "新圖紙 01b〈艉柱・艏柱細部〉"},
+  {"step": 3, "file": "sheet02b_details_v2.png", "crop": [0, 0, 1, 1], "label": "新圖紙 02b〈apron・內艉柱・deadwood〉"},
+  {"step": 4, "file": "sheet03_lines_v1.png", "crop": [0, 0, 1, 1], "label": "新圖紙 03〈線形圖 v1〉"},
+  {"step": 5, "file": "sheet04_frames_v1.png", "crop": [0, 0, 1, 1], "label": "新圖紙 04〈肋骨圖 v1〉"},
+  {"step": 6, "file": "sheet04_frames_v2.png", "crop": [0, 0, 1, 1], "label": "新圖紙 04〈肋骨圖 v2：船頭與船尾〉"},
+  {"step": 7, "file": "sheet05_planking_v1.png", "crop": [0, 0, 1, 0.4], "label": "新圖紙 05〈外板與塗裝〉"},
+  {"step": 8, "file": "sheet06_ports_v2.png", "crop": [0, 0, 1, 1], "label": "新圖紙 06〈砲門 v2〉"},
+  {"step": 9, "file": "sheet07_interior_v1.png", "crop": [0, 0, 1, 0.45], "label": "新圖紙 07〈船殼內部〉"},
+  {"step": 10, "file": "sheet08_decks_v1.png", "crop": [0, 0, 1, 0.62], "label": "新圖紙 08〈四層甲板〉"},
+  {"step": 11, "file": "sheet09_rooms_v1.png", "crop": [0, 0, 1, 0.6], "label": "新圖紙 09〈房間〉"},
+  {"step": 12, "file": "sheet10_bulwark_v1.png", "crop": [0, 0, 1, 0.62], "label": "新圖紙 10〈舷牆與舷弧〉"},
+  {"step": 13, "file": "sheet11_masts_v1.png", "crop": [0, 0, 1, 0.62], "label": "新圖紙 11〈桅杆〉"},
+  {"step": 14, "file": "sheet12_stern_v1.png", "crop": [0.5, 0.02, 1, 0.45], "label": "新圖紙 12〈船尾窗與船尾裝飾〉"},
+  {"step": 15, "file": "sheet13_head_v1.png", "crop": [0, 0, 1, 0.4], "label": "新圖紙 13〈船頭〉"},
+  {"step": 16, "file": "sheet14_yards_v1.png", "crop": [0, 0, 1, 0.85], "label": "新圖紙 14〈帆桁〉"},
+  {"step": 17, "file": "sheet15_rudder_v1.png", "crop": [0, 0, 1, 1], "label": "新圖紙 15〈舵〉"},
+  {"step": 18, "file": "sheet16_channels_v1.png", "crop": [0, 0, 1, 1], "label": "新圖紙 16〈channels・deadeyes〉"},
+  {"step": 19, "file": "sheet17_belaying_v1.png", "crop": [0, 0, 1, 1], "label": "新圖紙 17〈甲板繫繩點〉"},
+  {"step": 20, "file": "sheet18_guns_v1.png", "crop": [0, 0, 1, 0.75], "label": "新圖紙 18〈24 磅長砲〉"},
+  {"step": 21, "file": "sheet19_gunfittings_v1.png", "crop": [0, 0, 1, 0.6], "label": "新圖紙 19〈砲具〉"},
+  {"step": 23, "file": "sheet20_ladders_v1.png", "crop": [0, 0, 0.85, 1], "label": "新圖紙 20〈艙口梯〉"}
+ ]
+}

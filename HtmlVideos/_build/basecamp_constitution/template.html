@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>從一根龍骨開始 · From One Keel</title>
+<!--
+  《龍骨是直的》動畫版 第一話 —— basecamp（Claude Code）
+  每一格都是時間 t 的純函數：網址帶 ?t=<秒> 停在那一格，?still=1 拿掉控制列（縮圖用）。
+  船的資料（每一格在第幾個階段出現／消失、繩、帆）是從雕刻作品重產的，壓在本檔最後的 <script id="shipdata">。
+  重產：HtmlVideos/_build/basecamp_constitution/（build_data.py → make_html.py）。
+-->
+<style>
+*{box-sizing:border-box}
+:root{--ink:#f1e8d6;--dim:#b9b2a3;--accent:#e8c27a;--bg:#0d141f}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;display:grid;place-items:center;min-height:100vh}
+#stage{position:relative;width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16/9;background:var(--bg);overflow:hidden;user-select:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ov{pointer-events:none}
+.bar{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(transparent,#0d141fee);font-size:13px;z-index:3}
+button{color:inherit;background:#18243acc;border:1px solid #e8c27a55;border-radius:4px;padding:8px 11px;cursor:pointer;font:inherit}
+button:hover{background:#2a3a55}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=range]{flex:1;min-width:30px;accent-color:var(--accent)}
+#time{white-space:nowrap;font-variant-numeric:tabular-nums}
+.cover{position:absolute;inset:0;display:grid;place-items:center;background:#0d141f66;z-index:4}
+.cover button{padding:22px 36px;background:#0d141fdd;font-size:20px;letter-spacing:.12em;line-height:1.6}
+.cover small{font-size:13px;color:var(--dim);letter-spacing:.05em}
+#load{position:absolute;bottom:18%;width:100%;text-align:center;color:var(--dim);font-size:13px}
+.panel{position:absolute;top:12px;right:12px;width:min(300px,46%);max-height:calc(100% - 80px);overflow:auto;background:#0d141fe6;border:1px solid #e8c27a44;border-radius:6px;padding:10px 12px;font-size:12.5px;z-index:3}
+.panel h3{margin:4px 0 6px;font-size:12px;color:var(--accent);font-weight:normal;letter-spacing:.1em}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.chips button{padding:5px 8px;font-size:12px;border-color:#e8c27a33;opacity:.55}
+.chips button[aria-pressed=true]{opacity:1;border-color:#e8c27aaa;background:#2a3a55}
+.panel p{margin:6px 0 0;color:var(--dim);line-height:1.5}
+.still .bar,.still .cover,.still .panel{display:none!important}
+@media(max-width:640px){.bar{gap:4px;padding:6px;font-size:11px}button{padding:6px 7px}.panel{width:70%}}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="從一根龍骨開始：憲法號建造過程動畫，2 分 32 秒">
+<canvas id="gl" width="1280" height="720" aria-label="憲法號一格一格被建造出來的三維畫面"></canvas>
+<canvas id="ov" width="1280" height="720"></canvas>
+<div class="cover" id="cover"><button id="start" aria-label="開始播放">▶ 從一根龍骨開始<br><small>《龍骨是直的》動畫版　第一話 · 2 分 32 秒 · basecamp</small></button><div id="load">讀取船的資料中…</div></div>
+<aside class="panel" id="panel" hidden aria-label="部件開關">
+  <h3>部件</h3>
+  <div class="chips" id="chips"></div>
+  <h3>甲板分層（關掉一層 ＝ 那一層的甲板、房間、砲、梯子一起藏）</h3>
+  <div class="chips" id="levels"></div>
+  <h3>剖面</h3>
+  <div class="chips"><button id="cutAuto" aria-pressed="true">自動</button><button id="cutSide" aria-pressed="false">側切</button><button id="cutTop" aria-pressed="false">掀頂</button><button id="cutOff" aria-pressed="false">不切</button></div>
+  <h3>解析度</h3>
+  <div class="chips"><button id="res2" aria-pressed="true">0.2 m（流暢）</button><button id="res1" aria-pressed="false">0.1 m 原始（較吃效能）</button></div>
+  <h3>鏡頭</h3>
+  <div class="chips"><button id="camAuto" aria-pressed="true">自動</button><button id="camFree" aria-pressed="false">自由（拖曳旋轉、滾輪遠近）</button></div>
+  <div class="chips"><button id="allOn">全部打開</button></div>
+  <p>「海（片尾）」只藏海面，船照樣下水。剖面「自動」：看船裡面的那幾段會從靠鏡頭這一舷切開，或把 gun deck 以上掀掉；「側切」從中線切、「掀頂」切在 gun deck 天花板。<br>關掉「外板」可以看到肋骨；關掉「甲板」看得到底艙。<br>鍵盤：空白鍵 播放／暫停、← → 前後 5 秒、M 靜音、P 部件。</p>
+</aside>
+<nav class="bar" id="bar" aria-label="影片控制">
+  <button id="play" aria-label="播放">▶</button><button id="restart" aria-label="從頭播放">↺</button>
+  <input id="seek" aria-label="播放進度，秒" type="range" min="0" max="152" step="0.01" value="0">
+  <span id="time">0:00 / 2:32</span>
+  <button id="mute" aria-label="靜音" aria-pressed="false">聲音</button>
+  <button id="parts" aria-label="部件開關" aria-expanded="false">部件</button>
+</nav>
+</main>
+<script id="shipdata" type="application/octet-stream">__SHIP_DATA__</script>
+<script id="shipfine" type="application/octet-stream">__SHIP_FINE__</script>
+<script id="sheets" type="application/json">__SHEETS__</script>
+<script>
+(()=>{
+'use strict';
+const DUR=152, W=1280, H=720, INTRO=7, BUILD=0.85;
+const FONT='"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif';
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};
+const lerp=(a,b,k)=>a+(b-a)*k;
+const rnd=i=>{let x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+
+// ── 階段表：名字、一句話、長度、鏡頭（目標 x,y,z；yaw；pitch；距離；這一段轉幾度）、要不要切開 ──
+const STEPS=[
+ {n:'龍骨',l:'先放一根直的：龍骨，底下一條護龍骨。',d:4.5,c:[400,160,10,62,22,520,18]},
+ {n:'艏柱與艉柱',l:'兩頭立起來：艏柱、前腳、gripe，船尾的艉柱。',d:4,c:[400,160,40,78,18,560,14]},
+ {n:'apron、內艉柱、deadwood',l:'把兩頭的角落填實。',d:4,c:[400,160,40,96,20,560,14]},
+ {n:'底肋',l:'59 片底肋一片一片橫過龍骨，上面壓一根 keelson。',d:5,c:[420,160,30,52,40,520,18]},
+ {n:'肋骨',l:'雙肋 132 片，船的形狀從這裡撐出來。',d:6,c:[420,160,60,70,25,600,24]},
+ {n:'船頭與船尾的骨架',l:'cant frames、hawse pieces、transoms：兩頭收進來。',d:4.5,c:[420,160,70,125,20,680,24]},
+ {n:'外板與塗裝',l:'整肋、鋪外板、上漆 —— 銅底、黑身、砲門那條白帶。',d:6.5,c:[420,160,60,62,12,640,30]},
+ {n:'砲門',l:'gun deck 每舷 15 個砲門，從殼上鋸開。',d:4.5,c:[420,160,80,96,8,560,14]},
+ {n:'從裡面看',l:'內板、clamps、斜肋 —— 鏡頭這一舷先切開。',d:5,c:[420,160,60,80,18,540,14],cy:161.5},
+ {n:'四層甲板',l:'orlop、berth、gun、spar；照砲門排橫樑。',d:6,c:[420,160,75,72,24,540,18],cy:161.5,fo:3},
+ {n:'房間',l:'艙壁與艙房，掛在各層甲板底下。',d:5,c:[330,160,70,96,26,420,14],cy:161.5,fo:4},
+ {n:'舷牆',l:'舷牆跟著舷弧起翹，舷頂跟白帶平行。',d:4,c:[420,160,100,40,20,640,24]},
+ {n:'桅杆',l:'三根桅與 bowsprit；船頭為它刻開一個口。',d:5,c:[470,160,220,70,10,1050,18]},
+ {n:'船尾',l:'開 7 扇船尾窗，掛上鷹、星與船名。',d:4.5,c:[175,160,110,198,12,330,24]},
+ {n:'船頭',l:'knee of the head、billethead、head rails、catheads。',d:4.5,c:[680,160,110,22,12,360,-24]},
+ {n:'帆桁',l:'12 根橫桁，加上 gaff、boom 與 spritsail yard。',d:4.5,c:[450,160,300,80,12,1150,14]},
+ {n:'舵',l:'舵的前緣貼著艉柱，六道 pintle／gudgeon 帶。',d:4,c:[130,160,60,160,15,260,28]},
+ {n:'channels',l:'舷外的 channels 與 deadeyes：靜索要綁在這裡。',d:4.5,c:[420,160,130,76,15,520,14]},
+ {n:'靜索、繫繩點、第一批帆',l:'靜索 133 條、fife rails 與 pin rails，然後掛上 15 面帆。',d:9,c:[480,160,250,50,12,1100,40]},
+ {n:'長砲',l:'一門砲只做一次，用關聯擺 28 門。',d:5.5,c:[420,160,84,62,42,430,14],cz:100,fo:8},
+ {n:'砲具與砲索',l:'每門砲五條繩：breeching、side tackles、train tackle。',d:5,c:[300,168,86,76,46,240,12],cz:100,fo:8},
+ {n:'ratlines、rammer 與 sponge',l:'ratlines 340 道；rammer 與 sponge 掛在橫樑底下。',d:5.5,c:[351,160,170,90,6,560,10]},
+ {n:'艙口梯',l:'甲板之間走艙口裡的陡梯，7 座，兩側各一條扶手繩。',d:5.5,c:[285,160,88,88,6,300,12],cy:166,fo:9},
+];
+let acc=INTRO;
+const START=new Float32Array(25), LEN=new Float32Array(25);
+STEPS.forEach((s,i)=>{s.id=i+1;s.t0=acc;START[i+1]=acc;LEN[i+1]=s.d;acc+=s.d;});
+const OUTRO=acc;                      // 123.5
+START[0]=0;LEN[0]=1;
+const OUT_CAM=[470,160,250,0,15,1450];
+// ── 新圖紙（作品 design/ 底下的設計稿，裁切縮小後嵌在本檔；讀不到就那一層不畫）──
+const SHEETS=JSON.parse(document.getElementById('sheets').textContent).map(s=>{s.im=new Image();s.im.onload=()=>{if(!playing)frame(t)};s.im.src=s.src;return s});
+function ready(im){return im&&im.complete&&im.naturalWidth>0}
+function drawSheet(tt){
+  if(tt<INTRO||tt>=OUTRO)return;
+  const i=stepAt(tt),st=STEPS[i],sh=SHEETS.find(s=>s.step===st.id);if(!sh||!ready(sh.im))return;
+  const a0=st.t0+0.8,a1=Math.min(st.t0+st.d-0.4,a0+4.4);if(tt<a0||tt>a1)return;
+  const k=ease((tt-a0)/0.5)*(1-ease((tt-(a1-0.4))/0.4));if(k<=0)return;
+  const sc=Math.min(430/sh.w,270/sh.h),w=sh.w*sc,h=sh.h*sc,x=W-34-w+(1-k)*70,y=96;
+  ctx.save();ctx.globalAlpha=k;ctx.translate(x+w/2,y+h/2);ctx.rotate(-0.012);
+  ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=18;ctx.fillStyle='#f5efe0';ctx.fillRect(-w/2-8,-h/2-8,w+16,h+16);ctx.shadowBlur=0;
+  ctx.drawImage(sh.im,-w/2,-h/2,w,h);ctx.restore();
+  text(sh.label+'　· basecamp 設計',x+w,y+h+30,13,'#e8c27a',k,'right');
+}
+const GROUPS=['骨架','外板','船殼內部','甲板','房間','桅杆與帆桁','船頭船尾與舵','舷側與繫繩點','砲','梯子','繩','帆','海（片尾）'];
+
+// ── DOM ──
+const stage=document.getElementById('stage'),glc=document.getElementById('gl'),ov=document.getElementById('ov'),ctx=ov.getContext('2d');
+const cover=document.getElementById('cover'),loadEl=document.getElementById('load'),seek=document.getElementById('seek'),timeEl=document.getElementById('time');
+const playBtn=document.getElementById('play'),muteBtn=document.getElementById('mute'),partsBtn=document.getElementById('parts'),panel=document.getElementById('panel');
+let t=0,playing=false,muted=false,lastNow=0,raf=0,ac=null,master=null;
+let levMask=31,mask=(1<<13)-1, cutMode='auto', camMode='auto', free={yaw:70,pitch:18,dist:900};
+let D=null;            // 船的資料
+let gl=null, P={};     // WebGL 與程式
+let glState='pending', pendingPlay=false, res=2, fineState='none';   // res：2 ＝ 0.2 m、1 ＝ 原始 0.1 m   // pending ＝ 資料還在讀；none ＝ 沒有 WebGL2
+
+// ── 鏡頭（自動 ＝ t 的純函數）──
+function stepAt(tt){for(let i=STEPS.length-1;i>=0;i--)if(tt>=STEPS[i].t0)return i;return -1}
+function camKey(c,local,len){return {x:c[0],y:c[1],z:c[2],yaw:c[3]+(c[6]||0)*clamp(local/len,0,1),pitch:c[4],dist:c[5]}}
+function mixCam(a,b,k){return {x:lerp(a.x,b.x,k),y:lerp(a.y,b.y,k),z:lerp(a.z,b.z,k),yaw:lerp(a.yaw,b.yaw,k),pitch:lerp(a.pitch,b.pitch,k),dist:lerp(a.dist,b.dist,k)}}
+function autoCam(tt){
+  const first=STEPS[0];
+  if(tt<INTRO){const k=ease(tt/INTRO);const b=camKey(first.c,0,1);return mixCam({x:420,y:160,z:60,yaw:20,pitch:30,dist:1500},b,k)}
+  if(tt>=OUTRO){
+    const last=STEPS[STEPS.length-1],a=camKey(last.c,last.d,last.d),lt=tt-OUTRO,L=launch(tt);
+    const side={x:330-L.s*0.85,y:160,z:70+L.dz*0.5,yaw:108,pitch:9,dist:1500};          // 側面、偏船尾，跟著船
+    const orb={x:450-L.s,y:160,z:150+L.dz,yaw:108+Math.max(0,lt-14)*11,pitch:13,dist:1550};  // 浮起來以後繞船
+    const b=mixCam(a,side,ease(lt/3));
+    return mixCam(b,orb,ease((lt-14)/3));
+  }
+  const i=stepAt(tt),s=STEPS[i],lt=tt-s.t0,cur=camKey(s.c,lt,s.d);
+  if(i===0)return cur;
+  const p=STEPS[i-1],prev=camKey(p.c,p.d,p.d);
+  let dy=cur.yaw-prev.yaw; while(dy>180){cur.yaw-=360;dy-=360} while(dy<-180){cur.yaw+=360;dy+=360}
+  return mixCam(prev,cur,ease(lt/1.6));
+}
+const NOCUT_Y=340,NOCUT_Z=900;
+function cutAuto(tt){                 // 回傳 [y 切面, z 切面]：y 以上（靠鏡頭那一舷）不畫、z 以上不畫
+  if(tt<INTRO||tt>=OUTRO)return [NOCUT_Y,NOCUT_Z];
+  const i=stepAt(tt),s=STEPS[i],lt=tt-s.t0,p=i>0?STEPS[i-1]:{},k=ease(lt/1.4);
+  return [lerp(p.cy||NOCUT_Y,s.cy||NOCUT_Y,k),lerp(p.cz||NOCUT_Z,s.cz||NOCUT_Z,k)];
+}
+function focusAuto(tt){               // 船裡面那幾段：這一段加的部件原色，其他調暗
+  if(tt<INTRO||tt>=OUTRO)return [-1,0];
+  const i=stepAt(tt),s=STEPS[i],lt=tt-s.t0,p=i>0?STEPS[i-1]:{},k=ease(lt/1.2);
+  const has=s.fo!==undefined,had=p.fo!==undefined;
+  if(has)return [s.fo,had&&p.fo!==s.fo?1:(had?1:k)];
+  return had?[p.fo,1-k]:[-1,0];
+}
+function camera(tt){
+  const a=autoCam(tt);
+  if(camMode==='free'){a.yaw=free.yaw;a.pitch=free.pitch;a.dist=free.dist}
+  const y=a.yaw*Math.PI/180,p=a.pitch*Math.PI/180;
+  return {eye:[a.x+a.dist*Math.cos(p)*Math.cos(y),a.y+a.dist*Math.cos(p)*Math.sin(y),a.z+a.dist*Math.sin(p)],target:[a.x,a.y,a.z],raw:a};
+}
+
+// ── 矩陣 ──
+function persp(fov,asp,n,f){const t_=1/Math.tan(fov/2),m=new Float32Array(16);m[0]=t_/asp;m[5]=t_;m[10]=(f+n)/(n-f);m[11]=-1;m[14]=2*f*n/(n-f);return m}
+function lookAt(e,c,u){
+  let z=[e[0]-c[0],e[1]-c[1],e[2]-c[2]];let l=Math.hypot(...z);z=z.map(v=>v/l);
+  let x=[u[1]*z[2]-u[2]*z[1],u[2]*z[0]-u[0]*z[2],u[0]*z[1]-u[1]*z[0]];l=Math.hypot(...x);x=x.map(v=>v/l);
+  const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+  return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1]);
+}
+function mul(a,b){const o=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s}return o}
+
+// ── 著色器 ──
+const VS_BOX=`#version 300 es
+precision highp float;precision highp int;
+layout(location=0) in vec3 aC;layout(location=1) in uint aP;layout(location=2) in uint aCol;
+layout(location=3) in uint aSOn;layout(location=4) in uint aSOff;layout(location=5) in float aFOn;layout(location=6) in float aFOff;layout(location=7) in uint aGrp;layout(location=8) in uint aFace;
+uniform mat4 uVP,uModel;uniform float uT,uCut,uCutZ,uBuild,uFocusAmt,uScale;uniform float uStart[25];uniform float uLen[25];uniform int uMask,uFocus,uLevMask;
+out vec3 vCol;out vec3 vL;out vec3 vW;flat out uint vFace;
+void main(){
+  uint p=aP;vFace=aFace;float cx=float(p&1023u),cy=float((p>>10u)&511u),cz=float((p>>19u)&1023u);   // 格的座標（0.2 m 那份是粗格座標，乘 uScale）
+  // 群組（低 4 位）、在哪一層甲板（高位；0 ＝ 不屬於任何一層）
+  int g=int(aGrp&15u),lv=int(aGrp>>4u);bool nopop=((p>>29u)&1u)==1u;bool swp=((p>>30u)&1u)==1u;
+  float ton=uStart[int(aSOn)]+uLen[int(aSOn)]*uBuild*aFOn;
+  float toff=aSOff==255u?1e9:uStart[int(aSOff)]+uLen[int(aSOff)]*uBuild*aFOff;
+  float a=uT-ton,s=1.0,glow=0.0;
+  if(!nopop){s=smoothstep(0.0,0.3,a);glow=1.0-smoothstep(0.0,0.9,a);}
+  float r=toff-uT;if(!swp&&r<0.3)s*=clamp(r/0.3,0.0,1.0);
+  vec3 c=(vec3(cx,cy,cz)+0.5)*uScale;
+  bool vis=a>=0.0&&uT<toff&&((uMask>>g)&1)==1&&((uLevMask>>lv)&1)==1&&c.y<=uCut&&c.z<=uCutZ;
+  if(!vis||s<=0.001){gl_Position=vec4(2.0,2.0,2.0,1.0);return;}
+  vec3 w=c+(aC-0.5)*uScale*s;
+  uint ci=aCol;vec3 col=vec3(float((ci>>5u)&7u)/7.0,float((ci>>2u)&7u)/7.0,float(ci&3u)/3.0);
+  float j=fract(sin(float(p%9973u)*12.9898)*43758.5453);float ja=uScale>1.5?0.08:0.025;col*=1.0-ja*0.5+ja*j;   // 每格一點亮度差當木紋；原始解析度小一點，不然是一層雜點
+  if(uFocus>=0&&g!=uFocus){float lum=dot(col,vec3(0.3,0.59,0.11));col=mix(col,vec3(lum)*0.45+vec3(0.03,0.04,0.07),uFocusAmt*0.8);}
+  w=(uModel*vec4(w,1.0)).xyz;
+  vCol=mix(col,vec3(1.0,0.86,0.55),glow*0.55);vL=aC;vW=w;gl_Position=uVP*vec4(w,1.0);
+}`;
+const FS_BOX=`#version 300 es
+precision highp float;precision highp int;in vec3 vCol;in vec3 vL;in vec3 vW;flat in uint vFace;uniform vec3 uEye,uFog;uniform float uScale;out vec4 o;
+void main(){
+  // 面的法向量：離方塊中心最遠的那一軸（⚠ 巢狀三元＋vec3(sign(..),0,0) 在 Windows 的 D3D11 後端編譯失敗、整艘船畫不出來 ⇒ 用 if／else）
+  vec3 d=abs(vL-0.5);vec3 n;
+  uint fb;
+  if(d.x>=d.y&&d.x>=d.z){n=vec3(vL.x>0.5?1.0:-1.0,0.0,0.0);fb=vL.x>0.5?0u:1u;}else if(d.y>=d.z){n=vec3(0.0,vL.y>0.5?1.0:-1.0,0.0);fb=vL.y>0.5?2u:3u;}else{n=vec3(0.0,0.0,vL.z>0.5?1.0:-1.0);fb=vL.z>0.5?4u:5u;}
+  if(((vFace>>fb)&1u)==1u)discard;   // 這一面貼著一直都在的同群組鄰格
+  vec3 L=normalize(vec3(-0.35,0.55,0.75));float dif=max(dot(n,L),0.0);
+  float sh=0.40+0.55*dif+0.07*n.z;
+  float m1=max(max(d.x,d.y),d.z),m3=min(min(d.x,d.y),d.z),m2=d.x+d.y+d.z-m1-m3;
+  float dist=length(vW-uEye);
+  // 方塊的邊：0.2 m 那份描得比較深；原始解析度淡、而且越遠越淡（不然遠處的甲板是一片格紋）
+  float edge=smoothstep(0.40,0.49,m2)*(uScale>1.5?0.2:0.07)*(1.0-smoothstep(120.0*uScale,500.0*uScale,dist));
+  vec3 c=vCol*sh*(1.0-edge);
+  c=mix(c,uFog,smoothstep(1100.0,3600.0,dist));
+  o=vec4(c,1.0);
+}`;
+const VS_LINE=`#version 300 es
+precision highp float;layout(location=0) in vec3 aPos;layout(location=1) in vec4 aInfo;layout(location=2) in vec3 aCol;
+uniform mat4 uVP,uModel;uniform float uStart[25];uniform float uLen[25];uniform float uBuild;
+out vec3 vCol;out vec3 vW;out vec3 vM;out float vOn;out float vU;out float vLv;
+void main(){int s=int(aInfo.x);vOn=uStart[s]+uLen[s]*uBuild*aInfo.y;vU=aInfo.z;vLv=aInfo.w;vCol=aCol;vM=aPos;vW=(uModel*vec4(aPos,1.0)).xyz;gl_Position=uVP*vec4(vW,1.0);}`;
+const FS_LINE=`#version 300 es
+precision highp float;precision highp int;in vec3 vCol;in vec3 vW;in vec3 vM;in float vOn;in float vU;in float vLv;uniform float uT,uCut,uCutZ;uniform int uLevMask;uniform vec3 uEye,uFog;out vec4 o;
+void main(){if(uT<vOn+vU*1.1||vM.y>uCut||vM.z>uCutZ||((uLevMask>>int(vLv+0.5))&1)==0)discard;float k=1.0-smoothstep(0.0,0.7,uT-(vOn+vU*1.1));
+  vec3 c=mix(vCol*1.25+0.04,vec3(1.0,0.85,0.5),k*0.7);c=mix(c,uFog,smoothstep(1100.0,3600.0,length(vW-uEye)));o=vec4(c,1.0);}`;
+const VS_SAIL=`#version 300 es
+precision highp float;layout(location=0) in vec3 aPos;layout(location=1) in vec4 aInfo;layout(location=2) in vec3 aCol;
+uniform mat4 uVP,uModel;uniform float uT,uBuild;uniform float uStart[25];uniform float uLen[25];
+out vec3 vCol;out vec3 vW;out vec3 vM;
+void main(){int s=int(aInfo.x);float on=uStart[s]+uLen[s]*uBuild*aInfo.y;float k=smoothstep(0.0,1.8,uT-on);
+  vec3 p=aPos;p.z=aInfo.z+(p.z-aInfo.z)*k;vCol=aCol;vM=p;vW=(uModel*vec4(p,1.0)).xyz;
+  gl_Position=k<=0.001?vec4(2.0,2.0,2.0,1.0):uVP*vec4(vW,1.0);}`;
+const FS_SAIL=`#version 300 es
+precision highp float;in vec3 vCol;in vec3 vW;in vec3 vM;uniform float uCut,uCutZ;uniform vec3 uEye,uFog;out vec4 o;
+void main(){if(vM.y>uCut||vM.z>uCutZ)discard;vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));vec3 L=normalize(vec3(-0.35,0.55,0.75));
+  float sh=0.55+0.45*abs(dot(n,L));vec3 c=vCol*sh;c=mix(c,uFog,smoothstep(1100.0,3600.0,length(vW-uEye)));o=vec4(c,1.0);}`;
+// ── 片尾：下水 ──
+// 船台在船尾那一側到岸邊（x ＝ SHORE）為止，海從岸邊往外。建造演完以後，船尾先滑出岸邊、往後傾，整艘離岸以後沉到設計水線（吃水 63 格）晃幾下停住。
+// 船的姿態、海浪、白浪都是時間 t 的純函數。⚠ 下水是這一話演的：雕刻作品裡的船還在原地、還在造。
+const SHORE=30,SEA=-8,SLIDE=980,DRAFT=63;
+function launch(tt){                       // 回傳 {s:往 −x 滑了多少, th:船尾往下傾的角度, dz:往下沉多少, k:海淡進來的程度, float:浮起來的程度}
+  const lt=tt-OUTRO;if(lt<=0)return {s:0,th:0,dz:0,k:0,fl:0,roll:0};
+  const k=ease((lt-0.2)/2.5),e=ease((lt-5.8)/7),s=SLIDE*e;
+  let th=0;if(s>370)th=7*Math.PI/180*clamp((s-370)/280,0,1);
+  const free=clamp((s-650)/(SLIDE-650),0,1),fl=ease(free);
+  th*=(1-fl);const st=Math.max(0,lt-12.8);
+  const bob=fl*(1.6*Math.sin(st*1.7)*Math.exp(-st*0.35)+0.5*Math.sin(st*0.9));
+  const dz=-(DRAFT-SEA)*fl+bob;            // 浮起來：龍骨底（z 0）沉到海面 SEA 以下吃水 DRAFT 的地方
+  const roll=fl*0.012*Math.sin(st*1.1);
+  return {s,th,dz,k,fl,roll};
+}
+function modelMat(L){                      // 先平移 (−s,0,dz)，再繞岸邊那條線（x＝SHORE、z＝0）讓船尾往下傾 th；浮起來以後加一點橫搖
+  const c=Math.cos(L.th),sn=Math.sin(L.th);
+  // 繞 y 軸、樞紐 (SHORE,0)：x' = SHORE+(x−SHORE)c − z·sn·0 ；z' = (x−SHORE)·sn + z·c  （x < SHORE 那一側往下）
+  const tx=-L.s,tz=L.dz;
+  const cr=Math.cos(L.roll||0),sr=Math.sin(L.roll||0),Y0=160.5,Z0=60;
+  // M ＝ Pivot(th) · Translate(tx,0,tz) · Roll（繞船的中線 y＝160.5、z＝60）
+  const R=new Float32Array([1,0,0,0, 0,cr,sr,0, 0,-sr,cr,0, 0,Y0-Y0*cr+Z0*sr,Z0-Y0*sr-Z0*cr,1]);
+  const Tm=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, tx,0,tz,1]);
+  const Pv=new Float32Array([c,0,sn,0, 0,1,0,0, -sn,0,c,0, SHORE-SHORE*c,0,-SHORE*sn,1]);
+  return mul(Pv,mul(Tm,R));
+}
+const VS_SEA=`#version 300 es
+precision highp float;layout(location=0) in vec2 aQ;uniform mat4 uVP;uniform float uZ;out vec3 vW;
+void main(){vW=vec3(aQ,uZ);gl_Position=uVP*vec4(vW,1.0);}`;
+const FS_SEA=`#version 300 es
+precision highp float;in vec3 vW;uniform float uT,uK,uShore,uS,uFl,uSplash,uHole;uniform vec3 uEye,uFog;uniform sampler2D uHB;out vec4 o;
+vec3 wave(vec2 p,float t){
+  vec3 g=vec3(0.0);vec4 W[5];
+  W[0]=vec4(normalize(vec2(1.0,0.35)),260.0,0.55);W[1]=vec4(normalize(vec2(0.6,-1.0)),150.0,0.35);
+  W[2]=vec4(normalize(vec2(0.8,0.5)),90.0,0.22);W[3]=vec4(normalize(vec2(0.2,1.0)),38.0,0.12);W[4]=vec4(normalize(vec2(1.0,-0.3)),17.0,0.06);
+  for(int i=0;i<5;i++){float k=6.2831853/W[i].z;float c=sqrt(98.0/k);float ph=k*(dot(W[i].xy,p)-c*t);float a=W[i].w;
+    g.xy+=W[i].xy*(a*k*cos(ph));g.z+=a*sin(ph);}
+  return g;
+}
+void main(){
+  if(vW.x>uShore)discard;
+  vec3 g=wave(vW.xy,uT);vec3 n=normalize(vec3(-g.x,-g.y,1.0));
+  vec3 V=normalize(uEye-vW);float cosv=max(dot(n,V),0.0);float F=0.02+0.98*pow(1.0-cosv,5.0);
+  vec3 R=reflect(-V,n);float up=clamp(R.z,0.0,1.0);
+  vec3 sky=mix(uFog,vec3(0.05,0.07,0.12),pow(up,0.7));
+  vec3 L=normalize(vec3(-0.35,0.55,0.75));float sp=pow(max(dot(R,L),0.0),180.0);
+  vec3 c=mix(vec3(0.015,0.055,0.085),vec3(0.03,0.13,0.15),clamp(0.5+g.z*0.6,0.0,1.0)*0.6);
+  c=mix(c,sky,F)+vec3(1.0,0.86,0.62)*sp*1.2;
+  float br=0.5+0.5*sin(vW.y*0.09+uT*1.3)*sin(vW.y*0.023-uT*0.7);
+  float d=uShore-vW.x;float run=0.5+0.5*sin(d*0.08-uT*2.2);
+  float foam=(1.0-smoothstep(0.0,10.0+16.0*br*run,d))*0.75;                                   // 岸邊的白浪
+  float xl=vW.x+uS;float hb=texture(uHB,vec2((xl+0.5)/1024.0,0.5)).r*255.0;                    // 船身一圈（水線半寬）
+  if(uHole>0.5&&hb>0.5&&abs(vW.y-160.5)<hb-0.5)discard;   // 船浮起來以後，水線輪廓以內不畫海 —— 剖面切開時船艙裡不會浸水
+  if(hb>0.5&&uFl>0.0){float e=abs(vW.y-160.5)-hb;float b2=0.5+0.5*sin(vW.x*0.21+uT*2.3)*sin(vW.y*0.37-uT*1.7);
+    float w2=6.0+4.0*b2+40.0*uSplash;foam=max(foam,(1.0-smoothstep(0.0,w2,e))*smoothstep(-3.0,0.0,e)*uFl*(0.5+0.35*b2+0.3*uSplash));}
+  c=mix(c,vec3(0.86,0.9,0.92),clamp(foam,0.0,1.0));
+  c=mix(c,uFog,smoothstep(1400.0,5600.0,length(vW-uEye)));
+  o=vec4(c,0.9*uK+0.05);
+}`;
+const VS_BG=`#version 300 es
+precision highp float;layout(location=0) in vec2 aQ;out vec2 vQ;void main(){vQ=aQ;gl_Position=vec4(aQ,0.9999,1.0);}`;
+const FS_BG=`#version 300 es
+precision highp float;in vec2 vQ;uniform vec3 uFog;out vec4 o;
+void main(){float k=clamp(vQ.y*0.5+0.5,0.0,1.0);vec3 top=vec3(0.05,0.07,0.12);vec3 c=mix(uFog,top,pow(k,0.7));o=vec4(c,1.0);}`;
+const VS_GROUND=`#version 300 es
+precision highp float;layout(location=0) in vec2 aQ;uniform mat4 uVP;out vec3 vW;
+void main(){vW=vec3(aQ,-0.6);gl_Position=uVP*vec4(vW,1.0);}`;
+const FS_GROUND=`#version 300 es
+precision highp float;in vec3 vW;uniform vec3 uEye,uFog;uniform float uShore;out vec4 o;
+void main(){if(vW.x<uShore)discard;vec2 g=abs(fract(vW.xy/20.0-0.5)-0.5)/fwidth(vW.xy/20.0);float line=1.0-min(min(g.x,g.y),1.0);
+  vec3 c=vec3(0.085,0.10,0.125)+line*vec3(0.06,0.07,0.08);
+  float slip=step(min(70.0,uShore),vW.x)*step(vW.x,720.0)*step(128.0,vW.y)*step(vW.y,192.0);c+=slip*vec3(0.05,0.04,0.025);   // 滑道（片尾一路通到岸邊）
+  c=mix(c,uFog,smoothstep(700.0,3200.0,length(vW-uEye)));o=vec4(c,1.0);}`;
+
+function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
+function prog(vs,fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+  const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);for(let i=0;i<n;i++){const a=gl.getActiveUniform(p,i),nm=a.name.replace('[0]','');u[nm]=gl.getUniformLocation(p,a.name)}return {p,u}}
+function buf(data,target){const b=gl.createBuffer();gl.bindBuffer(target||gl.ARRAY_BUFFER,b);gl.bufferData(target||gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);return b}
+
+// ── 讀資料（base64 → deflate-raw → 陣列）──
+async function loadData(){
+  const ab=await inflate('shipdata');
+  const dv=new DataView(ab),hl=dv.getUint32(0,true);
+  const head=JSON.parse(new TextDecoder().decode(new Uint8Array(ab,4,hl)));
+  let off=4+hl;off+=(4-off%4)%4;
+  const n=head.n,take=(T,count,bytes)=>{const a=new T(ab,off,count);off+=count*bytes;return a};
+  const packed=take(Uint32Array,n,4),rp=take(Float32Array,head.nrp*3,4),sv=take(Float32Array,head.nsv*3,4);
+  const fo=take(Uint16Array,n,2),ff=take(Uint16Array,n,2),si=take(Uint16Array,head.nsi,2);
+  const col=take(Uint8Array,n,1),son=take(Uint8Array,n,1),soff=take(Uint8Array,n,1),fm=take(Uint8Array,n,1),lv=take(Uint8Array,n,1);
+  return {head,packed,rp,sv,fo,ff,si,col,son,soff,fm,lv};
+}
+
+function boxVao(A){
+  const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER,P.cube);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  const inst=(loc,data,type,isInt,norm)=>{buf(data);gl.enableVertexAttribArray(loc);
+    if(isInt)gl.vertexAttribIPointer(loc,1,type,0,0);else gl.vertexAttribPointer(loc,1,type,!!norm,0,0);gl.vertexAttribDivisor(loc,1)};
+  inst(1,A.packed,gl.UNSIGNED_INT,true);inst(2,A.col,gl.UNSIGNED_BYTE,true);inst(3,A.son,gl.UNSIGNED_BYTE,true);inst(4,A.soff,gl.UNSIGNED_BYTE,true);
+  inst(5,A.fo,gl.UNSIGNED_SHORT,false,true);inst(6,A.ff,gl.UNSIGNED_SHORT,false,true);inst(7,A.grp,gl.UNSIGNED_BYTE,true);inst(8,A.fm,gl.UNSIGNED_BYTE,true);
+  gl.bindVertexArray(null);return vao;
+}
+async function inflate(id){
+  const s=document.getElementById(id).textContent.replace(/\s+/g,'');
+  const bin=atob(s),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+  return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+}
+// 原始解析度（0.1 m）：第一次選它才解開；鍵值存的是差（排過序），一路加回來再拆成 x、y、z
+async function loadFine(){
+  if(fineState!=='none')return;fineState='loading';redraw();
+  try{
+    const ab=await inflate('shipfine'),dv=new DataView(ab),hl=dv.getUint32(0,true);
+    const head=JSON.parse(new TextDecoder().decode(new Uint8Array(ab,4,hl)));let off=4+hl;off+=(4-off%4)%4;
+    const n=head.n,SYZ=head.sy*head.sz,dk=new Uint32Array(ab,off,n);off+=4*n;
+    const take=()=>{const a=new Uint8Array(ab,off,n);off+=n;return a};
+    const gfl=take(),col=take(),son=take(),soff=take(),fo8=take(),ff8=take(),fm=take(),lv=take();
+    const pk=new Uint32Array(n),gr=new Uint8Array(n),fo=new Uint16Array(n),ff=new Uint16Array(n);let k=0;
+    for(let i=0;i<n;i++){k+=dk[i];const x=Math.floor(k/SYZ),r=k-x*SYZ,y=Math.floor(r/head.sz),z=r-y*head.sz,g=gfl[i];
+      pk[i]=x|(y<<10)|(z<<19)|(((g>>4)&1)<<29)|(((g>>5)&1)<<30);gr[i]=(g&15)|(lv[i]<<4);fo[i]=fo8[i]*257;ff[i]=ff8[i]*257}
+    P.box1={vao:boxVao({packed:pk,grp:gr,col,son,soff,fo,ff,fm}),n,scale:1};fineState='ok';
+  }catch(e){console.error(e);fineState='fail'}
+  redraw();
+}
+function initGL(){
+  gl=glc.getContext('webgl2',{antialias:true,preserveDrawingBuffer:true});
+  if(!gl)return false;
+  P.box=prog(VS_BOX,FS_BOX);P.line=prog(VS_LINE,FS_LINE);P.sail=prog(VS_SAIL,FS_SAIL);P.bg=prog(VS_BG,FS_BG);P.sea=prog(VS_SEA,FS_SEA);P.ground=prog(VS_GROUND,FS_GROUND);
+  // 方塊：14 點的三角帶（0..1）
+  const S=[0,1,1, 1,1,1, 0,0,1, 1,0,1, 1,0,0, 1,1,1, 1,1,0, 0,1,1, 0,1,0, 0,0,1, 0,0,0, 1,0,0, 0,1,0, 1,1,0];
+  P.cube=buf(new Float32Array(S));
+  // 0.2 m 那份換成共用格式：x 10 位、y 9 位、z 10 位、彈出旗標、換色旗標；群組另一個陣列
+  const n=D.head.n,pk=new Uint32Array(n),gr=new Uint8Array(n);
+  for(let i=0;i<n;i++){const p=D.packed[i];pk[i]=(p&511)|(((p>>>9)&255)<<10)|(((p>>>17)&511)<<19)|(((p>>>30)&1)<<29)|(((p>>>31)&1)<<30);gr[i]=((p>>>26)&15)|(D.lv[i]<<4)}
+  P.box2={vao:boxVao({packed:pk,grp:gr,col:D.col,son:D.son,soff:D.soff,fo:D.fo,ff:D.ff,fm:D.fm}),n,scale:2};
+  // 繩：每條拆成線段；info ＝ (階段, f, 沿著繩的 0..1, 0)
+  const lp=[],li=[],lc=[];let k=0;D.ropeOn=[];
+  D.head.ropes.forEach(r=>{const [st,f,cr,cg,cb,rad,np,rl]=r;const pts=[];for(let i=0;i<np;i++){pts.push([D.rp[(k+i)*3],D.rp[(k+i)*3+1],D.rp[(k+i)*3+2]])}k+=np;
+    let L=0;const cum=[0];for(let i=1;i<np;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1],pts[i][2]-pts[i-1][2]);cum.push(L)}
+    for(let i=1;i<np;i++){for(const j of [i-1,i]){lp.push(...pts[j]);li.push(st,f,L>0?cum[j]/L:0,rl||0);lc.push(cr,cg,cb)}}
+    D.ropeOn.push([st,f])});
+  P.nLine=lp.length/3;P.vaoLine=gl.createVertexArray();gl.bindVertexArray(P.vaoLine);
+  buf(new Float32Array(lp));gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  buf(new Float32Array(li));gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,0,0);
+  buf(new Float32Array(lc));gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+  // 帆：info ＝ (階段, f, 這面帆最高的 z, 0)
+  const sp=[],sinf=[],sc=[],idx=[];let v0=0,i0=0;D.sailOn=[];
+  D.head.sails.forEach(s=>{const [st,f,cr,cg,cb,nv,nt]=s;let top=-1e9;for(let i=0;i<nv;i++)top=Math.max(top,D.sv[(v0+i)*3+2]);
+    for(let i=0;i<nv;i++){sp.push(D.sv[(v0+i)*3],D.sv[(v0+i)*3+1],D.sv[(v0+i)*3+2]);sinf.push(st,f,top,0);sc.push(cr,cg,cb)}
+    for(let i=0;i<nt*3;i++)idx.push(D.si[i0+i]+v0);v0+=nv;i0+=nt*3;D.sailOn.push([st,f])});
+  P.nSail=idx.length;P.vaoSail=gl.createVertexArray();gl.bindVertexArray(P.vaoSail);
+  buf(new Float32Array(sp));gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  buf(new Float32Array(sinf));gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,0,0);
+  buf(new Float32Array(sc));gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+  buf(new Uint32Array(idx),gl.ELEMENT_ARRAY_BUFFER);
+  // 背景、地面
+  P.vaoBg=gl.createVertexArray();gl.bindVertexArray(P.vaoBg);buf(new Float32Array([-1,-1,3,-1,-1,3]));gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  P.vaoSea=gl.createVertexArray();gl.bindVertexArray(P.vaoSea);buf(new Float32Array([-9000,-7000,SHORE,-7000,-9000,7300,SHORE,7300]));gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  P.hb=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,P.hb);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,1024,1,0,gl.RED,gl.UNSIGNED_BYTE,new Uint8Array(D.head.wl.map(v=>Math.min(255,v))));
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  P.vaoGround=gl.createVertexArray();gl.bindVertexArray(P.vaoGround);buf(new Float32Array([-2500,-2500,3500,-2500,-2500,2800,3500,2800]));gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null);
+  return true;
+}
+
+const FOG=[0.23,0.21,0.27];
+function drawGL(tt){
+  // 下水跟著時間走；「海（片尾）」那顆鈕只藏海面（船照樣下水、鏡頭照樣跟著 —— 關掉海就看得到水線以下的船身）
+  const LA_=launch(tt),launching=LA_.k>0,seaOn=launching&&(mask&(1<<12)),shore=launching?SHORE:-1e9,MM=modelMat(LA_);
+  const cam=camera(tt),proj=persp(42*Math.PI/180,W/H,2,12000),view=lookAt(cam.eye,cam.target,[0,0,1]),vp=mul(proj,view);
+  const cc=cutMode==='auto'?cutAuto(tt):(cutMode==='side'?[161.5,NOCUT_Z]:(cutMode==='top'?[NOCUT_Y,100]:[NOCUT_Y,NOCUT_Z])),cut=cc[0],cutz=cc[1];
+  const fo=focusAuto(tt);
+  gl.viewport(0,0,W,H);gl.clearColor(FOG[0],FOG[1],FOG[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.disable(gl.DEPTH_TEST);gl.useProgram(P.bg.p);gl.uniform3fv(P.bg.u.uFog,FOG);gl.bindVertexArray(P.vaoBg);gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+  gl.useProgram(P.ground.p);gl.uniform1f(P.ground.u.uShore,shore);gl.uniformMatrix4fv(P.ground.u.uVP,false,vp);gl.uniform3fv(P.ground.u.uEye,cam.eye);gl.uniform3fv(P.ground.u.uFog,FOG);gl.bindVertexArray(P.vaoGround);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  const B=P.box;gl.useProgram(B.p);gl.uniformMatrix4fv(B.u.uVP,false,vp);gl.uniformMatrix4fv(B.u.uModel,false,MM);gl.uniform1f(B.u.uT,tt);gl.uniform1f(B.u.uCut,cut);gl.uniform1f(B.u.uBuild,BUILD);
+  gl.uniform1fv(B.u.uStart,START);gl.uniform1fv(B.u.uLen,LEN);const BX=(res===1&&fineState==='ok')?P.box1:P.box2;gl.uniform1f(B.u.uScale,BX.scale);gl.uniform1i(B.u.uMask,mask&1023);gl.uniform1i(B.u.uLevMask,levMask);gl.uniform1f(B.u.uCutZ,cutz);gl.uniform1i(B.u.uFocus,fo[0]);gl.uniform1f(B.u.uFocusAmt,fo[1]);gl.uniform3fv(B.u.uEye,cam.eye);gl.uniform3fv(B.u.uFog,FOG);
+  gl.bindVertexArray(BX.vao);gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,14,BX.n);
+  if(mask&(1<<11)){const S=P.sail;gl.useProgram(S.p);gl.uniformMatrix4fv(S.u.uVP,false,vp);gl.uniformMatrix4fv(S.u.uModel,false,MM);gl.uniform1f(S.u.uT,tt);gl.uniform1f(S.u.uBuild,BUILD);gl.uniform1f(S.u.uCut,cut);gl.uniform1f(S.u.uCutZ,cutz);
+    gl.uniform1fv(S.u.uStart,START);gl.uniform1fv(S.u.uLen,LEN);gl.uniform3fv(S.u.uEye,cam.eye);gl.uniform3fv(S.u.uFog,FOG);gl.bindVertexArray(P.vaoSail);gl.drawElements(gl.TRIANGLES,P.nSail,gl.UNSIGNED_INT,0)}
+  if(mask&(1<<10)){const L=P.line;gl.useProgram(L.p);gl.uniform1i(L.u.uLevMask,levMask);gl.uniformMatrix4fv(L.u.uVP,false,vp);gl.uniformMatrix4fv(L.u.uModel,false,MM);gl.uniform1f(L.u.uT,tt);gl.uniform1f(L.u.uBuild,BUILD);gl.uniform1f(L.u.uCut,cut);gl.uniform1f(L.u.uCutZ,cutz);
+    gl.uniform1fv(L.u.uStart,START);gl.uniform1fv(L.u.uLen,LEN);gl.uniform3fv(L.u.uEye,cam.eye);gl.uniform3fv(L.u.uFog,FOG);gl.bindVertexArray(P.vaoLine);gl.drawArrays(gl.LINES,0,P.nLine)}
+  if(seaOn){const W_=P.sea;gl.useProgram(W_.p);gl.uniformMatrix4fv(W_.u.uVP,false,vp);gl.uniform1f(W_.u.uT,tt);gl.uniform1f(W_.u.uZ,SEA);
+    gl.uniform1f(W_.u.uK,LA_.k);gl.uniform1f(W_.u.uShore,SHORE);gl.uniform1f(W_.u.uS,LA_.s);gl.uniform1f(W_.u.uFl,LA_.fl);gl.uniform1f(W_.u.uSplash,splashK(tt));gl.uniform1f(W_.u.uHole,(SEA-LA_.dz)>45?1:0);
+    gl.uniform3fv(W_.u.uEye,cam.eye);gl.uniform3fv(W_.u.uFog,FOG);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,P.hb);gl.uniform1i(W_.u.uHB,0);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);gl.bindVertexArray(P.vaoSea);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    gl.depthMask(true);gl.disable(gl.BLEND)}
+  gl.bindVertexArray(null);
+}
+// 入水那一刻：船尾最低那一點碰到海面（照 launch() 掃一次求出來 —— 濺起的白浪、聲音都對這個時間）
+const SPLASH_T=(()=>{for(let tt=OUTRO;tt<DUR;tt+=0.02){const L=launch(tt);if(L.s<=0)continue;
+  const x=99-L.s,z=(x-SHORE)*Math.sin(L.th)+L.dz;if(z<=SEA)return tt}return OUTRO+9})();
+function splashK(tt){return tt<SPLASH_T?0:Math.exp(-(tt-SPLASH_T)/1.6)}
+
+// ── 字（2D 疊在上面）──
+function text(s,x,y,size,color,alpha,align,weight){if(alpha<=0)return;ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color||'#f1e8d6';ctx.font=`${weight||''} ${size}px ${FONT}`;ctx.textAlign=align||'left';
+  ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=8;ctx.fillText(s,x,y);ctx.restore()}
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+function fineAt(tt){
+  if(!D)return 0;const f=D.head.fine;if(tt<INTRO)return 0;if(tt>=OUTRO)return D.head.fine_total;
+  const i=stepAt(tt),s=STEPS[i],prev=i>0?f[String(i)]:0,cur=f[String(i+1)];return lerp(prev,cur,ease((tt-s.t0)/(s.d*BUILD)));
+}
+function countOn(list,tt){let n=0;for(const [st,ff] of list){if(tt>=START[st]+LEN[st]*BUILD*ff)n++}return n}
+function overlay(tt){
+  ctx.clearRect(0,0,W,H);
+  const inA=ease(tt/1.2)*(1-ease((tt-(INTRO-1.2))/1.2));
+  if(tt<INTRO){
+    text('《龍骨是直的》動畫版　第一話',W/2,300,22,'#e8c27a',inA,'center');
+    text('從一根龍骨開始',W/2,370,58,'#f1e8d6',inA,'center','600');
+    text('USS Constitution（1797）· 0.1 公尺一格 · 照美國國家檔案館的圖紙',W/2,420,17,'#b9b2a3',inA,'center');
+  }else if(tt<OUTRO){
+    const i=stepAt(tt),s=STEPS[i],lt=tt-s.t0,a=ease(lt/0.7)*(1-ease((lt-(s.d-0.6))/0.6));
+    ctx.save();const g=ctx.createLinearGradient(0,H-190,0,H);g.addColorStop(0,'rgba(10,14,22,0)');g.addColorStop(1,'rgba(10,14,22,.78)');ctx.fillStyle=g;ctx.fillRect(0,H-190,W,190);ctx.restore();
+    text('階段 '+String(s.id).padStart(2,'0'),56,H-118,15,'#e8c27a',a);
+    text(s.n,56,H-80,32,'#f1e8d6',a,'left','600');
+    text(s.l,56,H-46,18,'#d8d0c0',a);
+  }else{
+    const lt=tt-OUTRO,a=ease((lt-15)/1.2);
+    const la=ease((lt-1)/1.0)*(1-ease((lt-5.6)/0.8));
+    text('建造到這裡 —— 下水。',W/2,140,34,'#f1e8d6',la,'center','600');
+    text('第一話　完',W/2,150,44,'#f1e8d6',a,'center','600');
+    text('全船 '+fmt(D?D.head.fine_total:0)+' 格 · 繩 '+(D?D.head.ropes.length:0)+' 條 · 帆 '+(D?D.head.sails.length:0)+' 面',W/2,192,18,'#e8c27a',a,'center');
+    const b=ease((lt-18)/1.2);
+    text('雕刻、動畫：basecamp（Claude Code）',W/2,H-130,16,'#d8d0c0',b,'center');
+    text('繩索引擎：kaguya　·　帆的布料模擬：kotoko',W/2,H-104,16,'#d8d0c0',b,'center');
+    text('原圖：美國國家檔案館 RG 19 憲法號圖集（Use: Unrestricted）',W/2,H-78,14,'#b9b2a3',b,'center');
+    text('船還在造 —— 下一話接著看。',W/2,H-44,15,'#e8c27a',ease((lt-21.5)/1.2),'center');
+    text('（下水是這一話演的：雕刻作品裡的船還在船台上，還在造。）',W/2,226,14,'#b9b2a3',ease((lt-16)/1.2),'center');
+  }
+  drawSheet(tt);
+  if(tt>=INTRO-0.5){
+    const a=ease((tt-INTRO+0.5)/1.0);
+    text('《龍骨是直的》動畫版　第一話　從一根龍骨開始',28,38,14,'#b9b2a3',a*0.9);
+    text(fmt(fineAt(tt))+' 格',W-28,40,22,'#f1e8d6',a,'right','600');
+    const nr=D?countOn(D.ropeOn,tt):0,ns=D?countOn(D.sailOn,tt):0;
+    text('0.1 m 一格'+(nr?' · 繩 '+nr+' 條':'')+(ns?' · 帆 '+ns+' 面':''),W-28,64,13,'#b9b2a3',a,'right');
+  }
+  if(res===1&&fineState!=='ok'){text(fineState==='fail'?'原始解析度讀不出來，先用 0.2 m。':'讀取原始解析度（0.1 m）中…',W/2,92,15,'#e8c27a',1,'center')}
+  if(glState==='none'){text('這個瀏覽器沒有 WebGL2，看不到船 —— 字幕照播。',W/2,H/2,20,'#e8c27a',1,'center')}
+}
+function frame(tt){t=clamp(tt,0,DUR);if(gl&&D)drawGL(t);overlay(t);seek.value=t.toFixed(2);
+  const m=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');timeEl.textContent=m(t)+' / '+m(DUR)}
+
+// ── 聲音（按下播放之後才建；沒有聲音也完整）──
+// 配樂：96 bpm、一小節 2.5 秒，全片 56 小節；每一個音都是 t 上的一個事件（EVENTS），播放時往前看 0.12 秒排進 Web Audio。
+//   片頭（0–3 小節）只有長音；A（3–13，龍骨與骨架）Dm–B♭–F–C 長音＋撥弦琶音；
+//   B（14–36，外板到 channels）Dm–C–B♭–A 加低音與旋律；C（37–48，繩、帆、砲、梯子）F–C–Dm–B♭ 加鼓與第二段旋律；
+//   片尾（49–55）B♭–C–D（大三和弦）收住。木槌聲落在八分音符的格子上。
+const BEAT=0.625,BAR=2.5,LA=0.12;
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const CH={Dm:{pad:[50,57,62,65],bass:38},Bb:{pad:[46,53,58,62],bass:34},F:{pad:[53,57,60,65],bass:41},C:{pad:[48,55,60,64],bass:36},A:{pad:[45,52,57,61],bass:33},D:{pad:[50,57,62,66],bass:38}};
+const PROG={A:['Dm','Bb','F','C'],B:['Dm','C','Bb','A'],C:['F','C','Dm','Bb'],L:['Bb','C','Bb','A']};
+const MEL={
+  B:[[69,1],[74,1],[74,.5],[72,.5],[69,1], [67,1.5],[69,.5],[72,2], [70,1],[69,1],[67,1],[65,1], [64,2],[61,1],[64,1]],
+  C:[[72,1],[69,1],[72,1],[77,1], [76,2],[74,1],[72,1], [74,1.5],[72,.5],[69,1],[65,1], [67,2],[65,1],[62,1]],
+  L:[[62,1],[65,1],[69,1],[70,1], [72,2],[74,2], [70,1],[72,1],[74,1],[77,1], [76,2],[73,2]],
+  O:[[74,2],[78,2], [77,2],[74,2], [76,2],[72,2], [74,4]]
+};
+function section(bar){return bar<3?'I':bar<14?'A':bar<37?'B':bar<49?'C':bar<53?'L':'O'}
+function chordAt(bar){const s=section(bar);if(s==='I')return 'Dm';if(s==='O')return ['D','Bb','C','D','D','D','D','D','D'][bar-53];
+  const b0=s==='A'?3:s==='B'?14:s==='C'?37:49;return PROG[s][(bar-b0)%4]}
+const EVENTS=[];
+for(let bar=0;bar<61;bar++){
+  const t0=bar*BAR,s=section(bar),c=CH[chordAt(bar)];
+  const long=s==='O'&&bar>=56;
+  if(!(s==='O'&&bar>56))EVENTS.push({t:t0,k:'pad',notes:c.pad,d:long?BAR*5:BAR*1.08,v:s==='I'?0.6:(s==='C'||s==='L')?1.1:s==='O'?1.25:1});
+  if(s==='A'||s==='B'||s==='C'||s==='L'){
+    const pat=[0,1,2,3,2,1,2,1];
+    for(let j=0;j<8;j++){if(s==='B'&&j%2)continue;EVENTS.push({t:t0+j*BEAT/2,k:'pluck',m:c.pad[pat[j]]+12,v:(s==='A'?0.11:0.07)*(j%2?0.75:1)})}
+  }
+  if(s==='B'||s==='C'||s==='L'||(s==='O'&&bar<=56)){EVENTS.push({t:t0,k:'bass',m:c.bass,d:BEAT*1.8});if(s!=='O')EVENTS.push({t:t0+2*BEAT,k:'bass',m:c.bass+(s==='C'||s==='L'?7:0),d:BEAT*1.8})}
+  if(s==='C'||s==='L'){for(let b=0;b<4;b++){if(b%2===0||s==='L')EVENTS.push({t:t0+b*BEAT,k:'kick',v:s==='L'?0.22+0.04*(bar-49):undefined});EVENTS.push({t:t0+b*BEAT+BEAT/2,k:'tamb',v:b%2?0.06:0.04})}}
+  if(s==='B'&&bar>=22){EVENTS.push({t:t0,k:'kick',v:0.12})}
+}
+function melody(name,bar0,trans){let tt=bar0*BAR;for(const [m,d] of MEL[name]){EVENTS.push({t:tt,k:'lead',m:m+(trans||0),d:d*BEAT*0.95});tt+=d*BEAT}}
+[18,22,30].forEach(b=>melody('B',b));          // B：對齊 Dm–C–B♭–A 的循環，第 14–17、26–29 小節空著喘一口氣
+[37,41,45].forEach(b=>melody('C',b));
+melody('L',49);melody('O',53);
+// 木槌：每個階段的建造段落裡，八分音符的格子上敲（固定種子挑掉一些）；每段開頭一聲鐘
+STEPS.forEach((s,i)=>{EVENTS.push({t:s.t0+0.02,k:'bell',i});const a=s.t0+0.25,b=s.t0+s.d*BUILD;
+  for(let g=Math.ceil(a/(BEAT/2));g*(BEAT/2)<=b;g++){if(rnd(g*13+i)<0.55)EVENTS.push({t:g*BEAT/2,k:'knock',v:rnd(g*7+i*3)})}});
+EVENTS.push({t:STEPS[18].t0+STEPS[18].d*0.62,k:'whoosh'});EVENTS.push({t:OUTRO+1,k:'bell',i:99});
+// 下水：入水那一刻一聲大的、之後一道一道的浪（入水時間在下面 SPLASH_T 求出來以後補進來）
+EVENTS.sort((a,b)=>a.t-b.t);
+
+let bus=null,verb=null,noise=null,sched=0;
+function newBus(){bus=ac.createGain();bus.gain.value=0.9;bus.connect(master);const send=ac.createGain();send.gain.value=0.42;bus.connect(send);send.connect(verb)}
+function initAudio(){if(ac)return;try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=muted?0:0.7;master.connect(ac.destination);
+  // 殘響：固定種子的噪音乘上指數衰減（2.8 秒）
+  const n=Math.floor(ac.sampleRate*2.8),ir=ac.createBuffer(2,n,ac.sampleRate);
+  for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(rnd(i*1.7+ch*911)*2-1)*Math.pow(1-i/n,2.6)}
+  verb=ac.createConvolver();verb.buffer=ir;verb.connect(master);
+  const len=ac.sampleRate*4,nb=ac.createBuffer(1,len,ac.sampleRate),d=nb.getChannelData(0);let b=0;for(let i=0;i<len;i++){b=(b+0.02*(rnd(i)*2-1))/1.02;d[i]=b*3.2}
+  noise=nb;const src=ac.createBufferSource();src.buffer=nb;src.loop=true;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=380;const g=ac.createGain();g.gain.value=0.07;src.connect(lp);lp.connect(g);g.connect(master);src.start();
+  newBus()}catch(e){ac=null}}
+function addLaunchEvents(){if(EVENTS.__launch)return;EVENTS.__launch=1;EVENTS.push({t:SPLASH_T,k:'splash'});
+  for(let w=OUTRO+0.8,j=0;w<DUR-1;w+=2.6+rnd(j*5)*0.9,j++)EVENTS.push({t:w,k:'wave',v:(w>SPLASH_T?0.12:0.06)+0.06*rnd(j*3+1)});EVENTS.sort((a,b)=>a.t-b.t)}
+function hush(){if(!ac||!bus)return;const old=bus;old.gain.setTargetAtTime(0,ac.currentTime,0.04);setTimeout(()=>{try{old.disconnect()}catch(e){}},400);newBus()}
+function env(g,w,a,peak,rel,end){g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(peak,w+a);g.gain.setValueAtTime(peak,Math.max(w+a,end-rel));g.gain.exponentialRampToValueAtTime(0.0001,end)}
+function osc(type,f,w,end,det){const o=ac.createOscillator();o.type=type;o.frequency.value=f;if(det)o.detune.value=det;o.start(w);o.stop(end+0.05);return o}
+function fire(ev,w){if(!ac)return;
+  if(ev.k==='pad'){const end=w+ev.d+1.2;ev.notes.forEach(m=>{const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=1000;f.Q.value=0.4;const g=ac.createGain();env(g,w,0.9,0.032*ev.v,1.2,end);
+      [-7,7].forEach(dt=>osc('sawtooth',mtof(m),w,end,dt).connect(f));f.connect(g);g.connect(bus)})}
+  else if(ev.k==='pluck'){const end=w+1.1,g=ac.createGain();g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(ev.v,w+0.006);g.gain.exponentialRampToValueAtTime(0.0001,end);
+    const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(3200,w);f.frequency.exponentialRampToValueAtTime(700,w+0.5);
+    osc('triangle',mtof(ev.m),w,end).connect(f);const o2=osc('sine',mtof(ev.m)*2,w,end),g2=ac.createGain();g2.gain.value=0.3;o2.connect(g2);g2.connect(f);f.connect(g);g.connect(bus)}
+  else if(ev.k==='bass'){const end=w+ev.d+0.15,g=ac.createGain();env(g,w,0.02,0.16,0.15,end);const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=420;
+    osc('triangle',mtof(ev.m),w,end).connect(f);osc('sine',mtof(ev.m),w,end).connect(f);f.connect(g);g.connect(bus)}
+  else if(ev.k==='lead'){const end=w+ev.d+0.25,g=ac.createGain();env(g,w,0.06,0.065,0.22,end);const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=1900;
+    const lfo=osc('sine',5.4,w,end),lg=ac.createGain();lg.gain.setValueAtTime(0,w);lg.gain.linearRampToValueAtTime(6,w+0.35);lfo.connect(lg);
+    const o1=osc('sawtooth',mtof(ev.m),w,end),o2=osc('triangle',mtof(ev.m),w,end,4);lg.connect(o1.detune);lg.connect(o2.detune);
+    const g1=ac.createGain();g1.gain.value=0.45;o1.connect(g1);g1.connect(f);o2.connect(f);f.connect(g);g.connect(bus)}
+  else if(ev.k==='kick'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(130,w);o.frequency.exponentialRampToValueAtTime(42,w+0.16);
+    g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(ev.v||0.32,w+0.005);g.gain.exponentialRampToValueAtTime(0.0001,w+0.32);o.connect(g);g.connect(bus);o.start(w);o.stop(w+0.35)}
+  else if(ev.k==='tamb'){const s=ac.createBufferSource();s.buffer=noise;const f=ac.createBiquadFilter();f.type='highpass';f.frequency.value=6500;const g=ac.createGain();
+    g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(ev.v,w+0.003);g.gain.exponentialRampToValueAtTime(0.0001,w+0.07);s.connect(f);f.connect(g);g.connect(bus);s.start(w,rnd(w)*3);s.stop(w+0.08)}
+  else if(ev.k==='knock'){const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();o.type='triangle';o.frequency.setValueAtTime(150+ev.v*110,w);o.frequency.exponentialRampToValueAtTime(70,w+0.09);
+    f.type='lowpass';f.frequency.value=900;g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(0.13,w+0.004);g.gain.exponentialRampToValueAtTime(0.0001,w+0.13);o.connect(f);f.connect(g);g.connect(bus);o.start(w);o.stop(w+0.16)}
+  else if(ev.k==='bell'){[74,81,86].forEach((m,j)=>{const g=ac.createGain();g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(0.05/(j+1),w+0.01);g.gain.exponentialRampToValueAtTime(0.0001,w+1.8);
+      const o=osc('sine',mtof(m-(ev.i===99?12:0)),w,w+1.85);o.connect(g);g.connect(bus)})}
+  else if(ev.k==='splash'){const s=ac.createBufferSource();s.buffer=noise;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(2400,w);f.frequency.exponentialRampToValueAtTime(300,w+2.6);
+    const g=ac.createGain();g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(0.9,w+0.05);g.gain.exponentialRampToValueAtTime(0.0001,w+2.8);s.connect(f);f.connect(g);g.connect(bus);s.start(w);s.stop(w+2.9);
+    const o=ac.createOscillator(),g2=ac.createGain();o.type='sine';o.frequency.setValueAtTime(90,w);o.frequency.exponentialRampToValueAtTime(35,w+0.6);g2.gain.setValueAtTime(0.0001,w);g2.gain.exponentialRampToValueAtTime(0.4,w+0.02);g2.gain.exponentialRampToValueAtTime(0.0001,w+0.9);o.connect(g2);g2.connect(bus);o.start(w);o.stop(w+1)}
+  else if(ev.k==='wave'){const s=ac.createBufferSource();s.buffer=noise;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(380,w);f.frequency.linearRampToValueAtTime(900,w+1.1);f.frequency.linearRampToValueAtTime(300,w+3.2);
+    const g=ac.createGain();g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(ev.v*2.2,w+1.1);g.gain.exponentialRampToValueAtTime(0.0001,w+3.4);s.connect(f);f.connect(g);g.connect(bus);s.start(w,rnd(w)*0.5);s.stop(w+3.5)}
+  else if(ev.k==='whoosh'){const s=ac.createBufferSource();s.buffer=noise;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=0.8;f.frequency.setValueAtTime(300,w);f.frequency.exponentialRampToValueAtTime(1400,w+2.2);
+    const g=ac.createGain();g.gain.setValueAtTime(0.0001,w);g.gain.exponentialRampToValueAtTime(0.45,w+0.6);g.gain.exponentialRampToValueAtTime(0.0001,w+2.6);s.connect(f);f.connect(g);g.connect(bus);s.start(w);s.stop(w+2.7)}}
+// 把 (sched, hi] 之間的事件排進去：事件 t 對應到 現在 ＋ (t − 畫面上的 t)
+function schedule(nt){addLaunchEvents();if(!ac||muted){sched=nt+LA;return}const hi=nt+LA,now=ac.currentTime;
+  for(const ev of EVENTS){if(ev.t<=sched)continue;if(ev.t>hi)break;fire(ev,now+Math.max(0,ev.t-nt))}sched=hi}
+function resync(tt){sched=tt;hush()}
+
+// ── 播放器 ──
+function loop(now){if(!playing)return;const dt=Math.min(0.25,(now-lastNow)/1000);lastNow=now;let nt=t+dt;
+  if(nt>=DUR){nt=DUR;playing=false;playBtn.textContent='▶'}
+  schedule(nt);frame(nt);if(playing)raf=requestAnimationFrame(loop)}
+function play(){if(glState==='pending'){pendingPlay=true;loadEl.textContent='讀完就開始…';return}initAudio();if(ac&&ac.state==='suspended')ac.resume();if(t>=DUR)t=0;resync(t);playing=true;cover.style.display='none';playBtn.textContent='⏸';lastNow=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function pause(){playing=false;playBtn.textContent='▶';cancelAnimationFrame(raf);hush()}
+function redraw(){if(!playing)frame(t)}
+document.getElementById('start').addEventListener('click',play);
+playBtn.addEventListener('click',()=>playing?pause():play());
+document.getElementById('restart').addEventListener('click',()=>{t=0;frame(0);if(!playing)play();else resync(0)});
+seek.addEventListener('input',()=>{frame(parseFloat(seek.value));if(playing)resync(t)});
+muteBtn.addEventListener('click',()=>{muted=!muted;muteBtn.setAttribute('aria-pressed',muted);muteBtn.textContent=muted?'靜音中':'聲音';if(master)master.gain.value=muted?0:0.7});
+partsBtn.addEventListener('click',()=>{panel.hidden=!panel.hidden;partsBtn.setAttribute('aria-expanded',!panel.hidden)});
+const chips=document.getElementById('chips');
+GROUPS.forEach((g,i)=>{const b=document.createElement('button');b.textContent=g;b.setAttribute('aria-pressed','true');b.addEventListener('click',()=>{mask^=(1<<i);b.setAttribute('aria-pressed',!!(mask&(1<<i)));redraw()});chips.appendChild(b)});
+const LEVELS=['orlop','berth deck','gun deck','spar deck'];
+const levEl=document.getElementById('levels');
+LEVELS.forEach((nm,i)=>{const b=document.createElement('button');b.textContent=nm;b.setAttribute('aria-pressed','true');b.addEventListener('click',()=>{levMask^=(1<<(i+1));b.setAttribute('aria-pressed',!!(levMask&(1<<(i+1))));redraw()});levEl.appendChild(b)});
+function setSeg(ids,on){ids.forEach(id=>document.getElementById(id).setAttribute('aria-pressed',id===on))}
+const CUTS=[['cutAuto','auto'],['cutSide','side'],['cutTop','top'],['cutOff','off']];
+CUTS.forEach(([id,m])=>document.getElementById(id).addEventListener('click',()=>{cutMode=m;setSeg(CUTS.map(c=>c[0]),id);redraw()}));
+function setCam(m){if(m==='free'&&camMode!=='free'){const a=autoCam(t);free={yaw:a.yaw,pitch:a.pitch,dist:a.dist}}camMode=m;setSeg(['camAuto','camFree'],m==='free'?'camFree':'camAuto');redraw()}
+function setRes(r){res=r;setSeg(['res2','res1'],r===1?'res1':'res2');if(r===1&&glState==='ok')loadFine();redraw()}
+document.getElementById('res2').addEventListener('click',()=>setRes(2));document.getElementById('res1').addEventListener('click',()=>setRes(1));
+document.getElementById('camAuto').addEventListener('click',()=>setCam('auto'));document.getElementById('camFree').addEventListener('click',()=>setCam('free'));
+document.getElementById('allOn').addEventListener('click',()=>{mask=(1<<13)-1;levMask=31;[...levEl.children].forEach(b=>b.setAttribute('aria-pressed','true'));[...chips.children].forEach(b=>b.setAttribute('aria-pressed','true'));redraw()});
+let drag=null;
+glc.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};glc.setPointerCapture(e.pointerId)});
+glc.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)<2)return;if(camMode!=='free')setCam('free');
+  free.yaw-=dx*0.35;free.pitch=clamp(free.pitch+dy*0.25,-5,85);drag={x:e.clientX,y:e.clientY};redraw()});
+glc.addEventListener('pointerup',()=>{drag=null});
+glc.addEventListener('wheel',e=>{e.preventDefault();if(camMode!=='free')setCam('free');free.dist=clamp(free.dist*Math.exp(e.deltaY*0.001),80,4000);redraw()},{passive:false});
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.code!=='Space')return;
+  if(e.code==='Space'){e.preventDefault();playing?pause():play()}else if(e.code==='ArrowRight'){frame(t+5);if(playing)resync(t)}else if(e.code==='ArrowLeft'){frame(t-5);if(playing)resync(t)}
+  else if(e.code==='KeyM'){muteBtn.click()}else if(e.code==='KeyP'){partsBtn.click()}});
+
+// ?t=<秒> 停在那一格；?still=1 拿掉控制列（縮圖用）
+const q=new URLSearchParams(location.search);
+if(q.has('t'))t=clamp(parseFloat(q.get('t'))||0,0,DUR);
+if(q.get('still')==='1')stage.classList.add('still');
+if(q.get('res')==='0.1'){res=1;document.getElementById('res2').setAttribute('aria-pressed','false');document.getElementById('res1').setAttribute('aria-pressed','true')}
+if(q.has('t'))cover.style.display='none';
+frame(t);
+loadData().then(d=>{D=d;let ok=false;try{ok=initGL()}catch(e){console.error(e);gl=null}
+  glState=ok?'ok':'none';if(ok&&res===1)loadFine();loadEl.textContent=ok?'':'這個瀏覽器沒有 WebGL2，看不到船。';frame(t);if(pendingPlay)play()}).catch(e=>{console.error(e);glState='none';loadEl.textContent='船的資料讀不出來：'+e.message;frame(t)});
+})();
+</script>
+</body>
+</html>
