@@ -166,6 +166,22 @@
   "018_p04": {"rows": [
     [{"src": "O/stage19_sails_bowq.png"}],
     [{"src": "O/stage19_sails_sternq.png", "crop": [460, 40, 1300, 900]}]
+  ]},
+  "019_p01": {"rows": [
+    [{"src": "D/sheet18_guns_v1.png", "crop": [36, 60, 660, 465]}],
+    [{"src": "O/stage20_guns_muzzles.png", "crop": [0, 100, 1400, 800]}]
+  ]},
+  "019_p02": {"rows": [
+    [{"src": "O/stage20_guns_close.png", "crop": [0, 150, 1400, 750]}, {"src": "O/stage20_guns_row.png", "crop": [0, 150, 1400, 750]}],
+    [{"src": "O/stage20_guns_cabin_top.png"}, {"src": "O/stage20_guns_deck_top.png", "crop": [0, 150, 1400, 750]}]
+  ]},
+  "019_p03": {"rows": [
+    [{"src": "O/stage21_gunfittings_close.png"}],
+    [{"src": "D/sheet19_gunfittings_v1.png", "crop": [36, 60, 1450, 240]}]
+  ]},
+  "019_p04": {"rows": [
+    [{"src": "O/stage22_ratlines_close.png"}],
+    [{"src": "O/stage22_implements_v2_hidden.png", "crop": [300, 0, 1400, 700]}, {"src": "O/stage22_implements_lookup.png", "crop": [300, 0, 1400, 700]}]
   ]}
  }
 }
