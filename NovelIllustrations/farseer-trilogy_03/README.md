@@ -4,16 +4,18 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0032"
-illustrated_through_chapter: "0032"
-next_chapter: "0033"
+read_through_chapter: "0033"
+illustrated_through_chapter: "0033"
+next_chapter: "0034"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第三十二章〈胡瓜魚海灘〉全文並完成場景圖；下一次接續第三十三章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第三十三章〈露天礦場〉全文並完成場景圖；下一次接續第三十四章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+
+第三十三章只露匿名老年手托住單杯熱茶，以既有紅陶杯設定作形制參考，不認定它是第十一章同一物件。本章陶色、杯形、袖料與礦石近景均為詮釋；惟真、珂翠肯、銀色雙手與未完成石龍全在畫外。溫茶不作痊癒或和解的證明。
 
 沿用系列的磨舊木材、粗紙、冷灰陰影與有限暖光，寫實奇幻書籍插畫，無可讀文字與水印。序曲呈現寫作與記憶並存，不能把工作畫成痊癒或苦難已結束。晨光、桌面材質與墨罐樣式屬視覺詮釋，不冒充正文指定物件。
 
@@ -130,7 +132,7 @@ next_chapter: "0033"
 | `hut_wooden_chair` | [小屋木椅](Props/hut_wooden_chair.md) | 0002／0002 | v1 已繪與視檢；完整四腿方座、兩道橫木椅背、磨舊木材。 |
 | `tradeford_hall_gardens` | [商業灘殿堂與花園](Props/tradeford_hall_gardens.md) | 0008／0008 | v2 已繪與視檢；低牆與優雅住宅，觀景塔無箭孔，非要塞。v1 類字樣門楣未採用。 |
 | `freedman_sapphire_earring` | [自由人藍寶石耳環](Props/freedman_sapphire_earring.md) | 0010／0032 | v1 已繪與視檢；單一藍寶石被細銀絲網住，上端小鉤。0032蜚滋交託弄臣，尚未送回博瑞屈；祖母來源未確認。 |
-| `camp_red_tea_cup` | [營火旁紅陶茶杯](Props/camp_red_tea_cup.md) | 0011／0011 | v1 已繪與視檢；厚口、圓腹紅褐陶杯，單把手與形制為詮釋。 |
+| `camp_red_tea_cup` | [營火旁紅陶茶杯](Props/camp_red_tea_cup.md) | 0011／0033 | v1 已繪與視檢；0033僅借用形制，非同一只杯，本章陶色亦為詮釋。 |
 | `rough_shackle_key` | [粗製鐐銬鑰匙](Props/rough_shackle_key.md) | 0012／0012 | v1 已繪與視檢；粗製、能開鎖，暗灰鐵與精確輪廓為詮釋。 |
 | `snow_river_bank` | [渡河前的雪河岸](Props/snow_river_bank.md) | 0016／0016 | v1 已繪與視檢；積雪砂礫、岸冰與湍急未封凍河流、林木對岸。河彎與方位屬詮釋，本章未渡河。 |
 | `evergreen_needle_shelter` | [積雪常綠樹下的藏身處](Props/evergreen_needle_shelter.md) | 0017／0017 | v1 已繪與視檢；雪壓枝葉後方的淺空隙與落針地面，不鎖定樹種或河岸方位，不保證安全。 |
@@ -185,7 +187,11 @@ next_chapter: "0033"
 | 0031 | [把空杯放下](../../ReadingReflections/meadow_farseer_trilogy_03_the_cup_set_down_v1.md) | `elfbark_choice_cup` | v1已繪與視檢；單一空陶杯，藥袋、人物與狼均在畫外，未畫服用或安全成果。 |
 | 0032 | [在明天之前說出口](../../ReadingReflections/meadow_farseer_trilogy_03_words_before_tomorrow_v1.md) | `freedman_sapphire_earring` | v1已繪與視檢；局部雙手交託單一耳環，不補死亡定論、送達或團聚。 |
 
+| 0033 | [先讓溫度回到身體](../../ReadingReflections/meadow_farseer_trilogy_03_warmth_before_work_v1.md) | `camp_red_tea_cup` | v1已繪與視檢；匿名老年手與單杯熱茶，未畫恢復、和解或龍已完成。 |
+
 ## 待辦與開放問題
+
+第三十三章已讀與繪畢，下一次第三十四章。惟真已找到且活著，但虛弱與記憶遲滯仍在，石龍未完成；他將記憶放進龍的自述與生命流動的感知不等於完整魔法機制已解。愒懦死因、惟真受傷原因與小組犧牲棋子的布局仍屬水壺嬸推論。若畫惟真當章主體、銀色雙手、礦場全景、受困女騎士龍或未完成石龍，須先建立相應設定；第二冊人物稿不能直接代表當章狀態。
 
 第三十二章已讀與繪畢，下一次第三十三章。蜚滋以弄臣未答問題推斷死亡，不是已證實預言；惟真存在感消失亦不證明已死。弄臣的昏睡、夢魘與牽繫性質尚未完全釐清，珂翠肯與夜眼亦不鎖成完整原智牽繫。耳環已交給弄臣，未送達博瑞屈；莫莉未獲真相。若畫粉灰蛛網橋、溫泉或當章可辨識人物，須另建設定。0032只露匿名局部手，耳環身份沿用既有設定，不將暖光或手紋當作當章人物設定。
 
