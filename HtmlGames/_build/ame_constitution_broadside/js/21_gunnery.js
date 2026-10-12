@@ -17,8 +17,9 @@ function fireGun(sh, g, target, ammo) {
   spread *= [0.7, 0.75, 0.85, 1][sh.sailSet];                       // 帆收得越多，船越穩
   el = clamp(el + gauss() * spread, -0.17, 0.26); az += gauss() * spread;
   var dir = [Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)];
-  var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: g.type === 'carr' };
+  var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: g.type === 'carr', dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）
   BALLS.push(b); g.reload = sh.reloadT * (g.type === 'carr' ? 0.7 : 1) * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
+  g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
   sh.rollV += g.side === 'P' ? -0.0012 : 0.0012;                      // 後座：船往反方向晃一下
   sfx('boom', mw, sh.i === PLAYER_I ? 1 : 0.8);
@@ -45,9 +46,9 @@ function fireOne(sh, ammo) {
   sh.guns.forEach(function (g) { if (!g.alive || g.reload > 0 || gunRate(g) <= 0 || !gunTarget(sh, g, tgt)) return; var w = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), d = len(sub(w, tgt)); if (d < bd) { bd = d; best = g; } });
   if (best) fireGun(sh, best, gunTarget(sh, best, tgt), ammo);
 }
-/** 這門砲的砲軸（世界、水平）：舷側砲 ＝ 那一舷的正橫；追擊砲 ＝ 它自己的砲管方向（格 (0.342, 0.940)：正橫偏船頭 20°）。 */
+/** 這門砲的砲軸（世界、水平）：模型的固定點 muzzle − breech（舷側砲 ＝ 那一舷的正橫；追擊砲 ＝ 正橫偏船頭 20°）。 */
 function gunAxis(sh, g) {
-  var sg = g.side === 'P' ? -1 : 1, a = g.type === 'chase' ? M4.dir(sh.M, 0.342, 0.940 * sg, 0) : M4.dir(sh.M, 0, sg, 0);
+  var a = M4.dir(sh.M, g.ax[0], g.ax[1], 0);
   return norm([a[0], 0, a[2]]);
 }
 /** 這門砲對不對得到 w：從砲口量，跟它的砲軸夾角 < 0.45 rad（砲門 ±26°）。 */
@@ -97,18 +98,18 @@ function stepBall(b, dt) {
       var cc = sh.center, dx = b.p[0] - cc[0], dy = b.p[1] - cc[1], dz = b.p[2] - cc[2];
       if (dx * dx + dy * dy + dz * dz > sh.rad2) continue;
       var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]);
-      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 耐久 3 一發就沒）
-      if (hm) {                                                          // 打到模型：扣耐久（歸零整個飛出去），砲彈被擋掉一大半
+      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 一發扣好幾次血）
+      if (hm) {                                                          // 打到模型：扣血（每發傷害 × 彈種對砲倍率；歸零整個飛出去），砲彈被擋掉一大半
         if (sh.i !== b.owner && !b.hitOnce) { SHIPS[b.owner].hits++; b.hitOnce = true; }
         (b.hitM = b.hitM || []).push(hm);
-        damageModel(sh, hm, b.v, 1);
-        if (b.ammo === 1) { explode(b.p.slice(), sh, 0); blastModels(sh, L, 22, b.p, b.hitM); b.alive = false; return; }   // 直接打中的那一門已經扣過，不再吃爆風
+        damageModel(sh, hm, b.v, b.dmg * ammoK(b.ammo, VS_GUN));
+        if (b.ammo === 1) { explode(b.p.slice(), sh, 0); blastModels(sh, L, 22, b.p, b.hitM, b.dmg); hurt(sh, L, 13, 30, null, '爆炸', crewBase(b)); b.alive = false; return; }   // 直接打中的那一門已經扣過，不再吃爆風
         b.v = mul(b.v, b.ammo === 2 ? 0.5 : 0.55);
         if (len(b.v) < 30) { ballToDebris(b); return; }
       }
       if (b.ammo === 2) cutRig(sh, L, 14, b);
-      else if (b.ammo === 0 && (s & 3) === 0) cutRig(sh, L, 3, b);
-      if ((s & 3) === 1 && sh.i !== b.owner) hurt(sh, L, 4, 0, null, '砲彈');      // 砲彈直接掠過
+      else if ((s & 3) === 0) cutRig(sh, L, 3, b);                       // 實心與爆裂：細繩照斷、穿過帆會打洞（帆扣得少，見彈種倍率）
+      if ((s & 3) === 1 && sh.i !== b.owner) hurt(sh, L, 4, 0, null, '砲彈', crewBase(b) * 2);      // 砲彈直接掠過：兩倍
       if (!sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
         if (b.ammo !== 2) continue;
         // 鏈彈：兩顆彈中間一條鏈、轉著飛，約 2.4 公尺寬 ⇒ 沿那條橫桿取樣，碰到哪裡就從哪裡咬下去
@@ -127,19 +128,19 @@ function impact(b, sh, L) {
   if (sh.i !== b.owner) SHIPS[b.owner].hits += (b.hitOnce ? 0 : 1); b.hitOnce = true;
   if (b.ammo === 1) {                                                   // 爆裂彈：第一下就炸
     r = shatter(sh, L, dirL, rr(10, 13) * Math.pow(HARDK, -0.3), mul(b.v, 0.05), 650, 0.85);
-    explode(w, sh, r.n); blastModels(sh, L, 22, w); hurt(sh, L, 13, 30, null, '爆炸'); b.alive = false; return;
+    explode(w, sh, r.n); blastModels(sh, L, 22, w, null, b.dmg); hurt(sh, L, 13, 30, null, '爆炸', crewBase(b)); b.alive = false; return;
   }
   if (b.ammo === 2) {                                                   // 鏈彈：橫著的一片
     r = slab(sh, L, dirL, b);
     b.v = mul(b.v, Math.max(0, 1 - r.cost * 0.004 * HARDK));
-    if (r.n) hurt(sh, L, 9, 16, dirL, '鏈彈');
+    if (r.n) hurt(sh, L, 9, 16, dirL, '鏈彈', crewBase(b));
     if (len(b.v) < 30) { ballToDebris(b); }
     if (r.n > 30) { sfx('crack', w, 0.9); smoke(w, [0, 0.2, 0], 3, false); }
     return;
   }
   var R = rr(3.4, 4.6) * (b.big ? 1.25 : 1) * Math.pow(HARDK, -0.25);
   r = shatter(sh, L, dirL, R, b.v, 260, 0.55);   // 實心彈：一口一口往裡鑽（carronade 的 32 磅彈洞大一點；越硬洞越小）
-  if (r.n) hurt(sh, L, R * 1.1, R * 2.6, dirL, '碎木');                          // 碎木往前噴：船裡的人主要是被這個傷到的
+  if (r.n) hurt(sh, L, R * 1.1, R * 2.6, dirL, '碎木', crewBase(b));             // 碎木往前噴：船裡的人主要是被這個傷到的
   var nsp = sp - r.cost * 0.24 * HARDK;
   if (r.n > 0) { sfx('crack', w, 0.6 + Math.min(1, r.n / 200)); if (r.n > 40) smoke(w, mul(norm(b.v), -0.3), 2, false); }
   if (nsp < 28) { ballToDebris(b); return; }
@@ -147,11 +148,43 @@ function impact(b, sh, L) {
 }
 /** 格座標 L 落在哪個還在的模型外框裡（外擴 m 格）。 */
 function hitModel(sh, L, m, skip) {                                     // skip：這顆砲彈已經打過的（略過它、找後面那一個）
-  for (var i = 0; i < sh.models.length; i++) {
-    var o = sh.models[i], b = o.bb;
-    if (o.alive && !(skip && skip.indexOf(o) >= 0) && L[0] > b[0] - m && L[0] < b[3] + m && L[1] > b[1] - m && L[1] < b[4] + m && L[2] > b[2] - m && L[2] < b[5] + m) return o;
+  var bk = L[0] >= 0 ? sh.mIdx[Math.floor(L[0] / 16)] : null; if (!bk) return null;   // 只看這一桶（modelIndex；登記時外擴 12 格 ≥ 鏈彈的 10）
+  for (var i = 0; i < bk.length; i++) {
+    var o = bk[i], b = o.bb;
+    if (o.alive && !(skip && skip.indexOf(o) >= 0) && L[0] > b[0] - m && L[0] < b[3] + m && L[1] > b[1] - m && L[1] < b[4] + m && L[2] > b[2] - m && L[2] < b[5] + m &&
+        (m > 2 || inMesh(o, L))) return o;                               // 實心／爆裂彈：外框裡還要真的碰到砲身或砲架（鏈彈橫掃 2.4 m ⇒ 外框就算）
   }
   return null;
+}
+/** 格座標 L 在不在這個模型的網格裡（佔用格，外擴一格 ≈ 砲彈半徑）。⛔ 只看外框：長砲的外框 1.3 × 3.1 m，空的角落也算 ⇒ 砲甲板一半的彈都打得到砲。 */
+function inMesh(o, L) {
+  var oc = MESHES[o.mesh] && MESHES[o.mesh].occ; if (!oc) return true;
+  var x = Math.floor(L[0] - o.origin[0]) + 1, y = Math.floor(L[1] - o.origin[1]) + 1, z = Math.floor(L[2] - o.origin[2]) + 1;
+  return x >= 0 && y >= 0 && z >= 0 && x < oc.nx && y < oc.ny && z < oc.nz && oc.a[x + oc.nx * (y + oc.ny * z)] === 1;
+}
+/** 網格 ⇒ 佔用格（每格 0.1 m，座標跟網格一樣相對模型的 origin、整體位移一格）：三角形每 0.4 格取一點，往法線反方向半格那一格算實心；再外擴一格。 */
+function meshOcc(m) {
+  var v = m.verts, mx = [0, 0, 0], j, a;
+  for (j = 0; j < v.length; j += 3) for (a = 0; a < 3; a++) mx[a] = Math.max(mx[a], v[j + a]);
+  var nx = Math.ceil(mx[0]) + 3, ny = Math.ceil(mx[1]) + 3, nz = Math.ceil(mx[2]) + 3, s = new Uint8Array(nx * ny * nz), o = new Uint8Array(nx * ny * nz);
+  function mark(x, y, z) { x = Math.floor(x) + 1; y = Math.floor(y) + 1; z = Math.floor(z) + 1; if (x >= 0 && y >= 0 && z >= 0 && x < nx && y < ny && z < nz) s[x + nx * (y + ny * z)] = 1; }
+  for (j = 0; j < m.tris.length; j += 3) {
+    var A = m.tris[j] * 3, B = m.tris[j + 1] * 3, C = m.tris[j + 2] * 3;
+    var e1 = [v[B] - v[A], v[B + 1] - v[A + 1], v[B + 2] - v[A + 2]], e2 = [v[C] - v[A], v[C + 1] - v[A + 1], v[C + 2] - v[A + 2]], n = norm(cross(e1, e2));
+    var st = Math.max(1, Math.ceil(Math.max(len(e1), len(e2), len(sub(e1, e2))) / 0.4));
+    for (var p = 0; p <= st; p++) for (var q = 0; q <= st - p; q++) {
+      var u = p / st, w = q / st;
+      mark(v[A] + e1[0] * u + e2[0] * w - n[0] * 0.5, v[A + 1] + e1[1] * u + e2[1] * w - n[1] * 0.5, v[A + 2] + e1[2] * u + e2[2] * w - n[2] * 0.5);
+    }
+  }
+  for (var z = 0; z < nz; z++) for (var y = 0; y < ny; y++) for (var x = 0; x < nx; x++) {
+    if (!s[x + nx * (y + ny * z)]) continue;
+    for (var dz = -1; dz <= 1; dz++) for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+      var X = x + dx, Y = y + dy, Z = z + dz; if (X >= 0 && Y >= 0 && Z >= 0 && X < nx && Y < ny && Z < nz) o[X + nx * (Y + ny * Z)] = 1;
+    }
+  }
+  var cnt = 0; for (j = 0; j < o.length; j++) cnt += o[j];
+  return { nx: nx, ny: ny, nz: nz, a: o, fill: cnt / o.length };
 }
 /** 模型整個飛出去：剛體（拋出、翻滾、落水）；綁在它身上的砲與繩一起失效。drop ＝ 腳下甲板沒了，只是掉下去。 */
 function blowModel(sh, m, vel, drop) {
@@ -164,36 +197,40 @@ function blowModel(sh, m, vel, drop) {
     w: drop ? [gauss() * 0.4, 0, gauss() * 0.4] : [gauss() * 4, gauss() * 4, gauss() * 4] });
   sh.guns.forEach(function (g) { if (g.model === m) g.alive = false; });
   sh.ropes.forEach(function (r) { if (!r.dead && r.mods && r.mods.indexOf(m.k) >= 0) { r.dead = true; sh.rigDirty = true; } });
-  if (!drop) {
-    hurt(sh, m.c, 7, 15, null, '砲被打飛');
+  if (!drop && m.kind !== 'powder') {
+    hurt(sh, m.c, 7, 15, null, '砲被打飛', 140);
     flash(c0, vd, 10, false);
     for (var i = 0; i < 14; i++) spawnPt(c0, add(mul(vd, rr(3, 12)), [gauss() * 4, rr(1, 6), gauss() * 4]), rr(0.2, 0.5), [1, 0.85, 0.5], 1, 0.25, 0.1, G, 0.5, 3);
     sfx('crack', c0, 1.3);
   }
   if (m.kind === 'wheel') note(sh, '舵輪被打飛了');
-  else if (m.kind === 'carr' && !drop) note(sh, m.name + ' 被打飛');
+  else if (GUN_TYPE[m.kind]) newsGun(sh, m, drop);                    // 廣播（同一刻好幾門 ⇒ 併成一行，見 61_hud.js）
 }
-/** 模型被打中：扣耐久（細節設定的「砲的耐久」；舵輪 1），歸零才整個飛出去。還撐得住 ⇒ 火星、聲音、旁邊的人被碎片波及。
- *  耐久 1（預設）⇒ 第一下就飛，跟以前同一條路（同樣的速度、同樣的亂數順序）。 */
+/** 模型被打中：扣血（細節設定的砲血量；舵輪 6 成），歸零才整個飛出去。還撐得住 ⇒ 火星、聲音、旁邊的人被碎片波及。
+ *  火藥桶另走 powderHit（歸零殉爆；拉滿 ＝ 不會爆 ⇒ 不扣）。 */
 function damageModel(sh, m, vel, dmg) {
-  if (!m.alive) return;
+  if (!m.alive || !(dmg > 0)) return;
+  if (m.kind === 'powder') { powderHit(sh, m, dmg); return; }
+  if (m.gun) boxHit(sh, m.gun, dmg);                                    // 砲旁的藥箱（23_powder.js）
   m.hp -= dmg;
   if (m.hp <= 0) { blowModel(sh, m, vel); return; }
   var c0 = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]), vd = norm(vel);
   for (var i = 0; i < 8; i++) spawnPt(c0, add(mul(vd, rr(-6, -2)), [gauss() * 3, rr(1, 4), gauss() * 3]), rr(0.15, 0.35), [1, 0.8, 0.45], 1, 0.2, 0.08, G, 0.5, 3);
-  hurt(sh, m.c, 3, 8, null, '碎木');
+  hurt(sh, m.c, 3, 8, null, '碎木', dmg * 0.7);
   sfx('crack', c0, 0.8);
-  if (m.kind === 'carr' || m.kind === 'chase') note(sh, m.name + ' 被打中（耐久 ' + m.hp + '／' + m.hpMax + '）');
 }
-/** 爆炸：r 格內的模型往外飛。 */
-function blastModels(sh, L, r, w, skip) {
+/** 爆炸：r 格內的模型往外飛。傷害 ＝ 每發傷害 × 爆裂彈對砲倍率 × (1 − 0.75·d／r)。skip：直接打中的那一門（已經扣過）。 */
+function blastModels(sh, L, r, w, skip, dmg) {
+  var k = (dmg || 100) * ammoK(1, VS_GUN);
   sh.models.forEach(function (m) {
     if (!m.alive || (skip && skip.indexOf(m) >= 0)) return;
     var d = len(sub(m.c, L)); if (d > r) return;
     var cw = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]);
-    damageModel(sh, m, mul(norm(sub(cw, w)), 200 * (1 - d / r) + 60), d < r * 0.4 ? 2 : 1);   // 爆心附近扣兩下
+    damageModel(sh, m, mul(norm(sub(cw, w)), 200 * (1 - d / r) + 60), k * (1 - 0.75 * d / r));
   });
 }
+/** 對人的基準傷害：1.4 × 每發傷害 × 彈種對人倍率（24 磅實心 ⇒ 140 ⇒ 碎木錐裡約 85% 當場陣亡，跟以前一樣）。 */
+function crewBase(b) { return 1.4 * b.dmg * ammoK(b.ammo, VS_CREW); }
 function stepFly(f, dt) {
   f.t += dt;
   f.v[1] -= G * dt;
@@ -216,7 +253,8 @@ function buildMeshes() {          // 每份網格一個 VAO：三角形展開、
       T.push(v[a], v[a + 1], v[a + 2], n[0], n[1], n[2], c[0], c[1], c[2], v[b], v[b + 1], v[b + 2], n[0], n[1], n[2], c[0], c[1], c[2],
              v[d], v[d + 1], v[d + 2], n[0], n[1], n[2], c[0], c[1], c[2]);
     }
-    MESHES.push(upload(null, new Float32Array(T), 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]));
+    var up = upload(null, new Float32Array(T), 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]);
+    up.occ = meshOcc(m); MESHES.push(up);
   });
 }
 function ballToDebris(b) { spawnDebris(b.p, mul(b.v, 0.3), 36, 0.15, 20); b.alive = false; }
@@ -251,13 +289,16 @@ function cutRig(sh, L, r, b) {
       if (segDist2(L, p[j], p[j + 1], p[j + 2], p[j + 3], p[j + 4], p[j + 5]) < r2) { rp.dead = true; rp.cutL = [L[0], L[1], L[2]]; changed = true; break; }   // cutL：垂下來的繩從這裡分成兩段
     }
   });
-  if (b.ammo === 2) sh.sails.forEach(function (s) {
+  // 帆：鏈彈纏上（彈心 0.8 m 內有頂點）；實心與爆裂穿過（0.4 m 內）也扣、打個小洞。扣 ＝ 每發傷害 × 彈種對帆倍率
+  var chain = b.ammo === 2, rs2 = chain ? 64 : 16, rb = chain ? 8 : 4;
+  sh.sails.forEach(function (s) {
     if (s.dead || s.furled) return;
-    var v = s.verts;
-    if (b.sails && b.sails.indexOf(s) >= 0) return;                    // 同一顆鏈彈穿過一面帆要好幾個小步 ⇒ 只算一次（記帆本身：兩艘的同編號帆是不同的帆）
-    for (var j = 0; j < v.length; j += 9) { var dx = v[j] - L[0], dy = v[j + 1] - L[1], dz = v[j + 2] - L[2]; if (dx * dx + dy * dy + dz * dz < 64) {
-      tearCloth(sh, s, L); s.hp--; (b.sails = b.sails || []).push(s);
-      if (s.hp <= 0) dropSail(sh, s, true); else shredSail(sh, s, L);     // 帆的耐久（細節設定）：歸零才掉；還撐得住 ⇒ 撕下幾片、少一份推力
+    var v = s.verts, sb = s.bb;
+    if (b.sails && b.sails.indexOf(s) >= 0) return;                    // 同一顆彈穿過一面帆要好幾個小步 ⇒ 只算一次（記帆本身：兩艘的同編號帆是不同的帆）
+    if (L[0] < sb[0] - rb || L[0] > sb[3] + rb || L[1] < sb[1] - rb || L[1] > sb[4] + rb || L[2] < sb[2] - rb || L[2] > sb[5] + rb) return;
+    for (var j = 0; j < v.length; j += chain ? 9 : 3) { var dx = v[j] - L[0], dy = v[j + 1] - L[1], dz = v[j + 2] - L[2]; if (dx * dx + dy * dy + dz * dz < rs2) {
+      tearCloth(sh, s, L, chain ? 7 : 3); s.hp -= b.dmg * ammoK(b.ammo, VS_SAIL); (b.sails = b.sails || []).push(s);
+      if (s.hp <= 0) dropSail(sh, s, true); else if (chain) shredSail(sh, s, L);   // 歸零才掉；還撐得住 ⇒ 撕下幾片（鏈彈）、少一份推力
       changed = true; break; } }
   });
   if (changed) sh.rigDirty = true;

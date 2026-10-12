@@ -4,7 +4,8 @@ function reset() {
   rs = SEED;
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
-  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false; AMMO_I = 0;
+  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false; AMMO_I = 0;
+  clearMsgs();
   PLAYER_I = 0;
   SHIPS.push(makeShip(0, 'blue', 0, DIST / 2));
   SHIPS.push(makeShip(1, 'red', Math.PI, -DIST / 2));

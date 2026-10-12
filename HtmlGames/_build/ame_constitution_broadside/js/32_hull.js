@@ -4,11 +4,13 @@ function stepShip(sh, dt) {
   var wz = Math.min(SZ - 1, Math.floor(ZW + (sh.sink - sh.bob) / S)), N = 0, Q = 0, Dsp = 0, Dbs = 0;
   for (var z = 0; z <= wz; z++) { var c = sh.flood[z * 3]; if (!c) continue; N += c; Q += c * Math.sqrt((wz - z) * S + 0.05); Dsp += sh.flood[z * 3 + 1]; Dbs += sh.flood[z * 3 + 2]; }
   sh.inflow = N;
+  var fk = sh.broken ? Math.max(FLOOD, 0.6) : FLOOD;                       // 斷成兩截 ⇒ 一定沉（進水速度 0 也沉）
   if (!sh.sunk) {
-    sh.sink = Math.max(0, sh.sink + (Q * 1.1e-5 - 0.004) * FLOOD * dt);      // 進水與抽水一起照滑桿縮放（⛔ 只縮進水 ⇒ 調慢之後抽水永遠贏、永遠不沉）
-    if (sh.sink > 4.2 && !sh.sinkingFinal && FLOOD > 0) { sh.sinkingFinal = true; note(sh, '進水太多，開始沉了'); }
-    if (sh.sinkingFinal) { sh.sinkV += 0.06 * FLOOD * dt; sh.sink += sh.sinkV * dt; }
-    if (sh.sink > 9) { sh.sunk = true; note(sh, '沉沒'); }
+    sh.sink = Math.max(0, sh.sink + Math.min(Q * 1.1e-5 - 0.004, 0.25) * fk * dt);   // 進水與抽水一起照滑桿縮放（⛔ 只縮進水 ⇒ 調慢之後抽水永遠贏、永遠不沉）；
+                                                                              // 上限 0.25 m/s：彈藥庫殉爆打掉三十幾萬格 ⇒ 不設上限兩秒就沉完，看不到船斷開
+    if (sh.sink > 4.2 && !sh.sinkingFinal && fk > 0) { sh.sinkingFinal = true; note(sh, '進水太多，開始沉了'); }
+    if (sh.sinkingFinal) { sh.sinkV += 0.06 * fk * dt; sh.sink += sh.sinkV * dt; }
+    if (sh.sink > 9) { sh.sunk = true; note(sh, '沉沒', true); }
   } else { sh.sinkV = Math.min(sh.sinkV + 0.05 * dt, 1.2); sh.sink += sh.sinkV * dt; }
   // 傾斜：破洞那一舷往下（格座標 +y ＝ 船體 −Z；繞 +X 轉負角時 −Z 那邊下沉）
   var rollT = -clamp(Dsp / (N + 900), -1, 1) * (sh.sinkingFinal ? 0.55 : 0.21);
@@ -21,7 +23,11 @@ function stepShip(sh, dt) {
   sh.M = M4.mul(shipMatrix(sh), M4.ident()); sh.inv = M4.inv(sh.M);
   sh.center = shipCenter(sh); sh.rad2 = 62 * 62;
   manning(sh);
-  for (var i = 0; i < sh.guns.length; i++) if (sh.guns[i].reload > 0) sh.guns[i].reload -= dt * gunRate(sh.guns[i]);   // 人少裝填慢、沒人不裝填
+  for (var i = 0; i < sh.guns.length; i++) {
+    var g = sh.guns[i]; if (!(g.reload > 0)) continue;
+    if (g.needCart) { if (g.box > 0 && gunRate(g) > 0) { g.box--; g.needCart = false; } else continue; }   // 裝填要一份火藥與彈藥：藥箱空了 ⇒ 等送藥手（不倒數）
+    g.reload -= dt * gunRate(g);                                    // 人少裝填慢、沒人不裝填
+  }
 }
 function survey(sh) {               // 每半秒量一次：砲還在不在、桅還在不在、繩與帆的錨還在不在
   var alive = 0;
@@ -30,14 +36,7 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
     var f = m.foot, x = f & 1023, y = (f >> 10) & 1023, z = f >> 20;
     if (!countBox(sh.grid, x - 2, y - 2, z - 1, x + 2, y + 2, z)) blowModel(sh, m, [0, -1, 0], true);   // 腳下的甲板被打掉 ⇒ 掉下去
   });
-  sh.guns.forEach(function (g) {
-    if (g.alive && g.model) { g.alive = g.model.alive; g.hp01 = g.model.hp / g.model.hpMax; }
-    else if (g.alive) {                                                   // 長砲（格子）：剩下的比例 ≥ thr 才算還在；血條 ＝ 從滿到 thr 走了多少
-      var cnt = countBox(sh.grid, g.box[0], g.box[1], g.box[2], g.box[3], g.box[4], g.box[5]);
-      g.alive = cnt >= g.orig * g.thr; g.hp01 = clamp((cnt / g.orig - g.thr) / (1 - g.thr), 0, 1);   // ⛔ 比較式照以前寫（cnt ≥ orig × 0.55）：改成比例比，邊界上浮點會差一格
-    }
-    if (g.alive) alive++;
-  });
+  sh.guns.forEach(function (g) { if (g.alive) g.alive = g.model.alive; if (g.alive) alive++; });   // 砲都是模型：模型飛了（血量歸零、腳下甲板沒了）砲就沒了
   sh.gunsAlive = alive;
   var up = 0;
   sh.masts.forEach(function (m) { if (m.up) { m.up = countBox(sh.grid, m.x - 8, CY - 8, m.z0, m.x + 8, CY + 8, m.z1) > m.orig * 0.3; if (!m.up) note(sh, m.name + '倒了'); } if (m.up) up++; });
@@ -70,7 +69,7 @@ function strikeCheck(sh) {
   else if (STRIKE.masts && sh.mastsUp === 0 && cas >= 0.33) why = '降旗（桅全倒、' + pc + '）';
   else if (STRIKE.officers && cas >= 0.25 && !sh.crew.some(function (c) { return c.role === ROLE.OFFICER && able(c); })) why = '降旗（軍官全倒、' + pc + '）';
   if (!why) return;
-  sh.struck = true; sh.fate = why; note(sh, why);
+  sh.struck = true; sh.fate = why; note(sh, why, true);
 }
 /** 選單與結算畫面用的一句話：現在的降旗規則。 */
 function strikeText() {

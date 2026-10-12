@@ -3,7 +3,8 @@ function isAnchor(x, y, z) { return z <= 12; }   // 龍骨（龍骨是直的 ⇒
 function integrity(sh) {
   if (!sh.seeds.length) return;
   var seeds = sh.seeds; sh.seeds = [];
-  var pieces = VK.detached(sh.grid, seeds, isAnchor, 900000);
+  var anchor = sh.keel ? function (x, y, z) { return z <= 12 && x >= sh.keel[0] && x <= sh.keel[1]; } : isAnchor;   // 船斷成兩截之後：龍骨的錨只留長的那半截（23_powder.js breakShip）
+  var pieces = VK.detached(sh.grid, seeds, anchor, 900000);
   pieces.forEach(function (pc) { spawnPiece(sh, pc); });
 }
 function spawnPiece(sh, pc) {
@@ -25,7 +26,11 @@ function spawnPiece(sh, pc) {
   var imp = sh.impulse; imp = [imp[0], 0, imp[2]]; if (len(imp) < 1e-6) imp = [rnd() - 0.5, 0, rnd() - 0.5];
   var axis = norm(cross([0, 1, 0], norm(imp)));
   var piece = { grid: g, rs: rs2, M0: M0, c0: c0, c: c0.slice(), R: M4.ident(), v: [0, 0, 0], w: mul(axis, rr(0.18, 0.35)), pivot: pivot, n: n,
-    hinge: c0[1] - pivot[1] > 2.5, t: 0, wet: false, ropes: [], cl: [], rigDirty: true, lines: null };
+    hinge: c0[1] - pivot[1] > 2.5, t: 0, wet: false, ropes: [], cl: [], rigDirty: true, lines: null, mods: [] };
+  if (sh.keel && n > 60000) {                                 // 斷成兩截的那半截船：不繞斷口倒 —— 帶著船速漂、斷口那頭往下、慢慢沉
+    var fw = M4.dir(sh.M, 1, 0, 0), sideK = (sx / n) > sh.breakX ? 1 : -1;
+    piece.hinge = false; piece.hull = norm(mul(cross([fw[0], 0, fw[2]], [0, 1, 0]), sideK)); piece.v = sh.vel.slice();
+  }
   // 繩與帆跟著走：兩端都在這一團 ⇒ 帶走（moved：不變成垂下來的繩）；只有一端 ⇒ 斷
   var moved = new Set();
   sh.ropes.forEach(function (r, j) {
@@ -54,10 +59,15 @@ function spawnPiece(sh, pc) {
     else dropSail(sh, s);
   });
   sh.crew.forEach(function (c) { if (c.st < 3 && set.has(VK.pack(Math.floor(c.pos[0]), Math.floor(c.pos[1]), c.pos[2] - 1))) fall(sh, c, mul(axis, 2)); });
+  sh.models.forEach(function (m) {                            // 腳下那一格在這一團裡的模型（砲、舵輪）跟著走（⛔ 不跟 ⇒ 下一次 survey 從漂走的半截船裡直直掉進海裡）
+    if (!m.alive || !set.has(m.foot)) return;
+    m.alive = false; piece.mods.push({ mesh: m.mesh, origin: m.origin });
+    sh.guns.forEach(function (g) { if (g.model === m) g.alive = false; });
+  });
   piece.sh = sh; piece.pivotL = M4.pt(sh.inv, pivot[0], pivot[1], pivot[2]);
   sh.rigDirty = true;
   PIECES.push(piece);
-  if (n > 3000) { sfx('creak', c0, 1.4); note(sh, (c0[1] - pivot[1] > 8 ? '桅杆斷了！' : '一大塊船體脫落')); }
+  if (n > 3000) { sfx('creak', c0, 1.4); note(sh, piece.hull ? '船斷成兩截！' : c0[1] - pivot[1] > 8 ? '桅杆斷了！' : '一大塊船體脫落', !!piece.hull); }
 }
 /** 倒下的那一團掃過甲板：沿著它倒下的那條線（斷口 → 2 倍重心距離）1.5 公尺內的人被壓到。 */
 function crush(pc, r) {
@@ -66,12 +76,21 @@ function crush(pc, r) {
   sh.crew.forEach(function (c) {
     if (c.st > 1) return;
     var w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2] + 9);
-    if (segDist2(w, a[0], a[1], a[2], b[0], b[1], b[2]) < 2.25 && rnd() < 0.75) killCrew(sh, c, '倒下的桅');
+    if (segDist2(w, a[0], a[1], a[2], b[0], b[1], b[2]) < 2.25) damageCrew(sh, c, 120 * rr(0.6, 1.4), '倒下的桅');   // 血量 100 時約七成壓死
   });
 }
 function stepPiece(pc, dt) {
   pc.t += dt;
   var g = [0, -G, 0];
+  if (pc.hull) {                                                // 斷開的半截船：水平慢慢停下、斷口那頭往下翹（最多約 35°）、往下沉越來越快
+    pc.v[0] *= 1 - 0.12 * dt; pc.v[2] *= 1 - 0.12 * dt; pc.v[1] = -Math.min(1.6, 0.12 + pc.t * 0.025);
+    pc.c = add(pc.c, mul(pc.v, dt));
+    var ang = Math.min(0.6, pc.t * 0.035) + Math.max(0, pc.t - 17) * 0.01;
+    pc.R = rotM(pc.hull, ang);
+    if (!pc.wet) { pc.wet = true; for (var k2 = 0; k2 < 6; k2++) splash(add(pc.c, [gauss() * 6, 0, gauss() * 6]), true); }
+    pc.M = M4.mul(M4.mul(M4.mul(trans(pc.c[0], pc.c[1], pc.c[2]), pc.R), trans(-pc.c0[0], -pc.c0[1], -pc.c0[2])), pc.M0);
+    return pc.c[1] > -60 && pc.t < 150;
+  }
   if (pc.hinge) {                                               // 繞斷口倒：細棒繞端點 α ＝ (r × g)·3／(4|r|²)
     if (pc.sh) { var np = M4.pt(pc.sh.M, pc.pivotL[0], pc.pivotL[1], pc.pivotL[2]); pc.c = add(pc.c, sub(np, pc.pivot)); pc.pivot = np; }   // 斷口跟著船走（船在航行）
     var r = sub(pc.c, pc.pivot), r2 = dot(r, r), alpha = mul(cross(r, g), 3 / (4 * r2));

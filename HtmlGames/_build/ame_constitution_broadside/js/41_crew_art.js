@@ -128,6 +128,7 @@ function crewFrame(sh, c) {
   if (c.st === 1) return FR.WOUNDED;
   var ph = Math.floor(c.t * 2.5) & 1;
   if (c.walk || c.moving) return ph ? FR.RUN_A : FR.RUN_B;
+  if (c.role === ROLE.POWDER && c.pm && c.pm.st === 'fill') return ph ? FR.WORK_A : FR.WORK_B;   // 在取用點拿火藥與彈藥
   if (c.role === ROLE.GUN && c.gun) {
     if (SIMT - (c.gun.firedAt || -9) < 0.7) return FR.FIRE;
     if (c.gun.reload > 0 && c.gun.manned >= c.gun.crewMin) return ph ? FR.WORK_A : FR.WORK_B;
@@ -165,6 +166,7 @@ function crewPose(sh, c, f) {
   if (c.role === ROLE.TOP) k.lean = 0.09 * Math.sin(t * 1.3);
   return k;
 }
+var CREW_H = 2.1;                                  // 人物高（公尺）：1.75 → 2.1（Tim 2026-10-12：放大 1.2 倍，遠一點也看得清）
 function drawCrew() {
   var n = 0, fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), right = [-fw[2], 0, fw[0]], frames = CREW_COLS > 1;
   SHIPS.forEach(function (sh) {
@@ -175,11 +177,11 @@ function drawCrew() {
       var art = c.art !== undefined && c.art < CREW_ROWS ? c.art : c.role;   // 船長那一列沒有 ⇒ 用職位那一列
       var w = c.st === 4 ? c.fw : M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]), f = crewFrame(sh, c), row = art * 2 + team;
       var fd = c.walk ? M4.dir(sh.M, c.walk.to[0] - c.pos[0], c.walk.to[1] - c.pos[1], 0) : mul(faceW, c.face), flip = dot(fd, right) < 0;
-      var col = frames ? f : 0, u0 = col / CREW_COLS, u1 = (col + 1) / CREW_COLS, v0 = row / (CREW_ROWS * 2), v1 = (row + 1) / (CREW_ROWS * 2), k = n * BBS, h = 1.75;
+      var col = frames ? f : 0, u0 = col / CREW_COLS, u1 = (col + 1) / CREW_COLS, v0 = row / (CREW_ROWS * 2), v1 = (row + 1) / (CREW_ROWS * 2), k = n * BBS, h = CREW_H;
       var ps = crewPose(sh, c, f), amp = frames ? 0.35 : 1;                            // 8 欄逐格：姿勢在圖裡，程式只疊輕的一層（不再躺、不再跪）
       if (frames && (f === FR.DEAD || f === FR.WOUNDED) && c.st !== 4) ps = { lean: 0, bob: 0, sx: 1, sy: 1 };
       var lean = ps.lean * (c.st === 4 ? 1 : amp), sy = 1 + (ps.sy - 1) * amp, sx = 1 + (ps.sx - 1) * amp;
-      var flash = c.st === 1 || c.st === 2 || c.st === 4 ? Math.max(0, 1 - c.t / 0.4) : 0;   // 被打中那一下閃紅（c.t 在那一刻歸零）
+      var flash = Math.max(c.st === 1 || c.st === 2 || c.st === 4 ? Math.max(0, 1 - c.t / 0.4) : 0, c.hitT > 0 ? c.hitT / 0.4 : 0);   // 被打中那一下閃紅（倒下：c.t 在那一刻歸零；沒倒下：hitT）
       BB[k] = w[0]; BB[k + 1] = w[1]; BB[k + 2] = w[2]; BB[k + 3] = h * sy;
       BB[k + 4] = flip ? u1 : u0; BB[k + 5] = v0; BB[k + 6] = flip ? u0 : u1; BB[k + 7] = v1;
       BB[k + 8] = h * CELL_W / CELL_H * sx; BB[k + 9] = c.st === 1 ? 0.85 : 1; BB[k + 10] = flip ? lean : -lean; BB[k + 11] = ps.bob * amp;   // 往面向的那邊傾：面右 ⇒ 順時針

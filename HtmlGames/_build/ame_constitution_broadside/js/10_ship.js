@@ -23,35 +23,33 @@ function makeShip(i, team, yaw, pz) {
     spd: 0, spd0: true, yawRate: 0, vel: [0, 0, 0], wakeT: 0, sailFrac: 1, pos: '',
     side: 'S', manual: false, rudder: 0, sailSet: 3, bumpT: 0
   };
-  // 長砲：兩舷各 14 門（關聯 砲-S／砲-P）；砲口 ＝ 外框裡最外那一層的中心（S 那一舷 y 最大、P 那一舷 y 最小）。
-  // ⚠ 程式裡的 'S'／'P' 照模型的名字，但 S（格 +y）在右手座標裡是船的左手邊（面向船頭 +x、上 +z ⇒ 右手是 −y）
-  //   ⇒ 畫面上是左舷。給人看的一律照畫面（sideName）；A／D 也照畫面的左右。
-  (MODEL.header.parts || []).forEach(function (p) {
-    var mt = /\/砲-([SP])\d+$/.exec(p.path); if (!mt) return;
-    var side = mt[1], b = p.box, edge = side === 'S' ? -1 : 1e9, sx = 0, sz = 0, n = 0, cnt = 0, x, y, z;
-    for (x = b[0]; x <= b[3]; x++) for (y = b[1]; y <= b[4]; y++) for (z = b[2]; z <= b[5]; z++) if (BASE.get(x, y, z)) { cnt++; if (side === 'S' ? y > edge : y < edge) edge = y; }
-    var y0 = side === 'S' ? edge - 1 : edge, y1 = side === 'S' ? edge : edge + 1;
-    for (x = b[0]; x <= b[3]; x++) for (z = b[2]; z <= b[5]; z++) for (y = y0; y <= y1; y++) if (BASE.get(x, y, z)) { sx += x; sz += z; n++; }
-    sh.guns.push({ name: p.path.split('/').pop(), type: 'long', side: side, box: b, muz: [sx / n + 0.5, side === 'S' ? edge + 1.5 : edge - 0.5, sz / n + 0.5], orig: cnt, alive: true, reload: rr(0, 1.2),
-      thr: 0.55, hp01: 1 });   // 長砲還是格子：外框裡剩不到 55% 就毀（照舊）。⛔ 不跟著砲的耐久往下壓：外框約一半是船殼木板，門檻一低，砲身打爛也到不了 ⇒ 等長砲改成模型再套耐久
-  });
-  // 模型（carronade、追擊砲、舵輪）：整個是一塊剛體 —— 被打到就整個飛出去，⛔ 不拆格
+  // 模型（砲、火藥桶、舵輪）：整個是一塊剛體 —— 被打到扣血，歸零整個飛出去（火藥桶 ⇒ 殉爆，見 23_powder.js），⛔ 不拆格。
+  // 種類照 basecamp 給的 meta（TASK-0517）：{kind:'gun', gun:'24l'|'32c'|'18chase'}、{kind:'powder', powder_lb}；舵輪沒有 meta ⇒ 照名字。
   sh.models = (RIG.models || []).map(function (m, k) {
-    var b = m.bbox, kind = /carronade/.test(m.name) ? 'carr' : /chase/.test(m.name) ? 'chase' : /wheel/.test(m.name) ? 'wheel' : 'model';
+    var b = m.bbox, kind = modelKind(m);
     var cx = Math.floor((b[0] + b[3]) / 2), cy = Math.floor((b[1] + b[4]) / 2), fz = Math.floor(b[2]) - 1;
     while (fz > 0 && !BASE.get(cx, cy, fz)) fz--;                     // 腳下那一格甲板（被打掉 ⇒ 掉下去）
-    var hpm = kind === 'carr' || kind === 'chase' ? GUN_HP : 1;      // 砲（carronade、追擊砲）照細節設定的耐久；舵輪一打就飛
-    return { k: k, name: m.name.split('/').pop(), kind: kind, hp: hpm, hpMax: hpm, side: /carronade-S/.test(m.name) ? 'S' : /carronade-P/.test(m.name) ? 'P' : '',
-      mesh: m.mesh, origin: m.origin, bb: b, c: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2], foot: VK.pack(cx, cy, fz), alive: true };
+    var hpm = kind === 'powder' ? POWDER_HP : kind === 'wheel' ? Math.round(GUN_HP * 0.6) : kind === 'model' ? 1 : GUN_HP;   // 細節設定的血量；舵輪 6 成
+    return { k: k, name: m.name.split('/').pop(), path: m.name, kind: kind, hp: hpm, hpMax: hpm, mesh: m.mesh, origin: m.origin, bb: b, pts: m.points || {}, meta: m.meta || {},
+      c: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2], foot: VK.pack(cx, cy, fz), alive: true };
   });
-  sh.models.forEach(function (m) {                                       // 兩舷的 carronade 與船頭的追擊砲也是砲（S 那一舷砲口朝 +y、P 那一舷朝 −y）
-    var b = m.bb;
-    if (m.kind === 'carr' && m.side)
-      sh.guns.push({ name: m.name, type: 'carr', side: m.side, model: m, muz: [(b[0] + b[3]) / 2, m.side === 'S' ? b[4] + 1.5 : b[1] - 1.5, b[2] + 9.75], alive: true, reload: rr(0, 1.2) });
-    else if (m.kind === 'chase')                                          // 砲口 (648.1, 194.5, 98.75)：外框裡砲管朝 (0.342, 0.940)
-      sh.guns.push({ name: 'chase18', type: 'chase', side: 'S', model: m, muz: [b[3] - 1.9 + 0.5, b[4] + 1.0, b[2] + 10.75], alive: true, reload: rr(0, 1.2) });
+  // 砲：長砲（24 磅，兩舷各 14）、carronade（32 磅，兩舷各 12）、追擊砲（18 磅，船頭兩舷各 1）都是模型。
+  // 砲軸 ＝ 固定點 muzzle − breech（格座標、水平）；砲口 ＝ muzzle 再往外 1.5 格（muzzle 在砲口內膛那一格）。
+  // ⚠ 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致），但 S（格 +y）在右手座標裡是船的左手邊（面向船頭 +x、上 +z ⇒ 右手是 −y）
+  //   ⇒ 畫面上是左舷。給人看的一律照畫面（sideName）；A／D 也照畫面的左右。
+  sh.models.forEach(function (m) {
+    if (!GUN_TYPE[m.kind]) return;
+    var mz = m.pts.muzzle, br = m.pts.breech, ax;
+    if (mz && br) ax = [mz[0] - br[0], mz[1] - br[1]];
+    else { var sg0 = /-P\d*$|-P$/.test(m.name) ? -1 : 1; ax = [0, sg0]; mz = [m.c[0], sg0 > 0 ? m.bb[4] - 0.5 : m.bb[1] + 0.5, m.c[2]]; }   // 沒有固定點（舊的 .vxk）⇒ 外框外緣
+    var al = Math.hypot(ax[0], ax[1]) || 1; ax = [ax[0] / al, ax[1] / al];
+    sh.guns.push(m.gun = { name: m.name, type: m.kind, side: ax[1] >= 0 ? 'S' : 'P', model: m, ax: ax,
+      muz: [mz[0] + ax[0] * 1.5, mz[1] + ax[1] * 1.5, mz[2]], alive: true, reload: rr(0, 1.2), box: BOX_N, needCart: false });   // box：砲旁藥箱裡的份數
   });
-  sh.guns.sort(function (a, b) { return b.muz[0] - a.muz[0]; });
+  sh.guns.sort(function (a, b) { return b.muz[0] - a.muz[0] || a.muz[1] - b.muz[1]; });
+  sh.mags = makeMags(sh);                                                // 彈藥庫（23_powder.js）
+  sh.stations = makeStations(sh);                                        // 兩層甲板的火藥與彈藥取用點（火藥桶也是模型，加在 sh.models 後面）
+  sh.mIdx = modelIndex(sh.models);
   // 繩與帆：兩端（帆取最高那一排）各找最近的實心格當錨 —— 錨被打掉或跟船分家 ⇒ 繩斷、帆掉
   RIG.ropes.forEach(function (r) {
     var n = r.pts.length / 3;
@@ -62,7 +60,7 @@ function makeShip(i, team, yaw, pz) {
     var vz = -1e9, ax = 0, ay = 0, az = 0, k = 0, j;
     for (j = 2; j < s.verts.length; j += 3) vz = Math.max(vz, s.verts[j]);
     for (j = 0; j < s.verts.length; j += 3) if (s.verts[j + 2] > vz - 2) { ax += s.verts[j]; ay += s.verts[j + 1]; az += s.verts[j + 2]; k++; }
-    sh.sails.push(sailAnchors(sh, { verts: s.verts, tris: s.tris, col: s.color, name: s.name }, [ax / k, ay / k, az / k]));
+    sh.sails.push(sailAnchors(sh, { verts: s.verts, tris: s.tris, col: s.color, name: s.name, bb: ropeBox(s.verts) }, [ax / k, ay / k, az / k]));
   });
   // 帆自己的繩（`<帆名>.sheet-S`、`.tack-P`…）：帆腳那一端綁在帆上 ⇒ 帆掉了或被帶走，它們跟著斷
   // （⛔ 只靠繩的依靠不夠：sheet 與 tack 互相掛著、另一端綁甲板，帆沒了也還浮在半空）
@@ -72,9 +70,27 @@ function makeShip(i, team, yaw, pz) {
   sh.sails.forEach(function (s) { s.area = sailArea(s); }); sh.sailArea0 = sh.sails.reduce(function (a, s) { return a + s.area; }, 0) || 1;
   applySailSet(sh);
   MASTS.forEach(function (m) { sh.masts.push({ name: m.name, x: m.x, z0: m.z0, z1: m.z1, orig: m.orig, up: true }); });
-  sh.crew = makeCrew(sh); sh.crew0 = sh.crew.length; sh.wounded = 0; sh.dead = 0; sh.causes = {};
+  sh.crew = makeCrew(sh); sh.crew0 = sh.crew.length; sh.wounded = 0; sh.dead = 0; sh.kills = 0; sh.wounds = 0; sh.causes = {};   // kills／wounds：累計（廣播傷亡用；wounded 會在傷者陣亡時減回去）
+  sh.news = { guns: [], t: -9, k: 0, w: 0, kr: {}, wr: {} };
   sh.M = shipMatrix(sh); sh.inv = M4.inv(sh.M);
   return sh;
+}
+var GUN_TYPE = { long: '24 磅長砲', carr: '32 磅 carronade', chase: '18 磅追擊砲' };
+/** 模型的種類：meta 優先（basecamp TASK-0517：kind／gun），沒有 meta 才照名字（舊的 .vxk；舵輪本來就沒有 meta）。 */
+function modelKind(m) {
+  var mt = m.meta || {};
+  if (mt.kind === 'gun') return mt.gun === '32c' ? 'carr' : mt.gun === '18chase' ? 'chase' : 'long';
+  if (mt.kind === 'powder') return 'powder';
+  return /carronade/.test(m.name) ? 'carr' : /chase/.test(m.name) ? 'chase' : /\/砲-[SP]\d+$/.test(m.name) ? 'long' : /wheel/.test(m.name) ? 'wheel' : 'model';
+}
+/** 模型照 x 分桶（每 16 格一桶，外框外擴 12 格登記）⇒ hitModel 只看砲彈所在那一桶（193 個模型 × 每顆砲彈每個小步全掃太貴）。
+ *  桶裡照模型編號排 ⇒ 先碰到誰跟全掃一樣。 */
+function modelIndex(models) {
+  var idx = [];
+  models.forEach(function (m) {
+    for (var bx = Math.max(0, Math.floor((m.bb[0] - 12) / 16)); bx <= Math.floor((m.bb[3] + 12) / 16); bx++) (idx[bx] = idx[bx] || []).push(m);
+  });
+  return idx;
 }
 /** 兩端附近沒有實心格的繩（ratline 掛在 shroud 上）⇒ 掛在端點旁邊那條繩上：那條斷了它也斷、那條跟著桅倒它也跟著倒。 */
 function linkRopes(ropes, models) {
@@ -85,7 +101,7 @@ function linkRopes(ropes, models) {
     [[0, r.a, 'a'], [n - 1, r.b, 'b']].forEach(function (e) {
       if (e[1] >= 0) return;
       var P = [r.pts[e[0] * 3], r.pts[e[0] * 3 + 1], r.pts[e[0] * 3 + 2]], best = -1, bd = 9;      // 0.3 公尺內
-      var mod = models.filter(function (m) { var b = m.bb; return P[0] > b[0] - 4 && P[0] < b[3] + 4 && P[1] > b[1] - 4 && P[1] < b[4] + 4 && P[2] > b[2] - 4 && P[2] < b[5] + 4; })[0];
+      var mod = models.filter(function (m) { var b = m.bb; if (m.station) return false; return P[0] > b[0] - 4 && P[0] < b[3] + 4 && P[1] > b[1] - 4 && P[1] < b[4] + 4 && P[2] > b[2] - 4 && P[2] < b[5] + 4; })[0];
       if (mod) { r.mods.push(mod.k); r['m' + e[2]] = mod.k; return; }   // 綁在模型上（舵索綁舵輪）⇒ 模型飛了才斷
       ropes.forEach(function (o, j) {
         if (j === i || P[0] < o.bb[0] - 3 || P[0] > o.bb[3] + 3 || P[1] < o.bb[1] - 3 || P[1] > o.bb[4] + 3 || P[2] < o.bb[2] - 3 || P[2] > o.bb[5] + 3) return;

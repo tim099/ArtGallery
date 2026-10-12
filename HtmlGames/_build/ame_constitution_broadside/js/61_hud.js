@@ -1,9 +1,55 @@
 // ───────────────────────── HUD ─────────────────────────
-var MSGT = 0;
-function note(sh, text) {
+// ───────────────────────── 廣播（畫面上方的訊息） ─────────────────────────
+// 一行一則、最多 5 行，各自 4 秒後淡掉（⛔ 以前只有一行、新的蓋掉舊的 ⇒ 同一刻兩件事只看得到一件）。
+// 砲被打飛：同一個半秒內的併成一行；傷亡：第一個人倒下起算 5 秒，報這 5 秒裡陣亡、受傷各幾個（不洗版；是 0 的那一項不報）。
+var MSGS = [], MSG_MAX = 5, MSG_LIFE = 4;
+/** imp：重要的（殉爆、斷成兩截、沉沒、降旗）⇒ 留 8 秒，滿了先擠掉不重要的。 */
+function note(sh, text, imp) {
   if (DEMO >= 0 && !RUNNING) return;
-  var who = sh.i === PLAYER_I ? '我艦' : '敵艦';
-  var el = $('msg'); el.innerHTML = '<span style="color:' + (sh.i === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text; el.style.opacity = 1; MSGT = 3;
+  var who = sh.i === PLAYER_I ? '我艦' : '敵艦', el = document.createElement('div');
+  el.innerHTML = '<span style="color:' + (sh.i === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text;
+  $('msg').appendChild(el); MSGS.push({ el: el, t: imp ? 8 : MSG_LIFE, imp: !!imp });
+  while (MSGS.length > MSG_MAX) { var j = MSGS.findIndex(function (m) { return !m.imp; }); MSGS.splice(j < 0 ? 0 : j, 1)[0].el.remove(); }
+}
+function stepMsgs(dt) {
+  for (var i = 0; i < MSGS.length; i++) { var m = MSGS[i]; m.t -= dt; m.el.style.opacity = clamp(m.t / 0.6, 0, 1); if (m.t <= 0) { m.el.remove(); MSGS.splice(i--, 1); } }
+}
+function clearMsgs() { MSGS.forEach(function (m) { m.el.remove(); }); MSGS = []; }
+/** 砲被打飛（blowModel 呼叫）：先記著，下一次 newsFlush 併成一行。 */
+function newsGun(sh, m, drop) {
+  var g = sh.guns.filter(function (x) { return x.model === m; })[0]; if (!g) return;
+  var no = /(\d+)$/.exec(m.name), lab = sideName(g.side) + (g.type === 'long' ? '長砲 ' : g.type === 'carr' ? ' carronade ' : '追擊砲') + (g.type === 'chase' ? '' : no ? +no[1] : '');
+  sh.news.guns.push(lab + (drop ? '（掉下去）' : ''));
+}
+var NEWS_WIN = 5;                                  // 傷亡廣播的時間區間（秒；Tim：3 → 5）
+/** 普通水手（砲手）以外的人倒下：船長、軍官、舵手 ⇒ 當下各報一則（船長 ＝ 重要）；陸戰隊、桅頂水手、送藥手 ⇒ 記著，併進 5 秒那一行（人多，一個一個報會洗版）。 */
+function newsCrew(sh, c, dead, cause) {
+  if (c.role === ROLE.GUN) return;
+  var cap = c.art === ART_CAPTAIN, how = dead ? (cause === '落水' ? '落水' : '陣亡') : '受傷倒下', why = cause && cause !== '落水' ? '（' + cause + '）' : '';
+  if (cap) { note(sh, '<b style="color:var(--gold)">船長' + how + '！</b>' + why, true); return; }
+  if (c.role === ROLE.OFFICER || c.role === ROLE.HELM) {
+    var left = sh.crew.filter(function (o) { return o.role === c.role && able(o); }).length, nm = ROLE_NAME[c.role];
+    note(sh, nm + how + why + (left ? '（還有 ' + left + ' 位）' : '　<b style="color:#ff9a7a">' + nm + '全倒' + (c.role === ROLE.OFFICER ? ' —— 沒人指揮，瞄準變散' : '') + '</b>'), !left);
+    return;
+  }
+  var by = dead ? sh.news.kr : sh.news.wr; by[c.role] = (by[c.role] || 0) + 1;
+}
+function roleList(by) { var r = []; for (var k in by) r.push(ROLE_NAME[k] + ' ' + by[k]); return r.length ? '（' + r.join('、') + '）' : ''; }
+/** 每半秒（survey 那一拍）：把記著的砲併成一行；傷亡滿 NEWS_WIN 秒報一次。 */
+function newsFlush(sh) {
+  var N = sh.news;
+  if (N.guns.length) {
+    var gl0 = N.guns.length, list = gl0 > 5 ? N.guns.slice(0, 4).join('、') + '…' : N.guns.join('、');   // 一次太多（殉爆）⇒ 只列前四門
+    note(sh, (gl0 === 1 ? N.guns[0] + ' 被打飛' : gl0 + ' 門砲被打飛：' + list) + '（砲還在 ' + sh.gunsAlive + '／' + sh.guns.length + '）'); N.guns = [];
+  }
+  var dk = sh.kills - N.k, dw = sh.wounds - N.w;
+  if (N.t < 0 && (dk > 0 || dw > 0)) N.t = SIMT;                       // 第一個人倒下 ⇒ 開始數
+  if (N.t >= 0 && SIMT - N.t >= NEWS_WIN) {
+    var parts = []; if (dk > 0) parts.push('陣亡 ' + dk + roleList(N.kr)); if (dw > 0) parts.push('受傷 ' + dw + roleList(N.wr));   // 是 0 的那一項不報；陸戰隊等另列
+    N.kr = {}; N.wr = {};
+    if (parts.length) note(sh, NEWS_WIN + ' 秒內 ' + parts.join('、'));   // 累計看兩邊面板（⛔ 也寫進來 ⇒ 一行太長、蓋到面板）
+    N.k = sh.kills; N.w = sh.wounds; N.t = -1;
+  }
 }
 function panel(sh, title) {
   var hull = sh.grid.count / sh.orig, fl = clamp(sh.sink / 9, 0, 1);
@@ -12,7 +58,7 @@ function panel(sh, title) {
     '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
     ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
-    '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）<br>' +
+    '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
 }
 /** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
@@ -21,16 +67,22 @@ function panel(sh, title) {
 function gunRow(sh, side) {
   function cell(g) {
     var st = !g.alive ? 'dead' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
-    var k = !g.alive ? 3 : gunRate(g) <= 0 ? 2 : g.reload > 0 ? 1 : 0;
-    var hp = !g.alive ? 0 : g.model ? g.model.hp / g.model.hpMax : g.hp01, hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的耐久）
+    var k = !g.alive ? 3 : gunRate(g) <= 0 ? 2 : g.needCart && !(g.box > 0) ? 4 : g.reload > 0 ? 1 : 0;   // 4 ＝ 等火藥與彈藥（藥箱空了）
+    var hp = !g.alive ? 0 : Math.max(0, g.model.hp / g.model.hpMax), hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的血量）
     var cls = 'g-' + st + (hurt ? ' hp' : ''), sty = hurt ? '--hp:' + Math.round(hp * 100) + '%;' : '';
-    if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + k) * 100 / 7).toFixed(3) + '% 0"></span>';
-    return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕'[k] + '</span>';
+    if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
+    return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△'[k] + '</span>';
   }
   var gs = sh.guns.filter(function (x) { return x.type === 'long' && x.side === side; }), cs = sh.guns.filter(function (x) { return x.type !== 'long' && x.side === side; });
   var foe = SHIPS[1 - sh.i], w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
   var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
   return '<span class="gr">' + lab + gs.map(cell).join('') + '｜' + cs.map(cell).join('') + '</span>';
+}
+/** 補給一行：送藥手還能動的／全部、等火藥的砲幾門、取用點還剩幾桶。 */
+function supplyText(sh) {
+  var pm = sh.crew.filter(function (c) { return c.role === ROLE.POWDER; }), ok = pm.filter(able).length;
+  var wait = sh.guns.filter(function (g) { return g.alive && g.needCart && !(g.box > 0) && gunRate(g) > 0; }).length;
+  return '送藥手 ' + ok + '/' + pm.length + (wait ? '　<span style="color:#ffb35a">等火藥 ' + wait + ' 門</span>' : '');
 }
 var HUDN = 0;
 /** HUD 圖示表（art/hud.png，8 欄 × 2 列）：第一列 船員 傷 亡 裝填好 裝填中 沒人 毀 鏈；只換掉砲列的符號。 */
@@ -91,7 +143,7 @@ function drawNav(sh) {
     SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
 }
 function hud(dt) {
-  if (MSGT > 0) { MSGT -= dt; if (MSGT <= 0) $('msg').style.opacity = 0; }
+  stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I];
   $('me').innerHTML = panel(me, '我艦 憲法號（藍）');

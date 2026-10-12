@@ -166,10 +166,10 @@ function clothPins(sh, s, c) {
   for (var i = 0; i < T.n; i++) if (c.pin[i]) { if (holds(sh, s, T.hk[i], T.hv[i])) n++; else c.pin[i] = 0; }
   c.npin = n;
 }
-/** 鏈彈撕開：打到的那一點 7 格內的邊斷掉（布上開一個洞，大一點就裂成兩半）。 */
-function tearCloth(sh, s, L) {
+/** 撕開：打到的那一點 r 格內的邊斷掉（布上開一個洞，大一點就裂成兩半）。r：鏈彈 7、實心與爆裂穿過 3。 */
+function tearCloth(sh, s, L, r) {
   var c = sh.cl && sh.cl[s.k]; if (!PHYS || !c || !c.p) return;
-  var T = c.T.sim, p = c.p, r2 = 49, bi = 0, bd = 1e9, i;
+  var T = c.T.sim, p = c.p, r2 = (r || 7) * (r || 7), bi = 0, bd = 1e9, i;
   for (i = 0; i < T.n; i++) { var dx = p[i * 3] - L[0], dy = p[i * 3 + 1] - L[1], dz = p[i * 3 + 2] - L[2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; bi = i; } }   // 照布現在的位置
   var cx = p[bi * 3], cy = p[bi * 3 + 1], cz = p[bi * 3 + 2];
   function near(q) { var dx = p[q * 3] - cx, dy = p[q * 3 + 1] - cy, dz = p[q * 3 + 2] - cz; return dx * dx + dy * dy + dz * dz < r2; }

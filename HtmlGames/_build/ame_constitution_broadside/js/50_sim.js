@@ -39,6 +39,7 @@ function step() {
   for (i = 0; i < FLY.length; i++) if (!stepFly(FLY[i], DT)) FLY.splice(i--, 1);
   stepDebris(DT); stepPts(DT);
   if (PHYS) { var pt0 = performance.now(); SHIPS.forEach(function (sh) { if (sh.sink < 40) physStep(sh); }); PHYS_MS = PHYS_MS * 0.98 + (performance.now() - pt0) * 0.02; }   // 讀數只看、不回寫模擬
-  if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); checkEnd(); }
+  stepPowder();                                                    // 殉爆排程（23_powder.js）
+  if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); checkEnd(); }
 }
 

@@ -9,7 +9,7 @@
   html,body{ margin:0; height:100%; background:#0d1218; color:var(--ink); overflow:hidden;
     font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif; }
   #stage{ position:fixed; inset:0; }
-  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }   /* 手機：拖曳 ＝ 轉鏡頭、雙指 ＝ 縮放（⛔ 不關 ⇒ 瀏覽器拿去捲頁面） */
   .hud{ position:absolute; pointer-events:none; font-size:13px; line-height:1.5; text-shadow:0 1px 2px #000; }
   .panel{ background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; }
   #me{ left:12px; top:12px; border-left:3px solid var(--blue); }
@@ -22,18 +22,32 @@
   #ctl b{ color:var(--gold); }
   #ammo span{ display:inline-block; margin:0 4px; padding:1px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); }
   #ammo span.on{ color:#111; background:var(--gold); border-color:var(--gold); }
-  #ammo span, .chip{ pointer-events:auto; cursor:pointer; }
+  #ammo span, .chip, .kb{ pointer-events:auto; cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+  .kb{ display:inline-block; margin:3px 2px 0; padding:2px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.26); background:rgba(255,255,255,.07); font-size:12px; }   /* 按鍵提示就是按鈕（手機也能點） */
+  .kb b, .chip b{ color:var(--gold); } .chip.on b{ color:#4a3500; }
+  .kb:active, .kb.down{ background:rgba(232,194,106,.38); }
+  #keys .hint{ color:var(--dim); font-size:12px; margin-right:4px; }
   .chip{ display:inline-block; margin:2px 3px 0; padding:0 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); font-size:12px; }
   .chip.on{ color:#111; background:#9fc7ff; border-color:#9fc7ff; }
   #guns{ margin-top:4px; font-size:12px; }
   .gr{ font-family:Consolas,monospace; font-size:12px; letter-spacing:1px; white-space:nowrap; }
   .g-full{ color:#8fe388; } .g-short{ color:#f2c14e; } .g-none{ color:#7d838c; } .g-dead{ color:#e0574a; }
   .ico.g-full{ box-shadow:inset 0 -2px 0 #8fe388; } .ico.g-short{ box-shadow:inset 0 -2px 0 #f2c14e; } .ico.g-none{ box-shadow:inset 0 -2px 0 #7d838c; } .ico.g-dead{ box-shadow:inset 0 -2px 0 #e0574a; }
-  #msg{ left:50%; top:22%; transform:translateX(-50%); font-size:22px; font-weight:700; text-align:center; opacity:0; transition:opacity .4s; }
+  #msg{ left:50%; top:12px; transform:translateX(-50%); font-size:14px; font-weight:700; text-align:center; width:max(280px, min(720px, calc(100vw - 520px))); line-height:1.45; }   /* 廣播：兩邊面板中間那一欄，一則一行、最多 5 行、各自淡掉（⛔ 寬到蓋住兩邊面板） */
+  #msg div{ margin:1px 0 3px; transition:opacity .4s; } #msg div:last-child{ font-size:16px; }
   #tip{ left:12px; bottom:12px; color:var(--dim); font-size:12px; }
   #nav{ left:12px; bottom:34px; width:176px; padding:6px 10px 8px; font-size:11px; line-height:1.5; }
   #navc{ position:static; inset:auto; width:150px; height:150px; display:block; margin:0 auto 2px; cursor:default; }
-  @media (max-width:760px){ #nav{ transform:scale(.72); transform-origin:left bottom; } }
+  /* 手機直拿：兩邊面板縮成一半並排、羅盤移到左上面板底下（⛔ 留在左下 ⇒ 壓在控制列上）、控制列換行、按鈕放大 */
+  @media (max-width:760px){
+    #me{ left:6px; top:6px; transform:scale(.5); transform-origin:left top; } #foe{ right:6px; top:6px; transform:scale(.5); transform-origin:right top; }
+    #nav{ left:6px; top:172px; bottom:auto; transform:scale(.6); transform-origin:left top; }
+    #ctl{ white-space:normal; width:96vw; padding:6px 4px; bottom:6px; } #ctl .kb{ font-size:13px; padding:5px 9px; } #tip{ display:none; }
+    #msg{ top:42%; width:94vw; font-size:13px; } #msg div:last-child{ font-size:15px; } }   /* 羅盤底下（⛔ 21% ⇒ 疊在羅盤上） */
+  /* 手機橫拿（矮）：面板與控制列都縮 */
+  @media (max-height:520px) and (min-width:761px){
+    #me{ transform:scale(.6); transform-origin:left top; } #foe{ transform:scale(.6); transform-origin:right top; }
+    #nav{ transform:scale(.6); transform-origin:left bottom; bottom:12px; } #ctl{ transform:translateX(-50%) scale(.82); transform-origin:center bottom; } #tip{ display:none; } }
   #cover{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; background:radial-gradient(ellipse at 50% 40%, rgba(20,30,44,.80), rgba(5,8,12,.94)); }
   #cover .card{ max-width:680px; margin:auto; padding:22px 30px; text-align:center; }   /* margin:auto ⇒ 放得下就置中、放不下就從頂端開始捲（⛔ align-items:center 放不下會切掉上半） */
   #cover h1{ margin:0 0 4px; font-size:30px; letter-spacing:2px; }
@@ -53,14 +67,18 @@
   #cover h2{ margin:0 0 4px; font-size:24px; letter-spacing:1px; }
   #cover h3{ margin:14px 0 4px; font-size:14px; color:var(--gold); border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:2px; }
   #cover .note{ color:var(--dim); font-size:12px; }
+  #cover table.ammo{ margin:4px auto; border-collapse:collapse; font-size:13px; }
+  #cover table.ammo th, #cover table.ammo td{ padding:2px 8px; } #cover table.ammo th{ color:var(--dim); font-weight:400; }
+  #cover table.ammo input{ width:62px; font:inherit; background:rgba(255,255,255,.08); color:var(--ink); border:1px solid rgba(255,255,255,.25); border-radius:4px; padding:1px 4px; text-align:right; }
   #cover #detV{ color:var(--dim); font-size:12px; max-width:560px; margin:2px auto 6px; line-height:1.6; }   /* ⛔ 只寫 #detV：被 #cover .row 的 margin 蓋掉 */
   .hp{ position:relative; } .hp::after{ content:''; position:absolute; left:0; bottom:-1px; height:2px; width:var(--hp); background:#e0574a; }   /* 砲列：受損的砲底下一條血條 */
   .ico.hp::after{ bottom:-4px; }   /* 圖示版：人手狀態的底線在圖示裡面，血條放到它下面 */
   @media (max-width:520px){ #cover .card{ padding:18px 16px; } #cover .slide input{ width:130px; } #cover .slide span{ width:9em; } }
   #load{ color:var(--dim); font-size:12px; min-height:18px; font-family:Consolas,monospace; white-space:pre-line; }
-  #help{ position:absolute; right:12px; bottom:12px; max-width:330px; font-size:12px; display:none; pointer-events:none; }
-  #help.on{ display:block; }
+  #help{ position:absolute; right:12px; bottom:12px; max-width:330px; font-size:12px; display:none; pointer-events:none; max-height:calc(100% - 24px); overflow-y:auto; }
+  #help.on{ display:block; pointer-events:auto; }
   #help kbd{ display:inline-block; min-width:16px; padding:0 4px; border:1px solid rgba(255,255,255,.3); border-radius:3px; font-family:Consolas,monospace; text-align:center; }
+  #help kbd[data-k]{ cursor:pointer; background:rgba(232,194,106,.16); border-color:rgba(232,194,106,.55); } #help kbd[data-k]:active{ background:rgba(232,194,106,.45); }
   #end{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.45); }
   #end.on{ display:flex; }
   #end .card{ text-align:center; padding:22px 30px; }
@@ -77,34 +95,37 @@
   <div id="me" class="hud panel"></div>
   <div id="foe" class="hud panel"></div>
   <div id="ctl" class="hud panel">
-    <div id="ammo"><span data-a="0">1 實心彈</span><span data-a="1">2 爆裂彈</span><span data-a="2">3 鏈彈</span></div>
-    <div id="hudctl">航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="camT">鏡頭跟船</span><span class="chip" id="autoF">自動開砲</span><span class="chip" id="physT">帆繩物理</span>　<span class="chip" id="restartB">重新開始</span></div>
+    <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
+    <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="autoF"><b>G</b> 自動開砲</span><span class="chip" id="physT"><b>B</b> 帆繩物理</span>　<span class="chip" id="restartB"><b>N</b> 重新開始</span></div>
     <div id="guns"></div>
-    <div><b>左鍵</b> 點敵艦瞄準　<b>空白鍵</b> 齊射　<b>F</b> 單門　<b>H</b> 說明</div>
+    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span></div>
   </div>
   <div id="msg" class="hud"></div>
   <div id="tip" class="hud"></div>
   <div id="nav" class="hud panel"><canvas id="navc"></canvas><div id="navt"></div></div>
   <div id="help" class="hud panel">
-    <div><kbd>左鍵</kbd> 點敵艦：設瞄準點（拖曳＝轉鏡頭）</div>
-    <div><kbd>右鍵</kbd> 拖曳：平移　<kbd>滾輪</kbd> 遠近</div>
-    <div><kbd>空白</kbd> 齊射（裝填好的砲依序開火）　<kbd>F</kbd> 開一門</div>
-    <div><kbd>1</kbd> 實心彈：鑽得深，打水線讓船進水</div>
-    <div><kbd>2</kbd> 爆裂彈：炸開大洞，但不深</div>
-    <div><kbd>3</kbd> 鏈彈：橫掃一片，專打桅杆、繩與帆</div>
-    <div><kbd>C</kbd> 鏡頭：我艦→敵艦（預設：我艦在中間、看向敵艦）／自由／追砲彈／看敵艦／看我艦</div>
+    <div class="note" style="color:var(--dim)">金框的鍵點下去就等於按那個鍵（手機也能玩）</div>
+    <div><kbd>左鍵</kbd> 點敵艦：設瞄準點（拖曳＝轉鏡頭；手機：點一下瞄準、拖曳轉鏡頭）</div>
+    <div><kbd>右鍵</kbd> 拖曳：平移　<kbd>滾輪</kbd> 遠近（手機：雙指縮放）</div>
+    <div><kbd data-k=" ">空白</kbd> 齊射（裝填好的砲依序開火）　<kbd data-k="f">F</kbd> 開一門</div>
+    <div><kbd data-k="1">1</kbd> 實心彈：鑽得深，打水線讓船進水</div>
+    <div><kbd data-k="2">2</kbd> 爆裂彈：炸開大洞，但不深；對砲傷害大</div>
+    <div><kbd data-k="3">3</kbd> 鏈彈：橫掃一片，專打桅杆、繩與帆</div>
+    <div><kbd data-k="c">C</kbd> 鏡頭：我艦→敵艦（預設：我艦在中間、看向敵艦）／自由／追砲彈／看敵艦／看我艦</div>
     <div><kbd>人</kbd> 砲要有人操作：人少裝填慢，少於最少人數就開不了；人不夠時會集中到幾門砲上</div>
+    <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
-    <div><kbd>G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
-    <div><kbd>B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）</div>
-    <div><kbd>Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd>V</kbd> 鏡頭跟船／固定</div>
-    <div><kbd>A</kbd><kbd>D</kbd> 打舵（一碰就換手動）　<kbd>W</kbd><kbd>S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
+    <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
+    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）</div>
+    <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
+    <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
-    <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
+    <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
-    <div><kbd>耐</kbd> 砲、帆、火藥桶的耐久與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的耐久</div>
-    <div><kbd>P</kbd> 暫停　<kbd>M</kbd> 靜音　<kbd>N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd>R</kbd> 回選單</div>
+    <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
+    <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
+    <div><kbd data-k="p">P</kbd> 暫停　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 關掉說明</div>
   </div>
 
   <div id="cover">
@@ -130,20 +151,38 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?sailhp= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
       <h3>船殼</h3>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
       <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
       <h3>砲</h3>
-      <div class="row slide"><label for="gunhp">耐久</label><input type="range" id="gunhp" step="1" aria-label="砲的耐久"><span id="gunhpV"></span></div>
-      <div class="row note">carronade、追擊砲：被打中幾下才整門飛出去（爆心附近一次扣兩下）。長砲現在還是格子：照舊（外框剩不到 55% 就毀），等改成模型再套耐久。</div>
+      <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
+      <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>
+      <div class="row slide"><label for="dmg24">24 磅長砲</label><input type="range" id="dmg24" step="5" aria-label="24 磅長砲每發傷害"><span id="dmg24V"></span></div>
+      <div class="row slide"><label for="dmg32">32 磅 carronade</label><input type="range" id="dmg32" step="5" aria-label="32 磅 carronade 每發傷害"><span id="dmg32V"></span></div>
+      <div class="row slide"><label for="dmg18">18 磅追擊砲</label><input type="range" id="dmg18" step="5" aria-label="18 磅追擊砲每發傷害"><span id="dmg18V"></span></div>
+      <div class="row note">每發傷害（打到砲、帆、人時的基準），再乘下面的彈種倍率。</div>
+      <h3>彈種倍率（%）</h3>
+      <table class="ammo"><tr><th></th><th>對砲</th><th>對帆</th><th>對人</th></tr>
+        <tr><th>實心彈</th><td><input type="number" id="am-0-0" min="0" max="400" step="5" aria-label="實心彈對砲"></td><td><input type="number" id="am-0-1" min="0" max="400" step="5" aria-label="實心彈對帆"></td><td><input type="number" id="am-0-2" min="0" max="400" step="5" aria-label="實心彈對人"></td></tr>
+        <tr><th>爆裂彈</th><td><input type="number" id="am-1-0" min="0" max="400" step="5" aria-label="爆裂彈對砲"></td><td><input type="number" id="am-1-1" min="0" max="400" step="5" aria-label="爆裂彈對帆"></td><td><input type="number" id="am-1-2" min="0" max="400" step="5" aria-label="爆裂彈對人"></td></tr>
+        <tr><th>鏈彈</th><td><input type="number" id="am-2-0" min="0" max="400" step="5" aria-label="鏈彈對砲"></td><td><input type="number" id="am-2-1" min="0" max="400" step="5" aria-label="鏈彈對帆"></td><td><input type="number" id="am-2-2" min="0" max="400" step="5" aria-label="鏈彈對人"></td></tr></table>
+      <div class="row note">對砲 ＝ 直接打中（砲、舵輪、火藥桶）；爆裂彈另有爆風：2.2 m 內的模型吃 每發傷害 × 爆裂對砲倍率 × (1 − 0.75 × 距離／2.2 m)。<br>對帆 ＝ 鏈彈纏上、實心與爆裂穿過（會打個小洞）。對人 ＝ 碎木、爆炸、掠過的砲彈（基準 ＝ 1.4 × 每發傷害 × 倍率）。</div>
       <h3>帆</h3>
-      <div class="row slide"><label for="sailhp">耐久</label><input type="range" id="sailhp" step="1" aria-label="帆的耐久"><span id="sailhpV"></span></div>
-      <div class="row note">被鏈彈打中幾次才掉；還沒掉的帆每中一次少一份推力（物理開著會看到破洞）。收起來的帆打不壞。</div>
-      <h3>火藥桶（殉爆）</h3>
-      <div class="row slide"><label for="powderhp">耐久</label><input type="range" id="powderhp" step="1" aria-label="火藥桶的耐久"><span id="powderhpV"></span></div>
+      <div class="row slide"><label for="sailhp">血量</label><input type="range" id="sailhp" step="10" aria-label="帆的血量"><span id="sailhpV"></span></div>
+      <div class="row note">歸零才掉；還沒掉的帆照剩下的血量算推力（物理開著會看到破洞）。收起來的帆打不壞。</div>
+      <h3>船員</h3>
+      <div class="row slide"><label for="crewhp">血量</label><input type="range" id="crewhp" step="10" aria-label="船員的血量"><span id="crewhpV"></span></div>
+      <div class="row note">歸零陣亡；掉到一半以下受傷倒下；一半以上照常作戰（只閃紅）。火槍一發 40～125。</div>
+      <h3>補給（火藥與彈藥）</h3>
+      <div class="row slide"><label for="box">砲旁藥箱</label><input type="range" id="box" step="1" aria-label="砲旁藥箱放幾份"><span id="boxV"></span></div>
+      <div class="row slide"><label for="carry">一次搬</label><input type="range" id="carry" step="1" aria-label="送藥手一次搬幾份"><span id="carryV"></span></div>
+      <div class="row note">送藥手（每一對砲一個）從取用點搬火藥與彈藥到砲旁的藥箱；開火後要從藥箱拿一份才開始裝填，空了就等（砲列 △）。藥箱與手上的越多，被打中時炸得越大。</div>
+      <h3>火藥（火藥桶與藥包）</h3>
+      <div class="row slide"><label for="powderhp">血量</label><input type="range" id="powderhp" step="10" aria-label="火藥桶的血量"><span id="powderhpV"></span></div>
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
-      <div class="row note">彈藥庫與火藥桶的模型還沒上船：這兩格先記著，上船後才生效。耐久拉滿 ＝ 不會爆（預設）。</div>
+      <div class="row note">兩間彈藥庫在艙底（後 22 桶、前 116 桶，每桶 100 磅；水線下，砲彈打不到）。兩層甲板在彈藥庫上方各有一個取用點（3 桶火藥＋彈藥），送藥手從那裡搬到砲旁的藥箱。<br>
+        血量拉滿 ＝ 都不會爆（預設）。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>航行</h3>
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
@@ -177,6 +216,7 @@
 <script src="js/20_shatter.js" data-bundle="game"></script>
 <script src="js/21_gunnery.js" data-bundle="game"></script>
 <script src="js/22_pieces.js" data-bundle="game"></script>
+<script src="js/23_powder.js" data-bundle="game"></script>
 <script src="js/30_rig_physics.js" data-bundle="game"></script>
 <script src="js/31_sailing.js" data-bundle="game"></script>
 <script src="js/32_hull.js" data-bundle="game"></script>
