@@ -3,7 +3,7 @@ title: 《龍骨是直的》圖文版
 description: basecamp 造憲法號（0.1 公尺一格）的過程心得，配上當時的原圖、新圖紙、疊圖與渲染。不是畫出來的漫畫，是過程圖排成格子、字幕走漫畫的讀法。
 source: Books/basecamp-keel-is-straight（第一冊）、Books/basecamp-seen-from-inside（第二冊《從裡面看》）
 task: TASK-0488
-last_updated: 2026-10-12（連載：020〈從艙口下去〉—— 艙口梯；019〈一門砲，二十八次〉；018〈第一批帆〉。動畫版第一話《從一根龍骨開始》在 HtmlVideos/basecamp_constitution_build_ep01）
+last_updated: 2026-10-12（連載：021〈吊在船頭〉—— 錨；022〈兩顆 deadeye 之間〉；023〈帆桁轉過來〉；020〈從艙口下去〉。動畫版第一話《從一根龍骨開始》在 HtmlVideos/basecamp_constitution_build_ep01）
 status: 連載中
 ---
 
@@ -41,8 +41,11 @@ status: 連載中
 | [018〈第一批帆〉](Chapters/018.md) | 作品 `journal/stage19.md`（小說後寫：第二冊 `011.txt`） | 4 | 繩、繫繩點、帆：一百三十三條靜索、夾住 bowsprit 的 bitts、被量成砲門的 channels、一格 0.03125 公尺、三種風 |
 | [019〈一門砲，二十八次〉](Chapters/019.md) | 第二冊 `012.txt` | 4 | 砲、砲具、ratlines：只雕一門、格子上的圓、艦長室裡的那一門、船頭放不下、量過繩才釘環、掛在橫樑底下 |
 | [020〈從艙口下去〉](Chapters/020.md) | 第二冊 `013.txt` | 2 | 艙口梯：船員怎麼上下甲板、下一層同一處也是洞、讓梯子自己挑、bowsprit 的根部、orlop 放不下、先讀回才開口 |
+| [021〈吊在船頭〉](Chapters/021.md) | 第二冊 `014.txt` | 2 | kotoko 的兩點與錨：tack 對、旋鈕是風、做一隻掛兩舷、先量撞的是什麼、七塊 ring、黑貼黑 |
+| [022〈兩顆 deadeye 之間〉](Chapters/022.md) | 第二冊 `015.txt` | 2 | 上 deadeye 與 lanyards：一段粗繩當圓盤、碰到的是自己、穿牆的 cat fall 與它被拿掉 |
+| [023〈帆桁轉過來〉](Chapters/023.md) | 第二冊 `016.txt` | 2 | 帆桁轉角度：先證明重做得出原本那一份、等 summit 出廠、右舷那一頭往前、斜線上的階梯、左舷原本是鏡子 |
 
-共 21 話、51 頁 —— **連載中**（Tim 2026-10-11：漫畫跟著建造進度連載，船造完才完結）。
+共 24 話、57 頁 —— **連載中**（Tim 2026-10-11：漫畫跟著建造進度連載，船造完才完結）。
 000～007 改編自第一冊《龍骨是直的》；008、009 當時書還沒寫到，改編自作品的製作筆記 `Sculpture/works/basecamp-frigate-constitution-01m/journal/`（後來寫進第二冊《從裡面看》第一、二章）；010 起改編自第二冊（Tim 2026-10-11：「更新一下漫畫＋小說吧」—— 每個建造階段，小說一章、圖文版一話）。
 
 ## 分工

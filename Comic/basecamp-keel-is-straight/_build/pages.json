@@ -190,6 +190,26 @@
   "020_p02": {"rows": [
     [{"src": "O/stage23_ladders_section_fwd.png", "crop": [380, 180, 1220, 740]}, {"src": "O/stage23_waist_from_above.png", "crop": [150, 0, 1450, 900]}],
     [{"src": "O/stage23_waist_from_gundeck.png", "crop": [200, 100, 1400, 800]}]
+  ]},
+  "021_p01": {"rows": [
+    [{"src": "O/stage19_sails_v2_tack08_preview.png", "crop": [120, 160, 940, 820]}],
+    [{"src": "D/sheet21_anchors_v1.png", "crop": [30, 60, 1400, 640]}]
+  ]},
+  "021_p02": {"rows": [
+    [{"src": "O/stage24_anchors_close.png", "crop": [230, 280, 900, 860]}, {"src": "O/stage24_anchors_front.png", "crop": [260, 300, 760, 800]}],
+    [{"src": "D/sheet21_anchors_v1.png", "crop": [30, 660, 470, 950]}]
+  ]},
+  "022_p01": {"rows": [
+    [{"src": "O/stage25_deadeyes_main.png", "crop": [0, 260, 1024, 720]}]
+  ]},
+  "022_p02": {"rows": [
+    [{"src": "O/stage25_catfall.png", "crop": [300, 300, 820, 800]}, {"src": "O/stage25_bow_after.png", "crop": [300, 300, 820, 800]}]
+  ]},
+  "023_p01": {"rows": [
+    [{"src": "D/sheet22_brace_v1.png", "crop": [30, 60, 1200, 640]}]
+  ]},
+  "023_p02": {"rows": [
+    [{"src": "O/stage26_brace_bowq.png", "crop": [90, 140, 950, 880]}, {"src": "O/stage26_brace_above.png", "crop": [260, 250, 780, 900]}]
   ]}
  }
 }
