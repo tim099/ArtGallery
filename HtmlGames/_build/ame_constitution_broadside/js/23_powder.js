@@ -12,7 +12,7 @@ var BOOMS = [], KEG_R = 9, KEG_REACH = 30, KEG_DMG = 300, MAG_R = 95, MAG_LB = 1
 function blastK() { return Math.pow(BLAST_K, 1 / 3); }
 /** 這艘船的彈藥庫：關聯 meta kind=magazine ＋ 名字在它底下的火藥桶模型。 */
 function makeMags(sh) {
-  return (MODEL.header.parts || []).filter(function (p) { return p.meta && p.meta.kind === 'magazine'; }).map(function (p) {
+  return (sh.T.h.parts || []).filter(function (p) { return p.meta && p.meta.kind === 'magazine'; }).map(function (p) {
     var kegs = sh.models.filter(function (m) { return m.kind === 'powder' && m.path.indexOf(p.path + '/') === 0; });
     var lb = kegs.reduce(function (a, m) { return a + (+m.meta.powder_lb || 100); }, 0) || +p.meta.powder_lb || 0;
     var bl = (p.points && p.points.blast) || [(p.box[0] + p.box[3]) / 2, (p.box[1] + p.box[4]) / 2, (p.box[2] + p.box[5]) / 2];
@@ -115,7 +115,7 @@ function breakShip(sh, xb) {
       if (Math.abs(x - xb) < 5 + 7 * hash3(y >> 2, z >> 2, 977)) { if (removeVoxel(sh, x, y, z, true)) cut++; }
     }
   }
-  var keepAft = xb - WL_X0 >= WL_X1 - xb;                               // 留長的那半截
+  var keepAft = xb - sh.T.wl0 >= sh.T.wl1 - xb;                               // 留長的那半截
   sh.keel = keepAft ? [0, xb - 15] : [xb + 15, 1 << 12];
   sh.breakX = xb; sh.breakSide = keepAft ? 1 : -1;                     // 斷開的那一團在 +x（船頭）那邊 ⇒ 1
   return cut;
@@ -138,8 +138,9 @@ function deckZ(sh) {
 /** 取用點：每層甲板 × 每間彈藥庫一個，放在彈藥庫正上方、中線旁一塊平的空地（9×9 格、頭上 8 格空、不碰砲）。 */
 function makeStations(sh) {
   sh.deckZ = deckZ(sh);
-  var keg = sh.mags.length && sh.mags[0].kegs[0]; if (!keg || !RIG.meshes[keg.mesh]) return [];
-  var V = RIG.meshes[keg.mesh].verts, mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9], j, a;
+  var T = sh.T, BASE = T.base, CY = T.cy;
+  var keg = sh.mags.length && sh.mags[0].kegs[0]; if (!keg || !T.rig.meshes[keg.mesh]) return [];
+  var V = T.rig.meshes[keg.mesh].verts, mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9], j, a;
   for (j = 0; j < V.length; j += 3) for (a = 0; a < 3; a++) { mn[a] = Math.min(mn[a], V[j + a]); mx[a] = Math.max(mx[a], V[j + a]); }
   var guns = sh.models.filter(function (m) { return GUN_TYPE[m.kind] || m.kind === 'wheel'; }), out = [];
   function clear(x, y, z) {
@@ -158,7 +159,7 @@ function makeStations(sh) {
       var st = { deck: deck, mag: mag, name: (deck === 'long' ? '砲甲板' : '上甲板') + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
-        var m = { k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: POWDER_HP, hpMax: POWDER_HP, mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
+        var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: POWDER_HP, hpMax: POWDER_HP, mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
           c: [(bb[0] + bb[3]) / 2, (bb[1] + bb[4]) / 2, (bb[2] + bb[5]) / 2], foot: VK.pack(org[0] + 2, org[1] + 2, org[2] - 1), alive: true };
         sh.models.push(m); st.kegs.push(m);
       });
@@ -170,7 +171,7 @@ function makeStations(sh) {
 }
 /** 送藥手：每一對砲（同一層、同一個 x 的兩舷）一個，站在那一對砲中間靠中線；砲記著自己的送藥手（g.pm）與放藥箱的位置（g.drop：砲尾後面）。 */
 function makeMonkeys(sh, crew, taken, add) {
-  var pairs = {};
+  var pairs = {}, BASE = sh.T.base, CY = sh.T.cy;
   sh.guns.forEach(function (g) { var k = gunDeck(g) + ':' + Math.round(g.muz[0]); (pairs[k] = pairs[k] || []).push(g); });
   Object.keys(pairs).forEach(function (k, i) {
     var gs = pairs[k], deck = gunDeck(gs[0]), zr = sh.deckZ[deck], x = Math.round(gs[0].muz[0]);

@@ -152,8 +152,8 @@ function hud(dt) {
   stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I];
-  $('me').innerHTML = panel(me, '我艦 憲法號（藍）');
-  $('foe').innerHTML = panel(foe, '敵艦 憲法號（紅）');
+  $('me').innerHTML = panel(me, '我艦 ' + me.T.name + '（藍）');
+  $('foe').innerHTML = panel(foe, '敵艦 ' + foe.T.name + '（紅）');
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
   var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';

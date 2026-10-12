@@ -22,13 +22,13 @@ function sailArea(s) {
   }
   return A;
 }
-/** 水線（z ＝ ZW）上船體的前後端（中線附近）與船頭浪位置的半寬。⛔ 用外框 HULL_X ⇒ 船頭浪出現在船首前面 24 m 的水上。 */
-function waterline() {
-  var x0 = 1e9, x1 = -1, x, y, lo = 1e9, hi = -1;
-  for (x = 0; x < BASE.sx; x++) for (y = CY - 60; y <= CY + 60; y++) if (BASE.get(x, y, ZW)) { if (x < x0) x0 = x; if (x > x1) x1 = x; break; }
-  WL_X0 = x0; WL_X1 = x1;
-  for (y = 0; y < BASE.sy; y++) if (BASE.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
-  BOW_HALF = hi >= lo ? (hi - lo) / 2 + 3 : 20;
+/** 船型 T 的水線（z ＝ T.zw）上船體的前後端（中線附近，T.wl0／wl1）與船頭浪位置的半寬（T.bowHalf）。⛔ 用外框 ⇒ 船頭浪出現在船首前面 24 m 的水上。 */
+function waterline(T) {
+  var x0 = 1e9, x1 = -1, x, y, lo = 1e9, hi = -1, G = T.base, CY = T.cy, ZW = T.zw;
+  for (x = 0; x < G.sx; x++) for (y = CY - 60; y <= CY + 60; y++) if (G.get(x, y, ZW)) { if (x < x0) x0 = x; if (x > x1) x1 = x; break; }
+  T.wl0 = x0; T.wl1 = x1;
+  for (y = 0; y < G.sy; y++) if (G.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
+  T.bowHalf = hi >= lo ? (hi - lo) / 2 + 3 : 20;
 }
 function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 +y 那一側轉 ＝ 畫面上的左轉
 function sideName(side) { return side === 'S' ? '左舷' : '右舷'; }        // 模型的 S（格 +y）在畫面上是左舷（見 makeShip）
@@ -83,10 +83,10 @@ function sail(sh, dt) {
   // 航跡：船尾留一條白沫、船頭兩側推出的浪（點精靈，不撞任何東西）
   if ((sh.wakeT -= dt) <= 0 && sh.spd > 0.4 && sh.sink < 6) {
     sh.wakeT = 0.12;
-    var st = M4.pt(sh.M, WL_X0 - 4, CY, ZW);
+    var T = sh.T, st = M4.pt(sh.M, T.wl0 - 4, T.cy, T.zw);
     spawnPt([st[0] + gauss() * 0.8, 0.06, st[2] + gauss() * 0.8], [0, 0, 0], rr(9, 13), [0.93, 0.96, 1], 0.3 * Math.min(1, sh.spd / 2), rr(1.2, 2), rr(4, 6), 0, 0, 2);
     [1, -1].forEach(function (k) {
-      var bw = M4.pt(sh.M, WL_X1 - 25, CY + k * BOW_HALF, ZW), out = M4.dir(sh.M, 0, k, 0); out = norm([out[0], 0, out[2]]);
+      var bw = M4.pt(sh.M, T.wl1 - 25, T.cy + k * T.bowHalf, T.zw), out = M4.dir(sh.M, 0, k, 0); out = norm([out[0], 0, out[2]]);
       spawnPt([bw[0], 0.08, bw[2]], mul(out, rr(0.4, 1) * sh.spd * 0.4), rr(1.5, 2.5), [0.95, 0.97, 1], 0.5, rr(0.8, 1.3), rr(2, 3), 0, 0, 2);
     });
   }
@@ -96,7 +96,7 @@ function sail(sh, dt) {
 function collide() {
   if (SHIPS.length < 2) return;
   var A = SHIPS[0], B = SHIPS[1], best = 1e9, pa = null, pb = null;
-  function keel(sh) { var r = []; for (var k = 0; k < 7; k++) r.push(M4.pt(sh.M, WL_X0 + 15 + (WL_X1 - WL_X0 - 30) * k / 6, CY, ZW)); return r; }
+  function keel(sh) { var T = sh.T, r = []; for (var k = 0; k < 7; k++) r.push(M4.pt(sh.M, T.wl0 + 15 + (T.wl1 - T.wl0 - 30) * k / 6, T.cy, T.zw)); return r; }
   var ka = keel(A), kb = keel(B);
   ka.forEach(function (a) { kb.forEach(function (b) { var d = Math.hypot(a[0] - b[0], a[2] - b[2]); if (d < best) { best = d; pa = a; pb = b; } }); });
   if (best >= 14) return;

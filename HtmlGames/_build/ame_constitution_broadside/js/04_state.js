@@ -1,5 +1,5 @@
 // ───────────────────────── 全域狀態與選單設定（網址參數、滑桿上下限、降旗規則、模式） ─────────────────────────
-var BASE = null, PRISTINE = null, QIDX = null, MODEL = null, RIG = null;
+var QIDX = null;                                   // 四邊形索引（每種船共用）；船型的資料在 05_hull.js
 var SHIPS = [], PIECES = [], BALLS = [], EVENTS = [], FLY = [], PLAYER_I = 0;
 // 選單的滑桿：[下限, 上限, 預設]。網址參數與滑桿共用這一組（⛔ 各一組 ⇒ ?demo 跑的不是網址寫的那組）；讀不懂的值 ⇒ 預設
 var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], gunw: [0, 5, 1], cas: [0.1, 1, 1], speed: [0.25, 3, 1], agile: [0.25, 3, 1],
@@ -41,6 +41,7 @@ if (Q.has('strike')) Q.get('strike').split(',').forEach(function (w) {
 // 砲長（51_captain.js）：[我艦, 敵艦]，random ＝ 開局抽；網址 ?cap=sink,mast
 var CAP_SET = ['random', 'random'];
 if (Q.has('cap')) Q.get('cap').split(',').forEach(function (w, i) { if (i < 2) CAP_SET[i] = w; });
+var LAST_MODE = null;                                // 上一場的模式（自動開砲換了模式才套預設，見 reset）
 var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
 var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵

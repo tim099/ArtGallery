@@ -35,7 +35,7 @@ function pick(cx, cy) {
   var p0 = mul(M4.pt(CAM.inv, nx, ny, -1), 1 / w0), p1 = mul(M4.pt(CAM.inv, nx, ny, 1), 1 / w1), d = norm(sub(p1, p0));
   var foe = SHIPS[1 - PLAYER_I], oL = toLocal(foe, p0), dL = M4.dir(foe.inv, d[0], d[1], d[2]);
   var hit = VK.raycast(foe.grid, oL, dL, 3000);
-  if (hit) { SHIPS[PLAYER_I].aim = [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5]; SHIPS[PLAYER_I].pMode = 'free'; sfx('crack', null, 0.08); }   // 點了 ⇒ 瞄準模式回到自由
+  if (hit) { SHIPS[PLAYER_I].aim = [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5]; SHIPS[PLAYER_I].pMode = AIM_P = 'free'; sfx('crack', null, 0.08); }   // 點了 ⇒ 瞄準模式回到自由
 }
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
@@ -50,7 +50,7 @@ function doKey(k, repeat) {
   if (k === ' ') { if (!PAUSED && !me.sunk) broadside(me, AMMO_I); }   // 降旗了 ⇒ broadside／fireOne 自己擋
   else if (k === 'f') { if (!PAUSED) fireOne(me, AMMO_I); }
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
-  else if (k === 'q') { me.pMode = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
+  else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
   else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') PAUSED = !PAUSED;
   else if (k === 'm') { muted = !muted; }
@@ -112,7 +112,7 @@ $('phys').onchange = function () { setPhys($('phys').checked); };
 /** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。
  *  船殼、砲、帆、火藥桶、航行、降旗的滑桿在「細節設定」那一頁（從主選單進）；主選單只留一行摘要（#detV）。 */
 /** 模型（砲、火藥桶）的總重（噸）：照匯出的模型清單＋取用點的 12 桶（細節設定的例子用；開戰時每艘照自己的模型算）。 */
-function modelMassT() { if (!RIG || !RIG.models) return 0; var t = 12 * KEG_T; RIG.models.forEach(function (m) { t += modelT({ kind: modelKind(m) }); }); return t; }
+function modelMassT(T) { if (!T) return 0; var t = 12 * KEG_T; (T.rig.models || []).forEach(function (m) { t += modelT({ kind: modelKind(m) }); }); return t; }
 var SLIDERS_SHOW = null;                               // 載入完（HYD 算好）再顯示一次 ⇒ 減重上浮的例子有數字
 function sliders() {
   var lf = $('ballast'), f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), gw = $('gunw'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), ch = $('crewhp');
@@ -140,10 +140,10 @@ function sliders() {
     $('speedV').textContent = SPEEDK.toFixed(2) + '×（最快約 ' + (VMAX * SPEEDK * 1.944).toFixed(0) + ' 節）';
     $('agileV').textContent = AGILK.toFixed(2) + '×（滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGILK * 57.3).toFixed(1) + '°/秒）';
     $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
-    var m0 = (BASE ? BASE.count * VOX_T : 0) + modelMassT() + BALLAST_T, l0 = liftFor(DISP - m0), lx = liftFor(DISP - m0 + 70);   // 開戰時浮在哪；例子：再打掉 10 萬格（70 噸）
-    var gm = 0; if (RIG && RIG.models) RIG.models.forEach(function (m) { var k = modelKind(m); if (GUN_T[k]) gm += GUN_T[k] * GUNW_K; });
+    var HT = HULLT[SHIP_SET[0]], m0 = (HT ? HT.base.count * VOX_T : 0) + modelMassT(HT) + BALLAST_T, l0 = liftFor(HT, HT ? HT.disp - m0 : 0), lx = liftFor(HT, HT ? HT.disp - m0 + 70 : 0);   // 照我艦的船型   // 開戰時浮在哪；例子：再打掉 10 萬格（70 噸）
+    var gm = 0; if (HT) (HT.rig.models || []).forEach(function (m) { var k = modelKind(m); if (GUN_T[k]) gm += GUN_T[k] * GUNW_K; });
     $('gunwV').textContent = GUNW_K.toFixed(2) + '×（長砲 ' + (2.5 * GUNW_K).toFixed(1) + ' 噸、carronade ' + (0.9 * GUNW_K).toFixed(1) + '、追擊砲 ' + (2.1 * GUNW_K).toFixed(1) + (gm ? '；全部 ' + Math.round(gm) + ' 噸' : '') + '）';
-    $('ballastV').textContent = BALLAST_T + ' 噸' + (l0 === null ? '' : '（船重 ' + Math.round(m0).toLocaleString() + ' 噸 ⇒ ' + (Math.abs(l0) < 0.05 ? '剛好在設計水線' : l0 > 0 ? '浮高 ' + l0.toFixed(1) + ' m' : '吃水深 ' + (-l0).toFixed(1) + ' m') + '；打掉 10 萬格再浮 ' + (lx - l0).toFixed(2) + ' m）');
+    $('ballastV').textContent = BALLAST_T + ' 噸' + (l0 === null ? '' : '（' + HT.name + ' ' + Math.round(m0).toLocaleString() + ' 噸 ⇒ ' + (Math.abs(l0) < 0.05 ? '剛好在設計水線' : l0 > 0 ? '浮高 ' + l0.toFixed(1) + ' m' : '吃水深 ' + (-l0).toFixed(1) + ' m') + '；打掉 10 萬格再浮 ' + (lx - l0).toFixed(2) + ' m）');
     $('hardV').textContent = HARDK.toFixed(1) + '×' + (HARDK < 1 ? '（容易打穿）' : HARDK > 10 ? '（幾乎打不穿）' : HARDK > 3 ? '（很難打穿）' : '');
     function shots(hp, dmg) { return dmg > 0 ? Math.ceil(hp / dmg - 1e-9) : '∞'; }
     $('gunhpV').textContent = GUN_HP + '（24 磅實心 ' + shots(GUN_HP, DMG.long * ammoK(0, VS_GUN)) + ' 發、舵輪 ' + Math.round(GUN_HP * 0.6) + '）';

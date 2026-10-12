@@ -4,7 +4,7 @@ function removeVoxel(sh, x, y, z, seeds) {
   var c = sh.grid.set(x, y, z, 0);
   if (c <= 0) return 0;
   sh.rs.touch(x, y, z); sh.lost++;
-  if (z < SZ) { sh.flood[z * 3]++; sh.flood[z * 3 + 1] += y > CY ? 1 : -1; sh.flood[z * 3 + 2] += x > CX ? 1 : -1; }
+  if (z < sh.T.sz) { sh.flood[z * 3]++; sh.flood[z * 3 + 1] += y > sh.T.cy ? 1 : -1; sh.flood[z * 3 + 2] += x > sh.T.cx ? 1 : -1; }
   if (seeds) { var s = sh.seeds; s.push(VK.pack(x + 1, y, z), VK.pack(x - 1, y, z), VK.pack(x, y + 1, z), VK.pack(x, y - 1, z), VK.pack(x, y, z + 1), VK.pack(x, y, z - 1)); }
   return c;
 }

@@ -15,16 +15,16 @@ var CAPTAINS = {
   kill: { name: '殺傷派', tip: '打砲甲板與甲板上的人，讓對方開不了砲', think: 8, w: { water: 0.6, hull: 1.6, rig: 0.4, deck: 2.0, mag: 1.0 } },
   gamble: { name: '賭徒', tip: '彈藥庫一靠近水面就全押上去', think: 6, w: { water: 1.0, hull: 0.8, rig: 0.6, deck: 0.6, mag: 5.0 } }
 };
-var CAP_KEYS = Object.keys(CAPTAINS);
+var CAP_KEYS = Object.keys(CAPTAINS), AIM_P = 'free';   // AIM_P：我艦手動的瞄準模式（重開時保留）
 /** 開局：每艘挑一個砲長（細節設定的；隨機 ⇒ 抽種子亂數）。 */
 function pickCaptains() {
   SHIPS.forEach(function (sh) {
     var k = CAP_SET[sh.i]; if (!CAPTAINS[k]) k = CAP_KEYS[(rnd() * CAP_KEYS.length) | 0];
-    sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.pMode || 'free';
+    sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.i === PLAYER_I ? AIM_P : 'free';
   });
 }
 /** 敵艦現在的水線（格座標的 z）：設計水線 ＋ 進水 − 浮高 − 浪。 */
-function wlZ(foe) { return ZW + (foe.sink - foe.lift - foe.bob) / S; }
+function wlZ(foe) { return foe.T.zw + (foe.sink - foe.lift - foe.bob) / S; }
 /** 最淺那間還在的彈藥庫：{ mag, d（頂離水面幾公尺，負 ＝ 露出水面）}；沒有 ⇒ null。 */
 function magNear(foe) {
   var wl = wlZ(foe), best = null;
@@ -56,7 +56,7 @@ function captainThink(sh, foe) {
 function modeAim(foe, mode, rand) {
   function R(a, b) { return rand ? rr(a, b) : (a + b) / 2; }
   function P(p) { return rand ? rnd() < p : p >= 0.5; }
-  var wl = wlZ(foe), xm = (WL_X0 + WL_X1) / 2;
+  var wl = wlZ(foe), CY = foe.T.cy, WL_X0 = foe.T.wl0, WL_X1 = foe.T.wl1, xm = (WL_X0 + WL_X1) / 2;
   if (mode === 'mag') {
     var n = magNear(foe); if (n) return { t: [R(n.mag.box[0] + 4, n.mag.box[3] - 4), CY, wl + R(0.5, 4)], ammo: 0 };
     mode = 'water';

@@ -28,13 +28,12 @@ function geometry() {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0); gl.bindVertexArray(null);
 }
 /** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ R8 貼圖，海的著色器拿來判斷「在不在船艙裡」。 */
-var HULL_TEX = null, HULL_TW = 0, HULL_TH = 0;
-function hullTex() {
-  HULL_TW = BASE.sx; HULL_TH = Math.min(256, BASE.sz);
-  var hb = new Uint8Array(HULL_TW * HULL_TH);
-  BASE.each(function (x, y, z) { if (z >= HULL_TH) return; var d = Math.min(255, Math.ceil(Math.abs(y + 0.5 - CY))); if (d > hb[z * HULL_TW + x]) hb[z * HULL_TW + x] = d; });
-  HULL_TEX = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, HULL_TEX); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, HULL_TW, HULL_TH, 0, gl.RED, gl.UNSIGNED_BYTE, hb);
+function hullTex(T) {                                  // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠
+  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz), CY = T.cy;
+  var hb = new Uint8Array(TW * TH);
+  T.base.each(function (x, y, z) { if (z >= TH) return; var d = Math.min(255, Math.ceil(Math.abs(y + 0.5 - CY))); if (d > hb[z * TW + x]) hb[z * TW + x] = d; });
+  T.hullTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, TW, TH, 0, gl.RED, gl.UNSIGNED_BYTE, hb);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.bindTexture(gl.TEXTURE_2D, null);
@@ -76,17 +75,17 @@ function render() {
   SHIPS.forEach(function (sh) {
     if (sh.sink > 40) return;
     sh.models.forEach(function (m) {
-      if (!m.alive || !MESHES[m.mesh]) return;
+      var me = sh.T.meshes[m.mesh]; if (!m.alive || !me) return;
       gl.uniformMatrix4fv(P.tri.u.uModel, false, M4.mul(sh.M, modelLocal(m)));
-      gl.bindVertexArray(MESHES[m.mesh].vao); gl.drawArrays(gl.TRIANGLES, 0, MESHES[m.mesh].n);
+      gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
     });
   });
   PIECES.forEach(function (pc) { (pc.mods || []).forEach(function (m) {      // 跟著斷開的那一團走的模型
-    if (!MESHES[m.mesh]) return;
+    var me = pc.T.meshes[m.mesh]; if (!me) return;
     gl.uniformMatrix4fv(P.tri.u.uModel, false, M4.mul(pc.M, m.L));
-    gl.bindVertexArray(MESHES[m.mesh].vao); gl.drawArrays(gl.TRIANGLES, 0, MESHES[m.mesh].n);
+    gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
   }); });
-  FLY.forEach(function (f) { if (!MESHES[f.mesh] || !f.M) return; gl.uniformMatrix4fv(P.tri.u.uModel, false, f.M); gl.bindVertexArray(MESHES[f.mesh].vao); gl.drawArrays(gl.TRIANGLES, 0, MESHES[f.mesh].n); });
+  FLY.forEach(function (f) { var me = f.T.meshes[f.mesh]; if (!me || !f.M) return; gl.uniformMatrix4fv(P.tri.u.uModel, false, f.M); gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n); });
   gl.uniform1f(P.tri.u.uLit, 0); gl.vertexAttrib3f(1, 0, 1, 0);
   owners.forEach(function (ow) {
     var dirty = ow.rigDirty;
@@ -110,12 +109,14 @@ function render() {
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.useProgram(P.water.prog); setCommon(P.water); gl.uniform1f(P.water.u.uT, SIMT);
   // 開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了）
-  var hide = [0, 1].map(function (i) { var s = SHIPS[i]; return s && !s.sinkingFinal && !s.sunk && HULL_TEX ? 1 : 0; });
+  var hide = [0, 1].map(function (i) { var s = SHIPS[i]; return s && !s.sinkingFinal && !s.sunk && s.T.hullTex ? 1 : 0; });   // 每艘照自己船型的遮罩（兩型可以不一樣）
   gl.uniform2f(P.water.u.uHide, hide[0], hide[1]);
-  if (HULL_TEX) {
-    gl.uniformMatrix4fv(P.water.u.uInv0, false, SHIPS[0] ? SHIPS[0].inv : M4.ident()); gl.uniformMatrix4fv(P.water.u.uInv1, false, SHIPS[1] ? SHIPS[1].inv : M4.ident());
-    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, HULL_TEX); gl.uniform1i(P.water.u.uHull, 1); gl.uniform3f(P.water.u.uHullK, HULL_TW, HULL_TH, CY); gl.activeTexture(gl.TEXTURE0);
-  }
+  [0, 1].forEach(function (i) {
+    var s = SHIPS[i], T = s && s.T; if (!T || !T.hullTex) return;
+    gl.uniformMatrix4fv(P.water.u['uInv' + i], false, s.inv);
+    gl.activeTexture(gl.TEXTURE1 + i); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(P.water.u['uHull' + i], 1 + i); gl.uniform3f(P.water.u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
+  });
+  gl.activeTexture(gl.TEXTURE0);
   gl.bindVertexArray(WATERVAO); gl.drawArrays(gl.TRIANGLES, 0, 6);
   // 粒子＋砲彈＋瞄準點
   var m = 0;

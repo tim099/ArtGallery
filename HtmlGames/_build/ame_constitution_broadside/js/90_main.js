@@ -57,7 +57,7 @@ if (DEBUG) window.__game = {
   /** 帆與繩的讀數：每面帆最鼓的那一點離雕刻作品形狀多遠（格）、還綁著幾個點、垂下來的繩幾條。 */
   cloth: function (i) {
     var sh = SHIPS[i || 0];
-    return { templates: CLOTHT.map(function (T) { return { name: T.name, n: T.n, sim: T.sim.n, grid: T.grid, simEdges: T.sim.ea.length, simPins: Array.prototype.filter.call(T.sim.hk, function (x) { return x; }).length, pins: T.pins, clews: T.clews, sides: T.sides }; }),
+    return { templates: sh.T.cloth.map(function (T) { return { name: T.name, n: T.n, sim: T.sim.n, grid: T.grid, simEdges: T.sim.ea.length, simPins: Array.prototype.filter.call(T.sim.hk, function (x) { return x; }).length, pins: T.pins, clews: T.clews, sides: T.sides }; }),
       sails: sh.cl.map(function (c, k) {
         var d = 0, P0 = c.T.sim.p0; if (c.p) for (var j = 0; j < c.T.sim.n * 3; j += 3) d = Math.max(d, Math.hypot(c.p[j] - P0[j], c.p[j + 1] - P0[j + 1], c.p[j + 2] - P0[j + 2]));
         return { name: c.T.name, live: !!c.p && !c.hidden && !c.gone, loose: !!c.loose, torn: !!c.torn, pins: c.npin, maxMove: +d.toFixed(2) };
@@ -67,27 +67,19 @@ if (DEBUG) window.__game = {
   stats: function () { return { t: +SIMT.toFixed(2), ships: SHIPS.map(function (s) { return { lost: s.lost, count: s.grid.count, quads: s.rs.quads(), sink: +s.sink.toFixed(3), lift: +s.lift.toFixed(3), massLost: +massLost(s).toFixed(1), mass0: Math.round(s.mass0 || 0), roll: +s.rollA.toFixed(3), inflow: s.inflow, guns: s.gunsAlive, masts: s.masts.map(function (m) { return m.name + (m.up ? '✓' : '✗'); }).join(' '), fired: s.fired, hits: s.hits, ropesDead: s.ropes.filter(function (r) { return r.dead; }).length, sailsDead: s.sails.filter(function (x) { return x.dead; }).length,
     crew: s.crew0, able: s.able, wounded: s.wounded, dead: s.dead, causes: s.causes, manned: s.gunsManned, struck: s.struck, fate: s.fate,
     knots: +(s.spd * 1.944).toFixed(2), yaw: +s.yaw.toFixed(3), x: +s.px.toFixed(1), z: +s.pz.toFixed(1), sail: +s.sailFrac.toFixed(3), point: s.pos,
-    side: s.side, manual: s.manual, rudder: +s.rudder.toFixed(2), sailSet: SAILSETS[s.sailSet] }; }), over: OVER, end: OVER ? $('endT').textContent : '', pieces: PIECES.map(function (p) { return p.n; }), debris: D.n, pts: PT.n, balls: BALLS.length, masts: MASTS }; }
+    side: s.side, manual: s.manual, rudder: +s.rudder.toFixed(2), sailSet: SAILSETS[s.sailSet] }; }), over: OVER, end: OVER ? $('endT').textContent : '', pieces: PIECES.map(function (p) { return p.n; }), debris: D.n, pts: PT.n, balls: BALLS.length, masts: SHIPS.length ? SHIPS[0].T.masts : [] }; }
 };
 var t0 = performance.now();
 function say(s) { $('load').textContent = s; }
 say('解碼船體…');
-VK.loadEmbedded('ship').then(function (model) {
-  MODEL = model; var h = model.header;
-  S = h.meters_per_voxel; SZ = h.size[2]; CX = (h.bbox[0] + h.bbox[3]) / 2; CY = h.size[1] / 2; HULL_X0 = h.bbox[0]; HULL_X1 = h.bbox[3];
-  RIG = h.rig || { ropes: [], sails: [] };
-  var t1 = performance.now();
-  BASE = VK.Grid.fromModel(model);
-  var chk = VK.verify(BASE, h);
-  programs(); geometry(); buildMeshes(); bbSetup(); waterline(); hullTex(); hydrostatics(); if (SLIDERS_SHOW) SLIDERS_SHOW();
-  QIDX = new VK.QuadIndex(gl);
-  PRISTINE = new VK.RegionSet(gl, BASE, QIDX); PRISTINE.buildAll();
-  findMasts(); clothSetup();
-  var t2 = performance.now();
-  var line = '1:1 船體 ' + chk.voxels.toLocaleString() + ' 格 checksum ' + chk.checksum.toString(16) + (chk.ok ? '（＝ 封裝檔 header，逐格相同 ✓）' : '（✗ 跟封裝檔對不上：' + h.voxels + '／' + h.checksum.toString(16) + '）') +
-    '\n合併後 ' + PRISTINE.quads().toLocaleString() + ' 個四邊形、繩 ' + RIG.ropes.length + '、帆 ' + RIG.sails.length + '、桅 ' + MASTS.length +
-    '\n解碼 ' + ((t1 - t0) / 1000).toFixed(2) + ' 秒、網格化 ' + ((t2 - t1) / 1000).toFixed(2) + ' 秒';
-  say(line); window.__vxk = { verify: chk, quads: PRISTINE.quads(), masts: MASTS.length };
+programs(); geometry(); bbSetup(); QIDX = new VK.QuadIndex(gl);
+Promise.all(SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(loadHull)).then(function () {   // 只載選到的船（預設兩艘都是憲法號 ⇒ 一份）
+  var T = HULLT[SHIP_SET[0]], h = T.h, chk = T.chk;
+  if (SLIDERS_SHOW) SLIDERS_SHOW();
+  var line = '1:1 ' + T.name + ' ' + chk.voxels.toLocaleString() + ' 格 checksum ' + chk.checksum.toString(16) + (chk.ok ? '（＝ 封裝檔 header，逐格相同 ✓）' : '（✗ 跟封裝檔對不上：' + h.voxels + '／' + h.checksum.toString(16) + '）') +
+    '\n合併後 ' + T.pristine.quads().toLocaleString() + ' 個四邊形、繩 ' + T.rig.ropes.length + '、帆 ' + T.rig.sails.length + '、桅 ' + T.masts.length +
+    '\n解碼 ' + (T.decodeMs / 1000).toFixed(2) + ' 秒、網格化 ' + (T.meshMs / 1000).toFixed(2) + ' 秒';
+  say(line); window.__vxk = { verify: chk, quads: T.pristine.quads(), masts: T.masts.length };
   loadArt().then(function (why) { line += '\n素材：' + why; say(line); window.__vxk.art = why; if (HUD_ART) hudArt(); });
   if (!chk.ok) { fail('船體資料跟封裝檔對不上，停下來（不畫半艘船）。\n' + line); return; }
   $('go').disabled = false; $('go').textContent = '開戰';

@@ -1,6 +1,6 @@
 /* 憲法號對轟 —— 遊戲本體（體素的解碼、網格、算繪、射線、連通在 VoxelKit）。
  * 世界：公尺、Y 朝上、海面 y = 0。船的格座標 (x 船長、y 船寬、z 高) ⇒ 船體座標 (x, z, −y)（行列式 +1，繞序不翻）。
- * 兩艘都是同一份 1:1 組裝件：共用資料，被打到的區塊才各自複製（VoxelKit.Grid.share）。
+ * 同一型的兩艘共用一份 1:1 資料（船型 sh.T，05_hull.js），被打到的區塊才各自複製（VoxelKit.Grid.share）。
  * 模擬固定步長 1/60 秒、亂數有種子 ⇒ ?demo=<秒>&seed=<n> 每次快轉出同一格（縮圖與驗收用）。
  *
  * 拆檔：js/ 底下照功能分檔，檔名前面的數字就是順序。template.html 照這個順序列出（每檔一個帶 data-bundle="game" 的 script 標籤），
@@ -27,11 +27,10 @@ function hash3(x, y, z) { var h = (Math.imul(x, 374761393) + Math.imul(y, 668265
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
 // ───────────────────────── 常數 ─────────────────────────
-var DT = 1 / 60, G = 9.81, V0 = 175, ZW = 63;     // ZW：設計水線（吃水 63 格，basecamp 的下水段同一個數）
+var DT = 1 / 60, G = 9.81, V0 = 175, ZW0 = 63;    // ZW0：沒有 meta 時的設計水線（憲法號吃水 63 格，basecamp 的下水段同一個數）；每種船的在 T.zw
 var RELOAD = 7, RELOAD_SANDBOX = 1.6;
 var AMMO = ['實心彈', '爆裂彈', '鏈彈'];
-var S, CX, CY, SZ, HULL_X0, HULL_X1;              // 由封裝檔的 header 決定（外框：含艏斜桅與後桅帆桁）
-var WL_X0, WL_X1, BOW_HALF;                        // 水線上船體的前後端、船頭浪那一格的半寬（waterline() 量）
+var S;                                            // 公尺／格（封裝檔的 header；每種船都要一樣）。中線、外框、水線…每種船各一份：sh.T（05_hull.js）
 var SUN = norm([-0.45, 0.62, -0.38]), SKY = [0.42, 0.58, 0.80], HORIZON = [0.80, 0.80, 0.77], GROUND = [0.30, 0.27, 0.22];
 var WIND = [0.6, 0, 1.65];   // 風往哪吹（m/s，煙飄的速度）；方向也是航行的風向：開局兩艘的航向跟它大致垂直（橫風起跑）
 

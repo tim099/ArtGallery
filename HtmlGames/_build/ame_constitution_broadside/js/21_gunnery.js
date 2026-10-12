@@ -64,7 +64,7 @@ function gunTarget(sh, g, w) {
   var foe = SHIPS[1 - sh.i]; if (!foe || !foe.M) return null;
   var z = clamp(toLocal(foe, w)[2], 40, 320), best = null, bd = 1e18;
   for (var k = 0; k <= 12; k++) {
-    var p = M4.pt(foe.M, WL_X0 + 15 + (WL_X1 - WL_X0 - 30) * k / 12, CY, z);
+    var p = M4.pt(foe.M, foe.T.wl0 + 15 + (foe.T.wl1 - foe.T.wl0 - 30) * k / 12, foe.T.cy, z);
     if (!bears(sh, g, p)) continue;
     var d = (p[0] - w[0]) * (p[0] - w[0]) + (p[2] - w[2]) * (p[2] - w[2]); if (d < bd) { bd = d; best = p; }
   }
@@ -77,7 +77,7 @@ function aimPoint(sh) {
   var foe = SHIPS[1 - sh.i];
   if (sh.i === PLAYER_I && !AUTOFIRE && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
   if (sh.aim) return M4.pt(foe.M, sh.aim[0], sh.aim[1], sh.aim[2]);
-  return M4.pt(foe.M, CX, CY, 90);
+  return M4.pt(foe.M, foe.T.cx, foe.T.cy, 90);
 }
 
 function stepBall(b, dt) {
@@ -168,7 +168,7 @@ function modelLocal(m) {
 }
 /** 格座標 L 在不在這個模型的網格裡（佔用格，外擴一格 ≈ 砲彈半徑）。⛔ 只看外框：長砲的外框 1.3 × 3.1 m，空的角落也算 ⇒ 砲甲板一半的彈都打得到砲。 */
 function inMesh(o, L) {
-  var oc = MESHES[o.mesh] && MESHES[o.mesh].occ; if (!oc) return true;
+  var oc = o.T.meshes[o.mesh] && o.T.meshes[o.mesh].occ; if (!oc) return true;
   var x = Math.floor(L[0] - o.origin[0]) + 1, y = Math.floor(L[1] - o.origin[1]) + 1, z = Math.floor(L[2] - o.origin[2]) + 1;
   return x >= 0 && y >= 0 && z >= 0 && x < oc.nx && y < oc.ny && z < oc.nz && oc.a[x + oc.nx * (y + oc.ny * z)] === 1;
 }
@@ -202,7 +202,7 @@ function blowModel(sh, m, vel, drop) {
   m.alive = false;
   var M0 = M4.mul(sh.M, modelLocal(m)), c0 = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]);
   var vd = norm(vel), sp = drop ? 0 : clamp(len(vel) * 0.07, 5, 16);
-  FLY.push({ mesh: m.mesh, M0: M0, c0: c0, c: c0.slice(), R: M4.ident(), t: 0, wet: false,
+  FLY.push({ T: sh.T, mesh: m.mesh, M0: M0, c0: c0, c: c0.slice(), R: M4.ident(), t: 0, wet: false,
     v: add(drop ? [0, -0.5, 0] : add(mul(vd, sp), [gauss() * 2, rr(4, 9), gauss() * 2]), sh.vel),
     w: drop ? [gauss() * 0.4, 0, gauss() * 0.4] : [gauss() * 4, gauss() * 4, gauss() * 4] });
   sh.guns.forEach(function (g) { if (g.model === m) g.alive = false; });
@@ -254,9 +254,9 @@ function stepFly(f, dt) {
   f.M = M4.mul(M4.mul(M4.mul(trans(f.c[0], f.c[1], f.c[2]), f.R), trans(-f.c0[0], -f.c0[1], -f.c0[2])), f.M0);
   return f.t < 25 && f.c[1] > -25;
 }
-var MESHES = [];
-function buildMeshes() {          // 每份網格一個 VAO：三角形展開、平面法線、材質色（P.tri 畫）
-  (RIG.meshes || []).forEach(function (m) {
+function buildMeshes(H) {         // 船型 H 的每份模型網格一個 VAO：三角形展開、平面法線、材質色（P.tri 畫）
+  H.meshes = [];
+  (H.rig.meshes || []).forEach(function (m) {
     var v = m.verts, T = [];
     for (var j = 0; j < m.tris.length; j += 3) {
       var a = m.tris[j] * 3, b = m.tris[j + 1] * 3, d = m.tris[j + 2] * 3, c = m.mats[m.tmat[j / 3]];
@@ -265,7 +265,7 @@ function buildMeshes() {          // 每份網格一個 VAO：三角形展開、
              v[d], v[d + 1], v[d + 2], n[0], n[1], n[2], c[0], c[1], c[2]);
     }
     var up = upload(null, new Float32Array(T), 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]);
-    up.occ = meshOcc(m); MESHES.push(up);
+    up.occ = meshOcc(m); H.meshes.push(up);
   });
 }
 function ballToDebris(b) { spawnDebris(b.p, mul(b.v, 0.3), 36, 0.15, 20); b.alive = false; }

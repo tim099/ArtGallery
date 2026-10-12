@@ -35,7 +35,7 @@ function standNear(g, x, y, z0, z1, head, taken) {   // (x, y) 附近 4 格內�
   return null;
 }
 function makeCrew(sh) {
-  var g = BASE, taken = {}, crew = [];
+  var g = sh.T.base, CY = sh.T.cy, HULL_X0 = sh.T.hx0, HULL_X1 = sh.T.hx1, taken = {}, crew = [];
   // ⛔ 以前用平面的 taken 標模型外框：長砲改成模型之後，砲甲板的砲把上面 spar deck 的站位也佔掉了；火藥桶（艙底）更把大半個平面佔掉
   CREW_BLOCK = sh.models.filter(function (m) { return m.kind !== 'powder' || m.station; });   // 取用點的桶在甲板上 ⇒ 要避
   function add(role, at, gun, face) { if (at) crew.push({ role: role, home: at, pos: at.slice(), gun: gun, face: face || 1, st: 0, t: rnd() * 10, walk: null, fireT: 0, shotT: rr(2, 6), lost: 0, hp: CREW_HP, hitT: 0 }); }

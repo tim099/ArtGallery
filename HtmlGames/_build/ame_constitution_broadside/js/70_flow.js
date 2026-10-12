@@ -4,12 +4,13 @@ function reset() {
   rs = SEED;
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
-  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false; AMMO_I = 0;
+  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
   clearMsgs();
   PLAYER_I = 0;
-  SHIPS.push(makeShip(0, 'blue', 0, DIST / 2));
-  SHIPS.push(makeShip(1, 'red', Math.PI, -DIST / 2));
-  KEYS.l = KEYS.r = false; setAutoFire(MODE === 'eve');
+  SHIPS.push(makeShip(0, 'blue', 0, DIST / 2, HULLT[SHIP_SET[0]]));
+  SHIPS.push(makeShip(1, 'red', Math.PI, -DIST / 2, HULLT[SHIP_SET[1]]));   // 船型要先載好（loadHull）
+  KEYS.l = KEYS.r = false;
+  if (MODE !== LAST_MODE) { setAutoFire(MODE === 'eve'); LAST_MODE = MODE; }   // 自動開砲：換了模式才套預設（觀戰開、其他關），同一個模式重開保留（Tim 2026-10-12）
   SHIPS.forEach(function (sh) { stepShip(sh, 0); survey(sh); });
   pickCaptains();                                                    // 砲長（51_captain.js）
   CAM.mode = 0; CAM.follow = null; CAM.trMe = CAM.trYaw = null; CAM.dist = DIST * 1.05 + 40; CAM.tgt = [0, 8, 0]; CAM.yaw = 2.2; CAM.pitch = 0.22; CAM.snap = true;

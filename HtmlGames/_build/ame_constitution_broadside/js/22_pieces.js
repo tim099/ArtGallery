@@ -14,7 +14,7 @@ function spawnPiece(sh, pc) {
       if (c) spawnDebris(M4.pt(sh.M, x + 0.5, y + 0.5, z + 0.5), add([gauss(), rr(-0.5, 1), gauss()], sh.vel), c, rr(0.06, 0.1), rr(8, 16)); }
     return;
   }
-  var g = new VK.Grid([BASE.sx, BASE.sy, BASE.sz]), sx = 0, sy = 0, sz = 0, minz = 1e9, set = new Set();
+  var g = new VK.Grid([sh.T.base.sx, sh.T.base.sy, sh.T.base.sz]), sx = 0, sy = 0, sz = 0, minz = 1e9, set = new Set();
   for (i = 0; i < n; i++) {
     x = pc[i] & 1023; y = (pc[i] >> 10) & 1023; z = pc[i] >> 20; c = removeVoxel(sh, x, y, z, false);
     if (!c) continue; g.set(x, y, z, c); sx += x; sy += y; sz += z; if (z < minz) minz = z; set.add(pc[i]);
@@ -25,7 +25,7 @@ function spawnPiece(sh, pc) {
   var M0 = sh.M, c0 = M4.pt(M0, sx / n + 0.5, sy / n + 0.5, sz / n + 0.5), pivot = M4.pt(M0, px / pn + 0.5, py / pn + 0.5, pz / pn);
   var imp = sh.impulse; imp = [imp[0], 0, imp[2]]; if (len(imp) < 1e-6) imp = [rnd() - 0.5, 0, rnd() - 0.5];
   var axis = norm(cross([0, 1, 0], norm(imp)));
-  var piece = { grid: g, rs: rs2, M0: M0, c0: c0, c: c0.slice(), R: M4.ident(), v: [0, 0, 0], w: mul(axis, rr(0.18, 0.35)), pivot: pivot, n: n,
+  var piece = { T: sh.T, grid: g, rs: rs2, M0: M0, c0: c0, c: c0.slice(), R: M4.ident(), v: [0, 0, 0], w: mul(axis, rr(0.18, 0.35)), pivot: pivot, n: n,
     hinge: c0[1] - pivot[1] > 2.5, t: 0, wet: false, ropes: [], cl: [], rigDirty: true, lines: null, mods: [] };
   if (sh.keel && n > 60000) {                                 // 斷成兩截的那半截船：不繞斷口倒 —— 帶著船速漂、斷口那頭往下、慢慢沉
     var fw = M4.dir(sh.M, 1, 0, 0), sideK = (sx / n) > sh.breakX ? 1 : -1;
