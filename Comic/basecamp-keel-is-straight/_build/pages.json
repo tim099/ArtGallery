@@ -239,6 +239,20 @@
   "027_p02": {"rows": [
     [{"src": "O/stage30_entry_v11_bottom_compare.png"}],
     [{"src": "O/stage30_entry_v11_oblique.png", "crop": [150, 250, 950, 1000]}]
+  ]},
+  "028_p01": {"rows": [
+    [{"src": "O/stage31_guns_model_deck.png", "crop": [140, 150, 1540, 870]}]
+  ]},
+  "028_p02": {"rows": [
+    [{"src": "O/stage31_bow_chase_pair.png", "crop": [100, 220, 1300, 900]}]
+  ]},
+  "029_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_02.JPG", "crop": [2000, 3000, 4700, 3800]}],
+    [{"src": "R/RG19_ALPHA_Constitution_1797_02.JPG", "crop": [10200, 3000, 12600, 3800]}],
+    [{"src": "O/stage32_magazines_section.png", "crop": [0, 230, 2124, 520]}]
+  ]},
+  "029_p02": {"rows": [
+    [{"src": "O/stage32_magazine_aft.png", "crop": [80, 220, 1300, 880]}, {"src": "O/stage32_magazine_fore.png", "crop": [200, 200, 1400, 880]}]
   ]}
  }
 }
