@@ -3,7 +3,7 @@ function shipBaseMatrix() {   // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x
   return new Float32Array([S, 0, 0, 0, 0, 0, -S, 0, 0, S, 0, 0, -S * CX, -S * ZW, S * CY, 1]);
 }
 function shipMatrix(sh) {
-  var m = trans(sh.px, -sh.sink + sh.bob, sh.pz);
+  var m = trans(sh.px, -sh.sink + sh.lift + sh.bob, sh.pz);
   m = M4.mul(m, rotM([0, 1, 0], sh.yaw));
   m = M4.mul(m, rotM([0, 0, 1], sh.pitchA));
   m = M4.mul(m, rotM([1, 0, 0], sh.rollA + (sh.rollW || 0)));
@@ -16,7 +16,7 @@ function makeShip(i, team, yaw, pz) {
   var grid = BASE.share(), rsSet = new VK.RegionSet(gl, grid, QIDX);
   rsSet.shareFrom(PRISTINE);
   var sh = {
-    i: i, team: team, grid: grid, rs: rsSet, yaw: yaw, px: 0, pz: pz, sink: 0, sinkV: 0, rollA: 0, pitchA: 0, rollV: 0, bob: 0,
+    i: i, team: team, grid: grid, rs: rsSet, yaw: yaw, px: 0, pz: pz, sink: 0, sinkV: 0, lift: 0, liftT: 0, rollA: 0, pitchA: 0, rollV: 0, bob: 0,
     phase: rnd() * 6.28, orig: grid.count, flood: new Float32Array(SZ * 3), lost: 0, seeds: [], impulse: [0, 0, 0],
     guns: [], ropes: [], sails: [], rigDirty: true, lines: null, tris: null, masts: [], aim: null, reloadT: MODE === 'sandbox' && i === PLAYER_I ? RELOAD_SANDBOX : RELOAD,
     fired: 0, hits: 0, salvo: 0, aiWait: rr(1, 3), sunk: false, struck: false, fate: '', silentT: -1, gunsAlive: 0, mastsUp: 3, sinkingFinal: false,

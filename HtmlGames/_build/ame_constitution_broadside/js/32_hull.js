@@ -1,7 +1,46 @@
-// ───────────────────────── 進水、傾斜、沉沒 ─────────────────────────
+// ───────────────────────── 進水、傾斜、沉沒、減重上浮 ─────────────────────────
+// 減重上浮（Tim 2026-10-12：打爛的船變輕、浮起來 ⇒ 彈藥庫有機會露出水面被打到）：
+//   船的重量 ＝ 格（每格 0.7 kg，木頭）＋ 砲（24 磅長砲 2.5 噸、carronade 0.9、追擊砲 2.1，乘細節設定「砲的重量」）＋ 火藥桶（50 kg）
+//   ＋ 壓艙物（細節設定；不會被打掉的重量：壓艙鐵與石、水、糧、彈丸…）。
+//   浮在哪 ＝ 排水剛好等於重量的那一層（HYD：原本船殼每一層的體積，每個 x 照最外兩格之間的寬，從設計水線往下、往上積）：
+//   設計水線（ZW）以下 ＝ 2,156 噸（史料約 2,200）⇒ 比它輕就浮高、重就吃水深。預設壓艙物 1,075 噸 ⇒ 開戰時剛好在設計水線；
+//   壓艙物調輕 ⇒ 一開始就浮得高（0 噸 ⇒ 約 1.9 m，彈藥庫頂離水面不到半公尺）；砲調重 ⇒ 吃水深、砲被打飛浮得多。
+//   打掉的格（含跟著斷開的一團走的）、不在船上的模型（飛掉、炸掉）⇒ 少掉那些重量 ⇒ 慢慢浮上去（每半秒量一次、3 秒浮到；開戰那一刻直接放好）。
+//   打掉 10 萬格 ＝ 70 噸 ⇒ 浮 0.12 m。量過：預設浮 0.04–0.2 m、照樣會沉；壓艙物 0 ⇒ 浮 2.0–2.25 m、洞都離水、420 秒沒沉，彈藥庫也沒被打到（電腦瞄水線上 2.7 m）。
+//   進水跟著浮起來的水線算（Tim）：洞浮出水面就不進水。開始沉的門檻照舊只看進水（sh.sink）。斷成兩截、開始沉之後不再往上浮。
+//   ⛔ 先做過放大倍率（Tim：不用到 4 倍）：16 倍 ⇒ 打得最爛的船整艘浮到 6.3 m；4 倍 ⇒ 浮 0.5–0.9 m —— 兩種都讓水線附近的洞全部離水，三種子 420 秒沒有一艘沉（不浮 240–350 秒沉）。
+//     又做過「總重固定、壓艙物只改每格多重」：拉桿幾乎沒感覺，而且壓艙物少了船卻沒浮高 —— 不像壓艙物。
+var VOX_T = 0.0007, KEG_T = 0.05, DISP = 0, GUN_T = { long: 2.5, carr: 0.9, chase: 2.1 }, RHO_W = 1.025, HYD = null, LIFT_TAU = 3;
+/** HYD[z] ＝ 原本船殼 z 層到設計水線（ZW）之間的體積（m³；水線上的層 ⇒ 負的），z ＝ 0 … ZW＋30（水線上 3 m）。載入時算一次。 */
+function hydrostatics() {
+  var sx = BASE.sx, top = Math.min(BASE.sz, ZW + 30), lo = new Int16Array(sx * top).fill(-1), hi = new Int16Array(sx * top), A = new Float64Array(top), z;
+  BASE.each(function (x, y, z) { if (z >= top) return; var k = z * sx + x; if (lo[k] < 0 || y < lo[k]) lo[k] = y; if (y > hi[k]) hi[k] = y; });
+  for (z = 0; z < top; z++) { var a = 0; for (var x = 0; x < sx; x++) { var k = z * sx + x; if (lo[k] >= 0) a += hi[k] - lo[k] + 1; } A[z] = a * S * S * S; }   // 那一層的體積
+  HYD = new Float32Array(top + 1);
+  for (z = ZW - 1; z >= 0; z--) HYD[z] = HYD[z + 1] + A[z];
+  for (z = ZW + 1; z <= top; z++) HYD[z] = HYD[z - 1] - A[z - 1];
+  DISP = HYD[0] * RHO_W;                                                          // 設計水線的排水量（噸）
+}
+function modelT(m) { return m.kind === 'powder' ? KEG_T : (GUN_T[m.kind] || 0) * GUNW_K; }   // 模型的重量（砲照細節設定的倍率）
+/** 開戰時的重量（噸）：格 ＋ 模型 ＋ 壓艙物。 */
+function shipT(sh) { var t = sh.orig * VOX_T + BALLAST_T; sh.models.forEach(function (m) { t += modelT(m); }); return t; }
+/** 少掉的重量（噸）：格（被打掉、跟著斷開的一團走）＋ 不在船上的模型（飛掉、炸掉、跟著斷開的一團走）。帆桁不算。 */
+function massLost(sh) {
+  var t = (sh.orig - sh.grid.count) * VOX_T;
+  sh.models.forEach(function (m) { if (!m.alive || m.moved) t += modelT(m); });
+  return t;
+}
+/** 比設計水線的排水輕 t 噸（負 ＝ 重）⇒ 浮高幾公尺（負 ＝ 吃水深）；HYD 還沒算好 ⇒ null。 */
+function liftFor(t) {
+  if (!HYD) return null;
+  var dv = t / RHO_W, n = HYD.length - 1, z;
+  if (dv >= HYD[0]) return ZW * S;
+  for (z = 0; z < n; z++) if (HYD[z + 1] <= dv) return (ZW - z - (HYD[z] - dv) / (HYD[z] - HYD[z + 1])) * S;
+  return (ZW - n) * S;
+}
 function stepShip(sh, dt) {
   // 進水：水線下每個破洞的流量 ∝ √(水深)（貼著水面的洞進得慢）；抽水機每秒抽掉一點 ⇒ 小洞撐得住
-  var wz = Math.min(SZ - 1, Math.floor(ZW + (sh.sink - sh.bob) / S)), N = 0, Q = 0, Dsp = 0, Dbs = 0;
+  var wz = Math.min(SZ - 1, Math.floor(ZW + (sh.sink - sh.lift - sh.bob) / S)), N = 0, Q = 0, Dsp = 0, Dbs = 0;
   for (var z = 0; z <= wz; z++) { var c = sh.flood[z * 3]; if (!c) continue; N += c; Q += c * Math.sqrt((wz - z) * S + 0.05); Dsp += sh.flood[z * 3 + 1]; Dbs += sh.flood[z * 3 + 2]; }
   sh.inflow = N;
   var fk = sh.broken ? Math.max(FLOOD, 0.6) : FLOOD;                       // 斷成兩截 ⇒ 一定沉（進水速度 0 也沉）
@@ -20,6 +59,7 @@ function stepShip(sh, dt) {
   sh.rollW = Math.sin(SIMT * 0.53 + sh.phase) * 0.012;
   sh.pitchA += (pitchT - sh.pitchA) * 0.3 * dt;
   sh.bob = Math.sin(SIMT * 0.7 + sh.phase) * 0.18;
+  sh.lift += (sh.liftT - sh.lift) * Math.min(1, dt / LIFT_TAU);                    // 減重上浮：慢慢浮上去（目標每半秒在 survey 量一次）
   sh.M = M4.mul(shipMatrix(sh), M4.ident()); sh.inv = M4.inv(sh.M);
   sh.center = shipCenter(sh); sh.rad2 = 62 * 62;
   manning(sh);
@@ -29,7 +69,7 @@ function stepShip(sh, dt) {
     g.reload -= dt * gunRate(g);                                    // 人少裝填慢、沒人不裝填
   }
 }
-function survey(sh) {               // 每半秒量一次：砲還在不在、桅還在不在、繩與帆的錨還在不在
+function survey(sh) {               // 每半秒量一次：砲還在不在、桅還在不在、繩與帆的錨還在不在、少掉多少重量
   var alive = 0;
   sh.models.forEach(function (m) {
     if (!m.alive) return;
@@ -52,6 +92,9 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
     var x = Math.floor(c.pos[0]), y = Math.floor(c.pos[1]);
     if (!countBox(sh.grid, x - 1, y - 1, c.pos[2] - 1, x + 1, y + 1, c.pos[2] - 1)) fall(sh, c);
   });
+  if (sh.mass0 === undefined) sh.mass0 = shipT(sh);                               // 開戰時的重量（壓艙物、砲的重量照開戰時的設定）
+  if (!sh.broken && !sh.sinkingFinal && !sh.sunk) sh.liftT = liftFor(DISP - sh.mass0 + massLost(sh)) || 0;   // 斷了、開始沉 ⇒ 不再往上浮
+  if (!sh.liftSet) { sh.lift = sh.liftT; sh.liftSet = true; }                    // 開戰那一刻直接放在浮的位置（不從設計水線慢慢浮過去）
   chooseSide(sh); reassign(sh); manning(sh);
   sh.able = sh.crew.filter(able).length;
   sh.gunsManned = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0; }).length;

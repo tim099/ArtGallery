@@ -52,6 +52,8 @@
   #cover .card{ max-width:680px; margin:auto; padding:22px 30px; text-align:center; }   /* margin:auto ⇒ 放得下就置中、放不下就從頂端開始捲（⛔ align-items:center 放不下會切掉上半） */
   #cover h1{ margin:0 0 4px; font-size:30px; letter-spacing:2px; }
   #cover .sub{ color:var(--dim); margin-bottom:14px; font-size:13px; }
+  #cover select{ font:inherit; font-size:13px; max-width:100%; padding:3px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:#1a212b; color:var(--ink); }
+  #cover select option{ background:#1a212b; color:var(--ink); }
   #cover .row{ margin:7px 0; }
   #cover button{ font:inherit; font-size:15px; margin:4px; padding:7px 16px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.06); color:var(--ink); cursor:pointer; }
   #cover button.on{ background:var(--gold); color:#111; border-color:var(--gold); }
@@ -98,7 +100,7 @@
     <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
     <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="autoF"><b>G</b> 自動開砲</span><span class="chip" id="physT"><b>B</b> 帆繩物理</span>　<span class="chip" id="restartB"><b>N</b> 重新開始</span></div>
     <div id="guns"></div>
-    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span></div>
+    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span></div>
   </div>
   <div id="msg" class="hud"></div>
   <div id="tip" class="hud"></div>
@@ -111,6 +113,8 @@
     <div><kbd data-k="1">1</kbd> 實心彈：鑽得深，打水線讓船進水</div>
     <div><kbd data-k="2">2</kbd> 爆裂彈：炸開大洞，但不深；對砲傷害大</div>
     <div><kbd data-k="3">3</kbd> 鏈彈：橫掃一片，專打桅杆、繩與帆</div>
+    <div><kbd data-k="q">Q</kbd> 瞄準模式：自由（點敵艦）→ 水線 → 砲甲板 → 帆具 → 甲板人員 → 彈藥庫（瞄那個模式的中心點）；自動開砲與敵艦交給砲長</div>
+    <div><kbd>砲長</kbd> 每艘一個（細節設定選，預設隨機）：照局勢與自己的偏好換瞄準模式、配彈種，戰鬥中會換著打；敵艦浮高就改瞄水線。換的時候上方廣播</div>
     <div><kbd data-k="c">C</kbd> 鏡頭：我艦→敵艦（預設：我艦在中間、看向敵艦）／自由／追砲彈／看敵艦／看我艦</div>
     <div><kbd>人</kbd> 砲要有人操作：人少裝填慢，少於最少人數就開不了；人不夠時會集中到幾門砲上</div>
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
@@ -124,6 +128,7 @@
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
+    <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
     <div><kbd data-k="p">P</kbd> 暫停　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 關掉說明</div>
   </div>
@@ -151,12 +156,15 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?ballast= ?gunhp= ?gunw= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?speed= ?agile= ?cap= ?strike=</div>
       <h3>船殼</h3>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
       <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
+      <div class="row slide"><label for="ballast">壓艙物</label><input type="range" id="ballast" step="25"><span id="ballastV"></span></div>
+      <div class="row note">減重上浮：船的重量 ＝ 格（每格 0.7 kg）＋ 砲（「砲」那一段的重量）＋ 火藥桶 ＋ 壓艙物（不會被打掉的重量：壓艙鐵與石、水、糧、彈丸）；比設計水線的排水（2,156 噸）輕就浮高、重就吃水深。預設剛好在設計水線；壓艙物調輕 ⇒ 一開始就浮得高。打掉的格、飛掉的砲讓船變輕、浮起來（打掉 10 萬格約 0.12 m）；浮出水面的洞不進水，浮得夠高，艙底的彈藥庫會露出水面。</div>
       <h3>砲</h3>
       <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
+      <div class="row slide"><label for="gunw">重量</label><input type="range" id="gunw" step="0.25" aria-label="砲的重量倍率"><span id="gunwV"></span></div>
       <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>
       <div class="row slide"><label for="dmg24">24 磅長砲</label><input type="range" id="dmg24" step="5" aria-label="24 磅長砲每發傷害"><span id="dmg24V"></span></div>
       <div class="row slide"><label for="dmg32">32 磅 carronade</label><input type="range" id="dmg32" step="5" aria-label="32 磅 carronade 每發傷害"><span id="dmg32V"></span></div>
@@ -184,10 +192,14 @@
       <div class="row slide"><label for="powderhp">血量</label><input type="range" id="powderhp" step="10" aria-label="火藥桶的血量"><span id="powderhpV"></span></div>
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
       <div class="row note">兩間彈藥庫在艙底（後 22 桶、前 116 桶，每桶 100 磅；水線下，砲彈打不到）。兩層甲板在彈藥庫上方各有一個取用點（3 桶火藥＋彈藥），送藥手從那裡搬到砲旁的藥箱。<br>
-        預設 450：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去兩次才會著）；拉滿 500 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+        預設 675：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>航行</h3>
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
+      <h3>砲長</h3>
+      <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
+      <div class="row slide"><label for="cap1">敵艦</label><select id="cap1"></select></div>
+      <div class="row note">砲長決定電腦瞄哪裡（水線／砲甲板／帆具／甲板人員／彈藥庫）、用什麼彈：照局勢與自己的偏好打分，打久了會換；敵艦浮高就改瞄水線。我艦的砲長在自動開砲時接手。</div>
       <h3>降旗</h3>
       <div class="row slide"><label for="cas">死傷降旗</label><input type="range" id="cas" step="5"><span id="casV"></span></div>
       <div class="row checks"><label><input type="checkbox" id="st-guns"> 砲全啞 10 秒</label><label><input type="checkbox" id="st-masts"> 桅全倒且死傷 ≥ 33%</label><label><input type="checkbox" id="st-officers"> 軍官全倒且死傷 ≥ 25%</label></div>
@@ -225,6 +237,7 @@
 <script src="js/40_crew.js" data-bundle="game"></script>
 <script src="js/41_crew_art.js" data-bundle="game"></script>
 <script src="js/50_sim.js" data-bundle="game"></script>
+<script src="js/51_captain.js" data-bundle="game"></script>
 <script src="js/60_render.js" data-bundle="game"></script>
 <script src="js/61_hud.js" data-bundle="game"></script>
 <script src="js/70_flow.js" data-bundle="game"></script>

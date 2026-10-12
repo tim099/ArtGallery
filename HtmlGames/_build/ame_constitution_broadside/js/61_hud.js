@@ -51,13 +51,19 @@ function newsFlush(sh) {
     N.k = sh.kills; N.w = sh.wounds; N.t = -1;
   }
 }
+/** 面板的一行：砲長與現在瞄哪裡（我艦手動 ⇒ 玩家的瞄準模式，砲長待命）。 */
+function capText(sh) {
+  var C = CAPTAINS[sh.cap], manual = sh.i === PLAYER_I && !AUTOFIRE;
+  return '砲長 ' + (C ? C.name : '—') + '：' + (manual ? '待命（我在瞄：' + AIM_NAME[sh.pMode || 'free'] + '）' : sh.aimMode ? '瞄' + AIM_NAME[sh.aimMode] : '觀察中');
+}
 function panel(sh, title) {
   var hull = sh.grid.count / sh.orig, fl = clamp(sh.sink / 9, 0, 1);
   var m = sh.masts.map(function (x) { return x.name + (x.up ? '✓' : '✗'); }).join(' ');
   return '<h3>' + title + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
-    '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
+    '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）' + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
     ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
+    capText(sh) + '<br>' +
     '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
 }
@@ -138,7 +144,7 @@ function drawNav(sh) {
   $('navt').innerHTML =
     '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
     '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）</span>　' + sh.pos + '<br>' +
-    '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + '<br>' +
+    '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<br>' +
     '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
     SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
 }
@@ -153,6 +159,7 @@ function hud(dt) {
   var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
   $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 暫停' : '');
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
+  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (AUTOFIRE ? '砲長' : AIM_NAME[me.pMode || 'free']);
   var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + (PHYS ? '　物理 ' + PHYS_MS.toFixed(2) + ' ms/步、垂繩 ' + SHIPS.map(function (s) { return s.loose.length; }).join('／') : '') + '　' + FPS.toFixed(0) + ' fps' : '';
   $('tip').textContent = t;
   drawNav(me);

@@ -52,6 +52,8 @@
   #cover .card{ max-width:680px; margin:auto; padding:22px 30px; text-align:center; }   /* margin:auto ⇒ 放得下就置中、放不下就從頂端開始捲（⛔ align-items:center 放不下會切掉上半） */
   #cover h1{ margin:0 0 4px; font-size:30px; letter-spacing:2px; }
   #cover .sub{ color:var(--dim); margin-bottom:14px; font-size:13px; }
+  #cover select{ font:inherit; font-size:13px; max-width:100%; padding:3px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:#1a212b; color:var(--ink); }
+  #cover select option{ background:#1a212b; color:var(--ink); }
   #cover .row{ margin:7px 0; }
   #cover button{ font:inherit; font-size:15px; margin:4px; padding:7px 16px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.06); color:var(--ink); cursor:pointer; }
   #cover button.on{ background:var(--gold); color:#111; border-color:var(--gold); }
@@ -98,7 +100,7 @@
     <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
     <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="autoF"><b>G</b> 自動開砲</span><span class="chip" id="physT"><b>B</b> 帆繩物理</span>　<span class="chip" id="restartB"><b>N</b> 重新開始</span></div>
     <div id="guns"></div>
-    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span></div>
+    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span></div>
   </div>
   <div id="msg" class="hud"></div>
   <div id="tip" class="hud"></div>
@@ -111,6 +113,8 @@
     <div><kbd data-k="1">1</kbd> 實心彈：鑽得深，打水線讓船進水</div>
     <div><kbd data-k="2">2</kbd> 爆裂彈：炸開大洞，但不深；對砲傷害大</div>
     <div><kbd data-k="3">3</kbd> 鏈彈：橫掃一片，專打桅杆、繩與帆</div>
+    <div><kbd data-k="q">Q</kbd> 瞄準模式：自由（點敵艦）→ 水線 → 砲甲板 → 帆具 → 甲板人員 → 彈藥庫（瞄那個模式的中心點）；自動開砲與敵艦交給砲長</div>
+    <div><kbd>砲長</kbd> 每艘一個（細節設定選，預設隨機）：照局勢與自己的偏好換瞄準模式、配彈種，戰鬥中會換著打；敵艦浮高就改瞄水線。換的時候上方廣播</div>
     <div><kbd data-k="c">C</kbd> 鏡頭：我艦→敵艦（預設：我艦在中間、看向敵艦）／自由／追砲彈／看敵艦／看我艦</div>
     <div><kbd>人</kbd> 砲要有人操作：人少裝填慢，少於最少人數就開不了；人不夠時會集中到幾門砲上</div>
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
@@ -124,6 +128,7 @@
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
+    <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
     <div><kbd data-k="p">P</kbd> 暫停　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 關掉說明</div>
   </div>
@@ -151,12 +156,15 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?ballast= ?gunhp= ?gunw= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?speed= ?agile= ?cap= ?strike=</div>
       <h3>船殼</h3>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
       <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
+      <div class="row slide"><label for="ballast">壓艙物</label><input type="range" id="ballast" step="25"><span id="ballastV"></span></div>
+      <div class="row note">減重上浮：船的重量 ＝ 格（每格 0.7 kg）＋ 砲（「砲」那一段的重量）＋ 火藥桶 ＋ 壓艙物（不會被打掉的重量：壓艙鐵與石、水、糧、彈丸）；比設計水線的排水（2,156 噸）輕就浮高、重就吃水深。預設剛好在設計水線；壓艙物調輕 ⇒ 一開始就浮得高。打掉的格、飛掉的砲讓船變輕、浮起來（打掉 10 萬格約 0.12 m）；浮出水面的洞不進水，浮得夠高，艙底的彈藥庫會露出水面。</div>
       <h3>砲</h3>
       <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
+      <div class="row slide"><label for="gunw">重量</label><input type="range" id="gunw" step="0.25" aria-label="砲的重量倍率"><span id="gunwV"></span></div>
       <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>
       <div class="row slide"><label for="dmg24">24 磅長砲</label><input type="range" id="dmg24" step="5" aria-label="24 磅長砲每發傷害"><span id="dmg24V"></span></div>
       <div class="row slide"><label for="dmg32">32 磅 carronade</label><input type="range" id="dmg32" step="5" aria-label="32 磅 carronade 每發傷害"><span id="dmg32V"></span></div>
@@ -184,10 +192,14 @@
       <div class="row slide"><label for="powderhp">血量</label><input type="range" id="powderhp" step="10" aria-label="火藥桶的血量"><span id="powderhpV"></span></div>
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
       <div class="row note">兩間彈藥庫在艙底（後 22 桶、前 116 桶，每桶 100 磅；水線下，砲彈打不到）。兩層甲板在彈藥庫上方各有一個取用點（3 桶火藥＋彈藥），送藥手從那裡搬到砲旁的藥箱。<br>
-        預設 450：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去兩次才會著）；拉滿 500 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+        預設 675：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>航行</h3>
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
+      <h3>砲長</h3>
+      <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
+      <div class="row slide"><label for="cap1">敵艦</label><select id="cap1"></select></div>
+      <div class="row note">砲長決定電腦瞄哪裡（水線／砲甲板／帆具／甲板人員／彈藥庫）、用什麼彈：照局勢與自己的偏好打分，打久了會換；敵艦浮高就改瞄水線。我艦的砲長在自動開砲時接手。</div>
       <h3>降旗</h3>
       <div class="row slide"><label for="cas">死傷降旗</label><input type="range" id="cas" step="5"><span id="casV"></span></div>
       <div class="row checks"><label><input type="checkbox" id="st-guns"> 砲全啞 10 秒</label><label><input type="checkbox" id="st-masts"> 桅全倒且死傷 ≥ 33%</label><label><input type="checkbox" id="st-officers"> 軍官全倒且死傷 ≥ 25%</label></div>
@@ -845,23 +857,25 @@ function lerp3(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1])
 var BASE = null, PRISTINE = null, QIDX = null, MODEL = null, RIG = null;
 var SHIPS = [], PIECES = [], BALLS = [], EVENTS = [], FLY = [], PLAYER_I = 0;
 // 選單的滑桿：[下限, 上限, 預設]。網址參數與滑桿共用這一組（⛔ 各一組 ⇒ ?demo 跑的不是網址寫的那組）；讀不懂的值 ⇒ 預設
-var LIM = { hard: [0.5, 20, 2], flood: [0, 2, 0.35], cas: [0.1, 1, 1], speed: [0.25, 3, 1], agile: [0.25, 3, 1],
-  // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶預設 450（很難殉爆但有機率；Tim 2026-10-12），拉滿 500 ＝ 不會爆
-  gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 500, 450], blast: [0.25, 4, 1],
+var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], gunw: [0, 5, 1], cas: [0.1, 1, 1], speed: [0.25, 3, 1], agile: [0.25, 3, 1],
+  // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶預設 675（很難殉爆但有機率；Tim 2026-10-12：450 還是很容易炸 ⇒ 1.5 倍），拉滿 1000 ＝ 不會爆
+  gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 1000, 675], blast: [0.25, 4, 1],
   dmg24: [10, 300, 100], dmg32: [10, 300, 120], dmg18: [10, 300, 70],
   box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1] };                                   // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
-var HARDK = qnum('hard', LIM.hard);     // 船殼硬度倍率（越硬越難打穿、洞越小）
+var HARDK = qnum('hard', LIM.hard);     // 船殼硬度倍率（越硬越難打穿、洞越小）：預設 3（Tim 2026-10-12：原本 2 ⇒ 1.5 倍）
 var FLOOD = qnum('flood', LIM.flood);   // 進水速度倍率（0 ＝ 不會沉）
+var GUNW_K = qnum('gunw', LIM.gunw);    // 砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多（Tim 2026-10-12）
+var BALLAST_T = Math.round(qnum('ballast', LIM.ballast));   // 壓艙物（噸）：不會被打掉的重量；預設 1,075 ⇒ 開戰時剛好在設計水線，越輕浮得越高（減重上浮，見 32_hull.js）
 var SPEEDK = qnum('speed', LIM.speed);  // 航速倍率（乘在 VMAX 上）
 var AGILK = qnum('agile', LIM.agile);   // 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
 var GUN_HP = Math.round(qnum('gunhp', LIM.gunhp));          // 砲的血量（舵輪 6 成）：預設 200 ⇒ 24 磅實心兩發（Tim 2026-10-12：100 太脆，翻倍）
 var SAIL_HP = Math.round(qnum('sailhp', LIM.sailhp));       // 帆的血量
 var CREW_HP = Math.round(qnum('crewhp', LIM.crewhp));       // 船員的血量：歸零陣亡、掉到一半以下受傷倒下、一半以上照常作戰（只閃紅）
-var POWDER_HP = Math.round(qnum('powderhp', LIM.powderhp)); // 火藥桶的血量：歸零殉爆；拉滿（LIM 上限）＝ 不會爆；預設 450 ＝ 很難但有機率
-var BLAST_K = qnum('blast', LIM.blast);
-var BOX_N = Math.round(qnum('box', LIM.box)), CARRY_N = Math.round(qnum('carry', LIM.carry));
-var WIND_K = qnum('wind', LIM.wind);                                // 帆的風壓倍率（只管物理開著時帆被吹成什麼樣子；不改航速）   // 砲旁藥箱容量、送藥手一次搬幾份（火藥與彈藥一份 ＝ 裝填一次）                     // 殉爆威力倍率（能量；爆炸半徑 ∝ 立方根）
+var POWDER_HP = Math.round(qnum('powderhp', LIM.powderhp)); // 火藥桶的血量：歸零殉爆；拉滿（LIM 上限）＝ 不會爆；預設 675 ＝ 很難但有機率
+var BLAST_K = qnum('blast', LIM.blast);                             // 殉爆威力倍率（能量；爆炸半徑 ∝ 立方根）
+var BOX_N = Math.round(qnum('box', LIM.box)), CARRY_N = Math.round(qnum('carry', LIM.carry));   // 砲旁藥箱容量、送藥手一次搬幾份（火藥與彈藥一份 ＝ 裝填一次）
+var WIND_K = qnum('wind', LIM.wind);                                // 帆的風壓倍率（只管物理開著時帆被吹成什麼樣子；不改航速）
 function powderNever() { return POWDER_HP >= LIM.powderhp[1]; }
 // 每發傷害（砲種）：砲彈開火時帶著 b.dmg
 var DMG = { long: Math.round(qnum('dmg24', LIM.dmg24)), carr: Math.round(qnum('dmg32', LIM.dmg32)), chase: Math.round(qnum('dmg18', LIM.dmg18)) };
@@ -879,6 +893,9 @@ if (Q.has('strike')) Q.get('strike').split(',').forEach(function (w) {
   if (isFinite(v)) STRIKE.cas = clamp(v / 100, LIM.cas[0], LIM.cas[1]);
   else if (w === 'guns' || w === 'masts' || w === 'officers') STRIKE[w] = true;
 });
+// 砲長（51_captain.js）：[我艦, 敵艦]，random ＝ 開局抽；網址 ?cap=sink,mast
+var CAP_SET = ['random', 'random'];
+if (Q.has('cap')) Q.get('cap').split(',').forEach(function (w, i) { if (i < 2) CAP_SET[i] = w; });
 var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
 var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
@@ -890,7 +907,7 @@ function shipBaseMatrix() {   // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x
   return new Float32Array([S, 0, 0, 0, 0, 0, -S, 0, 0, S, 0, 0, -S * CX, -S * ZW, S * CY, 1]);
 }
 function shipMatrix(sh) {
-  var m = trans(sh.px, -sh.sink + sh.bob, sh.pz);
+  var m = trans(sh.px, -sh.sink + sh.lift + sh.bob, sh.pz);
   m = M4.mul(m, rotM([0, 1, 0], sh.yaw));
   m = M4.mul(m, rotM([0, 0, 1], sh.pitchA));
   m = M4.mul(m, rotM([1, 0, 0], sh.rollA + (sh.rollW || 0)));
@@ -903,7 +920,7 @@ function makeShip(i, team, yaw, pz) {
   var grid = BASE.share(), rsSet = new VK.RegionSet(gl, grid, QIDX);
   rsSet.shareFrom(PRISTINE);
   var sh = {
-    i: i, team: team, grid: grid, rs: rsSet, yaw: yaw, px: 0, pz: pz, sink: 0, sinkV: 0, rollA: 0, pitchA: 0, rollV: 0, bob: 0,
+    i: i, team: team, grid: grid, rs: rsSet, yaw: yaw, px: 0, pz: pz, sink: 0, sinkV: 0, lift: 0, liftT: 0, rollA: 0, pitchA: 0, rollV: 0, bob: 0,
     phase: rnd() * 6.28, orig: grid.count, flood: new Float32Array(SZ * 3), lost: 0, seeds: [], impulse: [0, 0, 0],
     guns: [], ropes: [], sails: [], rigDirty: true, lines: null, tris: null, masts: [], aim: null, reloadT: MODE === 'sandbox' && i === PLAYER_I ? RELOAD_SANDBOX : RELOAD,
     fired: 0, hits: 0, salvo: 0, aiWait: rr(1, 3), sunk: false, struck: false, fate: '', silentT: -1, gunsAlive: 0, mastsUp: 3, sinkingFinal: false,
@@ -1386,6 +1403,7 @@ function anyBears(sh, w, side) { return sh.guns.some(function (g) { return g.ali
 function shipAxis(sh) { var ax = M4.dir(sh.M, 1, 0, 0); return norm([ax[0], 0, ax[2]]); }
 function aimPoint(sh) {
   var foe = SHIPS[1 - sh.i];
+  if (sh.i === PLAYER_I && !AUTOFIRE && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
   if (sh.aim) return M4.pt(foe.M, sh.aim[0], sh.aim[1], sh.aim[2]);
   return M4.pt(foe.M, CX, CY, 90);
 }
@@ -1771,11 +1789,11 @@ function stepPiece(pc, dt) {
 // ───────────────────────── 彈藥庫與火藥桶（殉爆） ─────────────────────────
 // 火藥桶是模型（basecamp 的 -magazine-aft／-fore 子作品，meta {kind:'powder', powder_lb:100}；後 22 桶、前 116 桶），
 // 彈藥庫是關聯（meta {kind:'magazine', powder_lb}、固定點 blast ＝ 爆心）。
-// 火藥桶的血量在細節設定（預設 450 ＝ 很難殉爆但有機率；拉滿 500 ＝ 不會爆 ⇒ 完全不扣、不抽亂數 ⇒ 戰局跟沒有火藥桶一樣）。
+// 火藥桶的血量在細節設定（預設 675 ＝ 很難殉爆但有機率；拉滿 1000 ＝ 不會爆 ⇒ 完全不扣、不抽亂數 ⇒ 戰局跟沒有火藥桶一樣）。
 //   ① 血量歸零 ⇒ 點燃，0.15–0.5 秒後炸（kegBoom）：炸掉半徑 KEG_R 的格、傷旁邊的人、旁邊的模型扣血（火藥桶 ⇒ 連鎖）。
 //   ② 同一間彈藥庫炸掉 ≥ 30% 的桶 ⇒ 整間殉爆（magBoom）：剩下的桶一起炸，爆心 ＝ blast 固定點，
 //      半徑 ∝ (磅數 × 殉爆威力)^(1/3)（前彈藥庫 11,600 磅、威力 1 ⇒ 9.5 m）。
-//   ③ 半徑 ≥ 斷船門檻（8 m × (硬度／2)^0.15）⇒ 船從爆心那一截斷開：橫切一刀，短的那半截變成斷開的一團（漂走、翹起來、沉下去），
+//   ③ 半徑 ≥ 斷船門檻（8 m × (硬度／2)^0.15（硬度 3 ⇒ 8.5 m））⇒ 船從爆心那一截斷開：橫切一刀，短的那半截變成斷開的一團（漂走、翹起來、沉下去），
 //      留下的那半截一定沉（進水速度 0 也沉）、算降旗（不再開砲）。
 // 威力是能量 ⇒ 爆炸半徑照立方根縮放：0.25× ⇒ 0.63 倍半徑、4× ⇒ 1.59 倍。
 var BOOMS = [], KEG_R = 9, KEG_REACH = 30, KEG_DMG = 300, MAG_R = 95, MAG_LB = 11600, BREAK_R = 80;
@@ -1896,7 +1914,7 @@ function breakShip(sh, xb) {
 //   彈丸擺在砲旁與艙口邊的彈架上。遊戲為了讓火藥在戰鬥裡「打得到」，兩層甲板（砲甲板、spar deck）在兩間彈藥庫的上方各放一個
 //   取用點（3 桶火藥＋彈藥；Tim 2026-10-12），送藥手碰一下火藥桶就算拿了火藥與彈藥（簡化；一次 CARRY_N 份），送到砲旁的藥箱（每門最多 BOX_N 份；兩個都在細節設定）。
 //   砲開火後要從藥箱拿一份才開始裝填；藥箱空了 ⇒ 等送藥手（HUD △）。
-// 危險（火藥血量拉滿 ＝ 全都不會爆；預設 450 ⇒ 藥包 135、火光一次 300 點不著，要兩次）：藥包（送藥手手上、砲旁藥箱）的血量 ＝ 火藥桶的 30%，吃到一下夠重的就著火爆炸；
+// 危險（火藥血量拉滿 ＝ 全都不會爆；預設 675 ⇒ 藥包 203（一般命中要擲到偏高）、火光一次 300，要三次）：藥包（送藥手手上、砲旁藥箱）的血量 ＝ 火藥桶的 30%，吃到一下夠重的就著火爆炸；
 //   取用點的桶被打到照火藥桶算；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口：彈藥庫裡靠門最近的 6 桶各扣 300 × 威力 ⇒ 可能整間殉爆。
 var CART_K = 0.3, MONKEY_SP = 26, FILL_T = 0.8, FLASH_R = 30, FLASH_DMG = 300, FLASH_CD = 3;
 /** 兩層甲板站人的高度範圍（從砲推）。 */
@@ -2542,10 +2560,49 @@ function chooseSide(sh) {
   sh.side = want;
 }
 // ── js/32_hull.js ──
-// ───────────────────────── 進水、傾斜、沉沒 ─────────────────────────
+// ───────────────────────── 進水、傾斜、沉沒、減重上浮 ─────────────────────────
+// 減重上浮（Tim 2026-10-12：打爛的船變輕、浮起來 ⇒ 彈藥庫有機會露出水面被打到）：
+//   船的重量 ＝ 格（每格 0.7 kg，木頭）＋ 砲（24 磅長砲 2.5 噸、carronade 0.9、追擊砲 2.1，乘細節設定「砲的重量」）＋ 火藥桶（50 kg）
+//   ＋ 壓艙物（細節設定；不會被打掉的重量：壓艙鐵與石、水、糧、彈丸…）。
+//   浮在哪 ＝ 排水剛好等於重量的那一層（HYD：原本船殼每一層的體積，每個 x 照最外兩格之間的寬，從設計水線往下、往上積）：
+//   設計水線（ZW）以下 ＝ 2,156 噸（史料約 2,200）⇒ 比它輕就浮高、重就吃水深。預設壓艙物 1,075 噸 ⇒ 開戰時剛好在設計水線；
+//   壓艙物調輕 ⇒ 一開始就浮得高（0 噸 ⇒ 約 1.9 m，彈藥庫頂離水面不到半公尺）；砲調重 ⇒ 吃水深、砲被打飛浮得多。
+//   打掉的格（含跟著斷開的一團走的）、不在船上的模型（飛掉、炸掉）⇒ 少掉那些重量 ⇒ 慢慢浮上去（每半秒量一次、3 秒浮到；開戰那一刻直接放好）。
+//   打掉 10 萬格 ＝ 70 噸 ⇒ 浮 0.12 m。量過：預設浮 0.04–0.2 m、照樣會沉；壓艙物 0 ⇒ 浮 2.0–2.25 m、洞都離水、420 秒沒沉，彈藥庫也沒被打到（電腦瞄水線上 2.7 m）。
+//   進水跟著浮起來的水線算（Tim）：洞浮出水面就不進水。開始沉的門檻照舊只看進水（sh.sink）。斷成兩截、開始沉之後不再往上浮。
+//   ⛔ 先做過放大倍率（Tim：不用到 4 倍）：16 倍 ⇒ 打得最爛的船整艘浮到 6.3 m；4 倍 ⇒ 浮 0.5–0.9 m —— 兩種都讓水線附近的洞全部離水，三種子 420 秒沒有一艘沉（不浮 240–350 秒沉）。
+//     又做過「總重固定、壓艙物只改每格多重」：拉桿幾乎沒感覺，而且壓艙物少了船卻沒浮高 —— 不像壓艙物。
+var VOX_T = 0.0007, KEG_T = 0.05, DISP = 0, GUN_T = { long: 2.5, carr: 0.9, chase: 2.1 }, RHO_W = 1.025, HYD = null, LIFT_TAU = 3;
+/** HYD[z] ＝ 原本船殼 z 層到設計水線（ZW）之間的體積（m³；水線上的層 ⇒ 負的），z ＝ 0 … ZW＋30（水線上 3 m）。載入時算一次。 */
+function hydrostatics() {
+  var sx = BASE.sx, top = Math.min(BASE.sz, ZW + 30), lo = new Int16Array(sx * top).fill(-1), hi = new Int16Array(sx * top), A = new Float64Array(top), z;
+  BASE.each(function (x, y, z) { if (z >= top) return; var k = z * sx + x; if (lo[k] < 0 || y < lo[k]) lo[k] = y; if (y > hi[k]) hi[k] = y; });
+  for (z = 0; z < top; z++) { var a = 0; for (var x = 0; x < sx; x++) { var k = z * sx + x; if (lo[k] >= 0) a += hi[k] - lo[k] + 1; } A[z] = a * S * S * S; }   // 那一層的體積
+  HYD = new Float32Array(top + 1);
+  for (z = ZW - 1; z >= 0; z--) HYD[z] = HYD[z + 1] + A[z];
+  for (z = ZW + 1; z <= top; z++) HYD[z] = HYD[z - 1] - A[z - 1];
+  DISP = HYD[0] * RHO_W;                                                          // 設計水線的排水量（噸）
+}
+function modelT(m) { return m.kind === 'powder' ? KEG_T : (GUN_T[m.kind] || 0) * GUNW_K; }   // 模型的重量（砲照細節設定的倍率）
+/** 開戰時的重量（噸）：格 ＋ 模型 ＋ 壓艙物。 */
+function shipT(sh) { var t = sh.orig * VOX_T + BALLAST_T; sh.models.forEach(function (m) { t += modelT(m); }); return t; }
+/** 少掉的重量（噸）：格（被打掉、跟著斷開的一團走）＋ 不在船上的模型（飛掉、炸掉、跟著斷開的一團走）。帆桁不算。 */
+function massLost(sh) {
+  var t = (sh.orig - sh.grid.count) * VOX_T;
+  sh.models.forEach(function (m) { if (!m.alive || m.moved) t += modelT(m); });
+  return t;
+}
+/** 比設計水線的排水輕 t 噸（負 ＝ 重）⇒ 浮高幾公尺（負 ＝ 吃水深）；HYD 還沒算好 ⇒ null。 */
+function liftFor(t) {
+  if (!HYD) return null;
+  var dv = t / RHO_W, n = HYD.length - 1, z;
+  if (dv >= HYD[0]) return ZW * S;
+  for (z = 0; z < n; z++) if (HYD[z + 1] <= dv) return (ZW - z - (HYD[z] - dv) / (HYD[z] - HYD[z + 1])) * S;
+  return (ZW - n) * S;
+}
 function stepShip(sh, dt) {
   // 進水：水線下每個破洞的流量 ∝ √(水深)（貼著水面的洞進得慢）；抽水機每秒抽掉一點 ⇒ 小洞撐得住
-  var wz = Math.min(SZ - 1, Math.floor(ZW + (sh.sink - sh.bob) / S)), N = 0, Q = 0, Dsp = 0, Dbs = 0;
+  var wz = Math.min(SZ - 1, Math.floor(ZW + (sh.sink - sh.lift - sh.bob) / S)), N = 0, Q = 0, Dsp = 0, Dbs = 0;
   for (var z = 0; z <= wz; z++) { var c = sh.flood[z * 3]; if (!c) continue; N += c; Q += c * Math.sqrt((wz - z) * S + 0.05); Dsp += sh.flood[z * 3 + 1]; Dbs += sh.flood[z * 3 + 2]; }
   sh.inflow = N;
   var fk = sh.broken ? Math.max(FLOOD, 0.6) : FLOOD;                       // 斷成兩截 ⇒ 一定沉（進水速度 0 也沉）
@@ -2564,6 +2621,7 @@ function stepShip(sh, dt) {
   sh.rollW = Math.sin(SIMT * 0.53 + sh.phase) * 0.012;
   sh.pitchA += (pitchT - sh.pitchA) * 0.3 * dt;
   sh.bob = Math.sin(SIMT * 0.7 + sh.phase) * 0.18;
+  sh.lift += (sh.liftT - sh.lift) * Math.min(1, dt / LIFT_TAU);                    // 減重上浮：慢慢浮上去（目標每半秒在 survey 量一次）
   sh.M = M4.mul(shipMatrix(sh), M4.ident()); sh.inv = M4.inv(sh.M);
   sh.center = shipCenter(sh); sh.rad2 = 62 * 62;
   manning(sh);
@@ -2573,7 +2631,7 @@ function stepShip(sh, dt) {
     g.reload -= dt * gunRate(g);                                    // 人少裝填慢、沒人不裝填
   }
 }
-function survey(sh) {               // 每半秒量一次：砲還在不在、桅還在不在、繩與帆的錨還在不在
+function survey(sh) {               // 每半秒量一次：砲還在不在、桅還在不在、繩與帆的錨還在不在、少掉多少重量
   var alive = 0;
   sh.models.forEach(function (m) {
     if (!m.alive) return;
@@ -2596,6 +2654,9 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
     var x = Math.floor(c.pos[0]), y = Math.floor(c.pos[1]);
     if (!countBox(sh.grid, x - 1, y - 1, c.pos[2] - 1, x + 1, y + 1, c.pos[2] - 1)) fall(sh, c);
   });
+  if (sh.mass0 === undefined) sh.mass0 = shipT(sh);                               // 開戰時的重量（壓艙物、砲的重量照開戰時的設定）
+  if (!sh.broken && !sh.sinkingFinal && !sh.sunk) sh.liftT = liftFor(DISP - sh.mass0 + massLost(sh)) || 0;   // 斷了、開始沉 ⇒ 不再往上浮
+  if (!sh.liftSet) { sh.lift = sh.liftT; sh.liftSet = true; }                    // 開戰那一刻直接放在浮的位置（不從設計水線慢慢浮過去）
   chooseSide(sh); reassign(sh); manning(sh);
   sh.able = sh.crew.filter(able).length;
   sh.gunsManned = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0; }).length;
@@ -2682,6 +2743,7 @@ function makeCrew(sh) {
       if (!at) continue;
       add(ROLE.GUN, at, gn, 1); var c = crew[crew.length - 1]; c.deck = gunDeck(gn); c.side = gn.side; gn.spots.push({ at: at, who: c });
     }
+    if (gn.spots[1]) gn.spots[1].who.rammer = true;                  // 只給畫用：裝填時拿推彈桿的那一個（41_crew_art.js 手持物）
   });
   // 送藥手：每一對砲（同一個 x 的兩舷）一個，從那一層的取用點搬火藥與彈藥到要裝填的砲（23_powder.js makeMonkeys／stepMonkey）
   makeMonkeys(sh, crew, taken, add);
@@ -2800,6 +2862,7 @@ function woundCrew(sh, c, cause) { if (c.st !== 0) return; c.st = 1; c.t = 0; c.
 function killCrew(sh, c, cause) {
   if (c.st >= 2) return;
   if (c.st === 1) sh.wounded--;
+  c.fromW = c.st === 1;                               // 只給畫用：從跪著倒下（不是從站直倒）
   c.st = 2; c.t = 0; c.walk = null; c.cart = false; c.moving = false; c.hp = Math.min(c.hp, 0); sh.dead++; sh.kills++; sh.causes[cause] = (sh.causes[cause] || 0) + 1; newsCrew(sh, c, true, cause);
 }
 /** 掉下去：腳下那一格沒了（甲板被打穿、桅頂跟著桅倒）⇒ 換成世界座標的落體，落水算失蹤（亡）。 */
@@ -2950,13 +3013,18 @@ function loadArt() {
   return Promise.all([p1, p2, p3]).then(function () { return why.join('、'); });
 }
 /** billboard：一個人 ＝ 一張直立、面向鏡頭的貼圖。每個實例：iP（腳底、高）、iU（貼圖格）、iS（寬、明暗、傾斜、上下）、iA（閃紅）。
- *  傾斜繞腳底轉（在貼圖平面上）⇒ 前傾、後仰、躺倒都是同一個旋轉；上下是整個人抬高或壓低。 */
+ *  傾斜繞腳底轉（在貼圖平面上）⇒ 前傾、後仰都是同一個旋轉；上下是整個人抬高或壓低。
+ *  倒下的人（iA.yzw ＝ 倒向，世界座標）：身體從直立轉向那個固定的方向（iS.z ＝ 倒下了幾度），貼圖繞身體那條軸轉向鏡頭
+ *  ⇒ 躺的方向不跟著鏡頭轉，但還是面向鏡頭（Tim 2026-10-12；⛔ 以前躺倒也是在貼圖平面上轉 ⇒ 鏡頭一轉，屍體跟著在甲板上轉）。 */
 function bbSetup() {
   P.bb = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec2 aQ; layout(location=1) in vec4 iP; layout(location=2) in vec4 iU; layout(location=3) in vec4 iS; layout(location=4) in vec4 iA;\n' +
-    'uniform mat4 uVP; uniform vec3 uRight; out vec2 vUV; out vec3 vW; out float vS; out float vF;\n' +
-    'void main(){ vec2 q=vec2(aQ.x*iS.x,aQ.y*iP.w); float c=cos(iS.z), s=sin(iS.z); q=vec2(c*q.x-s*q.y,s*q.x+c*q.y);\n' +
-    ' vec3 w=iP.xyz+uRight*q.x+vec3(0.0,q.y+iS.w,0.0); vW=w; vUV=vec2(mix(iU.x,iU.z,aQ.x+0.5),mix(iU.w,iU.y,aQ.y)); vS=iS.y; vF=iA.x; gl_Position=uVP*vec4(w,1.0); }\n',
+    'uniform mat4 uVP; uniform vec3 uRight,uEye; out vec2 vUV; out vec3 vW; out float vS; out float vF;\n' +
+    'void main(){ vec2 q=vec2(aQ.x*iS.x,aQ.y*iP.w); vec3 w;\n' +
+    ' if(dot(iA.yzw,iA.yzw)>0.0){ vec3 d=normalize(iA.yzw), a=normalize(vec3(0.0,cos(iS.z),0.0)+d*sin(iS.z)), sx=cross(a,normalize(uEye-iP.xyz)); float l=length(sx); sx=l>1e-4?sx/l:uRight;\n' +
+    '   w=iP.xyz+sx*q.x+a*q.y+vec3(0.0,iS.w,0.0); }\n' +
+    ' else { float c=cos(iS.z), s=sin(iS.z); q=vec2(c*q.x-s*q.y,s*q.x+c*q.y); w=iP.xyz+uRight*q.x+vec3(0.0,q.y+iS.w,0.0); }\n' +
+    ' vW=w; vUV=vec2(mix(iU.x,iU.z,aQ.x+0.5),mix(iU.w,iU.y,aQ.y)); vS=iS.y; vF=iA.x; gl_Position=uVP*vec4(w,1.0); }\n',
     '#version 300 es\nprecision highp float; in vec2 vUV; in vec3 vW; in float vS; in float vF; uniform sampler2D uTex; uniform vec3 uEye,uFog; uniform float uFogD; out vec4 o;\n' +
     'void main(){ vec4 t=texture(uTex,vUV); if(t.a<0.5) discard; vec3 c=mix(t.rgb*vS,vec3(1.0,0.12,0.08),vF*0.8); if(vW.y<0.0) c=mix(c,vec3(0.04,0.18,0.22),0.6);\n' +
     ' float fd=length(vW-uEye); o=vec4(mix(c,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
@@ -2966,6 +3034,56 @@ function bbSetup() {
   BBBUF = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, BBBUF); gl.bufferData(gl.ARRAY_BUFFER, BB.byteLength, gl.DYNAMIC_DRAW);
   [[1, 0], [2, 16], [3, 32], [4, 48]].forEach(function (a) { gl.enableVertexAttribArray(a[0]); gl.vertexAttribPointer(a[0], 4, gl.FLOAT, false, BBS * 4, a[1]); gl.vertexAttribDivisor(a[0], 1); });
   gl.bindVertexArray(null);
+  ITVAO = gl.createVertexArray(); gl.bindVertexArray(ITVAO);                        // 手持物：同一個 billboard 程式、另一份實例
+  gl.bindBuffer(gl.ARRAY_BUFFER, q); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+  ITBUF = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, ITBUF); gl.bufferData(gl.ARRAY_BUFFER, ITB.byteLength, gl.DYNAMIC_DRAW);
+  [[1, 0], [2, 16], [3, 32], [4, 48]].forEach(function (a) { gl.enableVertexAttribArray(a[0]); gl.vertexAttribPointer(a[0], 4, gl.FLOAT, false, BBS * 4, a[1]); gl.vertexAttribDivisor(a[0], 1); });
+  gl.bindVertexArray(null);
+  ITEM_TEX = itemAtlas();
+}
+// ───── 手持物（Tim 2026-10-12）─────
+// 送藥手搬的時候抱著藥筒、上面一顆彈丸；陸戰隊與桅頂水手瞄準、開槍時舉平火槍；軍官與船長齊射時舉劍；裝填中的砲班每門一個人拿推彈桿往前推。
+// 立繪照舊（Tim：立繪不用改）⇒ 陸戰隊身上那把直立的槍、軍官腰上的劍還在，手持物是另外疊的一層、只在那個動作時出現。
+// 點陣圖在程式裡畫（方塊清單 ⇒ 小畫布 ⇒ 最近點取樣），1 格 ＝ 1/46 m（約水手立繪的兩個像素）；每件都朝右畫，握的地方在 pv（格）。
+// 畫的時候跟著人：手的位置（身高的比例）照人的縮放與傾斜轉，再加道具自己的角度（朝前 0、往上為正）；跟人同一個面 ⇒ 往鏡頭挪 6 cm。⛔ 只管畫、不碰 rnd()。
+var ITEM_PPM = 46, ITEM_TEX = null, ITEM_UV = {}, ITMAX = 600, ITB = new Float32Array(ITMAX * BBS), ITVAO = null, ITBUF = null, FIG_K = 164 / 192;   // FIG_K：站著的人佔格高的比例（make_crew.py 的 H_PX）
+var ITEM_DEF = {
+  musket: { w: 64, h: 7, pv: [2, 4], r: [[0, 2, 5, 4, '#5a3a1e'], [0, 2, 1, 4, '#c9a44a'], [5, 2, 8, 3, '#6b4423'], [5, 5, 2, 1, '#5a3a1e'], [13, 3, 38, 2, '#6b4423'],   // 火槍 1.4 m：槍托、槍身、槍管、槍機、扳機護弓、銅箍、通條
+    [11, 2, 53, 1, '#3b3d42'], [22, 1, 42, 1, '#5d6168'], [10, 1, 4, 2, '#9aa0a8'], [12, 5, 4, 1, '#c9a44a'], [48, 3, 2, 2, '#c9a44a'], [16, 5, 30, 1, '#3a2414']] },
+  sword: { w: 40, h: 5, pv: [4, 2], r: [[0, 1, 2, 3, '#c9a44a'], [2, 1, 4, 3, '#2b1d12'], [6, 0, 2, 5, '#c9a44a'], [8, 1, 29, 2, '#c3cad1'], [8, 1, 29, 1, '#eef2f5'], [37, 2, 2, 1, '#c3cad1']] },   // 劍 0.87 m
+  carry: { w: 14, h: 22, pv: [7, 15], r: [[1, 9, 12, 13, '#7a5230'], [3, 9, 2, 13, '#946a40'], [1, 12, 12, 1, '#4a2e17'], [1, 19, 12, 1, '#4a2e17'], [0, 8, 14, 2, '#5a3a1e'],   // 藥筒（裝一份火藥的木筒）＋上面一顆彈丸
+    [5, 0, 4, 1, '#232428'], [4, 1, 6, 1, '#232428'], [3, 2, 8, 4, '#232428'], [4, 6, 6, 1, '#232428'], [5, 7, 4, 1, '#232428'], [5, 2, 2, 1, '#6a6d73']] },
+  rammer: { w: 100, h: 4, pv: [40, 2], r: [[5, 1, 89, 2, '#9a7a4c'], [94, 0, 6, 4, '#4a3a2a'], [0, 0, 5, 4, '#d8cfb8']] }   // 推彈桿 2.2 m（一頭推彈、一頭海綿）
+};
+function itemAtlas() {
+  var W = 0, H = 0, k, x = 0;
+  for (k in ITEM_DEF) { W += ITEM_DEF[k].w + 2; H = Math.max(H, ITEM_DEF[k].h); }
+  var c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d');
+  for (k in ITEM_DEF) {
+    var d = ITEM_DEF[k], x0 = x;
+    d.r.forEach(function (r) { g.fillStyle = r[4]; g.fillRect(x0 + r[0], r[1], r[2], r[3]); });
+    ITEM_UV[k] = [x0 / W, 0, (x0 + d.w) / W, d.h / H];                               // 跟人的格子同一個排法：[左 u, 上 v, 右 u, 下 v]
+    x += d.w + 2;
+  }
+  var t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);   // 點陣：最近點，不糊（不做 mipmap：細的槍在遠處不會被平均掉）
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+/** 這個人手上拿什麼：{ id, hx, hy（手：往前、往上，身高的比例）, a（道具的角度：朝前 0、往上為正）}；沒有 ⇒ null。 */
+function heldItem(sh, c, f) {
+  if (c.st !== 0) return null;                                                      // 受傷、陣亡、墜落 ⇒ 手上的東西掉了
+  if (c.role === ROLE.POWDER) return c.cart > 0 ? { id: 'carry', hx: 0.17, hy: 0.52, a: 0 } : null;
+  if (c.role === ROLE.MARINE || c.role === ROLE.TOP) {                              // 開槍前一秒舉槍瞄準、開完 0.4 秒放下（沙盒的敵艦、降旗、沉了不開槍）
+    var aim = (c.fireT > 0 || c.shotT < 1) && !sh.struck && !sh.sunk && !(MODE === 'sandbox' && sh.i !== PLAYER_I);
+    return aim ? { id: 'musket', hx: 0.04, hy: 0.78, a: 0.04 } : null;
+  }
+  if (c.role === ROLE.OFFICER) return sh.salvoT && SIMT - sh.salvoT < 1.2 ? { id: 'sword', hx: 0.12, hy: 0.86, a: 1.05 } : null;   // 齊射：舉劍
+  if (c.role === ROLE.GUN && c.rammer && (f === FR.WORK_A || f === FR.WORK_B)) {      // 裝填：推彈桿一推一收（跟裝填姿勢同一個節奏）
+    var w = 0.5 + 0.5 * Math.sin(c.t * 6.2832 * 1.1); return { id: 'rammer', hx: 0.06 + 0.16 * w, hy: 0.5, a: -0.06 };
+  }
+  return null;
 }
 /** 這個人現在在做什麼（FR）：單圖時決定程式動作，8 欄時也是選哪一格。 */
 function crewFrame(sh, c) {
@@ -2990,8 +3108,12 @@ function crewFrame(sh, c) {
 function crewPose(sh, c, f) {
   var t = c.t, P2 = 6.2832, k = { lean: 0, bob: 0, sx: 1, sy: 1 };
   if (c.st === 4) { k.lean = t * 7; return k; }                                       // 墜落：翻滾
-  if (f === FR.DEAD) { var d = Math.min(1, t / 0.35); k.lean = -1.5708 * d * d; k.bob = 0.18 * d; return k; }   // 往後倒、躺平（抬一點 ⇒ 身體不陷進甲板）
-  if (f === FR.WOUNDED) { k.sy = 0.7; k.sx = 1.06; k.lean = -0.18 + 0.04 * Math.sin(t * 9); return k; }        // 跪下、發抖
+  if (f === FR.DEAD) {                                                                // 往後倒、躺平（抬一點 ⇒ 身體不陷進甲板）
+    var d = Math.min(1, t / 0.35), d2 = d * d;
+    if (c.fromW) { k.lean = -0.18 + (-1.5708 + 0.18) * d2; k.sy = 0.7 + 0.3 * d; k.sx = 1.06 - 0.06 * d; k.bob = 0.18 * d; return k; }   // 受傷跪著的人：從跪姿倒下
+    k.lean = -1.5708 * d2; k.bob = 0.18 * d; return k;
+  }
+  if (f === FR.WOUNDED) { k.sy = 0.7; k.sx = 1.06; k.lean = -0.18 + 0.04 * Math.sin(t * 9); return k; }        // 跪下、發抖（倒下時從這個姿勢接，見上面 fromW）
   if (f === FR.RUN_A || f === FR.RUN_B) {                                             // 跑：彈跳、前傾、落地壓扁
     var r = Math.abs(Math.sin(t * P2 * 2.2)); k.bob = 0.09 * r; k.lean = 0.16 + 0.05 * Math.sin(t * P2 * 2.2); k.sy = 0.94 + 0.06 * r; k.sx = 1.04 - 0.04 * r; return k;
   }
@@ -3013,7 +3135,7 @@ function crewPose(sh, c, f) {
 }
 var CREW_H = 2.1;                                  // 人物高（公尺）：1.75 → 2.1（Tim 2026-10-12：放大 1.2 倍，遠一點也看得清）
 function drawCrew() {
-  var n = 0, fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), right = [-fw[2], 0, fw[0]], frames = CREW_COLS > 1;
+  var n = 0, ni = 0, fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), right = [-fw[2], 0, fw[0]], frames = CREW_COLS > 1;
   SHIPS.forEach(function (sh) {
     if (sh.sink > 40) return;
     var team = sh.i, faceW = M4.dir(sh.M, 0, 1, 0);
@@ -3030,7 +3152,25 @@ function drawCrew() {
       BB[k] = w[0]; BB[k + 1] = w[1]; BB[k + 2] = w[2]; BB[k + 3] = h * sy;
       BB[k + 4] = flip ? u1 : u0; BB[k + 5] = v0; BB[k + 6] = flip ? u0 : u1; BB[k + 7] = v1;
       BB[k + 8] = h * CELL_W / CELL_H * sx; BB[k + 9] = c.st === 1 ? 0.85 : 1; BB[k + 10] = flip ? lean : -lean; BB[k + 11] = ps.bob * amp;   // 往面向的那邊傾：面右 ⇒ 順時針
-      BB[k + 12] = flash; BB[k + 13] = 0; BB[k + 14] = 0; BB[k + 15] = 0; n++;
+      BB[k + 12] = flash; BB[k + 13] = 0; BB[k + 14] = 0; BB[k + 15] = 0;
+      if (c.st === 2 && f === FR.DEAD && !frames) {                                // 倒下：躺向固定的方向（不跟著鏡頭轉），見 bbSetup
+        if (!c.fallD) { var fa = hash3(c.home[0] * 4 | 0, c.home[1] * 4 | 0, c.home[2] | 0) * 6.2832; c.fallD = [Math.cos(fa), Math.sin(fa)]; }   // 只給畫用：照站位的雜湊挑一個方向（不碰 rnd()）
+        var dw = norm(M4.dir(sh.M, c.fallD[0], c.fallD[1], 0));
+        BB[k + 4] = u0; BB[k + 6] = u1; BB[k + 10] = -lean; BB[k + 13] = dw[0]; BB[k + 14] = dw[1]; BB[k + 15] = dw[2];   // 倒下了幾度 ＝ −lean（往後倒是負的）
+      }
+      n++;
+      var it = c.st === 0 && ni < ITMAX ? heldItem(sh, c, f) : null;
+      if (it) {                                                                       // 手持物：在「朝右」的座標裡算（往前 x、往上 y、逆時針為正），朝左再鏡射
+        var d = ITEM_DEF[it.id], uv = ITEM_UV[it.id], fh = h * FIG_K * (c.role === ROLE.POWDER ? 0.75 : 1), iw = d.w / ITEM_PPM, ih = d.h / ITEM_PPM;
+        var pqx = (d.pv[0] + 0.5) / ITEM_PPM - iw / 2, pqy = ih - (d.pv[1] + 0.5) / ITEM_PPM;   // 握的地方在貼圖裡的位置（貼圖的轉軸是底邊中間）
+        var be = -lean, cb = Math.cos(be), sb = Math.sin(be), hx = it.hx * fh * sx, hy = it.hy * fh * sy;   // 人往前傾 lean ⇒ 朝右時順時針
+        var Hx = cb * hx - sb * hy, Hy = sb * hx + cb * hy + ps.bob * amp, al = it.a + be, ca = Math.cos(al), sa = Math.sin(al);
+        var Bx = Hx - (ca * pqx - sa * pqy), By = Hy - (sa * pqx + ca * pqy), bx = flip ? -Bx : Bx, q = ni * BBS;
+        ITB[q] = w[0] + right[0] * bx - fw[0] * 0.06; ITB[q + 1] = w[1] + By; ITB[q + 2] = w[2] + right[2] * bx - fw[2] * 0.06; ITB[q + 3] = ih;
+        ITB[q + 4] = flip ? uv[2] : uv[0]; ITB[q + 5] = uv[1]; ITB[q + 6] = flip ? uv[0] : uv[2]; ITB[q + 7] = uv[3];
+        ITB[q + 8] = iw; ITB[q + 9] = 1; ITB[q + 10] = flip ? -al : al; ITB[q + 11] = 0;
+        ITB[q + 12] = flash; ITB[q + 13] = 0; ITB[q + 14] = 0; ITB[q + 15] = 0; ni++;
+      }
     });
   });
   if (!n) return;
@@ -3038,23 +3178,26 @@ function drawCrew() {
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, CREW_TEX); gl.uniform1i(P.bb.u.uTex, 0);
   gl.bindVertexArray(BBVAO); gl.bindBuffer(gl.ARRAY_BUFFER, BBBUF); gl.bufferSubData(gl.ARRAY_BUFFER, 0, BB, 0, n * BBS);
   gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, n); gl.bindVertexArray(null);
+  if (ni && ITEM_TEX) {
+    gl.bindTexture(gl.TEXTURE_2D, ITEM_TEX); gl.bindVertexArray(ITVAO); gl.bindBuffer(gl.ARRAY_BUFFER, ITBUF); gl.bufferSubData(gl.ARRAY_BUFFER, 0, ITB, 0, ni * BBS);
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, ni); gl.bindVertexArray(null);
+  }
+  ITEMS_N = ni;
 }
+var ITEMS_N = 0;                                   // 讀數：上一格畫了幾件手持物
 // ── js/50_sim.js ──
 // ───────────────────────── 電腦 ─────────────────────────
 function ai(sh, dt) {
   var foe = SHIPS[1 - sh.i];
   if (sh.sunk || sh.struck || sh.sinkingFinal) return;
   if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
+  captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
   var ready = 0, alive = 0;
   sh.guns.forEach(function (g) { if (g.alive && gunRate(g) > 0 && gunTarget(sh, g, foe.center)) { alive++; if (g.reload <= 0) ready++; } });
   if (!ready || ready < Math.ceil(alive * 0.65)) return;
-  var r = rnd(), ammo = 0, t;
-  var masts = foe.masts.filter(function (m) { return m.up; });
-  if (r < 0.45 || !masts.length) t = [rr(WL_X0 + 40, WL_X1 - 40), CY, rr(56, 76)];             // 船殼：水線上船體的範圍（⛔ 外框 ⇒ 兩成瞄到船頭前面的空水）
-  else if (r < 0.72) { t = [rr(WL_X0 + 60, WL_X1 - 60), CY, rr(84, 104)]; ammo = rnd() < 0.25 ? 1 : 0; }
-  else { var m = masts[(rnd() * masts.length) | 0]; t = [m.x, CY, rr(150, 300)]; ammo = rnd() < 0.6 ? 2 : 0; }
+  var a = modeAim(foe, sh.aimMode || 'hull', true), t = a.t, ammo = a.ammo;   // 砲長選的模式裡亂挑一點（⛔ 以前固定 45% 船殼／27% 砲甲板／28% 桅，船殼瞄的是設計水線 ⇒ 敵艦浮高了還打在水面上）
   var err = Math.max(0.6, 4.5 - sh.salvo * 0.55) / S;
   sh.aim = [t[0] + gauss() * err * 1.6, t[1], t[2] + gauss() * err * 0.5];
   sh.aiSpread = 0.006;
@@ -3084,6 +3227,88 @@ function step() {
   stepPowder();                                                    // 殉爆排程（23_powder.js）
   if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
   if (!OVER || END_AT) checkEnd();                                 // 結束判定每一步看（結算畫面照模擬時間延後跳）
+}
+// ── js/51_captain.js ──
+// ───────────────────────── 砲長：瞄準模式與策略（Tim 2026-10-12） ─────────────────────────
+// 瞄準模式：水線（敵艦「現在」的水線 ⇒ 浮高了就跟著往下）／砲甲板／帆具／甲板人員／彈藥庫（彈藥庫頂離水面 1 m 內才有意義），各配合適的彈種。
+// 砲長（每艘一個，細節設定可選、預設隨機）：每隔幾秒照局勢替每個模式打分 ＝ 偏好 × 局勢 × 隨機 ±15%，最高的那個比現在的高兩成才換，換的時候上方廣播。
+//   戰鬥中會換著打（Tim：不是固定用一種）：同一個模式打久了分數慢慢打折（45 秒折到一半）；現在這個模式打了沒用（局勢 ≈ 0：桅都倒了…）就馬上換。
+//   局勢：水線 ＝ 0.6 ＋ 敵艦浮高（1.2 m 加滿 2.4）＋ 敵艦進水（4 m 加滿 0.4）—— Tim：敵艦浮高時改瞄水線；
+//         砲甲板 ＝ 0.2 ＋ 0.8 × 敵艦還有人操作的砲比例；帆具 ＝ 還站著的桅比例 × 帆面積比例；甲板人員 ＝ 0.2 ＋ 0.8 × 還能動的人比例；
+//         彈藥庫 ＝ 最淺那間的頂離水面 d：露出水面 3、1 m 內 3 × (1 − d)、更深 0（火藥拉滿不會爆 ⇒ 0）。
+// 我艦手動時：Q 循環瞄準模式（點敵艦 ⇒ 回到自由）；瞄的是那個模式的中心點（不抽亂數 ⇒ HUD 每一格算也不影響戰局）。自動開砲 ⇒ 交給我艦的砲長。
+var AIM_MODES = ['water', 'hull', 'rig', 'deck', 'mag'], AIM_CYCLE = ['free', 'water', 'hull', 'rig', 'deck', 'mag'];
+var AIM_NAME = { free: '自由', water: '水線', hull: '砲甲板', rig: '帆具', deck: '甲板人員', mag: '彈藥庫' };
+var CAPTAINS = {
+  steady: { name: '穩健派', tip: '照局勢平均分配', think: 10, w: { water: 1.2, hull: 1.2, rig: 0.8, deck: 0.6, mag: 1.5 } },
+  sink: { name: '擊沉派', tip: '專打水線，敵艦浮高就追著水線打', think: 8, w: { water: 2.2, hull: 0.7, rig: 0.4, deck: 0.4, mag: 2.0 } },
+  mast: { name: '拆桅派', tip: '先拆桅讓對方跑不動，再打水線', think: 8, w: { water: 0.8, hull: 0.6, rig: 2.4, deck: 0.5, mag: 1.2 } },
+  kill: { name: '殺傷派', tip: '打砲甲板與甲板上的人，讓對方開不了砲', think: 8, w: { water: 0.6, hull: 1.6, rig: 0.4, deck: 2.0, mag: 1.0 } },
+  gamble: { name: '賭徒', tip: '彈藥庫一靠近水面就全押上去', think: 6, w: { water: 1.0, hull: 0.8, rig: 0.6, deck: 0.6, mag: 5.0 } }
+};
+var CAP_KEYS = Object.keys(CAPTAINS);
+/** 開局：每艘挑一個砲長（細節設定的；隨機 ⇒ 抽種子亂數）。 */
+function pickCaptains() {
+  SHIPS.forEach(function (sh) {
+    var k = CAP_SET[sh.i]; if (!CAPTAINS[k]) k = CAP_KEYS[(rnd() * CAP_KEYS.length) | 0];
+    sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.pMode || 'free';
+  });
+}
+/** 敵艦現在的水線（格座標的 z）：設計水線 ＋ 進水 − 浮高 − 浪。 */
+function wlZ(foe) { return ZW + (foe.sink - foe.lift - foe.bob) / S; }
+/** 最淺那間還在的彈藥庫：{ mag, d（頂離水面幾公尺，負 ＝ 露出水面）}；沒有 ⇒ null。 */
+function magNear(foe) {
+  var wl = wlZ(foe), best = null;
+  (foe.mags || []).forEach(function (m) { if (m.gone) return; var d = (wl - m.box[5]) * S; if (!best || d < best.d) best = { mag: m, d: d }; });
+  return best;
+}
+/** 每個模式的局勢分數（0 ＝ 打了沒用）。 */
+function aimValue(foe, mode) {
+  if (mode === 'water') return 0.6 + 2.4 * clamp(foe.lift / 1.2, 0, 1) + 0.4 * clamp(foe.sink / 4, 0, 1);
+  if (mode === 'hull') return 0.2 + 0.8 * (foe.gunsManned || 0) / Math.max(1, foe.guns.length);
+  if (mode === 'rig') return (foe.mastsUp || 0) / 3 * foe.sailFrac;
+  if (mode === 'deck') return 0.2 + 0.8 * (foe.able || 0) / Math.max(1, foe.crew0);
+  if (mode === 'mag') { if (powderNever()) return 0; var n = magNear(foe); return !n ? 0 : n.d <= 0 ? 3 : n.d < 1 ? 3 * (1 - n.d) : 0; }
+  return 0;
+}
+/** 砲長想一想：該換模式就換、廣播一則。 */
+function captainThink(sh, foe) {
+  var C = CAPTAINS[sh.cap]; if (!C || SIMT - sh.capT < C.think) return;
+  sh.capT = SIMT;
+  var tired = sh.aimMode ? Math.max(0.5, 1 - (SIMT - sh.modeT) / 90) : 1, sc = {}, best = null, bs = -1;   // 打久了會膩：45 秒折到一半
+  AIM_MODES.forEach(function (m) { var v = aimValue(foe, m), s = C.w[m] * v * rr(0.85, 1.15) * (m === sh.aimMode ? tired : 1); sc[m] = v > 0 ? s : 0; if (sc[m] > bs) { bs = sc[m]; best = m; } });
+  var cur = sh.aimMode ? sc[sh.aimMode] : -1;
+  if (best === sh.aimMode || (sh.aimMode && cur > 0.05 && bs < cur * 1.2)) return;
+  var first = !sh.aimMode; sh.aimMode = best; sh.modeT = SIMT; sh.modes = (sh.modes || 0) + 1;
+  var why = best === 'water' && foe.lift > 0.3 ? '敵艦浮高 ' + foe.lift.toFixed(1) + ' m' : best === 'mag' ? (function (n) { return n.d <= 0 ? '彈藥庫露出水面' : '彈藥庫離水面 ' + n.d.toFixed(1) + ' m'; })(magNear(foe)) : !first && tired < 0.75 ? '換個打法' : '';
+  note(sh, '砲長（' + C.name + '）：' + (first ? '先瞄' : '改瞄') + AIM_NAME[best] + (why ? '（' + why + '）' : ''), best === 'mag');
+}
+/** 那個模式要瞄哪裡（敵艦的格座標）與用什麼彈；rand ⇒ 在範圍裡亂挑一點（電腦），否則中心點（我艦手動，不抽亂數）。 */
+function modeAim(foe, mode, rand) {
+  function R(a, b) { return rand ? rr(a, b) : (a + b) / 2; }
+  function P(p) { return rand ? rnd() < p : p >= 0.5; }
+  var wl = wlZ(foe), xm = (WL_X0 + WL_X1) / 2;
+  if (mode === 'mag') {
+    var n = magNear(foe); if (n) return { t: [R(n.mag.box[0] + 4, n.mag.box[3] - 4), CY, wl + R(0.5, 4)], ammo: 0 };
+    mode = 'water';
+  }
+  if (mode === 'water') return { t: [R(WL_X0 + 40, WL_X1 - 40), CY, wl + R(1, 9)], ammo: 0 };                 // 水面上 0.1–0.9 m（砲彈碰到水就沒了）
+  if (mode === 'rig') {
+    var masts = foe.masts.filter(function (m) { return m.up; });
+    if (masts.length) { var m = rand ? masts[(rnd() * masts.length) | 0] : masts.reduce(function (a, b) { return Math.abs(b.x - xm) < Math.abs(a.x - xm) ? b : a; }); return { t: [m.x, CY, R(150, 300)], ammo: P(0.7) ? 2 : 0 }; }
+    mode = 'hull';
+  }
+  if (mode === 'deck') {
+    var on = foe.crew.filter(function (c) { return c.st === 0 && (c.deck === 'carr' || c.role === ROLE.MARINE || c.role === ROLE.OFFICER || c.role === ROLE.HELM); });
+    if (on.length) { var c = rand ? on[(rnd() * on.length) | 0] : on[0]; return { t: [rand ? c.pos[0] : xm, CY, c.pos[2] + 10], ammo: P(0.8) ? 1 : 0 }; }
+    mode = 'hull';
+  }
+  return { t: [R(WL_X0 + 60, WL_X1 - 60), CY, R(84, 104)], ammo: P(0.3) ? 1 : 0 };                          // 砲甲板
+}
+/** 細節設定的砲長選單：選項 ＝ 隨機 ＋ 各砲長（說明當 title）。 */
+function capOptions(sel, v) {
+  sel.innerHTML = '<option value="random">隨機</option>' + CAP_KEYS.map(function (k) { return '<option value="' + k + '" title="' + CAPTAINS[k].tip + '">' + CAPTAINS[k].name + '（' + CAPTAINS[k].tip + '）</option>'; }).join('');
+  sel.value = v;
 }
 // ── js/60_render.js ──
 // ───────────────────────── 畫 ─────────────────────────
@@ -3283,13 +3508,19 @@ function newsFlush(sh) {
     N.k = sh.kills; N.w = sh.wounds; N.t = -1;
   }
 }
+/** 面板的一行：砲長與現在瞄哪裡（我艦手動 ⇒ 玩家的瞄準模式，砲長待命）。 */
+function capText(sh) {
+  var C = CAPTAINS[sh.cap], manual = sh.i === PLAYER_I && !AUTOFIRE;
+  return '砲長 ' + (C ? C.name : '—') + '：' + (manual ? '待命（我在瞄：' + AIM_NAME[sh.pMode || 'free'] + '）' : sh.aimMode ? '瞄' + AIM_NAME[sh.aimMode] : '觀察中');
+}
 function panel(sh, title) {
   var hull = sh.grid.count / sh.orig, fl = clamp(sh.sink / 9, 0, 1);
   var m = sh.masts.map(function (x) { return x.name + (x.up ? '✓' : '✗'); }).join(' ');
   return '<h3>' + title + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
-    '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
+    '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）' + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
     ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
+    capText(sh) + '<br>' +
     '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
 }
@@ -3370,7 +3601,7 @@ function drawNav(sh) {
   $('navt').innerHTML =
     '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
     '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）</span>　' + sh.pos + '<br>' +
-    '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + '<br>' +
+    '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<br>' +
     '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
     SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
 }
@@ -3385,6 +3616,7 @@ function hud(dt) {
   var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
   $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 暫停' : '');
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
+  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (AUTOFIRE ? '砲長' : AIM_NAME[me.pMode || 'free']);
   var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + (PHYS ? '　物理 ' + PHYS_MS.toFixed(2) + ' ms/步、垂繩 ' + SHIPS.map(function (s) { return s.loose.length; }).join('／') : '') + '　' + FPS.toFixed(0) + ' fps' : '';
   $('tip').textContent = t;
   drawNav(me);
@@ -3419,10 +3651,12 @@ function reset() {
   SHIPS.push(makeShip(1, 'red', Math.PI, -DIST / 2));
   KEYS.l = KEYS.r = false; setAutoFire(MODE === 'eve');
   SHIPS.forEach(function (sh) { stepShip(sh, 0); survey(sh); });
+  pickCaptains();                                                    // 砲長（51_captain.js）
   CAM.mode = 0; CAM.follow = null; CAM.trMe = CAM.trYaw = null; CAM.dist = DIST * 1.05 + 40; CAM.tgt = [0, 8, 0]; CAM.yaw = 2.2; CAM.pitch = 0.22; CAM.snap = true;
   if (!CAMQ) { CAM.mode = 4; CAM.aoff = 0.35; CAM.dist = 78; CAM.pitch = 0.2; }   // 預設：我艦→敵艦（?cam= 給了 ⇒ 那個固定機位）
   if (CAMQ === 'close') { CAM.dist = 85; CAM.tgt = [10, 9, -DIST / 2 + 12]; CAM.yaw = 1.95; CAM.pitch = 0.16; }
   if (CAMQ === 'blue') { CAM.dist = 88; CAM.tgt = [4, 12, DIST / 2 - 10]; CAM.yaw = -1.8; CAM.pitch = 0.15; }
+  if (CAMQ === 'deck') { CAM.mode = 4; CAM.aoff = +(Q.get('aoff') || 0.3); CAM.dist = +(Q.get('dist') || 56); CAM.pitch = +(Q.get('pitch') || 0.3); }   // 縮圖：跟著我艦、近一點高一點 ⇒ 看得到甲板上的人
   if (CAMQ === 'high') { CAM.dist = DIST + 120; CAM.yaw = 2.5; CAM.pitch = 0.62; }
 }
 
@@ -3471,7 +3705,7 @@ function pick(cx, cy) {
   var p0 = mul(M4.pt(CAM.inv, nx, ny, -1), 1 / w0), p1 = mul(M4.pt(CAM.inv, nx, ny, 1), 1 / w1), d = norm(sub(p1, p0));
   var foe = SHIPS[1 - PLAYER_I], oL = toLocal(foe, p0), dL = M4.dir(foe.inv, d[0], d[1], d[2]);
   var hit = VK.raycast(foe.grid, oL, dL, 3000);
-  if (hit) { SHIPS[PLAYER_I].aim = [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5]; sfx('crack', null, 0.08); }
+  if (hit) { SHIPS[PLAYER_I].aim = [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5]; SHIPS[PLAYER_I].pMode = 'free'; sfx('crack', null, 0.08); }   // 點了 ⇒ 瞄準模式回到自由
 }
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
@@ -3486,6 +3720,7 @@ function doKey(k, repeat) {
   if (k === ' ') { if (!PAUSED && !me.sunk) broadside(me, AMMO_I); }   // 降旗了 ⇒ broadside／fireOne 自己擋
   else if (k === 'f') { if (!PAUSED) fireOne(me, AMMO_I); }
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
+  else if (k === 'q') { me.pMode = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
   else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') PAUSED = !PAUSED;
   else if (k === 'm') { muted = !muted; }
@@ -3546,12 +3781,16 @@ $('phys').onchange = function () { setPhys($('phys').checked); };
 [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
 /** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。
  *  船殼、砲、帆、火藥桶、航行、降旗的滑桿在「細節設定」那一頁（從主選單進）；主選單只留一行摘要（#detV）。 */
+/** 模型（砲、火藥桶）的總重（噸）：照匯出的模型清單＋取用點的 12 桶（細節設定的例子用；開戰時每艘照自己的模型算）。 */
+function modelMassT() { if (!RIG || !RIG.models) return 0; var t = 12 * KEG_T; RIG.models.forEach(function (m) { t += modelT({ kind: modelKind(m) }); }); return t; }
+var SLIDERS_SHOW = null;                               // 載入完（HYD 算好）再顯示一次 ⇒ 減重上浮的例子有數字
 function sliders() {
-  var f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), ch = $('crewhp');
+  var lf = $('ballast'), f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), gw = $('gunw'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), ch = $('crewhp');
   var dm = { long: $('dmg24'), carr: $('dmg32'), chase: $('dmg18') }, DLIM = { long: LIM.dmg24, carr: LIM.dmg32, chase: LIM.dmg18 }, bx = $('box'), cy = $('carry'), wk = $('wind');
   bx.min = LIM.box[0]; bx.max = LIM.box[1]; cy.min = LIM.carry[0]; cy.max = LIM.carry[1]; wk.min = LIM.wind[0]; wk.max = LIM.wind[1];
   // 硬度跨 40 倍 ⇒ 對數刻度：滑桿 0..1 ↔ 硬度 LIM 下限 × (上限／下限)^v
   var hk = Math.log(LIM.hard[1] / LIM.hard[0]);
+  lf.min = LIM.ballast[0]; lf.max = LIM.ballast[1]; gw.min = LIM.gunw[0]; gw.max = LIM.gunw[1];
   f.min = LIM.flood[0]; f.max = LIM.flood[1]; h.min = 0; h.max = 1; h.step = 0.005; c.min = LIM.cas[0] * 100; c.max = LIM.cas[1] * 100;
   sp.min = LIM.speed[0]; sp.max = LIM.speed[1]; ag.min = LIM.agile[0]; ag.max = LIM.agile[1];
   gh.min = LIM.gunhp[0]; gh.max = LIM.gunhp[1]; sl.min = LIM.sailhp[0]; sl.max = LIM.sailhp[1]; ph.min = LIM.powderhp[0]; ph.max = LIM.powderhp[1];
@@ -3559,23 +3798,28 @@ function sliders() {
   for (var t in dm) { dm[t].min = DLIM[t][0]; dm[t].max = DLIM[t][1]; }
   function am(r, k) { return $('am-' + r + '-' + k); }
   function put() {                                     // 變數 ⇒ 滑桿位置（開頭、重設預設值時）
-    f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = SPEEDK; ag.value = AGILK;
-    gh.value = GUN_HP; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; ch.value = CREW_HP;
+    lf.value = BALLAST_T; f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = SPEEDK; ag.value = AGILK;
+    gh.value = GUN_HP; gw.value = GUNW_K; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; ch.value = CREW_HP;
     for (var t in dm) dm[t].value = DMG[t];
     bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
     ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
+    [0, 1].forEach(function (i) { $('cap' + i).value = CAP_SET[i]; });
   }
   function show() {
     $('speedV').textContent = SPEEDK.toFixed(2) + '×（最快約 ' + (VMAX * SPEEDK * 1.944).toFixed(0) + ' 節）';
     $('agileV').textContent = AGILK.toFixed(2) + '×（滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGILK * 57.3).toFixed(1) + '°/秒）';
     $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
+    var m0 = (BASE ? BASE.count * VOX_T : 0) + modelMassT() + BALLAST_T, l0 = liftFor(DISP - m0), lx = liftFor(DISP - m0 + 70);   // 開戰時浮在哪；例子：再打掉 10 萬格（70 噸）
+    var gm = 0; if (RIG && RIG.models) RIG.models.forEach(function (m) { var k = modelKind(m); if (GUN_T[k]) gm += GUN_T[k] * GUNW_K; });
+    $('gunwV').textContent = GUNW_K.toFixed(2) + '×（長砲 ' + (2.5 * GUNW_K).toFixed(1) + ' 噸、carronade ' + (0.9 * GUNW_K).toFixed(1) + '、追擊砲 ' + (2.1 * GUNW_K).toFixed(1) + (gm ? '；全部 ' + Math.round(gm) + ' 噸' : '') + '）';
+    $('ballastV').textContent = BALLAST_T + ' 噸' + (l0 === null ? '' : '（船重 ' + Math.round(m0).toLocaleString() + ' 噸 ⇒ ' + (Math.abs(l0) < 0.05 ? '剛好在設計水線' : l0 > 0 ? '浮高 ' + l0.toFixed(1) + ' m' : '吃水深 ' + (-l0).toFixed(1) + ' m') + '；打掉 10 萬格再浮 ' + (lx - l0).toFixed(2) + ' m）');
     $('hardV').textContent = HARDK.toFixed(1) + '×' + (HARDK < 1 ? '（容易打穿）' : HARDK > 10 ? '（幾乎打不穿）' : HARDK > 3 ? '（很難打穿）' : '');
     function shots(hp, dmg) { return dmg > 0 ? Math.ceil(hp / dmg - 1e-9) : '∞'; }
     $('gunhpV').textContent = GUN_HP + '（24 磅實心 ' + shots(GUN_HP, DMG.long * ammoK(0, VS_GUN)) + ' 發、舵輪 ' + Math.round(GUN_HP * 0.6) + '）';
     $('sailhpV').textContent = SAIL_HP + '（24 磅鏈彈 ' + shots(SAIL_HP, DMG.long * ammoK(2, VS_SAIL)) + ' 發）';
     $('crewhpV').textContent = CREW_HP + (CREW_HP === LIM.crewhp[2] ? '' : CREW_HP > LIM.crewhp[2] ? '（耐打）' : '（脆）');
-    $('powderhpV').textContent = powderNever() ? '拉滿（不會爆）' : POWDER_HP + (POWDER_HP >= 400 ? '（很難殉爆，' : POWDER_HP >= 250 ? '（偶爾殉爆，' : '（很容易殉爆，') + '藥包 ' + Math.round(POWDER_HP * CART_K) + '）';
+    $('powderhpV').textContent = powderNever() ? '拉滿（不會爆）' : POWDER_HP + (POWDER_HP >= 600 ? '（很難殉爆，' : POWDER_HP >= 350 ? '（偶爾殉爆，' : '（很容易殉爆，') + '藥包 ' + Math.round(POWDER_HP * CART_K) + '）';
     $('blastV').textContent = BLAST_K.toFixed(2) + '×（前彈藥庫半徑約 ' + (MAG_R * Math.pow(BLAST_K, 1 / 3) * (S || 0.1)).toFixed(1) + ' m）';
     $('boxV').textContent = BOX_N + ' 份（開戰時裝滿）';
     $('windV').textContent = WIND_K.toFixed(2) + '×（帆上的風約 ' + (WIND_SAIL * WIND_K).toFixed(0) + ' m/s，陣風 ±' + Math.round(GUST[0] * 100) + '%）';
@@ -3584,16 +3828,18 @@ function sliders() {
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
     $('strikeV').textContent = strikeText();
     var amDef = AMMO_K.every(function (r, i) { return r.every(function (v, j) { return v === AMMO_K0[i][j]; }); });
-    $('detV').textContent = '船殼硬度 ' + HARDK.toFixed(1) + '×・進水 ' + FLOOD.toFixed(2) + '×・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
+    $('detV').textContent = '船殼硬度 ' + HARDK.toFixed(1) + '×・進水 ' + FLOOD.toFixed(2) + '×・壓艙物 ' + BALLAST_T + ' 噸・砲重 ' + GUNW_K.toFixed(2) + '×・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
       '・傷害 ' + DMG.long + '／' + DMG.carr + '／' + DMG.chase + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N +
-      '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・航速 ' + SPEEDK.toFixed(2) + '×・靈活 ' + AGILK.toFixed(2) + '×・' + strikeText();
+      '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・航速 ' + SPEEDK.toFixed(2) + '×・靈活 ' + AGILK.toFixed(2) + '×・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
   }
+  lf.oninput = function () { BALLAST_T = Math.round(+lf.value); show(); };
   f.oninput = function () { FLOOD = +f.value; show(); };
   sp.oninput = function () { SPEEDK = +sp.value; show(); };
   ag.oninput = function () { AGILK = +ag.value; show(); };
   h.oninput = function () { HARDK = Math.round(LIM.hard[0] * Math.exp(h.value * hk) * 10) / 10; show(); };
   c.oninput = function () { STRIKE.cas = c.value / 100; show(); };
   gh.oninput = function () { GUN_HP = Math.round(+gh.value); show(); };
+  gw.oninput = function () { GUNW_K = +gw.value; show(); };
   sl.oninput = function () { SAIL_HP = Math.round(+sl.value); show(); };
   ph.oninput = function () { POWDER_HP = Math.round(+ph.value); show(); };
   bl.oninput = function () { BLAST_K = +bl.value; show(); };
@@ -3608,20 +3854,21 @@ function sliders() {
     el.onchange = function () { el.value = AMMO_K[r][k]; };          // 打了界外或空白 ⇒ 回到夾過的值
   })(r, k);
   ['guns', 'masts', 'officers'].forEach(function (k) { var b = $('st-' + k); b.onchange = function () { STRIKE[k] = b.checked; show(); }; });
+  [0, 1].forEach(function (i) { var s = $('cap' + i); capOptions(s, CAP_SET[i]); s.onchange = function () { CAP_SET[i] = s.value; show(); }; });   // 砲長
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
   function page(det) { $('detail').style.display = det ? '' : 'none'; document.querySelector('#cover .card:not(#detail)').style.display = det ? 'none' : ''; $('cover').scrollTop = 0; }
   $('detB').onclick = function () { page(true); };
   $('detX').onclick = function () { page(false); };
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
-    FLOOD = LIM.flood[2]; HARDK = LIM.hard[2]; SPEEDK = LIM.speed[2]; AGILK = LIM.agile[2];
-    GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
+    FLOOD = LIM.flood[2]; BALLAST_T = LIM.ballast[2]; HARDK = LIM.hard[2]; SPEEDK = LIM.speed[2]; AGILK = LIM.agile[2];
+    GUN_HP = LIM.gunhp[2]; GUNW_K = LIM.gunw[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
     DMG.long = LIM.dmg24[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
-    STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false;
+    STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
     put(); show();
   };
   window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
-  put(); show();
+  put(); show(); SLIDERS_SHOW = show;
 }
 sliders();
 [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
@@ -3674,6 +3921,10 @@ if (DEBUG) window.__game = {
     if (how === 'mag') magBoom(sh, mag); else { var m = mag.kegs.filter(function (x) { return x.alive; })[0]; if (m) ignite(sh, m, 0); }
     return this.powder(i);
   },
+  /** 砲長的讀數：每艘的砲長、現在的模式、換過幾次、各模式的局勢分數。 */
+  captain: function () { return SHIPS.map(function (sh) { var foe = SHIPS[1 - sh.i], v = {}; AIM_MODES.forEach(function (m) { v[m] = +aimValue(foe, m).toFixed(2); }); return { cap: sh.cap, mode: sh.aimMode, switches: sh.modes || 0, pMode: sh.pMode, value: v }; }); },
+  /** 手持物的讀數：上一格畫了幾件、每艘現在誰拿著什麼。 */
+  items: function () { return { drawn: ITEMS_N, ships: SHIPS.map(function (sh) { var r = {}; sh.crew.forEach(function (c) { var it = heldItem(sh, c, crewFrame(sh, c)); if (it) r[it.id] = (r[it.id] || 0) + 1; }); return r; }) }; },
   powder: function (i) { var sh = SHIPS[i]; return { never: powderNever(), hp: POWDER_HP, blast: BLAST_K, broken: !!sh.broken, cartBooms: sh.cartN || 0, keel: sh.keel || null, fate: sh.fate,
     mags: sh.mags.map(function (g) { return { name: g.name, lb: g.lb, kegs: g.kegs.length, alive: g.kegs.filter(function (m) { return m.alive; }).length, boomed: g.boomed, gone: g.gone, R: g.R ? +(g.R * S).toFixed(2) : 0, removed: g.removed || 0, broke: !!g.broke }; }),
     pieces: PIECES.map(function (p) { return { n: p.n, hull: !!p.hull, mods: (p.mods || []).length, y: +p.c[1].toFixed(2) }; }),
@@ -3693,7 +3944,7 @@ if (DEBUG) window.__game = {
       }),
       loose: sh.loose.length, loosePinned: sh.loose.filter(function (o) { return o.pin[0] || o.pin[o.n - 1]; }).length, loosePts: sh.loose.reduce(function (a, o) { return a + o.n; }, 0) };
   },
-  stats: function () { return { t: +SIMT.toFixed(2), ships: SHIPS.map(function (s) { return { lost: s.lost, count: s.grid.count, quads: s.rs.quads(), sink: +s.sink.toFixed(3), roll: +s.rollA.toFixed(3), inflow: s.inflow, guns: s.gunsAlive, masts: s.masts.map(function (m) { return m.name + (m.up ? '✓' : '✗'); }).join(' '), fired: s.fired, hits: s.hits, ropesDead: s.ropes.filter(function (r) { return r.dead; }).length, sailsDead: s.sails.filter(function (x) { return x.dead; }).length,
+  stats: function () { return { t: +SIMT.toFixed(2), ships: SHIPS.map(function (s) { return { lost: s.lost, count: s.grid.count, quads: s.rs.quads(), sink: +s.sink.toFixed(3), lift: +s.lift.toFixed(3), massLost: +massLost(s).toFixed(1), mass0: Math.round(s.mass0 || 0), roll: +s.rollA.toFixed(3), inflow: s.inflow, guns: s.gunsAlive, masts: s.masts.map(function (m) { return m.name + (m.up ? '✓' : '✗'); }).join(' '), fired: s.fired, hits: s.hits, ropesDead: s.ropes.filter(function (r) { return r.dead; }).length, sailsDead: s.sails.filter(function (x) { return x.dead; }).length,
     crew: s.crew0, able: s.able, wounded: s.wounded, dead: s.dead, causes: s.causes, manned: s.gunsManned, struck: s.struck, fate: s.fate,
     knots: +(s.spd * 1.944).toFixed(2), yaw: +s.yaw.toFixed(3), x: +s.px.toFixed(1), z: +s.pz.toFixed(1), sail: +s.sailFrac.toFixed(3), point: s.pos,
     side: s.side, manual: s.manual, rudder: +s.rudder.toFixed(2), sailSet: SAILSETS[s.sailSet] }; }), over: OVER, end: OVER ? $('endT').textContent : '', pieces: PIECES.map(function (p) { return p.n; }), debris: D.n, pts: PT.n, balls: BALLS.length, masts: MASTS }; }
@@ -3708,7 +3959,7 @@ VK.loadEmbedded('ship').then(function (model) {
   var t1 = performance.now();
   BASE = VK.Grid.fromModel(model);
   var chk = VK.verify(BASE, h);
-  programs(); geometry(); buildMeshes(); bbSetup(); waterline(); hullTex();
+  programs(); geometry(); buildMeshes(); bbSetup(); waterline(); hullTex(); hydrostatics(); if (SLIDERS_SHOW) SLIDERS_SHOW();
   QIDX = new VK.QuadIndex(gl);
   PRISTINE = new VK.RegionSet(gl, BASE, QIDX); PRISTINE.buildAll();
   findMasts(); clothSetup();

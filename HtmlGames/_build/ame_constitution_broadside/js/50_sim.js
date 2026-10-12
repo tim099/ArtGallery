@@ -3,16 +3,13 @@ function ai(sh, dt) {
   var foe = SHIPS[1 - sh.i];
   if (sh.sunk || sh.struck || sh.sinkingFinal) return;
   if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
+  captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
   var ready = 0, alive = 0;
   sh.guns.forEach(function (g) { if (g.alive && gunRate(g) > 0 && gunTarget(sh, g, foe.center)) { alive++; if (g.reload <= 0) ready++; } });
   if (!ready || ready < Math.ceil(alive * 0.65)) return;
-  var r = rnd(), ammo = 0, t;
-  var masts = foe.masts.filter(function (m) { return m.up; });
-  if (r < 0.45 || !masts.length) t = [rr(WL_X0 + 40, WL_X1 - 40), CY, rr(56, 76)];             // 船殼：水線上船體的範圍（⛔ 外框 ⇒ 兩成瞄到船頭前面的空水）
-  else if (r < 0.72) { t = [rr(WL_X0 + 60, WL_X1 - 60), CY, rr(84, 104)]; ammo = rnd() < 0.25 ? 1 : 0; }
-  else { var m = masts[(rnd() * masts.length) | 0]; t = [m.x, CY, rr(150, 300)]; ammo = rnd() < 0.6 ? 2 : 0; }
+  var a = modeAim(foe, sh.aimMode || 'hull', true), t = a.t, ammo = a.ammo;   // 砲長選的模式裡亂挑一點（⛔ 以前固定 45% 船殼／27% 砲甲板／28% 桅，船殼瞄的是設計水線 ⇒ 敵艦浮高了還打在水面上）
   var err = Math.max(0.6, 4.5 - sh.salvo * 0.55) / S;
   sh.aim = [t[0] + gauss() * err * 1.6, t[1], t[2] + gauss() * err * 0.5];
   sh.aiSpread = 0.006;

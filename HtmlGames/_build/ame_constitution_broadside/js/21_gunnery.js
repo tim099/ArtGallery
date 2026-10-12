@@ -75,6 +75,7 @@ function anyBears(sh, w, side) { return sh.guns.some(function (g) { return g.ali
 function shipAxis(sh) { var ax = M4.dir(sh.M, 1, 0, 0); return norm([ax[0], 0, ax[2]]); }
 function aimPoint(sh) {
   var foe = SHIPS[1 - sh.i];
+  if (sh.i === PLAYER_I && !AUTOFIRE && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
   if (sh.aim) return M4.pt(foe.M, sh.aim[0], sh.aim[1], sh.aim[2]);
   return M4.pt(foe.M, CX, CY, 90);
 }

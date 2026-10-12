@@ -53,6 +53,7 @@ function makeCrew(sh) {
       if (!at) continue;
       add(ROLE.GUN, at, gn, 1); var c = crew[crew.length - 1]; c.deck = gunDeck(gn); c.side = gn.side; gn.spots.push({ at: at, who: c });
     }
+    if (gn.spots[1]) gn.spots[1].who.rammer = true;                  // 只給畫用：裝填時拿推彈桿的那一個（41_crew_art.js 手持物）
   });
   // 送藥手：每一對砲（同一個 x 的兩舷）一個，從那一層的取用點搬火藥與彈藥到要裝填的砲（23_powder.js makeMonkeys／stepMonkey）
   makeMonkeys(sh, crew, taken, add);
@@ -171,6 +172,7 @@ function woundCrew(sh, c, cause) { if (c.st !== 0) return; c.st = 1; c.t = 0; c.
 function killCrew(sh, c, cause) {
   if (c.st >= 2) return;
   if (c.st === 1) sh.wounded--;
+  c.fromW = c.st === 1;                               // 只給畫用：從跪著倒下（不是從站直倒）
   c.st = 2; c.t = 0; c.walk = null; c.cart = false; c.moving = false; c.hp = Math.min(c.hp, 0); sh.dead++; sh.kills++; sh.causes[cause] = (sh.causes[cause] || 0) + 1; newsCrew(sh, c, true, cause);
 }
 /** 掉下去：腳下那一格沒了（甲板被打穿、桅頂跟著桅倒）⇒ 換成世界座標的落體，落水算失蹤（亡）。 */
