@@ -4,16 +4,18 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0033"
-illustrated_through_chapter: "0033"
-next_chapter: "0034"
+read_through_chapter: "0034"
+illustrated_through_chapter: "0034"
+next_chapter: "0035"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第三十三章〈露天礦場〉全文並完成場景圖；下一次接續第三十四章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第三十四章〈乘龍之女〉全文並完成場景圖；下一次接續第三十五章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+
+第三十四章引用 `nighteyes_adult` 頭頸，取狼靠近擁抱中的兩人的局部。人僅露匿名軀幹、袖與手臂，臉、髮型及完整服飾不入畫；衣色與手位為詮釋，不套用舊人物稿。舊左肩傷部位不作可辨識主體，石中女孩、龍、惟真與銀手皆在畫外。親近只是暫時安慰，不畫囚困解除或悲傷痊癒。
 
 第三十三章只露匿名老年手托住單杯熱茶，以既有紅陶杯設定作形制參考，不認定它是第十一章同一物件。本章陶色、杯形、袖料與礦石近景均為詮釋；惟真、珂翠肯、銀色雙手與未完成石龍全在畫外。溫茶不作痊癒或和解的證明。
 
@@ -188,8 +190,11 @@ next_chapter: "0034"
 | 0032 | [在明天之前說出口](../../ReadingReflections/meadow_farseer_trilogy_03_words_before_tomorrow_v1.md) | `freedman_sapphire_earring` | v1已繪與視檢；局部雙手交託單一耳環，不補死亡定論、送達或團聚。 |
 
 | 0033 | [先讓溫度回到身體](../../ReadingReflections/meadow_farseer_trilogy_03_warmth_before_work_v1.md) | `camp_red_tea_cup` | v1已繪與視檢；匿名老年手與單杯熱茶，未畫恢復、和解或龍已完成。 |
+| 0034 | [抱住此刻，沒有解開石頭](../../ReadingReflections/meadow_farseer_trilogy_03_an_embrace_without_release_v1.md) | `nighteyes_adult` | v1已繪與視檢；狼頭靠向兩段匿名擁抱軀幹，人物臉與石中女孩皆在畫外，未畫囚困解除。 |
 
 ## 待辦與開放問題
+
+第三十四章已讀與繪畢，下一次第三十五章。弄臣的銀色指尖在本章開頭寫左手，後段寫右手，側別不補定；若畫銀手須先處理章內記述差異與新狀態設定。蓋倫追殺舊精技使用者、帝尊取得典籍及古靈企圖均為弄臣所述情報，不因蜚滋認為吻合就當成獨立核验。受困女孩未獲釋，龍尚未完成；珂翠肯接受擁抱不等於獲得安全或與惟真的親密已恢復。若後續畫可辨識當章珂翠肯、蜚滋、弄臣或乘龍之女，先建對應人物／場景設定。`nighteyes_adult` 最新引用至0034，只使用頭頸外型，不推定肩傷復原。
 
 第三十三章已讀與繪畢，下一次第三十四章。惟真已找到且活著，但虛弱與記憶遲滯仍在，石龍未完成；他將記憶放進龍的自述與生命流動的感知不等於完整魔法機制已解。愒懦死因、惟真受傷原因與小組犧牲棋子的布局仍屬水壺嬸推論。若畫惟真當章主體、銀色雙手、礦場全景、受困女騎士龍或未完成石龍，須先建立相應設定；第二冊人物稿不能直接代表當章狀態。
 
