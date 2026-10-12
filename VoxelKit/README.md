@@ -4,15 +4,21 @@
 
 | 檔 | 做什麼 |
 |---|---|
-| `voxel_export.py` | 作品 → `.vxk`：`senate cmd sculpture` 匯出 `format=list`（每一格）；`--rig` 再從 `format=obj` 拿繩與帆；`--models` 連模型匯入的子模型（三角形網格）；`--parts` 記各條關聯的外框。寫檔前把封裝回讀、跟匯出清單逐格比對，對不上就不寫。 |
+| **`senate cmd sculpture op=export format=vxk`** | ⭐ 作品 → `.vxk` 的**主要生產端**（TASK-0518）：senate 直接封，`include=rig,models,parts,meta` 對應下面 Python 的四個旗標；一次讀完、不經過 list／obj 檔 ⇒ 沒有「兩次匯出之間作品被改過」的洞。寫檔前同樣回讀對拍。規則見 Senate `Docs/Workflows/Sculpture.md` §9.4.10。 |
+| `voxel_export.py` | 作品 → `.vxk`（舊的生產端，**留著當對拍**）：`senate cmd sculpture` 匯出 `format=list`（每一格）；`--rig` 再從 `format=obj` 拿繩與帆；`--models` 連模型匯入的子模型（三角形網格）；`--parts` 記各條關聯的外框。寫檔前把封裝回讀、跟匯出清單逐格比對，對不上就不寫。 |
+| `vxk_compare.py` | 兩份 `.vxk` 對拍（解開之後比：格子逐格逐色、header 逐欄；浮點那幾格給容差；不比壓縮後的位元組與 exported_at）。`--tamper` ＝ 反向對照（改一格再比，一定要報不同）。 |
 | `voxelkit.js` | 瀏覽器端（全域 `VoxelKit`）：解碼、稀疏網格、網格化、WebGL2 算繪、射線、連通。零外部依賴。 |
 | `vxk_inline.py` | 開發用 HTML → 單檔成品：把 `<script src>`、`.vxk` 與素材（`x-asset`：png／webp／jpg／json）塞進去，再檢查成品沒有外部 src／fetch／import／http(s) 資源。 |
 | `_cache/` | 匯出的暫存與 `.vxk`（不入版控；用 `voxel_export.py` 重產）。 |
 
 ```bash
-python -I voxel_export.py --work <作品> --out _cache/<名>.vxk [--rig [--models]] [--parts] [--meta] [--links all|none] [--list <既有匯出清單>] [--senate <exe>]
+senate cmd sculpture --arg op=export --arg format=vxk --arg work=<作品> --arg out=<絕對路徑>/_cache/<名>.vxk [--arg include=rig,models,parts,meta] [--arg links=all|none]
+python -I voxel_export.py --work <作品> --out _cache/<名>.vxk [--rig [--models]] [--parts] [--meta] [--links all|none] [--list <既有匯出清單>] [--senate <exe>]   # 對拍用
+python -I vxk_compare.py _cache/<a>.vxk _cache/<b>.vxk [--tamper]
 python -I vxk_inline.py <開發用.html> <成品.html>
 ```
+
+- 對拍實測（憲法號組裝件、2026-10-12）：兩個生產端的 vxk_compare 相同，而且**每一個數都相等**（不是只在容差內）；兩份都過 voxelkit.js 的 `verify`。⚠ 唯一刻意不同：senate 那支的繩／帆／模型也照 `links=` 選（Python 的 obj 那一趟沒帶 links）。
 
 - ⚠ `--list` 只省掉格子那一次匯出；繩、帆、模型、外框照樣即時讀作品 ⇒ 作品在兩次之間改過（別人還在造）就會對不起來。出貨前不帶 `--list` 整份重匯。
 
