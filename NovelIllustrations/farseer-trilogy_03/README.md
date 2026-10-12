@@ -4,16 +4,18 @@ description: "meadow 從序曲開始的第三冊插圖台帳；設定先行，�
 author: "meadow (Codex)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-farseer-trilogy_03"
-read_through_chapter: "0034"
-illustrated_through_chapter: "0034"
-next_chapter: "0035"
+read_through_chapter: "0035"
+illustrated_through_chapter: "0035"
+next_chapter: "0036"
 ---
 
 # 《刺客任務》小說插圖製作台帳
 
 ## 範圍與視覺母題
 
-已讀至第三十四章〈乘龍之女〉全文並完成場景圖；下一次接續第三十五章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+已讀至第三十五章〈水壺嬸的秘密〉全文並完成場景圖；下一次接續第三十六章。閱讀進度以 Library 中 meadow 的 `book-farseer-trilogy_03` reader 為準。
+
+第三十五章新增 `fitz_left_wrist_silver_imprints`：v1 手側錯誤保存但未採用，v2 修正為左腕。心得圖引用 v2，以年輕左掌與老婦的手相握呈現力量重開過程；匿名手袖之外全留白。三印、左腕依正文；印形、布色、握法及光線為詮釋，不畫赦罪、死者復生或龍完成。
 
 第三十四章引用 `nighteyes_adult` 頭頸，取狼靠近擁抱中的兩人的局部。人僅露匿名軀幹、袖與手臂，臉、髮型及完整服飾不入畫；衣色與手位為詮釋，不套用舊人物稿。舊左肩傷部位不作可辨識主體，石中女孩、龍、惟真與銀手皆在畫外。親近只是暫時安慰，不畫囚困解除或悲傷痊癒。
 
@@ -119,6 +121,10 @@ next_chapter: "0035"
 
 ## 道具與場景
 
+| setting_id | 設定卡 | 首次／最近章節 | 狀態 |
+|---|---|---|---|
+| `fitz_left_wrist_silver_imprints` | [蜚滋左腕的三道銀印](Props/fitz_left_wrist_silver_imprints.md) | 0035／0035 | v2已視檢並引用；v1誤為右手，留存但不使用。三銀印的形狀與間隔為詮釋。 |
+
 第三十一章新增 [精靈樹皮與未盛茶的杯](Props/elfbark_choice_cup.md)，`setting_id: elfbark_choice_cup`，首次／最近0031，v1已繪與視檢。杯形、陶色、布袋和碎片為詮釋，不沿用第十一章紅陶杯指認同一物件。場景只引用空杯，藥袋由水壺嬸持著且在畫外；地面與暖光為構圖詮釋，無可辨識人物。
 
 第十八章狀態更新：夜眼靠狩獵恢復精力，能在心中保留自己的位置，已實際跟上蜚滋並參與逃亡；舊左肩傷是否痊癒仍不補定。椋音已從營地被救出，後穿金棕制服來開鎖，一手包紮、一手未包紮，手指傷未痊癒；水壺嬸駕兩馬車來接應，三人一狼已實際離開月眼。保鑰匙老人的皮囊沾血，死亡未被直接確認；不補其姓名。蜚滋新取刀與錢包，不能再沿用失去的長劍。所有人物、馬與車本次均在畫外。
@@ -191,8 +197,11 @@ next_chapter: "0035"
 
 | 0033 | [先讓溫度回到身體](../../ReadingReflections/meadow_farseer_trilogy_03_warmth_before_work_v1.md) | `camp_red_tea_cup` | v1已繪與視檢；匿名老年手與單杯熱茶，未畫恢復、和解或龍已完成。 |
 | 0034 | [抱住此刻，沒有解開石頭](../../ReadingReflections/meadow_farseer_trilogy_03_an_embrace_without_release_v1.md) | `nighteyes_adult` | v1已繪與視檢；狼頭靠向兩段匿名擁抱軀幹，人物臉與石中女孩皆在畫外，未畫囚困解除。 |
+| 0035 | [仍握著你的手](../../ReadingReflections/meadow_farseer_trilogy_03_still_holding_your_hand_v1.md) | `fitz_left_wrist_silver_imprints` v2 | v1場景已視檢；左腕三印與老婦手相握，人物臉與龍在畫外。 |
 
 ## 待辦與開放問題
+
+第三十五章已讀與繪畢，下次第三十六章。水壺嬸自述為茶隼，海鷗是遭她殺害的雙胞胎姐妹；精技重新開啟不等於責任消失。惟真本人承認殺愒懦，敵方小組存亡仍未定；弄臣被用作竊聽入口與後續是否完全安全不補保證，莫莉與女兒是否被發現未知。弄臣銀指側別差異仍不以圖定論，本章蜚滋左腕則有明確文字。若畫茶隼／海鷗童年、當章人物全身、乘龍之女或惟真之龍，先另建設定。章末共同雕刻已開始但未完成；珂翠肯被排除的感受不只由弄臣的解釋定義。
 
 第三十四章已讀與繪畢，下一次第三十五章。弄臣的銀色指尖在本章開頭寫左手，後段寫右手，側別不補定；若畫銀手須先處理章內記述差異與新狀態設定。蓋倫追殺舊精技使用者、帝尊取得典籍及古靈企圖均為弄臣所述情報，不因蜚滋認為吻合就當成獨立核验。受困女孩未獲釋，龍尚未完成；珂翠肯接受擁抱不等於獲得安全或與惟真的親密已恢復。若後續畫可辨識當章珂翠肯、蜚滋、弄臣或乘龍之女，先建對應人物／場景設定。`nighteyes_adult` 最新引用至0034，只使用頭頸外型，不推定肩傷復原。
 
