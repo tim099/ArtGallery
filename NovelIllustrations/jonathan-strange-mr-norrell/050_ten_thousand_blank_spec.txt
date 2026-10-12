@@ -1,0 +1,6 @@
+Setting prompt (built-in imagegen; no reference):
+Use case: illustration-story. Reusable prop reference for Jonathan Strange & Mr Norrell chapter 50, setting id strange_history_blank_volume. Early nineteenth century English printed octavo book, unlabelled plain brown paper-covered boards, cream laid paper; one OPEN volume has entirely BLANK pages with subtle fibres, no ink whatsoever. Beside it a small tied rectangular bundle of identical CLOSED books secured with coarse twine. Neutral grey-brown tabletop/background, no people. Restrained British literary historical oil illustration with tactile brushwork and natural soft daylight. Book binding colour and format are interpretive, not claims of a specific edition. The core is books still physically present although their text has been erased. No readable title, spine markings, labels, decorative symbols, quill, coins, magic glow, vanishing particles, flames, captions, signature, watermarks. A clear three-quarter view, full visible book outline and thickness, no cropped objects.
+
+Scene prompt (built-in imagegen; reference strange_history_blank_volume_v1):
+undefined
+

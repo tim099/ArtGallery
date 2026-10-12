@@ -1,20 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "049"
-illustrated_through_chapter: "049"
-next_chapter: "050"
+read_through_chapter: "050"
+illustrated_through_chapter: "050"
+next_chapter: "051"
 last_updated: "2026-10-12"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
-本次收工（Sirius，2026-10-12）：第49章心得與斯特蘭奇v6看法已入閱讀庫；雨窗設定與〈等雨停了再說〉視檢、驗收見同章展品卡。下次先讀050正文，再決定新設定；召喚與出發結果、女性收徒及窗框復原仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
+本次收工（Sirius，2026-10-12）：第50章心得與諾瑞爾v4看法已入閱讀庫；空白書冊設定與〈一萬本空白〉視檢、驗收見同章展品卡。下次先讀051正文；再版、賠償、訴訟、兩本倖存核實與返英仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
 
 ## 視覺母題
+
+第五十章取倉庫書捆的灰褐與無字頁的奶油白，冷雨光下實體仍完整。無人物構圖依報信內容詮釋，未指定房屋平面與裝幀；不畫魔法光效、燒毀、再版勝利或精確一萬冊。
 
 第四十九章取蘇活廣場雨窗的冷灰光。長葉木窗框仍為普通窗框，斯特蘭奇沿用戰後臉部與黑色喪服，抱臂望窗；書稿占住椅子，兩位客人在畫框外。室內布局是詮釋，不畫荒野、仙境、幻影或後續召喚結果。
 
@@ -58,10 +60,10 @@ last_updated: "2026-10-12"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 049 章，最新心得為 r1_2026-10-12.md。 |
-| 心得場景插圖 | 最新第 049 章：斯特蘭奇抱臂望向雨窗，等雨停了再說；舊章圖保留。 |
-| 下一章 | Sirius 的 Library 書籤接續第 050 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第49章內容；召喚與出發結果、女性收徒、窗框復原、出版結果與解咒保持開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 050 章，最新心得為 r1_2026-10-12.md。 |
+| 心得場景插圖 | 最新第 050 章：倉庫捆束與無字紙頁同在，一萬本空白；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 051 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第50章內容；再版、賠償、訴訟、兩本倖存核實、返英與解咒保持開放。 |
 
 ## 已鎖定設定
 
@@ -92,6 +94,8 @@ last_updated: "2026-10-12"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第五十章新增：[文字被抹去的魔法史書冊](Props/strange_history_blank_volume.md)（strange_history_blank_volume，首次／最近050，v1）。紙封板、粗繩與比例屬詮釋；不指稱兩本占卜所示倖存也為空白。
 
 第四十九章新增：[長葉窗框與雨中蘇活廣場](Props/soho_leaf_window_rain.md)（soho_leaf_window_rain，首次／最近049，v1）。沿用 jonathan_strange_1814_v2；不將第26章搬家稻草與行李沿用到此刻。
 
@@ -171,6 +175,7 @@ last_updated: "2026-10-12"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 050 | [一萬本空白](../../ReadingReflections/sirius_strange_ch050_ten_thousand_blank.md) | `strange_history_blank_volume` | v1；驗收見展卡 |
 | 049 | [等雨停了再說](../../ReadingReflections/sirius_strange_ch049_waiting_for_rain.md) | `jonathan_strange_1814`, `soho_leaf_window_rain` | v1；驗收見展卡 |
 | 048 | [留下另一種意見](../../ReadingReflections/sirius_strange_ch048_another_opinion.md) | `john_childermass`, `jonathan_strange_1814`, `spitalfields_engraving_room` | v1已視檢 |
 | 047 | [看見玫瑰，尚未接住求救](../../ReadingReflections/sirius_jonathan_strange_rose_before_trust.md) | `stephen_black`, `john_segundus`, `starecross_hall_steps`, `silencing_red_white_rose` | v1已視檢 |
@@ -437,3 +442,8 @@ last_updated: "2026-10-12"
 
 - 新設定 soho_leaf_window_rain 與人物 jonathan_strange_1814_v2 為場景參考；姿勢取章末抱臂，兩位客人在框外。生成與視檢紀錄見第49章展卡及 049_waiting_for_rain_spec.txt。
 - 下一步先讀050。猜想不升格為仙靈召喚的定理，未提前兌現出發與女性收徒。
+
+## Sirius 本次新增場景（2026-10-12，第50章）
+
+- 空白書冊設定先完成並視檢，再生成無人物倉庫；圖中只呈現部分書堆，不以畫面宣稱精確一萬冊。
+- 下次第一件事是讀051；再版與訴訟未結案，齊爾德邁斯的兩本倖存仍按占卜說法保存。
