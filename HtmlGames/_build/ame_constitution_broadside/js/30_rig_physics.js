@@ -1,0 +1,316 @@
+// ───────────────────────── 帆與繩的物理（可關） ─────────────────────────
+// 開（PHYS）：帆是一塊布（質點＋距離約束，Verlet），被「相對風」（真風 − 船速）吹鼓 —— 轉向、頂風時帆會往另一邊鼓；
+//   斷掉的繩與掉下來的帆不消失：掛在還綁著的那一端擺，整個鬆脫就往下掉，落到甲板上會停住。
+// 關：跟以前一樣 —— 帆停在雕刻作品模擬的那一刻、斷掉的就不見。
+// ⛔ 物理只管畫出來的樣子：航速、命中、帆算不算數照原本的規則（s.dead／s.furled），而且這一段不碰 rnd()
+//   ⇒ 開或關，同一個種子走出同一局。
+// 座標：船的格座標（跟繩與帆的資料同一套）；重力與相對風用 sh.inv 換進來（1 格 ＝ S 公尺，速度單位 格/秒）。
+var WIND_SAIL = 7;            // 推帆的風速（m/s）；WIND 的大小是煙飄的速度，只共用方向
+var KW = 0.05;                // 風壓：加速度（格/秒²）＝ KW ×（相對風在法線上的分量）²
+var KD = 0.3, DAMP = 0.985;   // 繩的空氣阻力（1/秒）、每一步的速度保留
+var ITER_C = 4, ITER_R = 4, SEG = 6, LOOSE_MAX = 500;
+var HC = 2 * DT;              // 帆隔一步走一次（一半的帆走單數步、一半走雙數步）⇒ 30 Hz，負擔攤平
+var CLOTHT = [], CACC = null, CCNT = null, RBOX = null, PHYS_MS = 0, PROF = { cloth: 0, rope: 0, buf: 0 };
+/** 一面帆的布（兩艘船共用；載入時算一次）：
+ *  只留一層 —— 雕刻作品的帆是正反兩層、相差 0.11 格，兩層都畫遠看會互相打架成棋盤格；
+ *  邊（距離約束）＋ 同一條格線上隔一點的兩點（跨點約束，布不會揉成一團）；
+ *  外緣在轉角（> 29°）處切成幾段：筆直的那幾段是綁在帆桁／支索／斜桁上的邊（作品裡整條固定在線段上；鼓起來的自由邊不會直），
+ *  綁邊上的點各自找靠的格（0.6 m 內）或繩（0.4 m 內）—— 帆桁被打掉一截，只有那一截的布鬆開；
+ *  不在綁邊上的角 ＝ 帆腳：綁在帆自己的繩（sheet／tack，端點 1 m 內）、旁邊的格或繩上。
+ *  hk：0 不綁、1 格、2 繩、3 找不到靠的（帆還在就綁著）、4 模型。 */
+function clothTemplate(s) {
+  var v = s.verts, tr = s.tris, nv = v.length / 3, h = nv >> 1, T = [], one = nv % 2 === 0, i, j, k;
+  for (j = 0; j < tr.length; j += 3) {
+    var lo = tr[j] < h;
+    if ((tr[j + 1] < h) !== lo || (tr[j + 2] < h) !== lo) one = false;
+    if (lo) T.push(tr[j], tr[j + 1], tr[j + 2]);
+  }
+  if (!one || T.length * 2 !== tr.length) { T = Array.prototype.slice.call(tr); h = nv; }
+  var n = h, p0 = new Float32Array(v.slice(0, n * 3));
+  function P(q) { return [p0[q * 3], p0[q * 3 + 1], p0[q * 3 + 2]]; }
+  var E = new Map(), ea = [], eb = [], use = [];
+  for (j = 0; j < T.length; j += 3) for (k = 0; k < 3; k++) {
+    var a = T[j + k], b = T[j + (k + 1) % 3], kk = a < b ? a * 65536 + b : b * 65536 + a, e = E.get(kk);
+    if (e === undefined) { e = ea.length; E.set(kk, e); ea.push(a); eb.push(b); use.push(0); }
+    use[e]++;
+  }
+  // 外緣：只被一個三角形用到的邊，接成一圈
+  var bn = []; for (i = 0; i < n; i++) bn.push([]);
+  ea.forEach(function (a, e) { if (use[e] === 1) { bn[a].push(eb[e]); bn[eb[e]].push(a); } });
+  var loop = [], st = -1; for (i = 0; i < n; i++) if (bn[i].length === 2) { st = i; break; }
+  if (st >= 0) { var pv = -1, cu = st; do { loop.push(cu); var nx = bn[cu][0] === pv ? bn[cu][1] : bn[cu][0]; pv = cu; cu = nx; } while (cu !== st && cu !== undefined && loop.length <= n); }
+  var L = loop.length, corner = [];
+  for (k = 0; k < L; k++) { var A = P(loop[(k + L - 1) % L]), M = P(loop[k]), C = P(loop[(k + 1) % L]); if (dot(norm(sub(M, A)), norm(sub(C, M))) < Math.cos(0.5)) corner.push(k); }
+  var hk = new Int8Array(n), hv = new Int32Array(n).fill(-1), sides = [];
+  for (k = 0; k < corner.length; k++) {
+    var side = [], k1 = corner[(k + 1) % corner.length];
+    for (var t = corner[k]; ; t = (t + 1) % L) { side.push(loop[t]); if (t === k1 && side.length > 1) break; if (side.length > L) break; }
+    var a0 = P(side[0]), a1 = P(side[side.length - 1]), ch = len(sub(a1, a0)), md = 0;
+    side.forEach(function (q) { var w = P(q); md = Math.max(md, Math.sqrt(segDist2(w, a0[0], a0[1], a0[2], a1[0], a1[1], a1[2]))); });
+    var bound = ch > 25 && md < 0.75;
+    sides.push({ n: side.length, len: +ch.toFixed(1), dev: +md.toFixed(2), bound: bound });
+    if (bound) side.forEach(function (q) { hk[q] = 3; });
+  }
+  function ropeNear(w, r2) {
+    var best = -1, bd = r2, r = Math.sqrt(r2);
+    RIG.ropes.forEach(function (o, j2) {
+      var b2 = RBOX[j2]; if (w[0] < b2[0] - r || w[0] > b2[3] + r || w[1] < b2[1] - r || w[1] > b2[4] + r || w[2] < b2[2] - r || w[2] > b2[5] + r) return;
+      for (var q = 0; q + 5 < o.pts.length; q += 3) { var d = segDist2(w, o.pts[q], o.pts[q + 1], o.pts[q + 2], o.pts[q + 3], o.pts[q + 4], o.pts[q + 5]); if (d < bd) { bd = d; best = j2; } }
+    });
+    return best;
+  }
+  for (i = 0; i < n; i++) {
+    if (hk[i] !== 3) continue;
+    var w = P(i), an = anchorNear(w[0], w[1], w[2], 6);
+    if (an >= 0) { hk[i] = 1; hv[i] = an; } else { var rp = ropeNear(w, 16); if (rp >= 0) { hk[i] = 2; hv[i] = rp; } }
+  }
+  var own = []; RIG.ropes.forEach(function (r, j2) { if (r.name && r.name.indexOf(s.name + '.') === 0) own.push(j2); });
+  var clews = 0;
+  corner.forEach(function (kc) {
+    var q = loop[kc]; if (hk[q]) return;
+    var w = P(q), best = -1, bd = 100;
+    own.forEach(function (j2) { var pts = RIG.ropes[j2].pts; [0, pts.length - 3].forEach(function (o) { var dx = pts[o] - w[0], dy = pts[o + 1] - w[1], dz = pts[o + 2] - w[2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = j2; } }); });
+    if (best < 0) { var an = anchorNear(w[0], w[1], w[2], 6); if (an >= 0) { hk[q] = 1; hv[q] = an; clews++; return; } best = ropeNear(w, 16); }
+    if (best >= 0) { hk[q] = 2; hv[q] = best; clews++; }
+  });
+  var pins = 0; for (i = 0; i < n; i++) if (hk[i]) pins++;
+  // 物理在粗格上算（規則格 ⇒ 隔一點取一點：25×25 → 13×13，約束少 4 倍）；畫的時候細格照權重從粗格內插回來
+  var cg = coarseOf(n, T), sim = meshCons(cg.idx.map(P), cg.tris);
+  sim.fine = cg.idx; sim.hk = new Int8Array(cg.idx.length); sim.hv = new Int32Array(cg.idx.length);
+  cg.idx.forEach(function (f, ci) { sim.hk[ci] = hk[f]; sim.hv[ci] = hv[f]; });
+  return { name: s.name, col: s.color || [0.95, 0.92, 0.85], n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
+    hk: hk, hv: hv, sides: sides, pins: pins, clews: clews };
+}
+/** 一塊布的約束：邊（三角形的邊）＋ 跨點（同一條格線上隔一點的兩點，布不會揉成一團）；靜止長度 ＝ 雕刻作品那一刻的距離。 */
+function meshCons(pos, T) {
+  var n = pos.length, E = new Map(), ea = [], eb = [], adj = [], te = [], i, j, k;
+  for (i = 0; i < n; i++) adj.push([]);
+  for (j = 0; j < T.length; j += 3) for (k = 0; k < 3; k++) {
+    var a = T[j + k], b = T[j + (k + 1) % 3], kk = a < b ? a * 65536 + b : b * 65536 + a, e = E.get(kk);
+    if (e === undefined) { e = ea.length; E.set(kk, e); ea.push(a); eb.push(b); adj[a].push(b); adj[b].push(a); }
+    te.push(e);
+  }
+  var B = new Set(), ba = [], bb = [];
+  for (i = 0; i < n; i++) for (j = 0; j < adj[i].length; j++) for (k = j + 1; k < adj[i].length; k++) {
+    var x = adj[i][j], y = adj[i][k];
+    if (dot(norm(sub(pos[x], pos[i])), norm(sub(pos[y], pos[i]))) > -0.9) continue;
+    var kb = x < y ? x * 65536 + y : y * 65536 + x; if (B.has(kb)) continue; B.add(kb); ba.push(x); bb.push(y);
+  }
+  var p0 = new Float32Array(n * 3), rest = new Float32Array(ea.length), brest = new Float32Array(ba.length);
+  pos.forEach(function (w, q) { p0[q * 3] = w[0]; p0[q * 3 + 1] = w[1]; p0[q * 3 + 2] = w[2]; });
+  for (i = 0; i < ea.length; i++) rest[i] = len(sub(pos[ea[i]], pos[eb[i]]));
+  for (i = 0; i < ba.length; i++) brest[i] = len(sub(pos[ba[i]], pos[bb[i]]));
+  return { n: n, p0: p0, tris: T, te: new Uint16Array(te), ea: new Uint16Array(ea), eb: new Uint16Array(eb), rest: rest, ba: new Uint16Array(ba), bb: new Uint16Array(bb), brest: brest };
+}
+/** 細格 → 粗格：方帆 N×N、三角帆（第 r 列 N−r 點）、N 是單數 ⇒ 取偶數列偶數行；其他形狀 ⇒ 不縮（粗格 ＝ 細格）。
+ *  回：idx（粗格點 → 細格點）、tris（粗格三角形）、mi／mw（每個細格點由哪幾個粗格點、各佔多少內插）。 */
+function coarseOf(n, T) {
+  var N = Math.round(Math.sqrt(n)), M = Math.round((Math.sqrt(8 * n + 1) - 1) / 2), kind = null, off = null, i, j, k;
+  function ok(rc) {
+    for (j = 0; j < T.length; j += 3) for (k = 0; k < 3; k++) { var a = rc(T[j + k]), b = rc(T[j + (k + 1) % 3]); if (Math.abs(a[0] - b[0]) > 1 || Math.abs(a[1] - b[1]) > 1) return false; }
+    return true;
+  }
+  var sq = function (q) { return [Math.floor(q / N), q % N]; };
+  if (N * N === n && N % 2 && ok(sq)) kind = 'sq';
+  else if (M * (M + 1) / 2 === n && M % 2) {
+    off = []; for (i = 0; i <= M; i++) off.push(i * M - i * (i - 1) / 2);
+    var row = new Int32Array(n); for (i = 0; i < M; i++) for (j = off[i]; j < off[i + 1]; j++) row[j] = i;
+    var tr = function (q) { return [row[q], q - off[row[q]]]; };
+    if (ok(tr)) { kind = 'tri'; N = M; }
+  }
+  var mi = new Int32Array(n * 4), mw = new Float32Array(n * 4);
+  if (!kind) {
+    for (i = 0; i < n; i++) { mi[i * 4] = i; mw[i * 4] = 1; }
+    return { kind: 'full', idx: Array.from({ length: n }, function (_, q) { return q; }), tris: Array.prototype.slice.call(T), mi: mi, mw: mw };
+  }
+  var Nc = (N + 1) / 2, idx = [], ct = [], R, C;
+  var offc = []; for (R = 0; R <= Nc; R++) offc.push(kind === 'sq' ? R * Nc : R * Nc - R * (R - 1) / 2);
+  function rowLen(R) { return kind === 'sq' ? Nc : Nc - R; }
+  function fine(r, c) { return kind === 'sq' ? r * N + c : off[r] + c; }
+  function cc(r, c) { return offc[r / 2] + c / 2; }                    // 細格 (r, c)（都是偶數）在粗格的編號
+  for (R = 0; R < Nc; R++) for (C = 0; C < rowLen(R); C++) idx.push(fine(2 * R, 2 * C));
+  for (R = 0; R + 1 < Nc; R++) for (C = 0; C + 1 < rowLen(R); C++) {
+    var a = offc[R] + C;
+    if (kind === 'sq') { ct.push(a, a + 1, a + Nc + 1, a, a + Nc + 1, a + Nc); continue; }
+    ct.push(a, a + 1, offc[R + 1] + C);
+    if (C + 2 < rowLen(R)) ct.push(a + 1, offc[R + 1] + C + 1, offc[R + 1] + C);
+  }
+  for (var r = 0; r < N; r++) for (var c = 0; c < (kind === 'sq' ? N : N - r); c++) {
+    var f = fine(r, c) * 4, w = [];
+    if (!(r & 1) && !(c & 1)) w = [[r, c]];
+    else if (!(r & 1)) w = [[r, c - 1], [r, c + 1]];
+    else if (!(c & 1)) w = [[r - 1, c], [r + 1, c]];
+    else w = kind === 'sq' ? [[r - 1, c - 1], [r - 1, c + 1], [r + 1, c - 1], [r + 1, c + 1]] : [[r - 1, c + 1], [r + 1, c - 1]];   // 三角帆的對角線是 (r+1, c)–(r, c+1) 那一斜
+    w.forEach(function (x, q) { mi[f + q] = cc(x[0], x[1]); mw[f + q] = 1 / w.length; });
+  }
+  return { kind: kind, idx: idx, tris: ct, mi: mi, mw: mw };
+}
+function clothSetup() {
+  RBOX = RIG.ropes.map(function (r) { return ropeBox(r.pts); });
+  CLOTHT = RIG.sails.map(clothTemplate);
+  var mv = 1, mc = 1, sv = 0, si = 0;
+  CLOTHT.forEach(function (T) { mv = Math.max(mv, T.n); mc = Math.max(mc, T.sim.n); sv += T.n; si += T.tris.length; });
+  CACC = new Float32Array(mc * 3); CCNT = new Uint8Array(mc);
+  SBV = new Float32Array(Math.max(1, sv) * 9); SBI = new Uint32Array(Math.max(1, si)); SBN = new Float32Array(mv * 3); SBP = new Float32Array(mv * 3);
+}
+/** 張開的帆從雕刻作品那一刻的形狀開始（開局、收帆後再張、物理剛打開）。 */
+function clothInit(c) {
+  var T = c.T.sim; c.p = Float32Array.from(T.p0); c.q = Float32Array.from(T.p0);
+  c.pin = new Uint8Array(T.n); for (var i = 0; i < T.n; i++) c.pin[i] = T.hk[i] ? 1 : 0;
+  c.brk = new Uint8Array(T.ea.length); c.bbrk = new Uint8Array(T.ba.length); c.tv = new Uint8Array(c.T.n); c.torn = false; c.loose = false; c.free = 0; c.gone = false; c.npin = -1;
+}
+/** 靠的東西還在不在：格（被打掉 ⇒ 不在）、繩（斷了）、模型（飛了）；3 ＝ 帆還算數就在。 */
+function holds(sh, s, k, v) { return k === 1 ? gp(sh.grid, v) > 0 : k === 2 ? !sh.ropes[v].dead : k === 3 ? !!s && !s.dead : k === 4 ? sh.models[v].alive : false; }
+function clothPins(sh, s, c) {
+  var T = c.T.sim, n = 0;
+  for (var i = 0; i < T.n; i++) if (c.pin[i]) { if (holds(sh, s, T.hk[i], T.hv[i])) n++; else c.pin[i] = 0; }
+  c.npin = n;
+}
+/** 鏈彈撕開：打到的那一點 7 格內的邊斷掉（布上開一個洞，大一點就裂成兩半）。 */
+function tearCloth(sh, s, L) {
+  var c = sh.cl && sh.cl[s.k]; if (!PHYS || !c || !c.p) return;
+  var T = c.T.sim, p = c.p, r2 = 49, bi = 0, bd = 1e9, i;
+  for (i = 0; i < T.n; i++) { var dx = p[i * 3] - L[0], dy = p[i * 3 + 1] - L[1], dz = p[i * 3 + 2] - L[2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; bi = i; } }   // 照布現在的位置
+  var cx = p[bi * 3], cy = p[bi * 3 + 1], cz = p[bi * 3 + 2];
+  function near(q) { var dx = p[q * 3] - cx, dy = p[q * 3 + 1] - cy, dz = p[q * 3 + 2] - cz; return dx * dx + dy * dy + dz * dz < r2; }
+  for (i = 0; i < T.ea.length; i++) if (near(T.ea[i]) || near(T.eb[i])) c.brk[i] = 1;
+  for (i = 0; i < T.ba.length; i++) if (near(T.ba[i]) || near(T.bb[i])) c.bbrk[i] = 1;
+  // 畫的那層：碰到斷掉約束的粗格點，從它內插的細格點都不畫（洞的邊緣多吃一圈）。
+  // ⛔ 只藏彈點附近的細格點：粗格點間距約 1 m，常常只切斷一個粗格點 —— 它沒了約束一直往下掉，
+  //   旁邊沒藏到的細格三角形還從它內插，被拉成一條條直到海裡的布帶（Tim 2026-10-12 截到）。
+  var touch = new Uint8Array(T.n), mi = c.T.mi, mw = c.T.mw;
+  for (i = 0; i < T.ea.length; i++) if (c.brk[i]) { touch[T.ea[i]] = 1; touch[T.eb[i]] = 1; }
+  for (i = 0; i < c.T.n; i++) for (var k = 0; k < 4; k++) { var o = i * 4 + k; if (!mw[o]) break; if (touch[mi[o]]) { c.tv[i] = 1; break; } }
+  c.torn = true;
+}
+function solve(ea, eb, rest, brk, p, pin, k) {
+  for (var e = 0; e < ea.length; e++) {
+    if (brk && brk[e]) continue;
+    var a = ea[e], b = eb[e], wa = pin[a] ? 0 : 1, wb = pin[b] ? 0 : 1; if (!(wa + wb)) continue;
+    var ia = a * 3, ib = b * 3, dx = p[ib] - p[ia], dy = p[ib + 1] - p[ia + 1], dz = p[ib + 2] - p[ia + 2], l = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (l < 1e-9) continue;
+    var f = (l - rest[e]) / l * k / (wa + wb);
+    if (wa) { p[ia] += dx * f; p[ia + 1] += dy * f; p[ia + 2] += dz * f; }
+    if (wb) { p[ib] -= dx * f; p[ib + 1] -= dy * f; p[ib + 2] -= dz * f; }
+  }
+}
+/** 落在格子裡（甲板、船殼）⇒ 退回上一步的位置（上一步本來就在格子裡的不管：繩頭從錨格裡長出來）。 */
+function hitGrid(g, p, q, o) {
+  if (g.get(Math.floor(p[o]), Math.floor(p[o + 1]), Math.floor(p[o + 2])) && !g.get(Math.floor(q[o]), Math.floor(q[o + 1]), Math.floor(q[o + 2]))) { p[o] = q[o]; p[o + 1] = q[o + 1]; p[o + 2] = q[o + 2]; }
+}
+function clothStep(sh, c, wl, gv) {
+  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, i, j, x;
+  A.fill(0, 0, n * 3); N.fill(0, 0, n);
+  for (j = 0; j < tr.length; j += 3) {           // 風壓：每個三角形沿法線推，大小 ∝（相對風在法線上的分量）²，相對風扣掉布自己的速度
+    if (c.torn && (c.brk[T.te[j]] || c.brk[T.te[j + 1]] || c.brk[T.te[j + 2]])) continue;
+    var a = tr[j] * 3, b = tr[j + 1] * 3, d = tr[j + 2] * 3;
+    var ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[d] - p[a], vy = p[d + 1] - p[a + 1], vz = p[d + 2] - p[a + 2];
+    var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.sqrt(nx * nx + ny * ny + nz * nz);
+    if (l < 1e-9) continue;
+    nx /= l; ny /= l; nz /= l;
+    var rx = wl[0] - (p[a] - q[a] + p[b] - q[b] + p[d] - q[d]) * inv, ry = wl[1] - (p[a + 1] - q[a + 1] + p[b + 1] - q[b + 1] + p[d + 1] - q[d + 1]) * inv, rz = wl[2] - (p[a + 2] - q[a + 2] + p[b + 2] - q[b + 2] + p[d + 2] - q[d + 2]) * inv;
+    var dn = rx * nx + ry * ny + rz * nz, f = KW * dn * Math.abs(dn), fx = f * nx, fy = f * ny, fz = f * nz;
+    A[a] += fx; A[a + 1] += fy; A[a + 2] += fz; A[b] += fx; A[b + 1] += fy; A[b + 2] += fz; A[d] += fx; A[d + 1] += fy; A[d + 2] += fz;
+    N[a / 3]++; N[b / 3]++; N[d / 3]++;
+  }
+  for (i = 0; i < n; i++) {
+    if (pin[i]) continue;
+    var o = i * 3, kk = N[i] ? 1 / N[i] : 0;
+    for (x = 0; x < 3; x++) { var cur = p[o + x], vel = (cur - q[o + x]) * dmp; q[o + x] = cur; p[o + x] = cur + vel + (A[o + x] * kk + gv[x]) * dt2; }
+    if (c.loose) hitGrid(sh.grid, p, q, o);
+  }
+  for (var it = 0; it < ITER_C; it++) { solve(T.ea, T.eb, T.rest, c.torn ? c.brk : null, p, pin, 1); if (it & 1) solve(T.ba, T.bb, T.brest, c.torn ? c.bbrk : null, p, pin, 0.5); }
+}
+/** 剛斷的繩 ⇒ 垂下來的繩：重新取樣（每段 ≤ SEG 格，原本的弧度與鬆緊照留），兩端各記著靠什麼；被打斷的從斷點分成兩段。 */
+function spawnLoose(sh, r) {
+  var src = r.pts, m = src.length / 3, P = [], i, t;
+  for (i = 0; i + 1 < m; i++) {
+    var a = [src[i * 3], src[i * 3 + 1], src[i * 3 + 2]], b = [src[i * 3 + 3], src[i * 3 + 4], src[i * 3 + 5]], k = Math.max(1, Math.ceil(len(sub(b, a)) / SEG));
+    for (t = 0; t < k; t++) P.push(lerp3(a, b, t / k));
+  }
+  P.push([src[m * 3 - 3], src[m * 3 - 2], src[m * 3 - 1]]);
+  function end(an, mk, pr) { return an >= 0 ? [1, an] : mk !== undefined ? [4, mk] : pr !== undefined ? [2, pr] : [0, -1]; }
+  var ea = end(r.a, r.ma, r.pa), eb = end(r.b, r.mb, r.pb), parts = [[P, ea, eb]];
+  if (r.cutL) {
+    var bi = 0, bd = 1e9;
+    for (i = 0; i + 1 < P.length; i++) { var d = segDist2(r.cutL, P[i][0], P[i][1], P[i][2], P[i + 1][0], P[i + 1][1], P[i + 1][2]); if (d < bd) { bd = d; bi = i; } }
+    parts = [[P.slice(0, bi + 1), ea, [0, -1]], [P.slice(bi + 1), [0, -1], eb]];
+  }
+  parts.forEach(function (pt) {
+    var Q = pt[0], n = Q.length; if (n < 2) return;
+    var p = new Float32Array(n * 3), rest = new Float32Array(n - 1);
+    Q.forEach(function (w, j) { p[j * 3] = w[0]; p[j * 3 + 1] = w[1]; p[j * 3 + 2] = w[2]; if (j) rest[j - 1] = len(sub(w, Q[j - 1])); });
+    var o = { p: p, q: Float32Array.from(p), rest: rest, n: n, pin: new Uint8Array(n), hk: [pt[1][0], pt[2][0]], hv: [pt[1][1], pt[2][1]], col: r.col, free: 0 };
+    o.pin[0] = o.hk[0] ? 1 : 0; o.pin[n - 1] = o.hk[1] ? 1 : 0;
+    ropePins(sh, o); sh.loose.push(o);
+  });
+  if (sh.loose.length > LOOSE_MAX) {                                  // 太多 ⇒ 先丟已經整條鬆掉的，再丟最早的
+    var drop = sh.loose.findIndex(function (o) { return !o.pin[0] && !o.pin[o.n - 1]; });
+    sh.loose.splice(drop >= 0 ? drop : 0, 1);
+  }
+}
+function ropePins(sh, o) {
+  if (o.pin[0] && !holds(sh, null, o.hk[0], o.hv[0])) o.pin[0] = 0;
+  if (o.pin[o.n - 1] && !holds(sh, null, o.hk[1], o.hv[1])) o.pin[o.n - 1] = 0;
+}
+function ropeStep(sh, o, wl, gv) {
+  var p = o.p, q = o.q, n = o.n, pin = o.pin, dt2 = DT * DT, i, x;
+  for (i = 0; i < n; i++) {
+    if (pin[i]) continue;
+    var j = i * 3;
+    for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * DAMP; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / DT)) * dt2; }
+    hitGrid(sh.grid, p, q, j);
+  }
+  for (var it = 0; it < ITER_R; it++) for (i = 0; i + 1 < n; i++) {
+    var wa = pin[i] ? 0 : 1, wb = pin[i + 1] ? 0 : 1; if (!(wa + wb)) continue;
+    var ia = i * 3, ib = ia + 3, dx = p[ib] - p[ia], dy = p[ib + 1] - p[ia + 1], dz = p[ib + 2] - p[ia + 2], l = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (l < 1e-9) continue;
+    var f = (l - o.rest[i]) / l / (wa + wb);
+    if (wa) { p[ia] += dx * f; p[ia + 1] += dy * f; p[ia + 2] += dz * f; }
+    if (wb) { p[ib] -= dx * f; p[ib + 1] -= dy * f; p[ib + 2] -= dz * f; }
+  }
+}
+function underWater(sh, p, i) { return M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2])[1] < -0.5; }
+/** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
+function physStep(sh) {
+  var W = norm(WIND), ws = WIND_SAIL * (1 + 0.12 * Math.sin(SIMT * 0.9 + sh.phase) + 0.06 * Math.sin(SIMT * 2.7 + 1.3));   // 陣風（不用亂數）
+  var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
+  var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
+  for (i = 0; i < sh.ropes.length; i++) { var r = sh.ropes[i]; if (r.dead && !r.lz) { r.lz = true; if (!r.moved) spawnLoose(sh, r); } }
+  sh.sails.forEach(function (s, k) {
+    var c = sh.cl[k];
+    if (c.gone) return;
+    if (s.dead && !c.loose) {                                         // 物理打開之前就掉了的（late）⇒ 現在才垂下來；收著的時候掉的 ⇒ 不畫
+      if (!c.late || s.furled) { c.gone = true; return; }
+      clothInit(c); c.hidden = false; c.loose = true;
+    }
+    c.late = false;
+    if (s.furled && !s.dead) { c.hidden = true; return; }
+    if (c.hidden || !c.p) { clothInit(c); c.hidden = false; }
+    if (chk || c.npin < 0) clothPins(sh, s, c);
+    if ((si + k + sh.i) & 1) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
+    if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }
+  });
+  for (i = 0; i < sh.loose.length; i++) {
+    var o = sh.loose[i];
+    if (chk) {
+      ropePins(sh, o);
+      if (!o.pin[0] && !o.pin[o.n - 1]) { o.free += 0.1; if (o.free > 15 || underWater(sh, o.p, 0) && underWater(sh, o.p, o.n - 1)) { sh.loose.splice(i--, 1); continue; } }
+    }
+    var t1 = DEBUG ? performance.now() : 0; ropeStep(sh, o, wl, gv); if (DEBUG) PROF.rope += performance.now() - t1;
+  }
+}
+/** 開關物理（選單、B 鍵、下方按鈕）：開 ⇒ 帆從雕刻作品那一刻的形狀開始動；之前就斷掉的繩、掉下來的帆也垂下來
+ *  （被斷開的那一團帶走的、一開始就不畫的除外）。關 ⇒ 回到靜態。 */
+function setPhys(on) {
+  PHYS = on;
+  $('physT').classList.toggle('on', on); $('phys').checked = on;
+  SHIPS.forEach(function (sh) {
+    sh.loose = [];
+    sh.ropes.forEach(function (r) { r.lz = !!(r.never || r.moved); });
+    sh.cl.forEach(function (c, k) { c.p = null; c.hidden = true; c.loose = false; c.torn = false; c.gone = !!c.moved; c.late = sh.sails[k].dead; });
+    sh.rigDirty = true;
+  });
+  if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], on ? '帆與繩的物理：開（帆被風吹鼓、斷掉的會垂下來）' : '帆與繩的物理：關（靜態）');
+}
+

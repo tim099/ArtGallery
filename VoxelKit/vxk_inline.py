@@ -5,12 +5,16 @@
 #
 # 用法：python -I vxk_inline.py <開發用.html> <成品.html>
 #   · <script src="相對路徑.js"></script>                          ⇒ 內嵌 JS
+#   · <script src="相對路徑.js" data-bundle="名字"></script>（可以很多個）
+#       ⇒ 同一個名字的照出現順序接成一段、包進同一個閉包 (function () { 'use strict'; … })()，放在第一個的位置
+#         ⇒ 開發時照功能分檔，執行起來仍是同一個作用域（共用變數與函式；不掛到 window）
 #   · <script type="application/x-vxk" id="X" src="相對路徑.vxk"></script> ⇒ 內嵌 base64（voxelkit.js 的 VoxelKit.loadEmbedded('X') 讀）
 #   · <script type="application/x-asset" id="X" src="相對路徑.png|.json" [data-optional="1"]></script>
 #       ⇒ 內嵌 base64＋data-mime（VoxelKit.embeddedImage／embeddedJSON 讀）；optional 的檔不存在 ⇒ 留一個空的 tag（展品用替代品），不擋
 import base64, os, re, sys
 
 JS_RE = re.compile(r'<script\s+src="([^"]+)"\s*>\s*</script>')
+BUNDLE_RE = re.compile(r'<script\s+src="([^"]+)"\s+data-bundle="([^"]+)"\s*>\s*</script>\n?')
 ASSET_RE = re.compile(r'<script\s+type="application/x-asset"\s+id="([^"]+)"\s+src="([^"]+)"(\s+data-optional="1")?\s*>\s*</script>')
 MIME = {'.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.json': 'application/json'}
 VXK_RE = re.compile(r'<script\s+type="application/x-vxk"\s+id="([^"]+)"\s+src="([^"]+)"\s*>\s*</script>')
@@ -60,8 +64,27 @@ def main():
         report.append('  素材  #%s ← %s（%.1f KB）' % (m.group(1), m.group(2), len(b) / 1e3))
         return '<script type="application/x-asset" id="%s" data-mime="%s">%s</script>' % (m.group(1), mime, base64.b64encode(b).decode('ascii'))
 
+    # bundle：同名的檔接成一段（照出現順序）、包進同一個閉包，放在第一個的位置；其餘的 tag 拿掉
+    bundles, seen = {}, set()
+    for m in BUNDLE_RE.finditer(html):
+        bundles.setdefault(m.group(2), []).append(m.group(1))
+
+    def bundle(m):
+        name = m.group(2)
+        if name in seen:
+            return ''
+        seen.add(name)
+        parts = []
+        for rel in bundles[name]:
+            t = read(rel)
+            report.append('  JS    ← %s（%d 行，bundle %s）' % (rel, t.count('\n') + 1, name))
+            parts.append('// ── %s ──\n%s' % (rel, t.replace('\r\n', '\n').rstrip('\n')))
+        body = '\n'.join(parts).replace('</script', '<\\/script')
+        return "<script>\n(function () {\n'use strict';\n" + body + '\n})();\n</script>\n'
+
     html = VXK_RE.sub(vxk, html)
     html = ASSET_RE.sub(asset, html)
+    html = BUNDLE_RE.sub(bundle, html)
     html = JS_RE.sub(js, html)
     # 檢查（base64 區塊不參與比對：它只含 A–Z a–z 0–9 + / =，但太長，拿掉再查比較快）
     probe = re.sub(r'<script type="application/x-(?:vxk|asset)" id="[^"]+"[^>]*>[^<]*</script>', '', html)

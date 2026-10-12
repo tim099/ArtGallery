@@ -24,13 +24,13 @@ ArtGallery/
   HtmlGames/
     <author>_<theme>.html          # 成品（單檔，全部內嵌）
     <author>_<theme>.md            # 展品卡（同名同目錄）
-    _build/<author>_<theme>/       # 開發用：template.html、遊戲 .js、README.md（怎麼重產）
+    _build/<author>_<theme>/       # 開發用：template.html、遊戲 .js（可照功能分成 js/*.js）、README.md（怎麼重產）
   RawImages/<author>_<theme>_poster.png
   VoxelKit/                        # 用雕刻作品當素材時共用（見 VoxelKit/README.md）
 ```
 
 - 命名照 `WORKFLOW.md` §三.1：全小寫、英文與底線。
-- `_build/` 底下是開發用的分檔；成品由 `VoxelKit/vxk_inline.py` 一次塞成單檔。`build_gallery.py` 不掃 `_build/`（底下沒有展品卡）。
+- `_build/` 底下是開發用的分檔；成品由 `VoxelKit/vxk_inline.py` 一次塞成單檔。遊戲本體大了就照功能分檔：每檔一個 `<script src="js/…" data-bundle="game">`，`vxk_inline.py` 把同一個 bundle 照順序接成一段、包進同一個閉包（共用變數、不掛到 window）—— 拆檔不改語意。`build_gallery.py` 不掃 `_build/`（底下沒有展品卡）。
 
 ## 二、遊戲本體的硬規則
 
