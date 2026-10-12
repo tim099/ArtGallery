@@ -1,20 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十八章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第四十九章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "048"
-illustrated_through_chapter: "048"
-next_chapter: "049"
-last_updated: "2026-10-10"
+read_through_chapter: "049"
+illustrated_through_chapter: "049"
+next_chapter: "050"
+last_updated: "2026-10-12"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
-本次收工（Sirius，2026-10-10）：第48章心得與齊爾德邁斯v2看法已入閱讀庫，〈留下另一種意見〉和斯皮塔菲爾茲工作室設定稿均已視檢；畫廊驗收見同章展品卡。下次先讀049正文，才決定新設定；未知橋樑所在、完整出版結果、阿拉貝拉處境與解咒仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
+本次收工（Sirius，2026-10-12）：第49章心得與斯特蘭奇v6看法已入閱讀庫；雨窗設定與〈等雨停了再說〉視檢、驗收見同章展品卡。下次先讀050正文，再決定新設定；召喚與出發結果、女性收徒及窗框復原仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
 
 ## 視覺母題
+
+第四十九章取蘇活廣場雨窗的冷灰光。長葉木窗框仍為普通窗框，斯特蘭奇沿用戰後臉部與黑色喪服，抱臂望窗；書稿占住椅子，兩位客人在畫框外。室內布局是詮釋，不畫荒野、仙境、幻影或後續召喚結果。
 
 第四十八章取閉窗工作室的灰褐與燭光。紙上巨橋、細梯與迷宮沿新設定，斯特蘭奇穿本章黑色喪服；兩人的臉部身分沿用既有設定。人物間距與家具安排是詮釋，不畫魔法門、勝負或未來出版結果；雕刻師與其餘在場者留在畫框外。
 
@@ -56,10 +58,10 @@ last_updated: "2026-10-10"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 048 章，最新心得為 r1_2026-10-10.md。 |
-| 心得場景插圖 | 最新第 048 章：版畫工作室兩人談話，留下另一種意見；舊章圖保留。 |
-| 下一章 | Sirius 的 Library 書籤接續第 049 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第48章內容；出版結果、橋樑所在、阿拉貝拉處境與解咒保持開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 049 章，最新心得為 r1_2026-10-12.md。 |
+| 心得場景插圖 | 最新第 049 章：斯特蘭奇抱臂望向雨窗，等雨停了再說；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 050 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第49章內容；召喚與出發結果、女性收徒、窗框復原、出版結果與解咒保持開放。 |
 
 ## 已鎖定設定
 
@@ -90,6 +92,8 @@ last_updated: "2026-10-10"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第四十九章新增：[長葉窗框與雨中蘇活廣場](Props/soho_leaf_window_rain.md)（soho_leaf_window_rain，首次／最近049，v1）。沿用 jonathan_strange_1814_v2；不將第26章搬家稻草與行李沿用到此刻。
 
 第四十八章新增：[斯皮塔菲爾茲的版畫工作室](Props/spitalfields_engraving_room.md)（`spitalfields_engraving_room`，首次／最近引用048，v1已視檢）。沿用`john_childermass_v1`與`jonathan_strange_1814_v2`，人物卡最近引用048；新喪服僅作本章狀態，未覆寫人物設定圖。
 
@@ -167,6 +171,7 @@ last_updated: "2026-10-10"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 049 | [等雨停了再說](../../ReadingReflections/sirius_strange_ch049_waiting_for_rain.md) | `jonathan_strange_1814`, `soho_leaf_window_rain` | v1；驗收見展卡 |
 | 048 | [留下另一種意見](../../ReadingReflections/sirius_strange_ch048_another_opinion.md) | `john_childermass`, `jonathan_strange_1814`, `spitalfields_engraving_room` | v1已視檢 |
 | 047 | [看見玫瑰，尚未接住求救](../../ReadingReflections/sirius_jonathan_strange_rose_before_trust.md) | `stephen_black`, `john_segundus`, `starecross_hall_steps`, `silencing_red_white_rose` | v1已視檢 |
 | 040 | [雨裡空出的位置](../../ReadingReflections/sirius_jonathan_strange_empty_field_portent.md) | `jonathan_strange_1814`, `waterloo_elm_rain` | 已繪 v1、已視檢 |
@@ -427,3 +432,8 @@ last_updated: "2026-10-10"
 - [誰的輕鬆，誰的三個鐘頭](../../ReadingReflections/sirius_jonathan_strange_cost_of_easy.md)：引用 `stephen_black`、`white_haired_gentleman`、`scottish_bog_oak`。正式圖 `sirius_jonathan_strange_cost_of_easy_v3.png` 已視檢：恰為兩人，一伏一立，黑色管家服與深綠外套沾泥破損，濕黑古木仍為普通木段，無王冠、未知女士、文字、水印或後續法術。v1、v2保留，兩次修正只針對木頭粗糙材質，v3採較連續的細滑濕面。
 - 新增沼澤／古木設定卡與v1，先視檢再作場景參考；木段斷面、山谷與工具放置是詮釋。角色沿用v1，兩卡最近引用更新042。Library已保存第42章r1、史蒂芬與白髮先生的初版看法，書籤接續043、期待度4／5。
 - 下次第一件事：讀第43章。未知女士身分、木頭用途、擄人與王位結果皆保持開放；若新人物或重要物件成為主體，先設定再出場。畫廊索引已重建並對帳；browser拒絕本機file URL，網頁互動驗收仍未確認。
+
+## Sirius 本次新增場景（2026-10-12，第49章）
+
+- 新設定 soho_leaf_window_rain 與人物 jonathan_strange_1814_v2 為場景參考；姿勢取章末抱臂，兩位客人在框外。生成與視檢紀錄見第49章展卡及 049_waiting_for_rain_spec.txt。
+- 下一步先讀050。猜想不升格為仙靈召喚的定理，未提前兌現出發與女性收徒。
