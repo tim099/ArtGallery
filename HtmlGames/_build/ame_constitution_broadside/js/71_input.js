@@ -54,7 +54,7 @@ function doKey(k, repeat) {
   else if (k === 'p') PAUSED = !PAUSED;
   else if (k === 'm') { muted = !muted; }
   else if (k === 'h' || k === '?') $('help').classList.toggle('on');
-  else if (k === 'r') { RUNNING = false; if (END_T) { clearTimeout(END_T); END_T = 0; } $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
+  else if (k === 'r') { RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     var order = ['auto', 'manual', 'off'];
     setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
@@ -112,8 +112,8 @@ $('phys').onchange = function () { setPhys($('phys').checked); };
  *  船殼、砲、帆、火藥桶、航行、降旗的滑桿在「細節設定」那一頁（從主選單進）；主選單只留一行摘要（#detV）。 */
 function sliders() {
   var f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), ch = $('crewhp');
-  var dm = { long: $('dmg24'), carr: $('dmg32'), chase: $('dmg18') }, DLIM = { long: LIM.dmg24, carr: LIM.dmg32, chase: LIM.dmg18 }, bx = $('box'), cy = $('carry');
-  bx.min = LIM.box[0]; bx.max = LIM.box[1]; cy.min = LIM.carry[0]; cy.max = LIM.carry[1];
+  var dm = { long: $('dmg24'), carr: $('dmg32'), chase: $('dmg18') }, DLIM = { long: LIM.dmg24, carr: LIM.dmg32, chase: LIM.dmg18 }, bx = $('box'), cy = $('carry'), wk = $('wind');
+  bx.min = LIM.box[0]; bx.max = LIM.box[1]; cy.min = LIM.carry[0]; cy.max = LIM.carry[1]; wk.min = LIM.wind[0]; wk.max = LIM.wind[1];
   // 硬度跨 40 倍 ⇒ 對數刻度：滑桿 0..1 ↔ 硬度 LIM 下限 × (上限／下限)^v
   var hk = Math.log(LIM.hard[1] / LIM.hard[0]);
   f.min = LIM.flood[0]; f.max = LIM.flood[1]; h.min = 0; h.max = 1; h.step = 0.005; c.min = LIM.cas[0] * 100; c.max = LIM.cas[1] * 100;
@@ -126,7 +126,7 @@ function sliders() {
     f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = SPEEDK; ag.value = AGILK;
     gh.value = GUN_HP; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; ch.value = CREW_HP;
     for (var t in dm) dm[t].value = DMG[t];
-    bx.value = BOX_N; cy.value = CARRY_N;
+    bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
     ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
   }
@@ -139,9 +139,10 @@ function sliders() {
     $('gunhpV').textContent = GUN_HP + '（24 磅實心 ' + shots(GUN_HP, DMG.long * ammoK(0, VS_GUN)) + ' 發、舵輪 ' + Math.round(GUN_HP * 0.6) + '）';
     $('sailhpV').textContent = SAIL_HP + '（24 磅鏈彈 ' + shots(SAIL_HP, DMG.long * ammoK(2, VS_SAIL)) + ' 發）';
     $('crewhpV').textContent = CREW_HP + (CREW_HP === LIM.crewhp[2] ? '' : CREW_HP > LIM.crewhp[2] ? '（耐打）' : '（脆）');
-    $('powderhpV').textContent = powderNever() ? '拉滿（不會爆）' : POWDER_HP + '（藥包 ' + Math.round(POWDER_HP * CART_K) + '；一桶炸開，旁邊的桶最多吃 ' + Math.round(KEG_DMG * BLAST_K) + '）';
+    $('powderhpV').textContent = powderNever() ? '拉滿（不會爆）' : POWDER_HP + (POWDER_HP >= 400 ? '（很難殉爆，' : POWDER_HP >= 250 ? '（偶爾殉爆，' : '（很容易殉爆，') + '藥包 ' + Math.round(POWDER_HP * CART_K) + '）';
     $('blastV').textContent = BLAST_K.toFixed(2) + '×（前彈藥庫半徑約 ' + (MAG_R * Math.pow(BLAST_K, 1 / 3) * (S || 0.1)).toFixed(1) + ' m）';
     $('boxV').textContent = BOX_N + ' 份（開戰時裝滿）';
+    $('windV').textContent = WIND_K.toFixed(2) + '×（帆上的風約 ' + (WIND_SAIL * WIND_K).toFixed(0) + ' m/s，陣風 ±' + Math.round(GUST[0] * 100) + '%）';
     $('carryV').textContent = CARRY_N + ' 份' + (CARRY_N > BOX_N ? '（比藥箱多 ⇒ 一趟送好幾門）' : '');
     $('dmg24V').textContent = DMG.long; $('dmg32V').textContent = DMG.carr; $('dmg18V').textContent = DMG.chase;
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
@@ -163,6 +164,7 @@ function sliders() {
   ch.oninput = function () { CREW_HP = Math.round(+ch.value); show(); };
   bx.oninput = function () { BOX_N = Math.round(+bx.value); show(); };
   cy.oninput = function () { CARRY_N = Math.round(+cy.value); show(); };
+  wk.oninput = function () { WIND_K = +wk.value; show(); };          // 物理是每一步讀 ⇒ 遊戲中也能調（只管畫面）
   Object.keys(dm).forEach(function (t) { dm[t].oninput = function () { DMG[t] = Math.round(+dm[t].value); show(); }; });
   for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) (function (r, k) {
     var el = am(r, k);
@@ -177,7 +179,7 @@ function sliders() {
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
     FLOOD = LIM.flood[2]; HARDK = LIM.hard[2]; SPEEDK = LIM.speed[2]; AGILK = LIM.agile[2];
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
-    DMG.long = LIM.dmg24[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2];
+    DMG.long = LIM.dmg24[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false;
     put(); show();

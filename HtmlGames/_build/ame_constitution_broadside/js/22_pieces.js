@@ -61,7 +61,7 @@ function spawnPiece(sh, pc) {
   sh.crew.forEach(function (c) { if (c.st < 3 && set.has(VK.pack(Math.floor(c.pos[0]), Math.floor(c.pos[1]), c.pos[2] - 1))) fall(sh, c, mul(axis, 2)); });
   sh.models.forEach(function (m) {                            // 腳下那一格在這一團裡的模型（砲、舵輪）跟著走（⛔ 不跟 ⇒ 下一次 survey 從漂走的半截船裡直直掉進海裡）
     if (!m.alive || !set.has(m.foot)) return;
-    m.alive = false; piece.mods.push({ mesh: m.mesh, origin: m.origin });
+    m.alive = false; m.moved = true; piece.mods.push({ mesh: m.mesh, L: modelLocal(m) });
     sh.guns.forEach(function (g) { if (g.model === m) g.alive = false; });
   });
   piece.sh = sh; piece.pivotL = M4.pt(sh.inv, pivot[0], pivot[1], pivot[2]);

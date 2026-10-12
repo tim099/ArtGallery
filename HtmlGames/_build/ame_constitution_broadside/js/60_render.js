@@ -77,13 +77,13 @@ function render() {
     if (sh.sink > 40) return;
     sh.models.forEach(function (m) {
       if (!m.alive || !MESHES[m.mesh]) return;
-      gl.uniformMatrix4fv(P.tri.u.uModel, false, M4.mul(sh.M, trans(m.origin[0], m.origin[1], m.origin[2])));
+      gl.uniformMatrix4fv(P.tri.u.uModel, false, M4.mul(sh.M, modelLocal(m)));
       gl.bindVertexArray(MESHES[m.mesh].vao); gl.drawArrays(gl.TRIANGLES, 0, MESHES[m.mesh].n);
     });
   });
   PIECES.forEach(function (pc) { (pc.mods || []).forEach(function (m) {      // 跟著斷開的那一團走的模型
     if (!MESHES[m.mesh]) return;
-    gl.uniformMatrix4fv(P.tri.u.uModel, false, M4.mul(pc.M, trans(m.origin[0], m.origin[1], m.origin[2])));
+    gl.uniformMatrix4fv(P.tri.u.uModel, false, M4.mul(pc.M, m.L));
     gl.bindVertexArray(MESHES[m.mesh].vao); gl.drawArrays(gl.TRIANGLES, 0, MESHES[m.mesh].n);
   }); });
   FLY.forEach(function (f) { if (!MESHES[f.mesh] || !f.M) return; gl.uniformMatrix4fv(P.tri.u.uModel, false, f.M); gl.bindVertexArray(MESHES[f.mesh].vao); gl.drawArrays(gl.TRIANGLES, 0, MESHES[f.mesh].n); });

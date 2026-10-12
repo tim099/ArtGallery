@@ -3,10 +3,10 @@ var BASE = null, PRISTINE = null, QIDX = null, MODEL = null, RIG = null;
 var SHIPS = [], PIECES = [], BALLS = [], EVENTS = [], FLY = [], PLAYER_I = 0;
 // 選單的滑桿：[下限, 上限, 預設]。網址參數與滑桿共用這一組（⛔ 各一組 ⇒ ?demo 跑的不是網址寫的那組）；讀不懂的值 ⇒ 預設
 var LIM = { hard: [0.5, 20, 2], flood: [0, 2, 0.35], cas: [0.1, 1, 1], speed: [0.25, 3, 1], agile: [0.25, 3, 1],
-  // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶拉滿 ＝ 不會爆（預設）
-  gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 500, 500], blast: [0.25, 4, 1],
+  // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶預設 450（很難殉爆但有機率；Tim 2026-10-12），拉滿 500 ＝ 不會爆
+  gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 500, 450], blast: [0.25, 4, 1],
   dmg24: [10, 300, 100], dmg32: [10, 300, 120], dmg18: [10, 300, 70],
-  box: [1, 8, 2], carry: [1, 6, 1] };                                   // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
+  box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1] };                                   // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
 var HARDK = qnum('hard', LIM.hard);     // 船殼硬度倍率（越硬越難打穿、洞越小）
 var FLOOD = qnum('flood', LIM.flood);   // 進水速度倍率（0 ＝ 不會沉）
@@ -15,9 +15,10 @@ var AGILK = qnum('agile', LIM.agile);   // 靈活性倍率（乘在最大轉向�
 var GUN_HP = Math.round(qnum('gunhp', LIM.gunhp));          // 砲的血量（舵輪 6 成）：預設 200 ⇒ 24 磅實心兩發（Tim 2026-10-12：100 太脆，翻倍）
 var SAIL_HP = Math.round(qnum('sailhp', LIM.sailhp));       // 帆的血量
 var CREW_HP = Math.round(qnum('crewhp', LIM.crewhp));       // 船員的血量：歸零陣亡、掉到一半以下受傷倒下、一半以上照常作戰（只閃紅）
-var POWDER_HP = Math.round(qnum('powderhp', LIM.powderhp)); // 火藥桶的血量：歸零殉爆；拉滿（LIM 上限）＝ 不會爆（預設）
+var POWDER_HP = Math.round(qnum('powderhp', LIM.powderhp)); // 火藥桶的血量：歸零殉爆；拉滿（LIM 上限）＝ 不會爆；預設 450 ＝ 很難但有機率
 var BLAST_K = qnum('blast', LIM.blast);
-var BOX_N = Math.round(qnum('box', LIM.box)), CARRY_N = Math.round(qnum('carry', LIM.carry));   // 砲旁藥箱容量、送藥手一次搬幾份（火藥與彈藥一份 ＝ 裝填一次）                     // 殉爆威力倍率（能量；爆炸半徑 ∝ 立方根）
+var BOX_N = Math.round(qnum('box', LIM.box)), CARRY_N = Math.round(qnum('carry', LIM.carry));
+var WIND_K = qnum('wind', LIM.wind);                                // 帆的風壓倍率（只管物理開著時帆被吹成什麼樣子；不改航速）   // 砲旁藥箱容量、送藥手一次搬幾份（火藥與彈藥一份 ＝ 裝填一次）                     // 殉爆威力倍率（能量；爆炸半徑 ∝ 立方根）
 function powderNever() { return POWDER_HP >= LIM.powderhp[1]; }
 // 每發傷害（砲種）：砲彈開火時帶著 b.dmg
 var DMG = { long: Math.round(qnum('dmg24', LIM.dmg24)), carr: Math.round(qnum('dmg32', LIM.dmg32)), chase: Math.round(qnum('dmg18', LIM.dmg18)) };

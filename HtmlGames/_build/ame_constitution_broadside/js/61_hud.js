@@ -157,9 +157,11 @@ function hud(dt) {
   $('tip').textContent = t;
   drawNav(me);
 }
-var END_T = 0;
+// 結算畫面照模擬時間延後跳（暫停時不會跳出來）：沉了 2.5 秒；降旗、殉爆、全員倒下 5.5 秒（Tim：先看完精彩畫面 —— 殉爆的火球、斷成兩截）
+var END_AT = 0, END_SINK = 2.5, END_OTHER = 5.5;
 function checkEnd() {
-  if (OVER || MODE === 'sandbox' || DEMO >= 0) return;
+  if (MODE === 'sandbox' || DEMO >= 0) return;
+  if (OVER) { if (END_AT && SIMT >= END_AT) { END_AT = 0; $('end').className = 'on'; } return; }
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
   function fate(sh) { return sh.sunk ? '沉沒' : sh.fate; }
   if (foe.sunk || foe.struck) txt = '勝利！敵艦' + fate(foe);
@@ -169,6 +171,6 @@ function checkEnd() {
   $('endT').textContent = txt;
   $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
     '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
-  END_T = setTimeout(function () { END_T = 0; $('end').className = 'on'; }, 2500);   // 重開／回選單時取消（⛔ 不取消 ⇒ 結束後 2.5 秒內按重新開始，新的一局會跳出結算）
+  END_AT = SIMT + (foe.sunk || me.sunk ? END_SINK : END_OTHER);   // 重開／回選單時歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
 }
 

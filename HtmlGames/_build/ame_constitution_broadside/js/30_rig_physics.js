@@ -5,19 +5,69 @@
 // ⛔ 物理只管畫出來的樣子：航速、命中、帆算不算數照原本的規則（s.dead／s.furled），而且這一段不碰 rnd()
 //   ⇒ 開或關，同一個種子走出同一局。
 // 座標：船的格座標（跟繩與帆的資料同一套）；重力與相對風用 sh.inv 換進來（1 格 ＝ S 公尺，速度單位 格/秒）。
-var WIND_SAIL = 7;            // 推帆的風速（m/s）；WIND 的大小是煙飄的速度，只共用方向
+var WIND_SAIL = 10;           // 推帆的風速（m/s）；WIND 的大小是煙飄的速度，只共用方向。Tim 2026-10-12：7 太不明顯 ⇒ 10，再乘細節設定的風壓（WIND_K）
+var GUST = [0.24, 0.12, 0.06], FLUTTER = 0.35, SLACK = 1.02;   // 陣風三個頻率的幅度、布上走過去的波紋（風壓 ±35%）、布比作品的形狀鬆 2%（鼓得深一點）
 var KW = 0.05;                // 風壓：加速度（格/秒²）＝ KW ×（相對風在法線上的分量）²
 var KD = 0.3, DAMP = 0.985;   // 繩的空氣阻力（1/秒）、每一步的速度保留
 var ITER_C = 4, ITER_R = 4, SEG = 6, LOOSE_MAX = 500;
 var HC = 2 * DT;              // 帆隔一步走一次（一半的帆走單數步、一半走雙數步）⇒ 30 Hz，負擔攤平
 var CLOTHT = [], CACC = null, CCNT = null, RBOX = null, PHYS_MS = 0, PROF = { cloth: 0, rope: 0, buf: 0 };
+// 帆桁追風（物理開著才轉）：方帆桁讓帆的法線落在「相對風吹去的方向」與船頭的角平分線上，最多轉離正橫 40°（再多就頂到支索與 shroud）；
+//   gaff／boom（後桅縱帆）往下風擺，帆面跟船身的夾角 ＝ (180° − 相對風角)／2，8°–80°；頂風 ±25° 內不換邊（遲滯）。每秒最多轉 8°。
+//   帆的綁點、帆腳與綁在帆桁上的繩跟著轉（繩照弧長在兩端之間內插：一端綁甲板的 brace 就只有帆桁那一頭轉）。
+//   ⚠ 帆桁轉了，砲彈打到帆桁的位置跟著變 ⇒ 物理開或關不再走出逐格同一局（只差在打到帆桁的那幾下）。
+var BRACE_MAX = 0.70, BOOM_MIN = 0.14, BOOM_MAX = 1.40, BRACE_RATE = 0.14, BRACE_HYST = 2.7;
+function braceYards(sh, wl, dt) {
+  var psi = Math.atan2(wl[1], wl[0]);                                // 相對風吹去的方向（格座標、從船頭往 +y 量）：0 ＝ 正後方來的風
+  if (Math.abs(psi) < BRACE_HYST || !sh.braceSide) sh.braceSide = psi >= 0 ? 1 : -1;
+  sh.yards.forEach(function (m) {
+    if (!m.alive) return;
+    var tgt = m.yk === 'gaff' || m.yk === 'boom' ? -sh.braceSide * clamp((Math.PI - Math.abs(psi)) / 2, BOOM_MIN, BOOM_MAX)
+      : Math.abs(psi) < BRACE_HYST ? clamp(psi / 2, -BRACE_MAX, BRACE_MAX) : sh.braceSide * BRACE_MAX;
+    m.rot += clamp(tgt - m.r0 - m.rot, -BRACE_RATE * dt, BRACE_RATE * dt);
+  });
+  sh.psi = psi;
+}
+/** 綁在帆桁上的繩重算形狀（帆桁轉了 0.25° 以上才算；物理關掉時 rot 歸零 ⇒ 回到作品的形狀）。 */
+function yardRopes(sh, force) {
+  var moved = force || sh.yards.some(function (m) { return Math.abs(m.rot - (m.rotA || 0)) > 0.004; });
+  if (!moved) return;
+  sh.yards.forEach(function (m) { m.rotA = m.rot; });
+  sh.yRopes.forEach(function (r) {
+    var A = r.ya >= 0 ? sh.models[r.ya] : null, B = r.yb >= 0 ? sh.models[r.yb] : null;
+    if ((!A || !A.rot) && (!B || !B.rot)) { r.pts = r.pts0; r.bb = ropeBox(r.pts); return; }
+    var p0 = r.pts0, n = p0.length / 3, acc = new Float32Array(n), tot = 0, j;
+    for (j = 1; j < n; j++) { tot += Math.hypot(p0[j * 3] - p0[j * 3 - 3], p0[j * 3 + 1] - p0[j * 3 - 2], p0[j * 3 + 2] - p0[j * 3 - 1]); acc[j] = tot; }
+    var out = new Float32Array(p0.length);
+    for (j = 0; j < n; j++) {
+      var P0 = [p0[j * 3], p0[j * 3 + 1], p0[j * 3 + 2]], t = tot > 0 ? acc[j] / tot : 0;
+      var pa = A && A.rot ? rotZ(P0, A.piv, A.rot) : P0, pb = B && B.rot ? rotZ(P0, B.piv, B.rot) : P0;
+      if (A && B && A === B) pb = pa;
+      out[j * 3] = pa[0] * (1 - t) + pb[0] * t; out[j * 3 + 1] = pa[1] * (1 - t) + pb[1] * t; out[j * 3 + 2] = P0[2];
+    }
+    r.pts = out; r.bb = ropeBox(out);
+  });
+  sh.rigDirty = true;
+}
+/** 綁著的布點跟著帆桁轉（每一步都放回「作品的位置繞轉軸轉 rot」；鬆開的點交給物理）。 */
+function yardPins(sh, c) {
+  var T = c.T.sim, yk = T.yk; if (!yk) return;
+  for (var i = 0; i < T.n; i++) {
+    if (!c.pin[i] || yk[i] < 0) continue;
+    var m = sh.models[yk[i]]; if (!m.rot) { if (!c.yr) continue; }
+    var o = i * 3, w = rotZ([T.p0[o], T.p0[o + 1], T.p0[o + 2]], m.piv, m.rot);
+    c.p[o] = c.q[o] = w[0]; c.p[o + 1] = c.q[o + 1] = w[1];
+  }
+  c.yr = sh.yards.some(function (m) { return m.rot; });
+}
 /** 一面帆的布（兩艘船共用；載入時算一次）：
  *  只留一層 —— 雕刻作品的帆是正反兩層、相差 0.11 格，兩層都畫遠看會互相打架成棋盤格；
  *  邊（距離約束）＋ 同一條格線上隔一點的兩點（跨點約束，布不會揉成一團）；
  *  外緣在轉角（> 29°）處切成幾段：筆直的那幾段是綁在帆桁／支索／斜桁上的邊（作品裡整條固定在線段上；鼓起來的自由邊不會直），
  *  綁邊上的點各自找靠的格（0.6 m 內）或繩（0.4 m 內）—— 帆桁被打掉一截，只有那一截的布鬆開；
  *  不在綁邊上的角 ＝ 帆腳：綁在帆自己的繩（sheet／tack，端點 1 m 內）、旁邊的格或繩上。
- *  hk：0 不綁、1 格、2 繩、3 找不到靠的（帆還在就綁著）、4 模型。 */
+ *  hk：0 不綁、1 格、2 繩、3 找不到靠的（帆還在就綁著）、4 模型（帆桁：綁邊靠在帆桁的網格上）。
+ *  sim.yk：每個綁著的粗格點跟著哪根帆桁轉（帆桁追風，見 braceYards；-1 ＝ 不轉）。 */
 function clothTemplate(s) {
   var v = s.verts, tr = s.tris, nv = v.length / 3, h = nv >> 1, T = [], one = nv % 2 === 0, i, j, k;
   for (j = 0; j < tr.length; j += 3) {
@@ -61,6 +111,7 @@ function clothTemplate(s) {
   }
   for (i = 0; i < n; i++) {
     if (hk[i] !== 3) continue;
+    var yw = yardNear(P(i), 3); if (yw >= 0) { hk[i] = 4; hv[i] = yw; continue; }   // 綁在帆桁上（帆桁改成模型之後，那裡已經沒有格）
     var w = P(i), an = anchorNear(w[0], w[1], w[2], 6);
     if (an >= 0) { hk[i] = 1; hv[i] = an; } else { var rp = ropeNear(w, 16); if (rp >= 0) { hk[i] = 2; hv[i] = rp; } }
   }
@@ -78,6 +129,18 @@ function clothTemplate(s) {
   var cg = coarseOf(n, T), sim = meshCons(cg.idx.map(P), cg.tris);
   sim.fine = cg.idx; sim.hk = new Int8Array(cg.idx.length); sim.hv = new Int32Array(cg.idx.length);
   cg.idx.forEach(function (f, ci) { sim.hk[ci] = hk[f]; sim.hv[ci] = hv[f]; });
+  // 跟著哪根帆桁轉：這面帆的帆桁（meta sail）裡離這一點最近的那根（線段：方帆桁 arm-P–arm-S、gaff／boom pivot–end）；帆腳（綁甲板的 sheet）也跟著轉 ⇒ 整面帆一起追風
+  var ys = []; (RIG.models || []).forEach(function (m, k) {
+    var mt = m.meta || {}, pt = m.points || {}; if (mt.kind !== 'yard' || mt.sail !== s.name || !pt.pivot) return;
+    var a = pt['arm-P'] || pt.pivot, b = pt['arm-S'] || pt.end || pt.pivot; ys.push({ k: k, a: a, b: b });
+  });
+  sim.yk = new Int16Array(cg.idx.length).fill(-1);
+  if (ys.length) cg.idx.forEach(function (f, ci) {
+    if (!sim.hk[ci]) return;
+    var w = P(f), bi = -1, bd = 1e18;
+    ys.forEach(function (y) { var d = segDist2(w, y.a[0], y.a[1], y.a[2], y.b[0], y.b[1], y.b[2]); if (d < bd) { bd = d; bi = y.k; } });
+    sim.yk[ci] = bi;
+  });
   return { name: s.name, col: s.color || [0.95, 0.92, 0.85], n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
     hk: hk, hv: hv, sides: sides, pins: pins, clews: clews };
 }
@@ -98,8 +161,8 @@ function meshCons(pos, T) {
   }
   var p0 = new Float32Array(n * 3), rest = new Float32Array(ea.length), brest = new Float32Array(ba.length);
   pos.forEach(function (w, q) { p0[q * 3] = w[0]; p0[q * 3 + 1] = w[1]; p0[q * 3 + 2] = w[2]; });
-  for (i = 0; i < ea.length; i++) rest[i] = len(sub(pos[ea[i]], pos[eb[i]]));
-  for (i = 0; i < ba.length; i++) brest[i] = len(sub(pos[ba[i]], pos[bb[i]]));
+  for (i = 0; i < ea.length; i++) rest[i] = len(sub(pos[ea[i]], pos[eb[i]])) * SLACK;
+  for (i = 0; i < ba.length; i++) brest[i] = len(sub(pos[ba[i]], pos[bb[i]])) * SLACK;
   return { n: n, p0: p0, tris: T, te: new Uint16Array(te), ea: new Uint16Array(ea), eb: new Uint16Array(eb), rest: rest, ba: new Uint16Array(ba), bb: new Uint16Array(bb), brest: brest };
 }
 /** 細格 → 粗格：方帆 N×N、三角帆（第 r 列 N−r 點）、N 是單數 ⇒ 取偶數列偶數行；其他形狀 ⇒ 不縮（粗格 ＝ 細格）。
@@ -209,7 +272,9 @@ function clothStep(sh, c, wl, gv) {
     if (l < 1e-9) continue;
     nx /= l; ny /= l; nz /= l;
     var rx = wl[0] - (p[a] - q[a] + p[b] - q[b] + p[d] - q[d]) * inv, ry = wl[1] - (p[a + 1] - q[a + 1] + p[b + 1] - q[b + 1] + p[d + 1] - q[d + 1]) * inv, rz = wl[2] - (p[a + 2] - q[a + 2] + p[b + 2] - q[b + 2] + p[d + 2] - q[d + 2]) * inv;
-    var dn = rx * nx + ry * ny + rz * nz, f = KW * dn * Math.abs(dn), fx = f * nx, fy = f * ny, fz = f * nz;
+    var dn = rx * nx + ry * ny + rz * nz, f = KW * dn * Math.abs(dn);
+    f *= 1 + FLUTTER * Math.sin((p[a] * 0.9 + p[a + 2]) * 0.06 - SIMT * 5.5);   // 一道一道走過布面的風（不抽亂數）
+    var fx = f * nx, fy = f * ny, fz = f * nz;
     A[a] += fx; A[a + 1] += fy; A[a + 2] += fz; A[b] += fx; A[b + 1] += fy; A[b + 2] += fz; A[d] += fx; A[d + 1] += fy; A[d + 2] += fz;
     N[a / 3]++; N[b / 3]++; N[d / 3]++;
   }
@@ -273,9 +338,10 @@ function ropeStep(sh, o, wl, gv) {
 function underWater(sh, p, i) { return M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2])[1] < -0.5; }
 /** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
 function physStep(sh) {
-  var W = norm(WIND), ws = WIND_SAIL * (1 + 0.12 * Math.sin(SIMT * 0.9 + sh.phase) + 0.06 * Math.sin(SIMT * 2.7 + 1.3));   // 陣風（不用亂數）
+  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2));   // 陣風（不用亂數）
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
   var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
+  if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
   for (i = 0; i < sh.ropes.length; i++) { var r = sh.ropes[i]; if (r.dead && !r.lz) { r.lz = true; if (!r.moved) spawnLoose(sh, r); } }
   sh.sails.forEach(function (s, k) {
     var c = sh.cl[k];
@@ -288,6 +354,7 @@ function physStep(sh) {
     if (s.furled && !s.dead) { c.hidden = true; return; }
     if (c.hidden || !c.p) { var keep = c.p && c.torn ? { brk: c.brk, bbrk: c.bbrk, tv: c.tv } : null; clothInit(c); c.hidden = false; if (keep) { c.brk = keep.brk; c.bbrk = keep.bbrk; c.tv = keep.tv; c.torn = true; } }   // 收帆再張：形狀重來、破洞留著
     if (chk || c.npin < 0) clothPins(sh, s, c);
+    yardPins(sh, c);
     if ((si + k + sh.i) & 1) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
     if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }
   });
@@ -307,6 +374,7 @@ function setPhys(on) {
   $('physT').classList.toggle('on', on); $('phys').checked = on;
   SHIPS.forEach(function (sh) {
     sh.loose = [];
+    if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); }   // 關 ⇒ 帆桁回到作品的角度
     sh.ropes.forEach(function (r) { r.lz = !!(r.never || r.moved); });
     sh.cl.forEach(function (c, k) { c.p = null; c.hidden = true; c.loose = false; c.torn = false; c.gone = !!c.moved; c.late = sh.sails[k].dead; });
     sh.rigDirty = true;

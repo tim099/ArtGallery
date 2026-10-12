@@ -151,7 +151,7 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
       <h3>船殼</h3>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
       <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
@@ -171,6 +171,8 @@
       <h3>帆</h3>
       <div class="row slide"><label for="sailhp">血量</label><input type="range" id="sailhp" step="10" aria-label="帆的血量"><span id="sailhpV"></span></div>
       <div class="row note">歸零才掉；還沒掉的帆照剩下的血量算推力（物理開著會看到破洞）。收起來的帆打不壞。</div>
+      <div class="row slide"><label for="wind">風壓</label><input type="range" id="wind" step="0.05" aria-label="帆的風壓"><span id="windV"></span></div>
+      <div class="row note">帆與繩的物理開著時，帆被吹鼓的力道與陣風（帆桁也會跟著風轉）；只管畫面，不改航速。</div>
       <h3>船員</h3>
       <div class="row slide"><label for="crewhp">血量</label><input type="range" id="crewhp" step="10" aria-label="船員的血量"><span id="crewhpV"></span></div>
       <div class="row note">歸零陣亡；掉到一半以下受傷倒下；一半以上照常作戰（只閃紅）。火槍一發 40～125。</div>
@@ -182,7 +184,7 @@
       <div class="row slide"><label for="powderhp">血量</label><input type="range" id="powderhp" step="10" aria-label="火藥桶的血量"><span id="powderhpV"></span></div>
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
       <div class="row note">兩間彈藥庫在艙底（後 22 桶、前 116 桶，每桶 100 磅；水線下，砲彈打不到）。兩層甲板在彈藥庫上方各有一個取用點（3 桶火藥＋彈藥），送藥手從那裡搬到砲旁的藥箱。<br>
-        血量拉滿 ＝ 都不會爆（預設）。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+        預設 450：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去兩次才會著）；拉滿 500 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>航行</h3>
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
