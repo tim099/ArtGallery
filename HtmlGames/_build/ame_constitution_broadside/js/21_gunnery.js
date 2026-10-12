@@ -4,7 +4,7 @@ function fireGun(sh, g, target, ammo) {
   if (!bears(sh, g, target)) return false;                            // 目標不在這門砲的砲門射界 ⇒ 不開（呼叫端先用 gunTarget 挑好這門打得到的點）
   var mw = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]);
   var side = gunAxis(sh, g);
-  var V = g.type === 'carr' ? 140 : g.type === 'chase' ? 165 : V0;                               // carronade：32 磅、短砲身 ⇒ 初速低、彈大
+  var GS = GUNS[g.type], V = GS.V;                                    // 初速照砲種（carronade：32 磅、短砲身 ⇒ 初速低、彈大）
   var foe = SHIPS[1 - sh.i], rel = sub(foe.vel, sh.vel);           // 前置量：砲彈帶著本艦的船速 ⇒ 瞄對方「相對本艦」飛行時間後的位置
   target = add(target, mul(rel, Math.hypot(target[0] - mw[0], target[2] - mw[2]) / V));
   var dx = target[0] - mw[0], dz = target[2] - mw[2], dy = target[1] - mw[1], d = Math.hypot(dx, dz);
@@ -17,8 +17,8 @@ function fireGun(sh, g, target, ammo) {
   spread *= [0.7, 0.75, 0.85, 1][sh.sailSet];                       // 帆收得越多，船越穩
   el = clamp(el + gauss() * spread, -0.17, 0.26); az += gauss() * spread;
   var dir = [Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)];
-  var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: g.type === 'carr', dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）
-  BALLS.push(b); g.reload = sh.reloadT * (g.type === 'carr' ? 0.7 : 1) * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
+  var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: GS.big, dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）
+  BALLS.push(b); g.reload = sh.reloadT * GS.reload * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
   g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
   sh.rollV += g.side === 'P' ? -0.0012 : 0.0012;                      // 後座：船往反方向晃一下
@@ -215,7 +215,7 @@ function blowModel(sh, m, vel, drop) {
   }
   if (m.kind === 'wheel') note(sh, '舵輪被打飛了');
   else if (m.kind === 'yard' && !drop) note(sh, '帆桁 ' + m.name.replace('yard-', '') + ' 被打斷');
-  else if (GUN_TYPE[m.kind]) newsGun(sh, m, drop);                    // 廣播（同一刻好幾門 ⇒ 併成一行，見 61_hud.js）
+  else if (GUNS[m.kind]) newsGun(sh, m, drop);                    // 廣播（同一刻好幾門 ⇒ 併成一行，見 61_hud.js）
 }
 /** 模型被打中：扣血（細節設定的砲血量；舵輪 6 成），歸零才整個飛出去。還撐得住 ⇒ 火星、聲音、旁邊的人被碎片波及。
  *  火藥桶另走 powderHit（歸零殉爆；拉滿 ＝ 不會爆 ⇒ 不扣）。 */

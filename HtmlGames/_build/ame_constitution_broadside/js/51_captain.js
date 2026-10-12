@@ -68,7 +68,7 @@ function modeAim(foe, mode, rand) {
     mode = 'hull';
   }
   if (mode === 'deck') {
-    var on = foe.crew.filter(function (c) { return c.st === 0 && (c.deck === 'carr' || c.role === ROLE.MARINE || c.role === ROLE.OFFICER || c.role === ROLE.HELM); });
+    var on = foe.crew.filter(function (c) { return c.st === 0 && (c.deck === foe.weatherDeck || c.role === ROLE.MARINE || c.role === ROLE.OFFICER || c.role === ROLE.HELM); });
     if (on.length) { var c = rand ? on[(rnd() * on.length) | 0] : on[0]; return { t: [rand ? c.pos[0] : xm, CY, c.pos[2] + 10], ammo: P(0.8) ? 1 : 0 }; }
     mode = 'hull';
   }

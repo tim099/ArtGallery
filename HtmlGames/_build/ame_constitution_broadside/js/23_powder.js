@@ -129,26 +129,19 @@ function breakShip(sh, xb) {
 // 危險（火藥血量拉滿 ＝ 全都不會爆；預設 675 ⇒ 藥包 203（一般命中要擲到偏高）、火光一次 300，要三次）：藥包（送藥手手上、砲旁藥箱）的血量 ＝ 火藥桶的 30%，吃到一下夠重的就著火爆炸；
 //   取用點的桶被打到照火藥桶算；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口：彈藥庫裡靠門最近的 6 桶各扣 300 × 威力 ⇒ 可能整間殉爆。
 var CART_K = 0.3, MONKEY_SP = 26, FILL_T = 0.8, FLASH_R = 30, FLASH_DMG = 300, FLASH_CD = 3;
-/** 兩層甲板站人的高度範圍（從砲推）。 */
-function deckZ(sh) {
-  var lg = sh.guns.filter(function (g) { return g.type === 'long'; })[0], cr = sh.guns.filter(function (g) { return g.type === 'carr'; })[0];
-  var a = lg ? Math.floor(lg.model.bb[2]) : 82, b = cr ? Math.floor(cr.model.bb[2]) : 105;
-  return { long: [a - 8, a + 5], carr: [b - 6, b + 3] };
-}
-/** 取用點：每層甲板 × 每間彈藥庫一個，放在彈藥庫正上方、中線旁一塊平的空地（9×9 格、頭上 8 格空、不碰砲）。 */
+/** 取用點：每層砲甲板（sh.decks，照砲的高度分，10_ship.js gunDecks）× 每間彈藥庫一個，放在彈藥庫正上方、中線旁一塊平的空地（9×9 格、頭上 8 格空、不碰砲）。 */
 function makeStations(sh) {
-  sh.deckZ = deckZ(sh);
   var T = sh.T, BASE = T.base, CY = T.cy;
   var keg = sh.mags.length && sh.mags[0].kegs[0]; if (!keg || !T.rig.meshes[keg.mesh]) return [];
   var V = T.rig.meshes[keg.mesh].verts, mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9], j, a;
   for (j = 0; j < V.length; j += 3) for (a = 0; a < 3; a++) { mn[a] = Math.min(mn[a], V[j + a]); mx[a] = Math.max(mx[a], V[j + a]); }
-  var guns = sh.models.filter(function (m) { return GUN_TYPE[m.kind] || m.kind === 'wheel'; }), out = [];
+  var guns = sh.models.filter(function (m) { return GUNS[m.kind] || m.kind === 'wheel'; }), out = [];
   function clear(x, y, z) {
     for (var dy = 0; dy <= 9; dy += 3) for (var dx = 0; dx <= 9; dx += 3) { var zz = standZ(BASE, x + dx, y + dy, z - 1, z + 1, 8); if (zz < 0) return false; }
     return !guns.some(function (m) { var b = m.bb; return x + 11 > b[0] && x - 2 < b[3] && y + 11 > b[1] && y - 2 < b[4] && z + 8 > b[2] && z - 3 < b[5]; });
   }
-  ['long', 'carr'].forEach(function (deck) {
-    var zr = sh.deckZ[deck];
+  sh.decks.forEach(function (D) {
+    var deck = D.key, zr = D.zr;
     sh.mags.forEach(function (mag) {
       var x0 = Math.round(mag.blast[0]), spot = null;
       for (var r = 0; r <= 30 && !spot; r += 2) for (var s = -1; s <= 1 && !spot; s += 2) for (var dx = -r; dx <= r && !spot; dx += 2) {
@@ -156,7 +149,7 @@ function makeStations(sh) {
         if (z >= 0 && clear(x, y, z)) spot = [x, y, z];
       }
       if (!spot) return;
-      var st = { deck: deck, mag: mag, name: (deck === 'long' ? '砲甲板' : '上甲板') + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
+      var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
         var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: POWDER_HP, hpMax: POWDER_HP, mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
@@ -241,7 +234,7 @@ function cartHit(sh, c, dmg) {
 /** 砲旁的藥箱（damageModel 打到砲時轉過來）。 */
 function boxHit(sh, g, dmg) {
   if (!(g.box > 0) || powderNever() || dmg < POWDER_HP * CART_K) return;
-  var n = g.box; g.box = 0; cartBoom(sh, g.model.c, n, sideName(g.side) + (g.type === 'long' ? '長砲' : g.type === 'carr' ? ' carronade ' : '追擊砲') + '旁的藥箱炸了');
+  var n = g.box; g.box = 0; cartBoom(sh, g.model.c, n, sideName(g.side) + GUNS[g.type].short + '旁的藥箱炸了');
 }
 /** 藥包爆炸（n 份）：小洞、旁邊的人與模型（取用點的桶 ⇒ 連鎖）、可能竄下艙口。 */
 function cartBoom(sh, L, n, what) {

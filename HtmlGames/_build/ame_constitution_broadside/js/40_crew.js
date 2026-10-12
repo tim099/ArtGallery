@@ -4,7 +4,7 @@
 // 人不夠時，倖存者集中到還開得動的砲 ⇒ 其餘的砲沒人操作（HUD ○）。調度見 reassign。
 var ROLE = { GUN: 0, POWDER: 1, OFFICER: 2, MARINE: 3, TOP: 4, HELM: 5 }, NROLE = 6;
 var FR = { IDLE: 0, WORK_A: 1, WORK_B: 2, FIRE: 3, RUN_A: 4, RUN_B: 5, WOUNDED: 6, DEAD: 7 }, NFR = 8;
-var CREW_FULL = { long: 5, carr: 3, chase: 3 }, CREW_MIN = { long: 3, carr: 2, chase: 2 };   // 兩舷各一班；24 磅長砲一班 12 人＋送藥童 ⇒ 一個人物約兩人
+// 砲班：滿編／最少照砲種表（GUNS 的 crew／min，10_ship.js）—— 兩舷各一班；24 磅長砲一班 12 人＋送藥童 ⇒ 一個人物約兩人
 // Tim 2026-10-12：砲班減一人（長砲 6 → 5、追擊砲 4 → 3），多出來的去搬火藥與彈藥（送藥手，23_powder.js）；射速照舊（裝填 ∝ 在崗／滿編）
 var ROLE_NAME = ['砲手', '送藥手', '軍官', '陸戰隊', '桅頂水手', '舵手'];
 var ART_CAPTAIN = 6, NART = 7;                    // 貼圖的列：0–5 照職位，6 船長（每艘船第一個軍官；職位照舊是軍官）
@@ -40,14 +40,14 @@ function makeCrew(sh) {
   CREW_BLOCK = sh.models.filter(function (m) { return m.kind !== 'powder' || m.station; });   // 取用點的桶在甲板上 ⇒ 要避
   function add(role, at, gun, face) { if (at) crew.push({ role: role, home: at, pos: at.slice(), gun: gun, face: face || 1, st: 0, t: rnd() * 10, walk: null, fireT: 0, shotT: rr(2, 6), lost: 0, hp: CREW_HP, hitT: 0 }); }
   sh.guns.forEach(function (gn) {
-    var b = gn.model.bb.map(Math.floor), z0, z1, i, n = CREW_FULL[gn.type];
-    if (gn.type === 'long') { z0 = b[2] - 8; z1 = b[2] + 3; }
-    else if (gn.type === 'chase') { z0 = b[2] - 3; z1 = b[2] + 3; }
-    else { z0 = b[2] - 6; z1 = b[2] + 3; }
+    var b = gn.model.bb.map(Math.floor), z0, z1, i, n = GUNS[gn.type].crew;
+    if (gn.type === 'chase') { z0 = b[2] - 3; z1 = b[2] + 3; }
+    else if (gn.type === 'carr') { z0 = b[2] - 6; z1 = b[2] + 3; }
+    else { z0 = b[2] - 8; z1 = b[2] + 3; }                            // 長砲（24、32 磅）
     var cx = Math.floor((b[0] + b[3]) / 2), sg = gn.side === 'P' ? -1 : 1, y0 = sg > 0 ? b[1] : b[4];
     // 砲的兩側、砲尾後面（inboard：S 那一舷的砲是 y 小的那邊、P 那一舷的砲是 y 大的那邊）
     var spots = [[b[0] - 3, y0 + 10 * sg], [b[3] + 3, y0 + 10 * sg], [b[0] - 3, y0 + 4 * sg], [b[3] + 3, y0 + 4 * sg], [b[0] - 2, y0 - 3 * sg], [b[3] + 2, y0 - 3 * sg], [cx, y0 - 6 * sg], [cx - 5, y0 - 10 * sg]];
-    gn.crewFull = n; gn.crewMin = CREW_MIN[gn.type]; gn.spots = [];
+    gn.crewFull = n; gn.crewMin = GUNS[gn.type].min; gn.spots = [];
     for (i = 0; i < n; i++) {
       var at = standNear(g, spots[i][0], spots[i][1], z0, z1, 14, taken);
       if (!at) continue;
@@ -91,10 +91,11 @@ function manning(sh) {
  *  ① 開得動的砲（在崗 ≥ crewMin）留著，人不動；
  *  ② 開不了的砲照在崗人數多到少，向「最近的空閒的人、或同樣開不了的砲」借人，借到能開就留下 ⇒ 人只走到隔壁幾門；
  *  ③ 借不夠的砲人放出來；空閒的人夠一整門才去開空砲，剩下的補滿留下的砲（都挑最近的）。
- *  只有換砲的人才走路。砲甲板 ＝ 長砲＋追擊砲（同一層、人可以互補）；上甲板 ＝ carronade。 */
+ *  只有換砲的人才走路。每層砲甲板（照砲的高度分，sh.decks）各自調度：憲法號 ＝ 砲甲板（長砲＋追擊砲）／上甲板（carronade）。 */
 function reassign(sh) {
   sh.crew.forEach(function (c) { if (c.gun && (!able(c) || !c.gun.alive)) leaveGun(c); });
-  [['long', 'S'], ['long', 'P'], ['carr', 'S'], ['carr', 'P']].forEach(function (ds) {        // 每層甲板、每一舷各自調度
+  var ds2 = []; sh.decks.forEach(function (D) { ds2.push([D.key, 'S'], [D.key, 'P']); });
+  ds2.forEach(function (ds) {                                          // 每層甲板、每一舷各自調度
     var deck = ds[0], side = ds[1];
     var gs = sh.guns.filter(function (g) { return g.alive && g.side === side && gunDeck(g) === deck; });
     var men = sh.crew.filter(function (c) { return able(c) && c.role === ROLE.GUN && c.deck === deck && c.side === side; });
@@ -126,7 +127,7 @@ function reassign(sh) {
     kept.forEach(function (g) { while (cur.get(g) < g.crewFull && free.length) move(nearest(free, g), g); });
   });
 }
-function gunDeck(g) { return g.type === 'carr' ? 'carr' : 'long'; }
+function gunDeck(g) { return g.deck; }                  // 那門砲在哪一層（10_ship.js gunDecks）
 /** 離開原本那門砲：站位讓出來（⛔ 不清 ⇒ 幾輪之後每個站位都被兩個人佔著）。 */
 function leaveGun(c) {
   if (c.gun && c.gun.spots) c.gun.spots.forEach(function (s) { if (s.who === c) s.who = null; });
@@ -206,7 +207,7 @@ function stepCrew(sh, dt) {
 /** 火槍：打對方露天的人（spar deck、桅頂），距離越遠越難中。 */
 function musket(sh, c) {
   var foe = SHIPS[1 - sh.i], w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2] + 14);
-  var cand = foe.crew.filter(function (o) { return o.st === 0 && o.role !== ROLE.GUN && o.role !== ROLE.POWDER || (o.st === 0 && o.deck === 'carr'); });
+  var cand = foe.crew.filter(function (o) { return o.st === 0 && o.role !== ROLE.GUN && o.role !== ROLE.POWDER || (o.st === 0 && o.deck === foe.weatherDeck); });   // 露天的人（最上面那層砲甲板的砲班也算）
   c.fireT = 0.4;
   spawnPt(w, [WIND[0] * 0.3, 0.4, WIND[2] * 0.3], rr(1.5, 2.5), [0.85, 0.85, 0.85], 0.35, 0.3, 1.4, -0.03, 0.8);
   if (!cand.length) return;

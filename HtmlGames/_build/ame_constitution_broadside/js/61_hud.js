@@ -18,7 +18,7 @@ function clearMsgs() { MSGS.forEach(function (m) { m.el.remove(); }); MSGS = [];
 /** 砲被打飛（blowModel 呼叫）：先記著，下一次 newsFlush 併成一行。 */
 function newsGun(sh, m, drop) {
   var g = sh.guns.filter(function (x) { return x.model === m; })[0]; if (!g) return;
-  var no = /(\d+)$/.exec(m.name), lab = sideName(g.side) + (g.type === 'long' ? '長砲 ' : g.type === 'carr' ? ' carronade ' : '追擊砲') + (g.type === 'chase' ? '' : no ? +no[1] : '');
+  var no = /(\d+)$/.exec(m.name), lab = sideName(g.side) + (g.type === 'chase' || g.type === 'carr' ? GUNS[g.type].short : GUNS[g.type].short + ' ') + (g.type === 'chase' ? '' : no ? +no[1] : '');
   sh.news.guns.push(lab + (drop ? '（掉下去）' : ''));
 }
 var NEWS_WIN = 5;                                  // 傷亡廣播的時間區間（秒；Tim：3 → 5）
@@ -79,10 +79,10 @@ function gunRow(sh, side) {
     if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
     return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△'[k] + '</span>';
   }
-  var gs = sh.guns.filter(function (x) { return x.type === 'long' && x.side === side; }), cs = sh.guns.filter(function (x) { return x.type !== 'long' && x.side === side; });
+  var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); });   // 每層砲甲板一段（由下往上）
   var foe = SHIPS[1 - sh.i], w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
   var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
-  return '<span class="gr">' + lab + gs.map(cell).join('') + '｜' + cs.map(cell).join('') + '</span>';
+  return '<span class="gr">' + lab + rows.map(function (r) { return r.map(cell).join(''); }).join('｜') + '</span>';
 }
 /** 補給一行：送藥手還能動的／全部、等火藥的砲幾門、取用點還剩幾桶。 */
 function supplyText(sh) {

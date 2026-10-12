@@ -43,7 +43,7 @@ function makeShip(i, team, yaw, pz, T) {                              // T：船
   // ⚠ 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致），但 S（格 +y）在右手座標裡是船的左手邊（面向船頭 +x、上 +z ⇒ 右手是 −y）
   //   ⇒ 畫面上是左舷。給人看的一律照畫面（sideName）；A／D 也照畫面的左右。
   sh.models.forEach(function (m) {
-    if (!GUN_TYPE[m.kind]) return;
+    if (!GUNS[m.kind]) return;
     var mz = m.pts.muzzle, br = m.pts.breech, ax;
     if (mz && br) ax = [mz[0] - br[0], mz[1] - br[1]];
     else { var sg0 = /-P\d*$|-P$/.test(m.name) ? -1 : 1; ax = [0, sg0]; mz = [m.c[0], sg0 > 0 ? m.bb[4] - 0.5 : m.bb[1] + 0.5, m.c[2]]; }   // 沒有固定點（舊的 .vxk）⇒ 外框外緣
@@ -52,6 +52,8 @@ function makeShip(i, team, yaw, pz, T) {                              // T：船
       muz: [mz[0] + ax[0] * 1.5, mz[1] + ax[1] * 1.5, mz[2]], alive: true, reload: rr(0, 1.2), box: BOX_N, needCart: false });   // box：砲旁藥箱裡的份數
   });
   sh.guns.sort(function (a, b) { return b.muz[0] - a.muz[0] || a.muz[1] - b.muz[1]; });
+  sh.decks = gunDecks(sh); sh.weatherDeck = sh.decks.length ? sh.decks[sh.decks.length - 1].key : null;   // 砲甲板（照砲的高度分層）；最上面那層 ＝ 露天
+  sh.deckZ = {}; sh.decks.forEach(function (D) { sh.deckZ[D.key] = D.zr; });
   sh.mags = makeMags(sh);                                                // 彈藥庫（23_powder.js）
   sh.stations = makeStations(sh);                                        // 兩層甲板的火藥與彈藥取用點（火藥桶也是模型，加在 sh.models 後面）
   sh.mIdx = modelIndex(sh.models);
@@ -82,7 +84,38 @@ function makeShip(i, team, yaw, pz, T) {                              // T：船
   sh.M = shipMatrix(sh); sh.inv = M4.inv(sh.M);
   return sh;
 }
-var GUN_TYPE = { long: '24 磅長砲', carr: '32 磅 carronade', chase: '18 磅追擊砲' };
+// 砲種（meta gun 的代碼 ⇒ 程式裡的種類）：名字、初速（m/s）、裝填倍率、彈大不大（洞大一點）、砲班滿編／最少、重量（噸，浮力用）、每發傷害（DMG 的鍵，細節設定）。
+// 長砲 24 磅、carronade 32 磅、追擊砲 18 磅是憲法號的；32 磅長砲是給餘燼號的（basecamp TASK-0519：下層砲甲板 28 門，新做一門）。
+var GUNS = {
+  long: { code: '24l', name: '24 磅長砲', short: '長砲', V: V0, reload: 1, big: false, crew: 5, min: 3, mass: 2.5 },
+  long32: { code: '32l', name: '32 磅長砲', short: '32 磅長砲', V: 172, reload: 1.15, big: true, crew: 6, min: 4, mass: 2.9 },
+  carr: { code: '32c', name: '32 磅 carronade', short: ' carronade ', V: 140, reload: 0.7, big: true, crew: 3, min: 2, mass: 0.9 },
+  chase: { code: '18chase', name: '18 磅追擊砲', short: '追擊砲', V: 165, reload: 1, big: false, crew: 3, min: 2, mass: 2.1 }
+};
+var GUN_CODE = {}; Object.keys(GUNS).forEach(function (k) { GUN_CODE[GUNS[k].code] = k; });
+/** 砲甲板：照舷側砲（不含追擊砲）的高度（外框底）分層 —— 排好之後相差 10 格以上就是另一層（甲板有舷弧，同一層前後差 6 格）；
+ *  追擊砲再歸到最近的那一層（⛔ 一起排：船尾追擊砲的高度落在兩層之間，會把上下兩層砲甲板接成一層）。
+ *  每層：站人的高度範圍 zr（照那一層第一門不是追擊砲的砲：carronade 那層 −6～+3、其他 −8～+5）、名字、最上面那層 ＝ 露天（陸戰隊、砲長的「甲板人員」）。
+ *  憲法號：長砲 z 82–86＋追擊砲 88 ／ carronade 105–108 ⇒ 兩層，跟以前照砲種分（長砲＋追擊砲 ／ carronade）一樣；餘燼號兩層砲甲板都是長砲 ⇒ 照種類分不出來。 */
+function gunDecks(sh) {
+  var side = sh.guns.filter(function (g) { return g.type !== 'chase'; }); if (!side.length) side = sh.guns;
+  var zs = side.map(function (g) { return Math.floor(g.model.bb[2]); }).sort(function (a, b) { return a - b; }), G = [];
+  zs.forEach(function (z) { var L = G[G.length - 1]; if (L && z - L.z1 <= 10) L.z1 = z; else G.push({ z0: z, z1: z }); });
+  var decks = G.map(function (L, i) { return { key: 'd' + i, z0: L.z0, z1: L.z1, guns: [] }; });
+  sh.guns.forEach(function (g) {
+    var z = Math.floor(g.model.bb[2]), D = null, bd = 1e9;
+    decks.forEach(function (d) { var dd = z < d.z0 ? d.z0 - z : z > d.z1 ? z - d.z1 : 0; if (dd < bd) { bd = dd; D = d; } });   // 在那一層的範圍裡 ⇒ 0；不在 ⇒ 最近的那一層
+    g.deck = D.key; D.guns.push(g);
+  });
+  var low = decks.length - (decks.length > 1 ? 1 : 0);
+  decks.forEach(function (D, i) {
+    var main = D.guns.filter(function (g) { return g.type !== 'chase'; })[0] || D.guns[0], a = Math.floor(main.model.bb[2]);
+    D.zr = main.type === 'carr' ? [a - 6, a + 3] : [a - 8, a + 5];
+    D.weather = i === decks.length - 1;
+    D.name = D.weather && decks.length > 1 ? '上甲板' : low === 1 ? '砲甲板' : low === 2 ? (i === 0 ? '下層砲甲板' : '上層砲甲板') : '第 ' + (i + 1) + ' 層砲甲板';
+  });
+  return decks;
+}
 /** 格座標 P 附近 r 格內有沒有帆桁的網格（照佔用格）⇒ 回那根帆桁的模型編號（T.rig.models 的序號 ＝ sh.models 的序號），沒有 ⇒ -1。 */
 function yardNear(T, P, r) {
   var ms = T.rig.models || [];
@@ -118,7 +151,7 @@ function ropeYards(sh) {
 /** 模型的種類：meta 優先（basecamp TASK-0517：kind／gun），沒有 meta 才照名字（舊的 .vxk；舵輪本來就沒有 meta）。 */
 function modelKind(m) {
   var mt = m.meta || {};
-  if (mt.kind === 'gun') return mt.gun === '32c' ? 'carr' : mt.gun === '18chase' ? 'chase' : 'long';
+  if (mt.kind === 'gun') return GUN_CODE[mt.gun] || 'long';           // 不認得的代碼 ⇒ 當長砲
   if (mt.kind === 'powder') return 'powder';
   if (mt.kind === 'yard') return 'yard';                              // 帆桁（basecamp 階段三十三：15 根各一件模型，可以繞轉軸轉）
   return /carronade/.test(m.name) ? 'carr' : /chase/.test(m.name) ? 'chase' : /\/砲-[SP]\d+$/.test(m.name) ? 'long' : /wheel/.test(m.name) ? 'wheel' : 'model';
