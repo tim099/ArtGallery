@@ -231,6 +231,14 @@
   "026_p02": {"rows": [
     [{"src": "O/stage29_main_channel_ropes.png", "crop": [500, 0, 1100, 560]}, {"src": "O/stage29_hide_ratlines.png", "crop": [500, 0, 1100, 560]}],
     [{"src": "O/stage29_main_channel_ropes.png", "crop": [120, 560, 1120, 880]}]
+  ]},
+  "027_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_11.JPG", "crop": [1990, 1480, 2440, 1990]}, {"src": "O/stage30_entry_side.png", "crop": [300, 90, 1100, 990]}],
+    [{"src": "O/stage30_entry_inside.png", "crop": [420, 20, 1110, 460]}]
+  ]},
+  "027_p02": {"rows": [
+    [{"src": "O/stage30_entry_v11_bottom_compare.png"}],
+    [{"src": "O/stage30_entry_v11_oblique.png", "crop": [150, 250, 950, 1000]}]
   ]}
  }
 }
