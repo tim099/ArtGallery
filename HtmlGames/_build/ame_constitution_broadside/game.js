@@ -26,9 +26,10 @@
   var DT = 1 / 60, G = 9.81, V0 = 175, ZW = 63;     // ZW：設計水線（吃水 63 格，basecamp 的下水段同一個數）
   var RELOAD = 7, RELOAD_SANDBOX = 1.6;
   var AMMO = ['實心彈', '爆裂彈', '鏈彈'];
-  var S, CX, CY, SZ, HULL_X0, HULL_X1;              // 由封裝檔的 header 決定
+  var S, CX, CY, SZ, HULL_X0, HULL_X1;              // 由封裝檔的 header 決定（外框：含艏斜桅與後桅帆桁）
+  var WL_X0, WL_X1, BOW_HALF;                        // 水線上船體的前後端、船頭浪那一格的半寬（waterline() 量）
   var SUN = norm([-0.45, 0.62, -0.38]), SKY = [0.42, 0.58, 0.80], HORIZON = [0.80, 0.80, 0.77], GROUND = [0.30, 0.27, 0.22];
-  var WIND = [1.6, 0, 0.7];
+  var WIND = [0.6, 0, 1.65];   // 風往哪吹（m/s，煙飄的速度）；方向也是航行的風向：開局兩艘的航向跟它大致垂直（橫風起跑）
 
   function norm(v) { var l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
   function add(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
@@ -68,10 +69,13 @@
       'void main(){ vec3 n=normalize(vN); float d=abs(dot(n,uSun)); vec3 col=uLit>0.5 ? vC*(mix(uGround,uSky,0.6)*0.65+vec3(1.0,0.96,0.88)*d*0.7) : vC;\n' +
       ' if(vW.y<0.0) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
     P.pt = VK.compile(gl,
-      '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in float aS; layout(location=2) in vec4 aC; layout(location=3) in float aT; uniform mat4 uVP; uniform float uPx; out vec4 vC; out float vT;\n' +
-      'void main(){ vec4 c=uVP*vec4(aP,1.0); gl_Position=c; gl_PointSize=clamp(aS*uPx/max(c.w,0.1),1.0,256.0); vC=aC; vT=aT; }\n',
-      '#version 300 es\nprecision highp float; in vec4 vC; in float vT; uniform sampler2D uFx; uniform float uUseFx; out vec4 o;\n' +
-      'void main(){ if(uUseFx>0.5 && vT>=0.0){ float ty=floor(vT/4.0), va=vT-ty*4.0; vec4 t=texture(uFx,(vec2(va,ty)+gl_PointCoord)/4.0); if(t.a<0.02) discard; o=vec4(t.rgb,t.a*vC.a); return; }\n' +
+      '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in float aS; layout(location=2) in vec4 aC; layout(location=3) in float aT; uniform mat4 uVP; uniform float uPx; out vec4 vC; out float vT; out float vR;\n' +
+      'void main(){ vec4 c=uVP*vec4(aP,1.0); gl_Position=c; gl_PointSize=clamp(aS*uPx/max(c.w,0.1),1.0,256.0); vC=aC; vT=aT; vR=aP.y*0.9+aT*1.7; }\n',
+      // 類型 4（vT ≥ 16）＝ 帆的布片：程式畫的菱形，角度跟著高度轉、側過來時變窄（像在翻）；fx.png 沒有這一列 ⇒ 一律程式畫
+      '#version 300 es\nprecision highp float; in vec4 vC; in float vT; in float vR; uniform sampler2D uFx; uniform float uUseFx; out vec4 o;\n' +
+      'void main(){ if(vT>=16.0){ vec2 d=gl_PointCoord*2.0-1.0; float cr=cos(vR), sr=sin(vR); vec2 q=vec2(cr*d.x-sr*d.y, sr*d.x+cr*d.y);\n' +
+      '   float fl=0.3+0.7*abs(sin(vR*0.7)); if(abs(q.x)/(0.95*fl)+abs(q.y)/(0.5+0.12*(vT-16.0))>1.0) discard; o=vec4(vC.rgb*(0.75+0.25*fl),vC.a); return; }\n' +
+      ' if(uUseFx>0.5 && vT>=0.0){ float ty=floor(vT/4.0), va=vT-ty*4.0; vec4 t=texture(uFx,(vec2(va,ty)+gl_PointCoord)/4.0); if(t.a<0.02) discard; o=vec4(t.rgb,t.a*vC.a); return; }\n' +
       ' vec2 d=gl_PointCoord*2.0-1.0; float r=dot(d,d); if(r>1.0) discard; float a=vC.a*(1.0-r*r); o=vec4(vC.rgb*(1.0-0.25*r),a); }\n');
     P.water = VK.compile(gl,
       '#version 300 es\nlayout(location=0) in vec2 aP; uniform mat4 uVP; out vec3 vW; void main(){ vW=vec3(aP.x,0.0,aP.y); gl_Position=uVP*vec4(vW,1.0); }\n',
@@ -133,9 +137,24 @@
   }
 
   // ───────────────────────── 鏡頭 ─────────────────────────
-  var CAM = { yaw: 2.2, pitch: 0.24, dist: 175, tgt: [0, 6, 0], eye: [0, 0, 0], vp: null, inv: null, mode: 0, follow: null, hold: 0, w: 1, h: 1 };
+  var CAM = { yaw: 2.2, pitch: 0.24, dist: 175, tgt: [0, 6, 0], eye: [0, 0, 0], vp: null, inv: null, mode: 0, follow: null, hold: 0, w: 1, h: 1, track: true };
   var CAM_NAMES = ['自由鏡頭', '追砲彈', '看敵艦', '看我艦'];
   function camUpdate(dt) {
+    // 鏡頭跟船（預設；V 關掉 ⇒ 固定在世界上）：跟著那艘移動、旋轉 —— 拖曳改的是相對船頭的角度、偏移與遠近。
+    // 自由鏡頭的注視點照我艦平移＋繞我艦中心轉；鏡頭角度跟著被看的那艘轉（看敵艦 ⇒ 敵艦，其他 ⇒ 我艦）。
+    // ⛔ 跟兩艘的中點：兩艘繞著中點轉圈 ⇒ 中點幾乎不動，看起來像沒在跟。
+    // 角度慣例：鏡頭 yaw 是 (x, z) 平面上 atan2(z, x)；船頭方向的這個角 ＝ −sh.yaw ⇒ 船 yaw 增 Δ，鏡頭 yaw 減 Δ。
+    if (SHIPS.length === 2 && CAM.track) {
+      var me = SHIPS[PLAYER_I], mc = me.center || shipCenter(me);
+      if (CAM.trMe) {
+        var d0 = -(me.yaw - CAM.trMe.yaw), c0 = Math.cos(d0), s0 = Math.sin(d0), ox = CAM.tgt[0] - CAM.trMe.c[0], oz = CAM.tgt[2] - CAM.trMe.c[2];
+        CAM.tgt[0] = mc[0] + ox * c0 - oz * s0; CAM.tgt[2] = mc[2] + ox * s0 + oz * c0;
+      }
+      CAM.trMe = { yaw: me.yaw, c: mc.slice() };
+      var ts = SHIPS[CAM.mode === 2 ? 1 - PLAYER_I : PLAYER_I];
+      if (CAM.trYaw && CAM.trYaw.i === ts.i) CAM.yaw -= ts.yaw - CAM.trYaw.yaw;
+      CAM.trYaw = { i: ts.i, yaw: ts.yaw };
+    } else CAM.trMe = CAM.trYaw = null;
     var tgt = CAM.tgt, dist = CAM.dist, yaw = CAM.yaw, pitch = CAM.pitch, eye;
     if (CAM.mode === 1 && CAM.follow) {
       var b = CAM.follow, vd = norm(b.v);
@@ -156,9 +175,25 @@
   // ───────────────────────── 船 ─────────────────────────
   var BASE = null, PRISTINE = null, QIDX = null, MODEL = null, RIG = null;
   var SHIPS = [], PIECES = [], BALLS = [], EVENTS = [], FLY = [], PLAYER_I = 0;
-  var HARDK = Q.has('hard') ? clamp(parseFloat(Q.get('hard')) || 1, 0.3, 8) : 2;   // 船殼硬度倍率（選單滑桿；越硬越難打穿、洞越小）
-  var FLOOD = Q.has('flood') ? clamp(parseFloat(Q.get('flood')) || 0, 0, 3) : 0.35;   // 進水速度倍率（選單可調；0 ＝ 不會沉）
+  // 選單的滑桿：[下限, 上限, 預設]。網址參數與滑桿共用這一組（⛔ 各一組 ⇒ ?demo 跑的不是網址寫的那組）；讀不懂的值 ⇒ 預設
+  var LIM = { hard: [0.5, 20, 2], flood: [0, 2, 0.35], cas: [0.1, 1, 1], speed: [0.25, 3, 1], agile: [0.25, 3, 1] };
+  function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
+  var HARDK = qnum('hard', LIM.hard);     // 船殼硬度倍率（越硬越難打穿、洞越小）
+  var FLOOD = qnum('flood', LIM.flood);   // 進水速度倍率（0 ＝ 不會沉）
+  var SPEEDK = qnum('speed', LIM.speed);  // 航速倍率（乘在 VMAX 上）
+  var AGILK = qnum('agile', LIM.agile);   // 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
+  // 降旗規則（選單設定）：死傷比例到 cas 就降旗（1 ＝ 全員倒下才停）；三個勾選各自是另一條。預設 ＝ 不降旗，打到沉或全員倒下。
+  // 網址：?strike=60,guns,masts,officers（數字是死傷百分比，後面列出要勾的規則）
+  var STRIKE = { cas: LIM.cas[2], guns: false, masts: false, officers: false };
+  if (Q.has('strike')) Q.get('strike').split(',').forEach(function (w) {
+    var v = parseFloat(w);
+    if (isFinite(v)) STRIKE.cas = clamp(v / 100, LIM.cas[0], LIM.cas[1]);
+    else if (w === 'guns' || w === 'masts' || w === 'officers') STRIKE[w] = true;
+  });
   var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
+  var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
+  var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
+  var AUTOFIRE = false;                                  // 自動開砲：電腦替我艦瞄準、開火（觀戰 ＝ 一般戰鬥＋自動開砲預設開；G 切換）
 
   function shipBaseMatrix() {   // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x−CX), S(z−ZW), −S(y−CY))
     return new Float32Array([S, 0, 0, 0, 0, 0, -S, 0, 0, S, 0, 0, -S * CX, -S * ZW, S * CY, 1]);
@@ -180,15 +215,20 @@
       i: i, team: team, grid: grid, rs: rsSet, yaw: yaw, px: 0, pz: pz, sink: 0, sinkV: 0, rollA: 0, pitchA: 0, rollV: 0, bob: 0,
       phase: rnd() * 6.28, orig: grid.count, flood: new Float32Array(SZ * 3), lost: 0, seeds: [], impulse: [0, 0, 0],
       guns: [], ropes: [], sails: [], rigDirty: true, lines: null, tris: null, masts: [], aim: null, reloadT: MODE === 'sandbox' && i === PLAYER_I ? RELOAD_SANDBOX : RELOAD,
-      fired: 0, hits: 0, salvo: 0, aiWait: rr(1, 3), sunk: false, struck: false, gunsAlive: 0, mastsUp: 3, sinkingFinal: false
+      fired: 0, hits: 0, salvo: 0, aiWait: rr(1, 3), sunk: false, struck: false, fate: '', silentT: -1, gunsAlive: 0, mastsUp: 3, sinkingFinal: false,
+      spd: 0, spd0: true, yawRate: 0, vel: [0, 0, 0], wakeT: 0, sailFrac: 1, pos: '',
+      side: 'S', manual: false, rudder: 0, sailSet: 2, bumpT: 0
     };
-    // 砲：S 舷 14 門（兩艘都是右舷朝對方）；砲口 ＝ 外框裡 y 最大那一層的中心
+    // 長砲：兩舷各 14 門（關聯 砲-S／砲-P）；砲口 ＝ 外框裡最外那一層的中心（S 那一舷 y 最大、P 那一舷 y 最小）。
+    // ⚠ 程式裡的 'S'／'P' 照模型的名字，但 S（格 +y）在右手座標裡是船的左手邊（面向船頭 +x、上 +z ⇒ 右手是 −y）
+    //   ⇒ 畫面上是左舷。給人看的一律照畫面（sideName）；A／D 也照畫面的左右。
     (MODEL.header.parts || []).forEach(function (p) {
-      if (!/\/砲-S\d+$/.test(p.path)) return;
-      var b = p.box, maxY = -1, sx = 0, sz = 0, n = 0, cnt = 0, x, y, z;
-      for (x = b[0]; x <= b[3]; x++) for (y = b[1]; y <= b[4]; y++) for (z = b[2]; z <= b[5]; z++) if (BASE.get(x, y, z)) { cnt++; if (y > maxY) maxY = y; }
-      for (x = b[0]; x <= b[3]; x++) for (z = b[2]; z <= b[5]; z++) for (y = maxY - 1; y <= maxY; y++) if (BASE.get(x, y, z)) { sx += x; sz += z; n++; }
-      sh.guns.push({ name: p.path.split('/').pop(), type: 'long', box: b, muz: [sx / n + 0.5, maxY + 1.5, sz / n + 0.5], orig: cnt, alive: true, reload: rr(0, 1.2) });
+      var mt = /\/砲-([SP])\d+$/.exec(p.path); if (!mt) return;
+      var side = mt[1], b = p.box, edge = side === 'S' ? -1 : 1e9, sx = 0, sz = 0, n = 0, cnt = 0, x, y, z;
+      for (x = b[0]; x <= b[3]; x++) for (y = b[1]; y <= b[4]; y++) for (z = b[2]; z <= b[5]; z++) if (BASE.get(x, y, z)) { cnt++; if (side === 'S' ? y > edge : y < edge) edge = y; }
+      var y0 = side === 'S' ? edge - 1 : edge, y1 = side === 'S' ? edge : edge + 1;
+      for (x = b[0]; x <= b[3]; x++) for (z = b[2]; z <= b[5]; z++) for (y = y0; y <= y1; y++) if (BASE.get(x, y, z)) { sx += x; sz += z; n++; }
+      sh.guns.push({ name: p.path.split('/').pop(), type: 'long', side: side, box: b, muz: [sx / n + 0.5, side === 'S' ? edge + 1.5 : edge - 0.5, sz / n + 0.5], orig: cnt, alive: true, reload: rr(0, 1.2) });
     });
     // 模型（carronade、追擊砲、舵輪）：整個是一塊剛體 —— 被打到就整個飛出去，⛔ 不拆格
     sh.models = (RIG.models || []).map(function (m, k) {
@@ -198,12 +238,12 @@
       return { k: k, name: m.name.split('/').pop(), kind: kind, side: /carronade-S/.test(m.name) ? 'S' : /carronade-P/.test(m.name) ? 'P' : '',
         mesh: m.mesh, origin: m.origin, bb: b, c: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2], foot: VK.pack(cx, cy, fz), alive: true };
     });
-    sh.models.forEach(function (m) {                                       // 右舷的 carronade 與船頭的追擊砲也是砲（砲口朝 +y）
+    sh.models.forEach(function (m) {                                       // 兩舷的 carronade 與船頭的追擊砲也是砲（S 那一舷砲口朝 +y、P 那一舷朝 −y）
       var b = m.bb;
-      if (m.kind === 'carr' && m.side === 'S')
-        sh.guns.push({ name: m.name, type: 'carr', model: m, muz: [(b[0] + b[3]) / 2, b[4] + 1.5, b[2] + 9.75], alive: true, reload: rr(0, 1.2) });
+      if (m.kind === 'carr' && m.side)
+        sh.guns.push({ name: m.name, type: 'carr', side: m.side, model: m, muz: [(b[0] + b[3]) / 2, m.side === 'S' ? b[4] + 1.5 : b[1] - 1.5, b[2] + 9.75], alive: true, reload: rr(0, 1.2) });
       else if (m.kind === 'chase')                                          // 砲口 (648.1, 194.5, 98.75)：外框裡砲管朝 (0.342, 0.940)
-        sh.guns.push({ name: 'chase18', type: 'chase', model: m, muz: [b[3] - 1.9 + 0.5, b[4] + 1.0, b[2] + 10.75], alive: true, reload: rr(0, 1.2) });
+        sh.guns.push({ name: 'chase18', type: 'chase', side: 'S', model: m, muz: [b[3] - 1.9 + 0.5, b[4] + 1.0, b[2] + 10.75], alive: true, reload: rr(0, 1.2) });
     });
     sh.guns.sort(function (a, b) { return b.muz[0] - a.muz[0]; });
     // 繩與帆：兩端（帆取最高那一排）各找最近的實心格當錨 —— 錨被打掉或跟船分家 ⇒ 繩斷、帆掉
@@ -218,6 +258,11 @@
       for (j = 0; j < s.verts.length; j += 3) if (s.verts[j + 2] > vz - 2) { ax += s.verts[j]; ay += s.verts[j + 1]; az += s.verts[j + 2]; k++; }
       sh.sails.push(sailAnchors(sh, { verts: s.verts, tris: s.tris, col: s.color, name: s.name }, [ax / k, ay / k, az / k]));
     });
+    // 帆自己的繩（`<帆名>.sheet-S`、`.tack-P`…）：帆腳那一端綁在帆上 ⇒ 帆掉了或被帶走，它們跟著斷
+    // （⛔ 只靠繩的依靠不夠：sheet 與 tack 互相掛著、另一端綁甲板，帆沒了也還浮在半空）
+    sh.sails.forEach(function (s) { s.lines = []; sh.ropes.forEach(function (r, j) { if (r.name && r.name.indexOf(s.name + '.') === 0) s.lines.push(j); }); });
+    sh.sails.forEach(function (s) { s.area = sailArea(s); }); sh.sailArea0 = sh.sails.reduce(function (a, s) { return a + s.area; }, 0) || 1;
+    applySailSet(sh);
     MASTS.forEach(function (m) { sh.masts.push({ name: m.name, x: m.x, z0: m.z0, z1: m.z1, orig: m.orig, up: true }); });
     sh.crew = makeCrew(sh); sh.crew0 = sh.crew.length; sh.wounded = 0; sh.dead = 0; sh.causes = {};
     sh.M = shipMatrix(sh); sh.inv = M4.inv(sh.M);
@@ -303,7 +348,7 @@
       for (var j = 0; j + 5 < r.pts.length; j += 3) L.push(r.pts[j], r.pts[j + 1], r.pts[j + 2], r.col[0], r.col[1], r.col[2], r.pts[j + 3], r.pts[j + 4], r.pts[j + 5], r.col[0], r.col[1], r.col[2]);
     });
     owner.sails.forEach(function (s) {
-      if (s.dead) return;
+      if (s.dead || s.furled) return;
       var v = s.verts, c = s.col;
       for (var j = 0; j < s.tris.length; j += 3) {
         var a = s.tris[j] * 3, b = s.tris[j + 1] * 3, d = s.tris[j + 2] * 3;
@@ -413,7 +458,8 @@
     for (var i = 0; i < n; i++) {
       var v = add(mul(dir, rr(2, big ? 9 : 14)), [gauss() * 1.2, rr(0.3, 1.6), gauss() * 1.2]);
       var g = rr(0.62, 0.86);
-      spawnPt(add(p, mul(dir, rr(0, 2))), v, rr(4, 9), [g, g, g * 0.98], rr(0.35, 0.55), rr(1.2, 2.2) * (big ? 1.6 : 1), rr(6, 11) * (big ? 1.5 : 1), -0.05, 1.1, 0);
+      // 2.5–5.5 秒就散：齊射的煙不要一直擋著看砲彈落點
+      spawnPt(add(p, mul(dir, rr(0, 2))), v, rr(2.5, 5.5), [g, g, g * 0.98], rr(0.35, 0.55), rr(1.2, 2.2) * (big ? 1.6 : 1), rr(6, 11) * (big ? 1.5 : 1), -0.05, 1.1, 0);
     }
   }
   function flash(p, dir, n, big) {
@@ -459,7 +505,7 @@
     for (var j = 0; j < removed.length; j += 4) {
       if (rnd() > pr) continue;
       var w = M4.pt(sh.M, removed[j] + 0.5, removed[j + 1] + 0.5, removed[j + 2] + 0.5);
-      var v = add(mul(vd, sp * rr(0.03, 0.2)), [gauss() * 3.2, rr(0.5, 5), gauss() * 3.2]);
+      var v = add(add(mul(vd, sp * rr(0.03, 0.2)), [gauss() * 3.2, rr(0.5, 5), gauss() * 3.2]), sh.vel);
       spawnDebris(w, v, removed[j + 3], rr(0.05, 0.11), rr(6, 14));
     }
     sh.impulse = add(sh.impulse, mul(vd, n));
@@ -468,45 +514,60 @@
 
   // ───────────────────────── 砲彈 ─────────────────────────
   function fireGun(sh, g, target, ammo) {
-    if (!g.alive || g.reload > 0 || gunRate(g) <= 0) return false;      // 砲要有人操作
+    if (sh.struck || !g.alive || g.reload > 0 || gunRate(g) <= 0) return false;      // 砲要有人操作；降旗了就不開（排在齊射裡還沒開的也一樣）
+    if (!bears(sh, g, target)) return false;                            // 目標不在這門砲的砲門射界 ⇒ 不開（⛔ 不朝射界邊緣亂打）
     var mw = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]);
-    var side = norm(M4.dir(sh.M, 0, 1, 0)); side[1] = 0; side = norm(side);
-    var dx = target[0] - mw[0], dz = target[2] - mw[2], dy = target[1] - mw[1], d = Math.hypot(dx, dz);
+    var side = norm(M4.dir(sh.M, 0, g.side === 'P' ? -1 : 1, 0)); side[1] = 0; side = norm(side);
     var V = g.type === 'carr' ? 140 : g.type === 'chase' ? 165 : V0;                               // carronade：32 磅、短砲身 ⇒ 初速低、彈大
+    var foe = SHIPS[1 - sh.i], rel = sub(foe.vel, sh.vel);           // 前置量：砲彈帶著本艦的船速 ⇒ 瞄對方「相對本艦」飛行時間後的位置
+    target = add(target, mul(rel, Math.hypot(target[0] - mw[0], target[2] - mw[2]) / V));
+    var dx = target[0] - mw[0], dz = target[2] - mw[2], dy = target[1] - mw[1], d = Math.hypot(dx, dz);
     var v2 = V * V, disc = v2 * v2 - G * (G * d * d + 2 * dy * v2);
     var el = disc < 0 ? 0.26 : Math.atan((v2 - Math.sqrt(disc)) / (G * d));
     var az = Math.atan2(dz, dx), saz = Math.atan2(side[2], side[0]), da = Math.atan2(Math.sin(az - saz), Math.cos(az - saz));
     da = clamp(da, -0.45, 0.45); az = saz + da;                      // 砲門只容得下 ±26°
-    var spread = sh.i === PLAYER_I && MODE !== 'eve' ? 0.0045 : sh.aiSpread || 0.008;
+    var spread = sh.i === PLAYER_I && !AUTOFIRE ? 0.0045 : sh.aiSpread || 0.008;
     if (!sh.crew.some(function (c) { return c.role === ROLE.OFFICER && able(c); })) spread *= 1.7;   // 軍官全倒 ⇒ 沒人指揮，瞄得散
+    spread *= [0.75, 0.85, 1][sh.sailSet];                            // 帆收得越多，船越穩
     el = clamp(el + gauss() * spread, -0.17, 0.26); az += gauss() * spread;
     var dir = [Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)];
-    var b = { p: mw.slice(), v: mul(dir, V * rr(0.985, 1.015)), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: g.type === 'carr' };
+    var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: g.type === 'carr' };
     BALLS.push(b); g.reload = sh.reloadT * (g.type === 'carr' ? 0.7 : 1) * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
     flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
-    sh.rollV += 0.0012;                                                 // 後座：船往反方向晃一下
+    sh.rollV += g.side === 'P' ? -0.0012 : 0.0012;                      // 後座：船往反方向晃一下
     sfx('boom', mw, sh.i === PLAYER_I ? 1 : 0.8);
     if (CAM.mode === 1 && (sh.i === PLAYER_I || MODE === 'eve')) CAM.follow = b;
     return true;
   }
   /** 齊射：各砲平行開火 —— 瞄準點跟著那門砲在船上的前後位置平移，整排落在對方船身上（⛔ 不是 14 發擠進同一個洞）。 */
   function broadside(sh, ammo) {
-    var k = 0, tgt = aimPoint(sh), ax = M4.dir(sh.M, 1, 0, 0); ax = norm([ax[0], 0, ax[2]]);
-    var mid = 0, n = 0;
+    if (sh.struck) return 0;
+    var k = 0, mid = 0, n = 0;
     sh.guns.forEach(function (g) { mid += g.muz[0]; n++; }); mid /= n || 1;
+    var tgt = aimPoint(sh);
     sh.guns.forEach(function (g) {
-      if (!g.alive || g.reload > 0 || gunRate(g) <= 0) return;
+      if (!g.alive || g.reload > 0 || gunRate(g) <= 0 || !bears(sh, g, tgt)) return;   // 兩舷都看：對得到的砲才排進齊射
       var off = (g.muz[0] - mid) * S * (ammo === 2 ? 0.15 : 1);      // 鏈彈是對著桅杆打的 ⇒ 往瞄準點收攏
-      EVENTS.push({ t: SIMT + k * 0.075 + rr(0, 0.03), sh: sh.i, g: g, ammo: ammo, tgt: add(tgt, mul(ax, off)) }); k++;
+      EVENTS.push({ t: SIMT + k * 0.075 + rr(0, 0.03), sh: sh.i, g: g, ammo: ammo, off: off }); k++;   // 瞄準點在開火那一刻才算（兩艘都在動）
     });
     if (k) { sh.salvo++; sh.salvoT = SIMT; }
     return k;
   }
   function fireOne(sh, ammo) {
+    if (sh.struck) return;
     var tgt = aimPoint(sh), best = null, bd = 1e9;
-    sh.guns.forEach(function (g) { if (!g.alive || g.reload > 0 || gunRate(g) <= 0) return; var w = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), d = len(sub(w, tgt)); if (d < bd) { bd = d; best = g; } });
+    sh.guns.forEach(function (g) { if (!g.alive || g.reload > 0 || gunRate(g) <= 0 || !bears(sh, g, tgt)) return; var w = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), d = len(sub(w, tgt)); if (d < bd) { bd = d; best = g; } });
     if (best) fireGun(sh, best, tgt, ammo);
   }
+  /** 這門砲對不對得到 w：從砲口量，跟那一舷的正橫夾角 < 0.45 rad（砲門 ±26°）。 */
+  function bears(sh, g, w) {
+    var m = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), side = M4.dir(sh.M, 0, g.side === 'P' ? -1 : 1, 0);
+    var a = Math.atan2(w[2] - m[2], w[0] - m[0]) - Math.atan2(side[2], side[0]);
+    return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.45;
+  }
+  /** 有沒有哪一門（還在、有人操作的）砲對得到 w；side 給了只看那一舷。 */
+  function anyBears(sh, w, side) { return sh.guns.some(function (g) { return g.alive && gunRate(g) > 0 && (!side || g.side === side) && bears(sh, g, w); }); }
+  function shipAxis(sh) { var ax = M4.dir(sh.M, 1, 0, 0); return norm([ax[0], 0, ax[2]]); }
   function aimPoint(sh) {
     var foe = SHIPS[1 - sh.i];
     if (sh.aim) return M4.pt(foe.M, sh.aim[0], sh.aim[1], sh.aim[2]);
@@ -594,7 +655,7 @@
     var M0 = M4.mul(sh.M, trans(m.origin[0], m.origin[1], m.origin[2])), c0 = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]);
     var vd = norm(vel), sp = drop ? 0 : clamp(len(vel) * 0.07, 5, 16);
     FLY.push({ mesh: m.mesh, M0: M0, c0: c0, c: c0.slice(), R: M4.ident(), t: 0, wet: false,
-      v: drop ? [0, -0.5, 0] : add(mul(vd, sp), [gauss() * 2, rr(4, 9), gauss() * 2]),
+      v: add(drop ? [0, -0.5, 0] : add(mul(vd, sp), [gauss() * 2, rr(4, 9), gauss() * 2]), sh.vel),
       w: drop ? [gauss() * 0.4, 0, gauss() * 0.4] : [gauss() * 4, gauss() * 4, gauss() * 4] });
     sh.guns.forEach(function (g) { if (g.model === m) g.alive = false; });
     sh.ropes.forEach(function (r) { if (!r.dead && r.mods && r.mods.indexOf(m.k) >= 0) { r.dead = true; sh.rigDirty = true; } });
@@ -645,13 +706,13 @@
   function slab(sh, L, dirL, b) {
     var side = norm(cross(dirL, [0, 0, 1])), cost = 0, n = 0, removed = [];
     for (var a = -13; a <= 13; a++) for (var h = -2; h <= 2; h++) for (var d = -2; d <= 2; d++) {
-      if (Math.abs(a) > 10.5 + 2.5 * hash3(a, h, d + (L[2] | 0))) continue;
+      if (Math.abs(a) > (10.5 + 2.5 * hash3(a, h, d + (L[2] | 0))) * Math.pow(HARDK / 2, -0.25)) continue;   // 越硬撕開的那一片越窄
       var x = Math.floor(L[0] + side[0] * a + dirL[0] * d), y = Math.floor(L[1] + side[1] * a + dirL[1] * d), z = Math.floor(L[2] + h);
       var c = removeVoxel(sh, x, y, z, true); if (c) { cost += (HARD[c] || 1) * 2.4; n++; removed.push(x, y, z, c); }
     }
     for (var j = 0; j < removed.length; j += 4) if (rnd() < 0.5) {
       var w = M4.pt(sh.M, removed[j] + 0.5, removed[j + 1] + 0.5, removed[j + 2] + 0.5);
-      spawnDebris(w, add(mul(norm(b.v), rr(4, 20)), [gauss() * 3, rr(0, 4), gauss() * 3]), removed[j + 3], rr(0.05, 0.11), rr(6, 12));
+      spawnDebris(w, add(add(mul(norm(b.v), rr(4, 20)), [gauss() * 3, rr(0, 4), gauss() * 3]), sh.vel), removed[j + 3], rr(0.05, 0.11), rr(6, 12));
     }
     sh.impulse = add(sh.impulse, mul(norm(b.v), n * 2));
     return { cost: cost, n: n };
@@ -674,7 +735,7 @@
       }
     });
     if (b.ammo === 2) sh.sails.forEach(function (s) {
-      if (s.dead) return;
+      if (s.dead || s.furled) return;
       var v = s.verts;
       for (var j = 0; j < v.length; j += 9) { var dx = v[j] - L[0], dy = v[j + 1] - L[1], dz = v[j + 2] - L[2]; if (dx * dx + dy * dy + dz * dz < 64) { dropSail(sh, s); changed = true; break; } }
     });
@@ -685,11 +746,17 @@
     var t = l2 > 0 ? clamp((wx * vx + wy * vy + wz * vz) / l2, 0, 1) : 0, dx = wx - vx * t, dy = wy - vy * t, dz = wz - vz * t;
     return dx * dx + dy * dy + dz * dz;
   }
+  /** 帆掉了：變成十來片大塊的平面布片（點精靈，不是 3D 碎屑 —— 不撞甲板、不轉四元數），飄著往下掉、碰水就沒。 */
   function dropSail(owner, s) {
-    s.dead = true; owner.rigDirty = true;
-    var M = owner.M, v = s.verts;
-    for (var j = 0; j < v.length; j += 3 * 7) { var w = M4.pt(M, v[j], v[j + 1], v[j + 2]); spawnDebris(w, [gauss(), rr(-1, 1), gauss()], 255, rr(0.25, 0.5), rr(4, 8)); }
+    s.dead = true; owner.rigDirty = true; sailLinesDie(owner, s);
+    if (s.furled) return;                                              // 收在帆桁上的：跟著掉，沒有布片
+    var M = owner.M, v = s.verts, nv = v.length / 3, n = clamp(Math.round(nv / 90), 6, 16), c = s.col || [0.95, 0.92, 0.85];
+    for (var k = 0; k < n; k++) {
+      var j = ((rnd() * nv) | 0) * 3, w = M4.pt(M, v[j], v[j + 1], v[j + 2]), sz = rr(1.6, 3), t = rr(0.85, 1);
+      spawnPt(w, [gauss() * 1.5, rr(-0.5, 1.5), gauss() * 1.5], rr(5, 9), [c[0] * t, c[1] * t, c[2] * t], 1, sz, sz * 0.85, 3, 1.2, 4);   // 終端速度 ≈ 3／1.2 ＝ 2.5 m/s，跟著風飄
+    }
   }
+  function sailLinesDie(owner, s) { (s.lines || []).forEach(function (j) { owner.ropes[j].dead = true; }); owner.rigDirty = true; }
 
   // ───────────────────────── 斷開的一團：倒下、落水 ─────────────────────────
   function isAnchor(x, y, z) { return z <= 12; }   // 龍骨（龍骨是直的 ⇒ 整條都在最底下）
@@ -703,7 +770,7 @@
     var n = pc.length, i, x, y, z, c;
     if (n < 40) {                                               // 小碎塊直接變碎屑
       for (i = 0; i < n; i++) { x = pc[i] & 1023; y = (pc[i] >> 10) & 1023; z = pc[i] >> 20; c = removeVoxel(sh, x, y, z, false);
-        if (c) spawnDebris(M4.pt(sh.M, x + 0.5, y + 0.5, z + 0.5), [gauss(), rr(-0.5, 1), gauss()], c, rr(0.06, 0.1), rr(8, 16)); }
+        if (c) spawnDebris(M4.pt(sh.M, x + 0.5, y + 0.5, z + 0.5), add([gauss(), rr(-0.5, 1), gauss()], sh.vel), c, rr(0.06, 0.1), rr(8, 16)); }
       return;
     }
     var g = new VK.Grid([BASE.sx, BASE.sy, BASE.sz]), sx = 0, sy = 0, sz = 0, minz = 1e9, set = new Set();
@@ -727,21 +794,22 @@
       if (ia && ib) { piece.ropes.push({ pts: r.pts, col: r.col, bb: r.bb }); r.dead = true; moved.add(j); }
       else if (ia || ib) r.dead = true;
     });
-    sh.ropes.forEach(function (r) {
+    sh.ropes.forEach(function (r, j) {
       if (r.dead || !r.par) return;
       var ends = [r.a, r.b].filter(function (a) { return a >= 0; });
-      if (r.par.length && r.par.every(function (j) { return moved.has(j); }) && ends.every(function (a) { return set.has(a); })) { piece.ropes.push({ pts: r.pts, col: r.col, bb: r.bb }); r.dead = true; }
-      else if (r.par.some(function (j) { return moved.has(j); }) || ends.some(function (a) { return set.has(a); })) r.dead = true;
+      if (r.par.length && r.par.every(function (k) { return moved.has(k); }) && ends.every(function (a) { return set.has(a); })) { piece.ropes.push({ pts: r.pts, col: r.col, bb: r.bb }); r.dead = true; moved.add(j); }
+      else if (r.par.some(function (k) { return moved.has(k); }) || ends.some(function (a) { return set.has(a); })) r.dead = true;
     });
     sh.sails.forEach(function (s) {           // 依靠全在這一團（格在、掛的繩也被帶走）⇒ 跟著倒；只有一部分 ⇒ 掉下來
       if (s.dead) return;
+      if (s.par.some(function (j) { return sh.ropes[j].dead && !moved.has(j); })) { dropSail(sh, s); return; }   // 掛的支索這一下斷了（沒被帶走）⇒ 現在就掉，不等下一次 survey
       var inA = s.as.filter(function (a) { return set.has(a); }).length, inP = s.par.filter(function (j) { return moved.has(j); }).length;
       if (!inA && !inP) return;
-      if (inA === s.as.length && inP === s.par.length) { s.dead = true; piece.sails.push({ verts: s.verts, tris: s.tris, col: s.col }); }
+      if (inA === s.as.length && inP === s.par.length) { s.dead = true; sailLinesDie(sh, s); if (!s.furled) piece.sails.push({ verts: s.verts, tris: s.tris, col: s.col }); }
       else dropSail(sh, s);
     });
     sh.crew.forEach(function (c) { if (c.st < 3 && set.has(VK.pack(Math.floor(c.pos[0]), Math.floor(c.pos[1]), c.pos[2] - 1))) fall(sh, c, mul(axis, 2)); });
-    piece.sh = sh;
+    piece.sh = sh; piece.pivotL = M4.pt(sh.inv, pivot[0], pivot[1], pivot[2]);
     sh.rigDirty = true;
     PIECES.push(piece);
     if (n > 3000) { sfx('creak', c0, 1.4); note(sh, (c0[1] - pivot[1] > 8 ? '桅杆斷了！' : '一大塊船體脫落')); }
@@ -760,12 +828,13 @@
     pc.t += dt;
     var g = [0, -G, 0];
     if (pc.hinge) {                                               // 繞斷口倒：細棒繞端點 α ＝ (r × g)·3／(4|r|²)
+      if (pc.sh) { var np = M4.pt(pc.sh.M, pc.pivotL[0], pc.pivotL[1], pc.pivotL[2]); pc.c = add(pc.c, sub(np, pc.pivot)); pc.pivot = np; }   // 斷口跟著船走（船在航行）
       var r = sub(pc.c, pc.pivot), r2 = dot(r, r), alpha = mul(cross(r, g), 3 / (4 * r2));
       pc.w = add(pc.w, mul(alpha, dt));
       var ang = len(pc.w) * dt;
       if (ang > 0) { var Rm = rotM(pc.w, ang); r = M4.dir(Rm, r[0], r[1], r[2]); pc.c = add(pc.pivot, r); pc.R = M4.mul(Rm, pc.R); }
       var tilt = Math.acos(clamp(r[1] / Math.sqrt(r2), -1, 1));
-      if (tilt > 1.25 || pc.t > 6) { pc.hinge = false; pc.v = cross(pc.w, r); crush(pc, r); }
+      if (tilt > 1.25 || pc.t > 6) { pc.hinge = false; pc.v = add(cross(pc.w, r), pc.sh ? pc.sh.vel : [0, 0, 0]); crush(pc, r); }
     } else {
       pc.v = add(pc.v, mul(g, dt));
       if (pc.c[1] < 0) {
@@ -780,6 +849,119 @@
     return pc.c[1] > -40 && pc.t < 120;
   }
 
+  // ───────────────────────── 航行 ─────────────────────────
+  // 航速 ＝ VMAX × 還在的帆面積比例 × 風向係數（POLAR）×（進水越多越慢）；降旗 ⇒ 停船（heave to），沉了 ⇒ 0。加減速時間常數 20 秒（船重）。
+  // 自動操舵：讓敵艦保持在 sh.side 那一舷的正橫（sh.side ＝ 敵艦現在在哪一舷，見 chooseSide），太遠往敵艦偏、太近偏開
+  // ⇒ 兩艘都用同一舷 ⇒ 繞著彼此轉；一艘一舷 ⇒ 並肩同向。兩舷各有砲班、各自開火，船不必為了開火換舷。
+  // 手動操舵（我艦）：A／D ＝ 畫面上的左轉／右轉（打滿與回正各要 0.7 秒），轉向率 ＝ 舵角 × 最大轉向率。
+  // 轉向率跟航速成正比（舵要有水流過）；舵輪被打飛 ⇒ 改用舵柄滑車，只剩 35%。
+  // 帆裝三段（W／S）：收帆（三面上桅帆＋jib）／戰鬥帆（再加上桅頂帆、後桅縱帆、前支索帆）／滿帆（全部，預設）；
+  // 收起來的帆不畫、鏈彈打不到、不算航速；帆收得越多瞄得越穩。
+  // ⛔ 沒做搶風／順風換舷：頂風那一段只是慢下來（係數 0.25，靠慣性帶過去），不會停死。
+  var VMAX = 3.6;                                                    // m/s（約 7 節）：滿帆、側順風
+  var POLAR = [[0, 0.72], [45, 1], [90, 0.92], [112, 0.6], [125, 0.32], [180, 0.25]];   // 船頭跟「風吹去的方向」的夾角（度）→ 係數
+  function polar(deg) {
+    for (var i = 1; i < POLAR.length; i++) if (deg <= POLAR[i][0]) { var a = POLAR[i - 1], b = POLAR[i]; return a[1] + (b[1] - a[1]) * (deg - a[0]) / (b[0] - a[0]); }
+    return POLAR[POLAR.length - 1][1];
+  }
+  function pointName(deg) { return deg < 30 ? '順風' : deg < 70 ? '側順風' : deg < 105 ? '橫風' : deg < 125 ? '迎風' : '頂風'; }
+  function sailArea(s) {
+    var v = s.verts, A = 0;
+    for (var j = 0; j < s.tris.length; j += 3) {
+      var a = s.tris[j] * 3, b = s.tris[j + 1] * 3, d = s.tris[j + 2] * 3;
+      A += len(cross([v[b] - v[a], v[b + 1] - v[a + 1], v[b + 2] - v[a + 2]], [v[d] - v[a], v[d + 1] - v[a + 1], v[d + 2] - v[a + 2]])) / 2;
+    }
+    return A;
+  }
+  /** 水線（z ＝ ZW）上船體的前後端（中線附近）與船頭浪位置的半寬。⛔ 用外框 HULL_X ⇒ 船頭浪出現在船首前面 24 m 的水上。 */
+  function waterline() {
+    var x0 = 1e9, x1 = -1, x, y, lo = 1e9, hi = -1;
+    for (x = 0; x < BASE.sx; x++) for (y = CY - 60; y <= CY + 60; y++) if (BASE.get(x, y, ZW)) { if (x < x0) x0 = x; if (x > x1) x1 = x; break; }
+    WL_X0 = x0; WL_X1 = x1;
+    for (y = 0; y < BASE.sy; y++) if (BASE.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
+    BOW_HALF = hi >= lo ? (hi - lo) / 2 + 3 : 20;
+  }
+  function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 +y 那一側轉 ＝ 畫面上的左轉
+  function sideName(side) { return side === 'S' ? '左舷' : '右舷'; }        // 模型的 S（格 +y）在畫面上是左舷（見 makeShip）
+  var SAILSETS = ['收帆', '戰鬥帆', '滿帆'];
+  function setHas(name, k) {
+    if (k >= 2 || /topsail$/.test(name) || name === 'jib') return true;
+    return k === 1 && (/topgallant$/.test(name) || name === 'spanker' || name === 'fore-topmast-staysail');
+  }
+  function applySailSet(sh) { sh.sails.forEach(function (s) { s.furled = !setHas(s.name, sh.sailSet); }); sh.rigDirty = true; }
+  function setSails(sh, k) {
+    k = clamp(k, 0, 2); if (k === sh.sailSet) return;
+    sh.sailSet = k; applySailSet(sh); note(sh, '帆裝：' + SAILSETS[k]);
+  }
+  function sideGuns(sh, side) { return sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && g.side === side; }).length; }   // 這一舷開得動的砲
+  function sail(sh, dt) {
+    var F = fwd(sh.yaw), W = norm(WIND), deg = Math.acos(clamp(dot(F, W), -1, 1)) * 57.2958;
+    sh.sailFrac = sh.sails.reduce(function (a, s) { return a + (s.dead || s.furled ? 0 : s.area); }, 0) / sh.sailArea0;
+    sh.pos = pointName(deg);
+    var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
+    sh.manual = manual;
+    var target = sh.sunk || stop ? 0 : VMAX * SPEEDK * sh.sailFrac * polar(deg) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
+    if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
+    sh.spd += (target - sh.spd) * Math.min(1, dt / (stop ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
+    // 舵
+    var foe = SHIPS[1 - sh.i], tY = sh.yaw, rate = 0;
+    var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
+    var rmax = (0.012 + 0.016 * sh.spd / SPEEDK) * (wheel ? 1 : 0.35) * AGILK;   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
+    if (stop) { sh.rudder = 0; rate = 0; }
+    else if (manual && !sh.struck && !sh.sunk) {
+      var want = (KEYS.l ? 1 : 0) - (KEYS.r ? 1 : 0);                    // 舵角正 ＝ yaw 變大 ＝ 畫面上左轉
+      sh.rudder += clamp(want - sh.rudder, -1.5 * dt, 1.5 * dt);
+      rate = sh.rudder * rmax;
+    } else {
+      if (!sh.struck && !sh.sunk && foe) {
+        // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦
+        var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? -1 : 1;
+        var dx = foe.px - sh.px, dz = foe.pz - sh.pz, d = Math.hypot(dx, dz) || 1;
+        tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - DIST) / DIST * 1.5, -0.4, 0.4);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
+      }
+      var e = Math.atan2(Math.sin(tY - sh.yaw), Math.cos(tY - sh.yaw));
+      rate = clamp(e * 0.5, -rmax, rmax); sh.rudder = rmax > 0 ? rate / rmax : 0;
+    }
+    sh.yawRate += (rate - sh.yawRate) * Math.min(1, dt / 2);
+    sh.yaw += sh.yawRate * dt;
+    F = fwd(sh.yaw);
+    sh.vel = mul(F, sh.spd);
+    sh.px += sh.vel[0] * dt; sh.pz += sh.vel[2] * dt;
+    // 航跡：船尾留一條白沫、船頭兩側推出的浪（點精靈，不撞任何東西）
+    if ((sh.wakeT -= dt) <= 0 && sh.spd > 0.4 && sh.sink < 6) {
+      sh.wakeT = 0.12;
+      var st = M4.pt(sh.M, WL_X0 - 4, CY, ZW);
+      spawnPt([st[0] + gauss() * 0.8, 0.06, st[2] + gauss() * 0.8], [0, 0, 0], rr(9, 13), [0.93, 0.96, 1], 0.3 * Math.min(1, sh.spd / 2), rr(1.2, 2), rr(4, 6), 0, 0, 2);
+      [1, -1].forEach(function (k) {
+        var bw = M4.pt(sh.M, WL_X1 - 25, CY + k * BOW_HALF, ZW), out = M4.dir(sh.M, 0, k, 0); out = norm([out[0], 0, out[2]]);
+        spawnPt([bw[0], 0.08, bw[2]], mul(out, rr(0.4, 1) * sh.spd * 0.4), rr(1.5, 2.5), [0.95, 0.97, 1], 0.5, rr(0.8, 1.3), rr(2, 3), 0, 0, 2);
+      });
+    }
+  }
+
+  /** 兩艘的龍骨線（各取 7 點）最近不到 14 公尺 ⇒ 沿那個方向各推開一半、航速掉一點（⛔ 不推 ⇒ 手動開過去會穿船）。 */
+  function collide() {
+    if (SHIPS.length < 2) return;
+    var A = SHIPS[0], B = SHIPS[1], best = 1e9, pa = null, pb = null;
+    function keel(sh) { var r = []; for (var k = 0; k < 7; k++) r.push(M4.pt(sh.M, WL_X0 + 15 + (WL_X1 - WL_X0 - 30) * k / 6, CY, ZW)); return r; }
+    var ka = keel(A), kb = keel(B);
+    ka.forEach(function (a) { kb.forEach(function (b) { var d = Math.hypot(a[0] - b[0], a[2] - b[2]); if (d < best) { best = d; pa = a; pb = b; } }); });
+    if (best >= 14) return;
+    var n = best > 1e-3 ? [(pa[0] - pb[0]) / best, 0, (pa[2] - pb[2]) / best] : [0, 0, 1], push = (14 - best) / 2;
+    A.px += n[0] * push; A.pz += n[2] * push; B.px -= n[0] * push; B.pz -= n[2] * push;
+    A.spd *= 0.97; B.spd *= 0.97;
+    if (SIMT - (A.bumpT || -9) > 5) { A.bumpT = SIMT; sfx('crack', pa, 1); note(SHIPS[PLAYER_I], '兩艘擦撞'); }
+  }
+  /** 敵艦在哪一舷（給自動操舵用；有遲滯，不在正前／正後來回跳）。只影響操舵 —— 開火是每門砲各自看對不對得到。 */
+  function chooseSide(sh) {
+    var foe = SHIPS[1 - sh.i]; if (!foe || !foe.center || sh.struck || sh.sunk) return;   // 開局逐艘量的時候，另一艘可能還沒算過位置
+    var st = M4.dir(sh.M, 0, 1, 0), dx = foe.center[0] - sh.center[0], dz = foe.center[2] - sh.center[2];
+    var k = (dx * st[0] + dz * st[2]) / ((Math.hypot(dx, dz) || 1) * (Math.hypot(st[0], st[2]) || 1));
+    var want = k > 0.2 ? 'S' : k < -0.2 ? 'P' : sh.side;
+    if (want === sh.side) return;
+    sh.side = want;
+  }
+
   // ───────────────────────── 進水、傾斜、沉沒 ─────────────────────────
   function stepShip(sh, dt) {
     // 進水：水線下每個破洞的流量 ∝ √(水深)（貼著水面的洞進得慢）；抽水機每秒抽掉一點 ⇒ 小洞撐得住
@@ -792,7 +974,7 @@
       if (sh.sinkingFinal) { sh.sinkV += 0.06 * FLOOD * dt; sh.sink += sh.sinkV * dt; }
       if (sh.sink > 9) { sh.sunk = true; note(sh, '沉沒'); }
     } else { sh.sinkV = Math.min(sh.sinkV + 0.05 * dt, 1.2); sh.sink += sh.sinkV * dt; }
-    // 傾斜：破洞那一舷往下（右舷 ＝ 格座標 +y ＝ 船體 −Z；繞 +X 轉負角時 −Z 那邊下沉）
+    // 傾斜：破洞那一舷往下（格座標 +y ＝ 船體 −Z；繞 +X 轉負角時 −Z 那邊下沉）
     var rollT = -clamp(Dsp / (N + 900), -1, 1) * (sh.sinkingFinal ? 0.55 : 0.21);
     var pitchT = -clamp(Dbs / (N + 1500), -1, 1) * 0.07;
     sh.rollV += ((rollT - sh.rollA) * 0.9 - sh.rollV * 0.8) * dt;
@@ -830,21 +1012,44 @@
       var x = Math.floor(c.pos[0]), y = Math.floor(c.pos[1]);
       if (!countBox(sh.grid, x - 1, y - 1, c.pos[2] - 1, x + 1, y + 1, c.pos[2] - 1)) fall(sh, c);
     });
-    reassign(sh); manning(sh);
+    chooseSide(sh); reassign(sh); manning(sh);
     sh.able = sh.crew.filter(able).length;
     sh.gunsManned = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0; }).length;
-    if (!sh.struck && alive === 0) { sh.struck = true; note(sh, '舷側的砲全毀，降旗'); }
-    if (!sh.struck && sh.able < sh.crew0 * 0.4) { sh.struck = true; note(sh, '船員死傷超過六成，降旗'); }
+    strikeCheck(sh);
+  }
+  /** 降旗：規則在選單設定（STRIKE），每半秒量一次。死傷 ＝ 1 − 還能動的／開戰時的人數（傷與亡都算）。
+   *  全員倒下一定停（死傷門檻上限就是 100%）—— 那不是投降，是沒人能打了。 */
+  function strikeCheck(sh) {
+    if (sh.struck || sh.sunk) return;
+    var cas = 1 - sh.able / sh.crew0, pc = '死傷 ' + Math.round(cas * 100) + '%';
+    if (sh.gunsManned > 0) sh.silentT = -1; else if (sh.silentT < 0) sh.silentT = SIMT;   // 砲全啞：毀了或沒人操作
+    var why = null;
+    if (sh.able === 0) why = '全員倒下';
+    else if (cas >= STRIKE.cas) why = '降旗（' + pc + '）';
+    else if (STRIKE.guns && sh.silentT >= 0 && SIMT - sh.silentT >= 10) why = '降旗（砲全啞 10 秒）';
+    else if (STRIKE.masts && sh.mastsUp === 0 && cas >= 0.33) why = '降旗（桅全倒、' + pc + '）';
+    else if (STRIKE.officers && cas >= 0.25 && !sh.crew.some(function (c) { return c.role === ROLE.OFFICER && able(c); })) why = '降旗（軍官全倒、' + pc + '）';
+    if (!why) return;
+    sh.struck = true; sh.fate = why; note(sh, why);
+  }
+  /** 選單與結算畫面用的一句話：現在的降旗規則。 */
+  function strikeText() {
+    var r = [];
+    if (STRIKE.cas < 1) r.push('死傷 ' + Math.round(STRIKE.cas * 100) + '%');
+    if (STRIKE.guns) r.push('砲全啞 10 秒');
+    if (STRIKE.masts) r.push('桅全倒且死傷 ≥ 33%');
+    if (STRIKE.officers) r.push('軍官全倒且死傷 ≥ 25%');
+    return r.length ? '任一條成立就降旗：' + r.join('／') : '不降旗：打到沉或全員倒下';
   }
   function gp(g, p) { return g.get(p & 1023, (p >> 10) & 1023, p >> 20); }
 
   // ───────────────────────── 船員（billboard） ─────────────────────────
   // 一個人 ＝ 一張面向鏡頭、但永遠直立的貼圖。位置存格座標（腳底那一格的上緣），畫的時候用船的矩陣換到世界。
   // 砲要有人操作：人數 < 最少人數就不能開；裝填速度 ∝ (人數／滿編)^0.85。死傷的人不再操作；
-  // 人不夠時，倖存者集中到還開得動的砲 ⇒ 其餘的砲沒人操作（HUD ○）。
+  // 人不夠時，倖存者集中到還開得動的砲 ⇒ 其餘的砲沒人操作（HUD ○）。調度見 reassign。
   var ROLE = { GUN: 0, POWDER: 1, OFFICER: 2, MARINE: 3, TOP: 4, HELM: 5 }, NROLE = 6;
   var FR = { IDLE: 0, WORK_A: 1, WORK_B: 2, FIRE: 3, RUN_A: 4, RUN_B: 5, WOUNDED: 6, DEAD: 7 }, NFR = 8;
-  var CREW_FULL = { long: 8, carr: 5, chase: 6 }, CREW_MIN = { long: 3, carr: 2, chase: 3 };
+  var CREW_FULL = { long: 6, carr: 3, chase: 4 }, CREW_MIN = { long: 3, carr: 2, chase: 2 };   // 兩舷各一班；24 磅長砲一班 12 人＋送藥童 ⇒ 一個人物約兩人
   var ROLE_NAME = ['砲手', '送藥手', '軍官', '陸戰隊', '桅頂水手', '舵手'];
   function standZ(g, x, y, z0, z1, head) {          // (x, y) 這一柱裡，z0..z1 之間可以站的高度（腳下實心、頭上 head 格空）；沒有 ⇒ -1
     for (var z = z1; z >= z0; z--) {
@@ -873,24 +1078,24 @@
       if (gn.type === 'long') { b = gn.box; z0 = b[2] - 8; z1 = b[2] + 3; }
       else if (gn.type === 'chase') { b = gn.model.bb.map(Math.floor); z0 = b[2] - 3; z1 = b[2] + 3; }
       else { b = gn.model.bb.map(Math.floor); z0 = b[2] - 6; z1 = b[2] + 3; }
-      var cx = Math.floor((b[0] + b[3]) / 2), y0 = b[1];
-      // 砲的兩側、砲尾後面（inboard ＝ y 小的那邊）
-      var spots = [[b[0] - 3, y0 + 10], [b[3] + 3, y0 + 10], [b[0] - 3, y0 + 4], [b[3] + 3, y0 + 4], [b[0] - 2, y0 - 3], [b[3] + 2, y0 - 3], [cx, y0 - 6], [cx - 5, y0 - 10]];
+      var cx = Math.floor((b[0] + b[3]) / 2), sg = gn.side === 'P' ? -1 : 1, y0 = sg > 0 ? b[1] : b[4];
+      // 砲的兩側、砲尾後面（inboard：S 那一舷的砲是 y 小的那邊、P 那一舷的砲是 y 大的那邊）
+      var spots = [[b[0] - 3, y0 + 10 * sg], [b[3] + 3, y0 + 10 * sg], [b[0] - 3, y0 + 4 * sg], [b[3] + 3, y0 + 4 * sg], [b[0] - 2, y0 - 3 * sg], [b[3] + 2, y0 - 3 * sg], [cx, y0 - 6 * sg], [cx - 5, y0 - 10 * sg]];
       gn.crewFull = n; gn.crewMin = CREW_MIN[gn.type]; gn.spots = [];
       for (i = 0; i < n; i++) {
         var at = standNear(g, spots[i][0], spots[i][1], z0, z1, 14, taken);
         if (!at) continue;
-        add(ROLE.GUN, at, gn, 1); var c = crew[crew.length - 1]; c.deck = gn.type; gn.spots.push({ at: at, who: c });
+        add(ROLE.GUN, at, gn, 1); var c = crew[crew.length - 1]; c.deck = gunDeck(gn); c.side = gn.side; gn.spots.push({ at: at, who: c });
       }
     });
     // 送藥手：每三門長砲一個，在中線的艙口與砲之間來回
-    sh.guns.filter(function (gn) { return gn.type === 'long'; }).forEach(function (gn, i) {
+    ['S', 'P'].forEach(function (side) { sh.guns.filter(function (gn) { return gn.type === 'long' && gn.side === side; }).forEach(function (gn, i) {
       if (i % 3) return;
-      var b = gn.box, at = standNear(g, Math.floor((b[0] + b[3]) / 2), b[1] - 14, b[2] - 8, b[2] + 3, 12, taken);
-      var hatch = at && standNear(g, Math.floor(at[0]), CY + 6, b[2] - 8, b[2] + 3, 12, taken);         // 往中線（艙口旁）跑，目的地也要站得住
+      var sg = side === 'P' ? -1 : 1, b = gn.box, at = standNear(g, Math.floor((b[0] + b[3]) / 2), sg > 0 ? b[1] - 14 : b[4] + 14, b[2] - 8, b[2] + 3, 12, taken);
+      var hatch = at && standNear(g, Math.floor(at[0]), CY + 6 * sg, b[2] - 8, b[2] + 3, 12, taken);         // 往中線（艙口旁）跑，目的地也要站得住
       if (at && hatch) { add(ROLE.POWDER, at, null, 1); crew[crew.length - 1].run = [at.slice(), hatch]; }
-    });
-    // spar deck 的高度：從 carronade 推；陸戰隊沿右舷舷牆、軍官在後甲板、舵手在舵輪旁
+    }); });
+    // spar deck 的高度：從 carronade 推；陸戰隊沿 S 那一舷（格 +y）的舷牆、軍官在後甲板、舵手在舵輪旁
     var carr = sh.models.filter(function (m) { return m.kind === 'carr'; }), wheel = sh.models.filter(function (m) { return m.kind === 'wheel'; })[0];
     var sz0 = carr.length ? Math.floor(carr[0].bb[2]) - 6 : 100, sz1 = sz0 + 9;
     for (var x = HULL_X0 + 160; x < HULL_X1 - 220 && crew.filter(function (c) { return c.role === ROLE.MARINE; }).length < 12; x += 37) {
@@ -919,41 +1124,63 @@
     sh.guns.forEach(function (g) { g.manned = 0; });
     sh.crew.forEach(function (c) { if (able(c) && c.gun && !c.walk) c.gun.manned++; });
   }
-  /** 重新分派：砲毀了、或那門砲的人少於最少人數而別門缺人 ⇒ 走去補。人不夠時寧可少開幾門、每門開得動。同一層甲板內調度。 */
+  /** 重新分派（每半秒），每層甲板各自來：
+   *  ① 開得動的砲（在崗 ≥ crewMin）留著，人不動；
+   *  ② 開不了的砲照在崗人數多到少，向「最近的空閒的人、或同樣開不了的砲」借人，借到能開就留下 ⇒ 人只走到隔壁幾門；
+   *  ③ 借不夠的砲人放出來；空閒的人夠一整門才去開空砲，剩下的補滿留下的砲（都挑最近的）。
+   *  只有換砲的人才走路。砲甲板 ＝ 長砲＋追擊砲（同一層、人可以互補）；上甲板 ＝ carronade。 */
   function reassign(sh) {
-    var guns = sh.guns, assigned = new Map();
-    guns.forEach(function (g) { assigned.set(g, 0); });
-    sh.crew.forEach(function (c) { if (able(c) && c.gun) { if (!c.gun.alive) c.gun = null; else assigned.set(c.gun, assigned.get(c.gun) + 1); } });
-    ['long', 'carr', 'chase'].forEach(function (type) {
-      var gs = guns.filter(function (g) { return g.type === type && g.alive; });
-      var free = sh.crew.filter(function (c) { return able(c) && c.role === ROLE.GUN && !c.gun && c.deck === type; });
-      // 少於最少人數、又補不滿的砲：放掉，人去別門
-      gs.slice().sort(function (a, b) { return assigned.get(a) - assigned.get(b); }).forEach(function (g) {
-        var n = assigned.get(g), others = gs.filter(function (o) { return o !== g && assigned.get(o) >= o.crewMin && assigned.get(o) < o.crewFull; });
-        if (n > 0 && n < g.crewMin && free.length + n < g.crewMin && others.length) {
-          sh.crew.forEach(function (c) { if (c.gun === g && able(c)) { c.gun = null; free.push(c); } });
-          assigned.set(g, 0);
-        }
-      });
-      // 空出來的人：補到最近、還缺人的砲（先補到能開，再補滿）
-      free.forEach(function (c) {
-        var best = null, bd = 1e9;
-        [true, false].forEach(function (toMin) {
-          if (best) return;
-          gs.forEach(function (g) {
-            var n = assigned.get(g); if (n >= g.crewFull || (toMin && n >= g.crewMin)) return;
-            if (toMin && n === 0 && free.length < g.crewMin) return;
-            var d = Math.abs(g.muz[0] - c.pos[0]); if (d < bd) { bd = d; best = g; }
-          });
+    sh.crew.forEach(function (c) { if (c.gun && (!able(c) || !c.gun.alive)) leaveGun(c); });
+    [['long', 'S'], ['long', 'P'], ['carr', 'S'], ['carr', 'P']].forEach(function (ds) {        // 每層甲板、每一舷各自調度
+      var deck = ds[0], side = ds[1];
+      var gs = sh.guns.filter(function (g) { return g.alive && g.side === side && gunDeck(g) === deck; });
+      var men = sh.crew.filter(function (c) { return able(c) && c.role === ROLE.GUN && c.deck === deck && c.side === side; });
+      var cur = new Map(); gs.forEach(function (g) { cur.set(g, 0); });
+      men.forEach(function (c) { if (c.gun) cur.set(c.gun, cur.get(c.gun) + 1); });
+      var kept = new Set(gs.filter(function (g) { return cur.get(g) >= g.crewMin; }));
+      function short(c) { return !c.gun || (!kept.has(c.gun) && cur.get(c.gun) < c.gun.crewMin); }
+      function move(c, g) {                        // c 換到 g
+        if (c.gun) { cur.set(c.gun, cur.get(c.gun) - 1); leaveGun(c); }
+        c.gun = g; cur.set(g, cur.get(g) + 1); goToGun(sh, c, g);
+      }
+      function nearest(list, g) { var bi = 0, bd = 1e9; list.forEach(function (c, i) { var d = Math.abs(g.muz[0] - c.pos[0]); if (d < bd) { bd = d; bi = i; } }); return list.splice(bi, 1)[0]; }
+      gs.filter(function (g) { return !kept.has(g) && cur.get(g) > 0; })
+        .sort(function (a, b) { return cur.get(b) - cur.get(a) || gs.indexOf(a) - gs.indexOf(b); })
+        .forEach(function (g) {
+          if (!cur.get(g)) return;                                           // 已經被別門借光
+          var pool = men.filter(function (c) { return c.gun !== g && short(c); });
+          if (cur.get(g) + pool.length < g.crewMin) return;                  // 借不夠 ⇒ 這門是借出去的那一方
+          while (cur.get(g) < g.crewMin) move(nearest(pool, g), g);
+          kept.add(g);
         });
-        if (!best) return;
-        c.gun = best; assigned.set(best, assigned.get(best) + 1);
-        var spot = best.spots && best.spots.filter(function (s) { return !s.who || !able(s.who); })[0];
-        var to = spot ? spot.at : [best.muz[0] + rr(-4, 4), best.muz[1] - 14, c.pos[2]];
-        if (spot) spot.who = c;
-        c.walk = { to: to.slice(), sp: 18 };
+      men.forEach(function (c) { if (c.gun && !kept.has(c.gun)) { cur.set(c.gun, cur.get(c.gun) - 1); leaveGun(c); } });
+      var free = men.filter(function (c) { return !c.gun; });
+      gs.forEach(function (g) {
+        if (kept.has(g) || free.length < g.crewMin) return;
+        while (cur.get(g) < g.crewMin) move(nearest(free, g), g);
+        kept.add(g);
       });
+      kept.forEach(function (g) { while (cur.get(g) < g.crewFull && free.length) move(nearest(free, g), g); });
     });
+  }
+  function gunDeck(g) { return g.type === 'carr' ? 'carr' : 'long'; }
+  /** 離開原本那門砲：站位讓出來（⛔ 不清 ⇒ 幾輪之後每個站位都被兩個人佔著）。 */
+  function leaveGun(c) {
+    if (c.gun && c.gun.spots) c.gun.spots.forEach(function (s) { if (s.who === c) s.who = null; });
+    c.gun = null;
+  }
+  /** 走去新砲：挑一個沒人、腳下還有甲板的站位；都沒有 ⇒ 在第一個站位附近重新找站得住的格（⛔ 退路不能落在砲身裡）。 */
+  function goToGun(sh, c, g) {
+    var spot = (g.spots || []).filter(function (s) {
+      if (s.who && able(s.who) && s.who.gun === g) return false;
+      var x = Math.floor(s.at[0]), y = Math.floor(s.at[1]);
+      return countBox(sh.grid, x - 1, y - 1, s.at[2] - 1, x + 1, y + 1, s.at[2] - 1) > 0;
+    })[0];
+    var to = spot ? spot.at : null;
+    if (!to && g.spots && g.spots.length) { var a = g.spots[0].at; to = standNear(sh.grid, Math.floor(a[0]), Math.floor(a[1]), a[2] - 2, a[2] + 2, 14, {}); }
+    if (!to) to = c.pos;
+    if (spot) spot.who = c;
+    c.walk = { to: to.slice(), sp: 18 };
   }
   /** 這一點附近的人：近的死、稍遠的傷（r 格數）。dir（格座標的單位向量）給了 ⇒ 前方（碎屑噴的方向）的範圍拉長。 */
   function hurt(sh, L, rKill, rWound, dir, cause) {
@@ -978,7 +1205,7 @@
     if (c.st >= 2 && c.st !== 2) return;
     var w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]);
     if (c.st < 2) { if (c.st === 1) sh.wounded--; sh.dead++; sh.causes['落水'] = (sh.causes['落水'] || 0) + 1; }
-    c.st = 4; c.fw = w; c.fv = v || [gauss(), rr(0, 2), gauss()]; c.t = 0; c.walk = null;
+    c.st = 4; c.fw = w; c.fv = add(v || [gauss(), rr(0, 2), gauss()], sh.vel); c.t = 0; c.walk = null;
   }
   function stepCrew(sh, dt) {
     sh.crew.forEach(function (c) {
@@ -1007,7 +1234,7 @@
   /** 火槍：打對方露天的人（spar deck、桅頂），距離越遠越難中。 */
   function musket(sh, c) {
     var foe = SHIPS[1 - sh.i], w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2] + 14);
-    var cand = foe.crew.filter(function (o) { return o.st === 0 && o.role !== ROLE.GUN && o.role !== ROLE.POWDER || (o.st === 0 && o.gun && o.gun.type === 'carr'); });
+    var cand = foe.crew.filter(function (o) { return o.st === 0 && o.role !== ROLE.GUN && o.role !== ROLE.POWDER || (o.st === 0 && o.deck === 'carr'); });
     c.fireT = 0.4;
     spawnPt(w, [WIND[0] * 0.3, 0.4, WIND[2] * 0.3], rr(1.5, 2.5), [0.85, 0.85, 0.85], 0.35, 0.3, 1.4, -0.03, 0.8);
     if (!cand.length) return;
@@ -1171,15 +1398,18 @@
 
   // ───────────────────────── 電腦 ─────────────────────────
   function ai(sh, dt) {
+    var foe = SHIPS[1 - sh.i];
     if (sh.sunk || sh.struck || sh.sinkingFinal) return;
+    if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
     sh.aiWait -= dt; if (sh.aiWait > 0) return;
+    if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
     var ready = 0, alive = 0;
-    sh.guns.forEach(function (g) { if (g.alive && gunRate(g) > 0) { alive++; if (g.reload <= 0) ready++; } });
+    sh.guns.forEach(function (g) { if (g.alive && gunRate(g) > 0 && bears(sh, g, foe.center)) { alive++; if (g.reload <= 0) ready++; } });
     if (!ready || ready < Math.ceil(alive * 0.65)) return;
-    var foe = SHIPS[1 - sh.i], r = rnd(), ammo = 0, t;
+    var r = rnd(), ammo = 0, t;
     var masts = foe.masts.filter(function (m) { return m.up; });
-    if (r < 0.45 || !masts.length) t = [rr(HULL_X0 + 80, HULL_X1 - 120), CY, rr(56, 76)];
-    else if (r < 0.72) { t = [rr(HULL_X0 + 120, HULL_X1 - 160), CY, rr(84, 104)]; ammo = rnd() < 0.25 ? 1 : 0; }
+    if (r < 0.45 || !masts.length) t = [rr(WL_X0 + 40, WL_X1 - 40), CY, rr(56, 76)];             // 船殼：水線上船體的範圍（⛔ 外框 ⇒ 兩成瞄到船頭前面的空水）
+    else if (r < 0.72) { t = [rr(WL_X0 + 60, WL_X1 - 60), CY, rr(84, 104)]; ammo = rnd() < 0.25 ? 1 : 0; }
     else { var m = masts[(rnd() * masts.length) | 0]; t = [m.x, CY, rr(150, 300)]; ammo = rnd() < 0.6 ? 2 : 0; }
     var err = Math.max(0.6, 4.5 - sh.salvo * 0.55) / S;
     sh.aim = [t[0] + gauss() * err * 1.6, t[1], t[2] + gauss() * err * 0.5];
@@ -1194,11 +1424,12 @@
     for (var i = 0; i < EVENTS.length; i++) {
       var e = EVENTS[i]; if (e.t > SIMT) continue;
       EVENTS.splice(i--, 1);
-      var sh = SHIPS[e.sh]; if (!sh.sunk) fireGun(sh, e.g, e.tgt, e.ammo);
+      var sh = SHIPS[e.sh]; if (!sh.sunk) fireGun(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off)), e.ammo);
     }
-    SHIPS.forEach(function (sh) { stepShip(sh, DT); stepCrew(sh, DT); });
-    if (MODE === 'eve') { ai(SHIPS[0], DT); ai(SHIPS[1], DT); }
-    else if (MODE === 'pve') ai(SHIPS[1], DT);
+    SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); stepCrew(sh, DT); });
+    collide();
+    if (AUTOFIRE) ai(SHIPS[PLAYER_I], DT);                           // 自動開砲：我艦也交給電腦瞄準開火
+    if (MODE !== 'sandbox') ai(SHIPS[1 - PLAYER_I], DT);            // 沙盒的敵艦不還手
     for (i = 0; i < BALLS.length; i++) { stepBall(BALLS[i], DT); if (!BALLS[i].alive) { if (CAM.follow === BALLS[i]) { CAM.hold = 1.2; } BALLS.splice(i--, 1); } }
     SHIPS.forEach(function (sh) { integrity(sh); sh.impulse = [0, 0, 0]; });
     for (i = 0; i < PIECES.length; i++) if (!stepPiece(PIECES[i], DT)) { PIECES[i].rs.dispose(); PIECES.splice(i--, 1); }
@@ -1295,7 +1526,7 @@
     for (i = 0; i < PT.n; i++) { var f = PT.life[i] / PT.max[i], s = PT.s1[i] + (PT.s0[i] - PT.s1[i]) * f; pushPt([PT.p[i * 3], PT.p[i * 3 + 1], PT.p[i * 3 + 2]], s, [PT.c[i * 3], PT.c[i * 3 + 1], PT.c[i * 3 + 2]], PT.a[i] * Math.min(1, f * 3), PT.ty[i]); }
     BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
     var me = SHIPS[PLAYER_I];
-    if (me && me.aim && MODE !== 'eve' && !STILL) {
+    if (me && me.aim && !AUTOFIRE && !STILL) {
       var c = M4.pt(SHIPS[1 - PLAYER_I].M, me.aim[0], me.aim[1], me.aim[2]);
       for (i = 0; i < 16; i++) { var an = i / 16 * 6.2832 + SIMT; pushPt([c[0] + Math.cos(an) * 2.2, c[1] + Math.sin(an) * 2.2, c[2]], 0.5, [1, 0.85, 0.3], 0.9); }
     }
@@ -1311,16 +1542,33 @@
   var MSGT = 0;
   function note(sh, text) {
     if (DEMO >= 0 && !RUNNING) return;
-    var who = MODE === 'eve' ? (sh.i === 0 ? '藍艦' : '紅艦') : (sh.i === PLAYER_I ? '我艦' : '敵艦');
+    var who = sh.i === PLAYER_I ? '我艦' : '敵艦';
     var el = $('msg'); el.innerHTML = '<span style="color:' + (sh.i === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text; el.style.opacity = 1; MSGT = 3;
   }
   function panel(sh, title) {
     var hull = sh.grid.count / sh.orig, fl = clamp(sh.sink / 9, 0, 1);
     var m = sh.masts.map(function (x) { return x.name + (x.up ? '✓' : '✗'); }).join(' ');
-    return '<h3>' + title + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
+    return '<h3>' + title + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
       '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
+      '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
+      ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
       '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）<br>' +
-      '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
+      '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
+  }
+  /** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
+   *  顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀）；▶ ＝ 這一舷有砲對得到目標（我艦看瞄準點、其他看敵艦中央）。
+   *  面板兩舷都列 ⇒ 觀戰也看得到、沒在用的那一舷壞了幾門也看得到。 */
+  function gunRow(sh, side) {
+    function cell(g) {
+      var st = !g.alive ? 'dead' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
+      var k = !g.alive ? 3 : gunRate(g) <= 0 ? 2 : g.reload > 0 ? 1 : 0;
+      if (HUD_ART) return '<span class="ico g-' + st + '" style="background-position:' + ((3 + k) * 100 / 7).toFixed(3) + '% 0"></span>';
+      return '<span class="g-' + st + '">' + '●◌○✕'[k] + '</span>';
+    }
+    var gs = sh.guns.filter(function (x) { return x.type === 'long' && x.side === side; }), cs = sh.guns.filter(function (x) { return x.type !== 'long' && x.side === side; });
+    var foe = SHIPS[1 - sh.i], w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
+    var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
+    return '<span class="gr">' + lab + gs.map(cell).join('') + '｜' + cs.map(cell).join('') + '</span>';
   }
   var HUDN = 0;
   /** HUD 圖示表（art/hud.png，8 欄 × 2 列）：第一列 船員 傷 亡 裝填好 裝填中 沒人 毀 鏈；只換掉砲列的符號。 */
@@ -1329,32 +1577,83 @@
     st.textContent = '.ico{display:inline-block;width:14px;height:14px;vertical-align:-2px;background-image:url(' + HUD_ART.src + ');background-size:800% 200%;}';
     document.head.appendChild(st);
   }
+  // ───────────────────────── 左下：羅盤與船身 ─────────────────────────
+  // 羅盤跟著鏡頭轉（畫面上方 ＝ 鏡頭看的方向）；「北」＝ 世界 −z（只是參考方向，航向照它算：東 ＝ +x）。
+  // 圈上：我艦（中間，尖端 ＝ 船頭）、風（從哪吹來的箭頭）、敵艦方位（紅點）、兩舷的砲門射界（±26°，對得到敵艦的那一舷亮）。
+  var COMPASS = ['北', '北北東', '東北', '東北東', '東', '東南東', '東南', '南南東', '南', '南南西', '西南', '西南西', '西', '西北西', '西北', '北北西'];
+  function bearing(x, z) { return ((Math.atan2(x, -z) * 57.2958) % 360 + 360) % 360; }
+  function compassName(b) { return COMPASS[Math.round(b / 22.5) % 16]; }
+  function deg3(b) { return ('00' + Math.round(b) % 360).slice(-3) + '°'; }
+  function drawNav(sh) {
+    if (!CAM.look) return;
+    var c2 = $('navc'), g = c2.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = 150;
+    if (c2.width !== W * dpr) { c2.width = c2.height = W * dpr; }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, W);
+    var f = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), rt = [-f[2], 0, f[0]], cx = W / 2, cy = W / 2, R = 56;
+    function P(d, k) { return [cx + (d[0] * rt[0] + d[2] * rt[2]) * R * k, cy - (d[0] * f[0] + d[2] * f[2]) * R * k]; }
+    function dirOf(b) { var a = b / 57.2958; return [Math.sin(a), 0, -Math.cos(a)]; }
+    function line(a, b, col, w) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+    g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, R, 0, 6.2832); g.stroke();
+    for (var b = 0; b < 360; b += 30) line(P(dirOf(b), b % 90 ? 0.93 : 0.86), P(dirOf(b), 1), 'rgba(255,255,255,.35)', 1);
+    g.font = '11px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#e8c26a';
+    var pn = P(dirOf(0), 1.17); g.fillText('北', pn[0], pn[1]);
+    var F = fwd(sh.yaw), foe = SHIPS[1 - sh.i];
+    // 兩舷的射界
+    ['S', 'P'].forEach(function (side) {
+      var st = M4.dir(sh.M, 0, side === 'S' ? 1 : -1, 0); st = norm([st[0], 0, st[2]]);
+      var on = foe && foe.center && anyBears(sh, foe.center, side), p = P([0, 0, 0], 0);
+      g.fillStyle = on ? 'rgba(232,194,106,.45)' : 'rgba(232,194,106,.13)'; g.beginPath(); g.moveTo(p[0], p[1]);
+      for (var t = -0.45; t <= 0.4501; t += 0.15) { var q = P(add(mul(st, Math.cos(t)), mul(F, Math.sin(t))), 0.97); g.lineTo(q[0], q[1]); }
+      g.closePath(); g.fill();
+    });
+    // 風：從圈外吹進來的箭頭
+    var Wd = norm(WIND), from = [-Wd[0], 0, -Wd[2]], a0 = P(from, 1.2), a1 = P(from, 0.62), hd = norm([a1[0] - a0[0], 0, a1[1] - a0[1]]);
+    line(a0, a1, '#8fd3ff', 2.5);
+    g.fillStyle = '#8fd3ff'; g.beginPath(); g.moveTo(a1[0] + hd[0] * 4, a1[1] + hd[2] * 4); g.lineTo(a1[0] - hd[0] * 6 - hd[2] * 5, a1[1] - hd[2] * 6 + hd[0] * 5); g.lineTo(a1[0] - hd[0] * 6 + hd[2] * 5, a1[1] - hd[2] * 6 - hd[0] * 5); g.fill();
+    // 敵艦方位
+    if (foe && foe.center && sh.center) {
+      var e = norm([foe.center[0] - sh.center[0], 0, foe.center[2] - sh.center[2]]), pe = P(e, 0.86);
+      g.fillStyle = foe.sunk ? '#666' : '#ff6f6f'; g.beginPath(); g.arc(pe[0], pe[1], 4.5, 0, 6.2832); g.fill();
+    }
+    // 我艦（尖端 ＝ 船頭）
+    var S2 = norm([F[2], 0, -F[0]]), tip = P(F, 0.42), l = P(add(mul(F, -0.32), mul(S2, 0.12)), 1), r2 = P(add(mul(F, -0.32), mul(S2, -0.12)), 1);
+    g.fillStyle = sh.i === 0 ? '#6f9bff' : '#ff6f6f'; g.beginPath(); g.moveTo(tip[0], tip[1]); g.lineTo(l[0], l[1]); g.lineTo(r2[0], r2[1]); g.closePath(); g.fill();
+    // 文字
+    var hb = bearing(F[0], F[2]), wb = bearing(from[0], from[2]), roll = (sh.rollA + (sh.rollW || 0)) * 57.2958, pitch = sh.pitchA * 57.2958;
+    var hull = sh.grid.count / sh.orig * 100, fl = clamp(sh.sink / 9, 0, 1) * 100;
+    $('navt').innerHTML =
+      '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
+      '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）</span>　' + sh.pos + '<br>' +
+      '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + '<br>' +
+      '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
+      SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
+  }
   function hud(dt) {
     if (MSGT > 0) { MSGT -= dt; if (MSGT <= 0) $('msg').style.opacity = 0; }
     if (!SHIPS.length || (HUDN++ % 6)) return;
     var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I];
-    $('me').innerHTML = panel(me, MODE === 'eve' ? '藍艦 憲法號' : '我艦 憲法號（藍）');
-    $('foe').innerHTML = panel(foe, MODE === 'eve' ? '紅艦 憲法號' : '敵艦 憲法號（紅）');
-    // 砲：● 裝填好　◌ 裝填中　○ 沒人操作　✕ 毀了（長砲｜carronade；船頭在左）
-    function glyph(x) { return !x.alive ? 3 : gunRate(x) <= 0 ? 2 : x.reload > 0 ? 1 : 0; }
-    var gs = me.guns.filter(function (x) { return x.type === 'long'; }), cs = me.guns.filter(function (x) { return x.type !== 'long'; });
-    var row = gs.map(glyph).concat([-1]).concat(cs.map(glyph));
-    if (MODE === 'eve') $('guns').textContent = '觀戰中　' + CAM_NAMES[CAM.mode];
-    else if (HUD_ART) $('guns').innerHTML = '右舷砲 ' + row.map(function (k) { return k < 0 ? '｜' : '<span class="ico" style="background-position:' + ((3 + k) * 100 / 7).toFixed(3) + '% 0"></span>'; }).join('') + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 暫停' : '');
-    else $('guns').textContent = '右舷砲 ' + row.map(function (k) { return k < 0 ? '｜' : '●◌○✕'[k]; }).join('') + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 暫停' : '');
+    $('me').innerHTML = panel(me, '我艦 憲法號（藍）');
+    $('foe').innerHTML = panel(foe, '敵艦 憲法號（紅）');
+    // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
+    var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
+    var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
+    $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 暫停' : '');
     [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
     var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + '　' + FPS.toFixed(0) + ' fps' : '';
     $('tip').textContent = t;
+    drawNav(me);
   }
   function checkEnd() {
     if (OVER || MODE === 'sandbox' || DEMO >= 0) return;
     var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
-    if (foe.sunk || foe.struck) txt = MODE === 'eve' ? (PLAYER_I === 0 ? '藍艦勝' : '紅艦勝') : '勝利！敵艦' + (foe.sunk ? '沉沒' : '降旗');
-    else if (me.sunk || me.struck) txt = MODE === 'eve' ? '紅艦勝' : '敗北……我艦' + (me.sunk ? '沉沒' : '降旗');
+    function fate(sh) { return sh.sunk ? '沉沒' : sh.fate; }
+    if (foe.sunk || foe.struck) txt = '勝利！敵艦' + fate(foe);
+    else if (me.sunk || me.struck) txt = '敗北……我艦' + fate(me);
     if (!txt) return;
     OVER = true;
     $('endT').textContent = txt;
-    $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒';
+    $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
+      '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
     setTimeout(function () { $('end').className = 'on'; }, 2500);
   }
 
@@ -1367,8 +1666,9 @@
     PLAYER_I = 0;
     SHIPS.push(makeShip(0, 'blue', 0, DIST / 2));
     SHIPS.push(makeShip(1, 'red', Math.PI, -DIST / 2));
+    KEYS.l = KEYS.r = false; setAutoFire(MODE === 'eve');
     SHIPS.forEach(function (sh) { stepShip(sh, 0); survey(sh); });
-    CAM.mode = 0; CAM.follow = null; CAM.dist = DIST * 1.05 + 40; CAM.tgt = [0, 8, 0]; CAM.yaw = 2.2; CAM.pitch = 0.22; CAM.snap = true;
+    CAM.mode = 0; CAM.follow = null; CAM.trMe = CAM.trYaw = null; CAM.dist = DIST * 1.05 + 40; CAM.tgt = [0, 8, 0]; CAM.yaw = 2.2; CAM.pitch = 0.22; CAM.snap = true;
     if (CAMQ === 'close') { CAM.dist = 85; CAM.tgt = [10, 9, -DIST / 2 + 12]; CAM.yaw = 1.95; CAM.pitch = 0.16; }
     if (CAMQ === 'blue') { CAM.dist = 88; CAM.tgt = [4, 12, DIST / 2 - 10]; CAM.yaw = -1.8; CAM.pitch = 0.15; }
     if (CAMQ === 'high') { CAM.dist = DIST + 120; CAM.yaw = 2.5; CAM.pitch = 0.62; }
@@ -1379,7 +1679,7 @@
     $('cover').style.display = 'none'; $('end').className = '';
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // 不然空白鍵會再按一次「開戰」
     reset(); RUNNING = true;
-    note(SHIPS[PLAYER_I], MODE === 'eve' ? '兩艘都交給電腦' : '點敵艦設瞄準點，空白鍵齊射');
+    note(SHIPS[PLAYER_I], AUTOFIRE ? '自動開砲中（G 關掉就自己打）' : '點敵艦設瞄準點，空白鍵齊射（G 自動開砲）');
   }
 
   // ───────────────────────── 輸入 ─────────────────────────
@@ -1398,7 +1698,7 @@
     } else { CAM.yaw += dx * 0.006; CAM.pitch = clamp(CAM.pitch + dy * 0.005, 0.02, 1.45); }
   });
   cv.addEventListener('pointerup', function (e) {
-    if (drag && !drag.moved && drag.b === 0 && RUNNING && MODE !== 'eve') pick(e.clientX, e.clientY);
+    if (drag && !drag.moved && drag.b === 0 && RUNNING) pick(e.clientX, e.clientY);
     drag = null;
   });
   cv.addEventListener('wheel', function (e) { e.preventDefault(); CAM.dist = clamp(CAM.dist * Math.pow(1.0015, e.deltaY), 12, 900); }, { passive: false });
@@ -1413,28 +1713,86 @@
   window.addEventListener('keydown', function (e) {
     if (!RUNNING) return;
     var me = SHIPS[PLAYER_I], k = e.key.toLowerCase();
-    if (k === ' ' || e.code === 'Space') { e.preventDefault(); if (MODE !== 'eve' && !PAUSED && !me.sunk) broadside(me, AMMO_I); }
-    else if (k === 'f') { if (MODE !== 'eve' && !PAUSED) fireOne(me, AMMO_I); }
+    if (k === ' ' || e.code === 'Space') { e.preventDefault(); if (!PAUSED && !me.sunk) broadside(me, AMMO_I); }   // 降旗了 ⇒ broadside／fireOne 自己擋
+    else if (k === 'f') { if (!PAUSED) fireOne(me, AMMO_I); }
     else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
     else if (k === 'c') { CAM.mode = (CAM.mode + 1) % 4; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; }
     else if (k === 'p') PAUSED = !PAUSED;
     else if (k === 'm') { muted = !muted; }
     else if (k === 'h' || k === '?') $('help').classList.toggle('on');
     else if (k === 'r') { RUNNING = false; $('cover').style.display = ''; $('end').className = ''; }
-  });
-  [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
-  function sliders() {
-    var f = $('flood'), h = $('hard');
-    f.value = FLOOD; h.value = HARDK;
-    function show() {
-      FLOOD = +f.value; HARDK = +h.value;
-      $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
-      $('hardV').textContent = HARDK.toFixed(1) + '×' + (HARDK < 1 ? '（容易打穿）' : HARDK > 3 ? '（很難打穿）' : '');
+    else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
+      e.preventDefault();
+      var order = ['auto', 'manual', 'off'];
+      setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
     }
-    f.oninput = show; h.oninput = show; show();
+    else if (k === 'a' || k === 'd' || k === 'arrowleft' || k === 'arrowright') {   // 打舵：自動或停船中一碰就換手動
+      e.preventDefault();
+      if (SAIL !== 'manual') setSailMode('manual'); KEYS[k === 'a' || k === 'arrowleft' ? 'l' : 'r'] = true;
+    }
+    else if (k === 'v') setCamTrack(!CAM.track);
+    else if (k === 'g') setAutoFire(!AUTOFIRE);
+    else if (k === 'w' || k === 's' || k === 'arrowup' || k === 'arrowdown') {     // 帆裝
+      e.preventDefault();
+      if (!e.repeat) setSails(me, me.sailSet + (k === 'w' || k === 'arrowup' ? 1 : -1));
+    }
+  });
+  window.addEventListener('keyup', function (e) { var k = e.key.toLowerCase(); if (k === 'a' || k === 'arrowleft') KEYS.l = false; if (k === 'd' || k === 'arrowright') KEYS.r = false; });
+  window.addEventListener('blur', function () { KEYS.l = KEYS.r = false; });
+  /** 航行模式（選單與遊戲中同一個）：auto 兩艘自動、manual 我艦手動、off 兩艘停船。 */
+  var SAIL_NAMES = { auto: '自動航行', manual: '手動操舵（A／D 打舵）', off: '停船' };
+  function setSailMode(m) {
+    SAIL = m; KEYS.l = KEYS.r = false;
+    [].forEach.call(document.querySelectorAll('[data-s]'), function (x) { x.classList.toggle('on', x.dataset.s === SAIL); });
+    if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], SAIL_NAMES[m] + '（Tab 切換）');
+  }
+  /** 自由鏡頭跟不跟著兩艘的中點走（預設跟；鏡頭「看敵艦／看我艦」本來就跟著那一艘）。 */
+  function setCamTrack(on) {
+    CAM.track = on; CAM.trMe = CAM.trYaw = null;
+    $('camT').classList.toggle('on', on);
+    if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], on ? '鏡頭跟著船' : '鏡頭固定（V 切換）');
+  }
+  /** 自動開砲（我艦）：觀戰預設開、其他模式預設關（reset 時照模式設）。 */
+  function setAutoFire(on) {
+    AUTOFIRE = on; $('autoF').classList.toggle('on', on);
+    if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], on ? '自動開砲' : '自己開砲（點敵艦瞄準、空白鍵齊射）');
+  }
+  [].forEach.call(document.querySelectorAll('#hudctl [data-s]'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
+  $('autoF').onclick = function () { setAutoFire(!AUTOFIRE); };
+  $('camT').onclick = function () { setCamTrack(!CAM.track); };
+  [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.onclick = function () { AMMO_I = +s.dataset.a; }; });
+  [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
+  /** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。 */
+  function sliders() {
+    var f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile');
+    // 硬度跨 40 倍 ⇒ 對數刻度：滑桿 0..1 ↔ 硬度 LIM 下限 × (上限／下限)^v
+    var hk = Math.log(LIM.hard[1] / LIM.hard[0]);
+    f.min = LIM.flood[0]; f.max = LIM.flood[1]; h.min = 0; h.max = 1; h.step = 0.005; c.min = LIM.cas[0] * 100; c.max = LIM.cas[1] * 100;
+    f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100;
+    sp.min = LIM.speed[0]; sp.max = LIM.speed[1]; sp.value = SPEEDK; ag.min = LIM.agile[0]; ag.max = LIM.agile[1]; ag.value = AGILK;
+    function show() {
+      $('speedV').textContent = SPEEDK.toFixed(2) + '×（最快約 ' + (VMAX * SPEEDK * 1.944).toFixed(0) + ' 節）';
+      $('agileV').textContent = AGILK.toFixed(2) + '×（滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGILK * 57.3).toFixed(1) + '°/秒）';
+      $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
+      $('hardV').textContent = HARDK.toFixed(1) + '×' + (HARDK < 1 ? '（容易打穿）' : HARDK > 10 ? '（幾乎打不穿）' : HARDK > 3 ? '（很難打穿）' : '');
+      $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
+      $('strikeV').textContent = strikeText();
+    }
+    f.oninput = function () { FLOOD = +f.value; show(); };
+    sp.oninput = function () { SPEEDK = +sp.value; show(); };
+    ag.oninput = function () { AGILK = +ag.value; show(); };
+    h.oninput = function () { HARDK = Math.round(LIM.hard[0] * Math.exp(h.value * hk) * 10) / 10; show(); };
+    c.oninput = function () { STRIKE.cas = c.value / 100; show(); };
+    ['guns', 'masts', 'officers'].forEach(function (k) {
+      var b = $('st-' + k); b.checked = STRIKE[k];
+      b.onchange = function () { STRIKE[k] = b.checked; show(); };
+    });
+    show();
   }
   sliders();
   [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
+  [].forEach.call(document.querySelectorAll('#sails button'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
+  setSailMode(SAIL); setCamTrack(true);
   $('go').onclick = start;
   $('endC').onclick = function () { $('end').className = ''; };
   $('endR').onclick = function () { RUNNING = false; $('end').className = ''; $('cover').style.display = ''; };
@@ -1463,9 +1821,19 @@
     fire: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) me.aim = aim; return broadside(me, ammo || 0); },
     one: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) me.aim = aim; fireOne(me, ammo || 0); return BALLS.length; },
     ships: function () { return SHIPS; }, balls: function () { return BALLS; }, pieces: function () { return PIECES; },
+    camera: function () { return { mode: CAM.mode, track: CAM.track, yaw: CAM.yaw, dist: CAM.dist, tgt: CAM.tgt.slice(), eye: CAM.eye.slice() }; },
+    strike: function (o) { for (var k in o) STRIKE[k] = o[k]; return { rules: STRIKE, text: strikeText() }; },
+    /** 量降旗用：第 i 艘還能動的人照順序倒下，直到死傷比例到 frac（role 給了只倒那個職位）；下一次 survey 才判降旗。 */
+    casualty: function (i, frac, role) {
+      var sh = SHIPS[i], need = Math.ceil(sh.crew0 * frac) - (sh.crew0 - sh.crew.filter(able).length);
+      sh.crew.forEach(function (c) { if (need > 0 && able(c) && (role === undefined || c.role === role)) { killCrew(sh, c, '量測'); need--; } });
+      return sh.crew.filter(able).length;
+    },
     cam: function (o) { for (var k in o) CAM[k] = o[k]; CAM.snap = true; camUpdate(1); render(); },
     stats: function () { return { t: +SIMT.toFixed(2), ships: SHIPS.map(function (s) { return { lost: s.lost, count: s.grid.count, quads: s.rs.quads(), sink: +s.sink.toFixed(3), roll: +s.rollA.toFixed(3), inflow: s.inflow, guns: s.gunsAlive, masts: s.masts.map(function (m) { return m.name + (m.up ? '✓' : '✗'); }).join(' '), fired: s.fired, hits: s.hits, ropesDead: s.ropes.filter(function (r) { return r.dead; }).length, sailsDead: s.sails.filter(function (x) { return x.dead; }).length,
-      crew: s.crew0, able: s.able, wounded: s.wounded, dead: s.dead, causes: s.causes, manned: s.gunsManned }; }), pieces: PIECES.map(function (p) { return p.n; }), debris: D.n, pts: PT.n, balls: BALLS.length, masts: MASTS }; }
+      crew: s.crew0, able: s.able, wounded: s.wounded, dead: s.dead, causes: s.causes, manned: s.gunsManned, struck: s.struck, fate: s.fate,
+      knots: +(s.spd * 1.944).toFixed(2), yaw: +s.yaw.toFixed(3), x: +s.px.toFixed(1), z: +s.pz.toFixed(1), sail: +s.sailFrac.toFixed(3), point: s.pos,
+      side: s.side, manual: s.manual, rudder: +s.rudder.toFixed(2), sailSet: SAILSETS[s.sailSet] }; }), over: OVER, end: OVER ? $('endT').textContent : '', pieces: PIECES.map(function (p) { return p.n; }), debris: D.n, pts: PT.n, balls: BALLS.length, masts: MASTS }; }
   };
   var t0 = performance.now();
   function say(s) { $('load').textContent = s; }
@@ -1477,7 +1845,7 @@
     var t1 = performance.now();
     BASE = VK.Grid.fromModel(model);
     var chk = VK.verify(BASE, h);
-    programs(); geometry(); buildMeshes(); bbSetup();
+    programs(); geometry(); buildMeshes(); bbSetup(); waterline();
     QIDX = new VK.QuadIndex(gl);
     PRISTINE = new VK.RegionSet(gl, BASE, QIDX); PRISTINE.buildAll();
     findMasts();
