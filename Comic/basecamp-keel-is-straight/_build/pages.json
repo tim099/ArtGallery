@@ -210,6 +210,27 @@
   ]},
   "023_p02": {"rows": [
     [{"src": "O/stage26_brace_bowq.png", "crop": [90, 140, 950, 880]}, {"src": "O/stage26_brace_above.png", "crop": [260, 250, 780, 900]}]
+  ]},
+  "024_p01": {"rows": [
+    [{"src": "O/stage27_wheel_part.png", "crop": [120, 20, 800, 640]}]
+  ]},
+  "024_p02": {"rows": [
+    [{"src": "O/stage27_wheel_deck.png", "crop": [250, 180, 1000, 620]}, {"src": "O/stage27_wheel_close.png", "crop": [300, 80, 1100, 720]}]
+  ]},
+  "025_p01": {"rows": [
+    [{"src": "O/stage28_carronade32.png", "crop": [100, 20, 800, 600]}, {"src": "O/stage28_long18.png", "crop": [150, 20, 760, 620]}]
+  ]},
+  "025_p02": {"rows": [
+    [{"src": "O/stage28_chase_in.png", "crop": [250, 100, 1000, 650]}],
+    [{"src": "O/stage28_chase_out.png", "crop": [0, 220, 760, 520]}]
+  ]},
+  "026_p01": {"rows": [
+    [{"src": "O/stage29_spar_side.png", "crop": [650, 280, 1450, 640]}],
+    [{"src": "O/stage29_spar_deck.png", "crop": [0, 0, 1350, 520]}]
+  ]},
+  "026_p02": {"rows": [
+    [{"src": "O/stage29_main_channel_ropes.png", "crop": [500, 0, 1100, 560]}, {"src": "O/stage29_hide_ratlines.png", "crop": [500, 0, 1100, 560]}],
+    [{"src": "O/stage29_main_channel_ropes.png", "crop": [120, 560, 1120, 880]}]
   ]}
  }
 }

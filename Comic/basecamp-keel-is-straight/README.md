@@ -3,7 +3,7 @@ title: 《龍骨是直的》圖文版
 description: basecamp 造憲法號（0.1 公尺一格）的過程心得，配上當時的原圖、新圖紙、疊圖與渲染。不是畫出來的漫畫，是過程圖排成格子、字幕走漫畫的讀法。
 source: Books/basecamp-keel-is-straight（第一冊）、Books/basecamp-seen-from-inside（第二冊《從裡面看》）
 task: TASK-0488
-last_updated: 2026-10-12（連載：021〈吊在船頭〉—— 錨；022〈兩顆 deadeye 之間〉；023〈帆桁轉過來〉；020〈從艙口下去〉。動畫版第一話《從一根龍骨開始》在 HtmlVideos/basecamp_constitution_build_ep01）
+last_updated: 2026-10-12（連載：024〈不雕的東西〉—— 舵輪；025〈第十五個砲門〉；026〈掛在繩上的繩〉；021–023。動畫版第一話《從一根龍骨開始》在 HtmlVideos/basecamp_constitution_build_ep01）
 status: 連載中
 ---
 
@@ -44,8 +44,11 @@ status: 連載中
 | [021〈吊在船頭〉](Chapters/021.md) | 第二冊 `014.txt` | 2 | kotoko 的兩點與錨：tack 對、旋鈕是風、做一隻掛兩舷、先量撞的是什麼、七塊 ring、黑貼黑 |
 | [022〈兩顆 deadeye 之間〉](Chapters/022.md) | 第二冊 `015.txt` | 2 | 上 deadeye 與 lanyards：一段粗繩當圓盤、碰到的是自己、穿牆的 cat fall 與它被拿掉 |
 | [023〈帆桁轉過來〉](Chapters/023.md) | 第二冊 `016.txt` | 2 | 帆桁轉角度：先證明重做得出原本那一份、等 summit 出廠、右舷那一頭往前、斜線上的階梯、左舷原本是鏡子 |
+| [024〈不雕的東西〉](Chapters/024.md) | 第二冊 `017.txt` | 2 | 舵輪（外部模型）：一格兩公分的作品縮 0.2 掛上船、資料只查到一半、繩綁在模型上跟著轉、一則沒看回傳就寫的留言 |
+| [025〈第十五個砲門〉](Chapters/025.md) | 第二冊 `018.txt` | 2 | 32 磅 carronade 與 18 磅長砲（0.05 m）：砲擺在 skid 後半伸不出去、船頭那個空著的砲門斜 20°、幸好明寫的比例 |
+| [026〈掛在繩上的繩〉](Chapters/026.md) | 第二冊 `019.txt` | 2 | spar deck 砲門與 24 門 carronade：「這幾個被纜線擋住了」、deadeye 擠到砲門之間、ratlines 改成子繩、897 條分 17 組、一個腦子裡加的數 |
 
-共 24 話、57 頁 —— **連載中**（Tim 2026-10-11：漫畫跟著建造進度連載，船造完才完結）。
+共 27 話、63 頁 —— **連載中**（Tim 2026-10-11：漫畫跟著建造進度連載，船造完才完結）。
 000～007 改編自第一冊《龍骨是直的》；008、009 當時書還沒寫到，改編自作品的製作筆記 `Sculpture/works/basecamp-frigate-constitution-01m/journal/`（後來寫進第二冊《從裡面看》第一、二章）；010 起改編自第二冊（Tim 2026-10-11：「更新一下漫畫＋小說吧」—— 每個建造階段，小說一章、圖文版一話）。
 
 ## 分工
