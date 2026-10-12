@@ -1,5 +1,5 @@
 {
- "note": "《龍骨是直的》圖文版的頁圖規格：一頁幾列、一列幾格，每格一張現成的圖（可裁切）。src 前綴：O＝作品 overlays、D＝作品 design、R＝Sculpture/references/uss-constitution-1927。contain 格照圖的比例；cover 格照 aspect 裁。",
+ "note": "《龍骨是直的》圖文版的頁圖規格：一頁幾列、一列幾格，每格一張現成的圖（可裁切）。src 前綴：O＝作品 overlays、D＝作品 design、R＝Sculpture/references/uss-constitution-1927、E＝餘燼號 overlays、F＝餘燼號 design。contain 格照圖的比例；cover 格照 aspect 裁。",
  "pages": {
   "000_p01": {"rows": [
     [{"src": "O/stage1_keel_view.png", "fit": "cover", "aspect": 1.8}],
@@ -253,6 +253,32 @@
   ]},
   "029_p02": {"rows": [
     [{"src": "O/stage32_magazine_aft.png", "crop": [80, 220, 1300, 880]}, {"src": "O/stage32_magazine_fore.png", "crop": [200, 200, 1400, 880]}]
+  ]},
+  "030_p01": {"rows": [
+    [{"src": "O/stage33_mast_main_models.png", "crop": [400, 100, 820, 1420]}, {"src": "O/stage33_yards_bowq.png", "crop": [440, 170, 1260, 1020]}]
+  ]},
+  "030_p02": {"rows": [
+    [{"src": "O/stage33_yards_demo_porttack.png", "crop": [380, 170, 1260, 1020]}]
+  ]},
+  "031_p01": {"rows": [
+    [{"src": "F/sheet01_profile_v1.png", "crop": [0, 0, 1280, 790]}]
+  ]},
+  "031_p02": {"rows": [
+    [{"src": "E/stage1_hull_bowq.png", "crop": [240, 20, 1360, 860]}],
+    [{"src": "E/stage3_ports_paint_bowq.png", "crop": [240, 20, 1360, 860]}]
+  ]},
+  "032_p01": {"rows": [
+    [{"src": "E/stage4_stern_astern.png", "crop": [250, 20, 950, 960]}, {"src": "E/stage4b_stern_astern.png", "crop": [180, 30, 1020, 1080]}],
+    [{"src": "E/stage_stretch_side.png", "crop": [40, 230, 1560, 650]}]
+  ]},
+  "032_p02": {"rows": [
+    [{"src": "E/stage5_decks_waist.png", "crop": [400, 0, 1200, 880]}]
+  ]},
+  "033_p01": {"rows": [
+    [{"src": "E/paintfix_bow_before.png", "crop": [40, 100, 860, 820]}, {"src": "E/paintfix_bow_after.png", "crop": [40, 100, 860, 820]}]
+  ]},
+  "033_p02": {"rows": [
+    [{"src": "E/stage7_rigging_bowq.png", "crop": [420, 80, 1240, 1000]}, {"src": "E/stage7_rigging_sternq.png", "crop": [440, 150, 1200, 1050]}]
   ]}
  }
 }
