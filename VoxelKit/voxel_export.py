@@ -10,6 +10,10 @@
 #   --rig    ：連繩與帆一起（從 export format=obj 拿）
 #   --models ：連模型匯入的子模型一起（配 --rig；每個模型＝一份去重過的三角形網格＋外框最小角）
 #   --parts  ：各條關聯的外框（路徑、來源作品、box、mirror）—— 給要認得「哪一塊是砲、哪一根是桅」的展品用
+#   --meta   ：每條關聯（配 --parts）、每個模型（配 --rig --models）多帶 `meta`（作者貼的 {鍵: 字串或數字}）與 `points`
+#              （來源作品的固定點換到本作品座標 {名字: [x,y,z]}，格心）；header 多 `points`（本作品自己的固定點）。
+#              來源：`senate cmd sculpture op=export format=parts`（TASK-0517）—— ⛔ 不從給人看的讀數拆字串。不帶 ⇒ header 跟以前逐欄一樣。
+#   --senate ：senate 執行檔（預設 PATH 上的 senate；測試新建置時指過去）
 import argparse, hashlib, json, os, re, struct, subprocess, sys, tempfile, time, zlib
 from collections import Counter
 
@@ -19,10 +23,11 @@ CHUNK = 16
 MAGIC = b'VXK1'
 WORKS_ROOT_DEFAULT = 'D:/Unity/Valhalla/Sculpture/works'
 M32 = 0xFFFFFFFF
+SENATE = 'senate'
 
 
 def run(args):
-    r = subprocess.run(['senate', 'cmd', 'sculpture'] + args, capture_output=True, text=True, encoding='utf-8', errors='replace')
+    r = subprocess.run([SENATE, 'cmd', 'sculpture'] + args, capture_output=True, text=True, encoding='utf-8', errors='replace')
     return r
 
 
@@ -77,6 +82,24 @@ def read_parts(work, works_root):
         parts.append(dict(path=m.group(2), src=m.group(3), turn=turn, mirror=m.group(9) or '',
                           box=[org[0], org[1], org[2], org[0] + sx - 1, org[1] + sy - 1, org[2] + sz - 1]))
     return parts
+
+
+def read_meta(work, links, tmpdir):
+    """部件清單（export format=parts）⇒ (本作品的 points, {關聯路徑: 那一筆}, {模型路徑: 那一筆})。座標已是本作品的格座標。"""
+    out = os.path.join(tmpdir, 'parts.json').replace('\\', '/')
+    a = ['--arg', 'op=export', '--arg', 'format=parts', '--arg', 'work=' + work, '--arg', 'out=' + out]
+    if links:
+        a += ['--arg', 'links=' + links]
+    r = run(a)
+    if r.returncode != 0 or not os.path.exists(out):
+        sys.exit('✗ 部件清單匯出失敗（senate 要有 TASK-0517 的 export format=parts）：' + (r.stdout + r.stderr)[-800:])
+    j = json.load(open(out, encoding='utf-8'))
+    if j.get('format') != 'sculpt-parts' or j.get('version') != 1:
+        sys.exit('✗ 部件清單格式不認得：%s v%s' % (j.get('format'), j.get('version')))
+    bad = [p['path'] for p in j['links'] + j['models'] if 'points_error' in p]
+    if bad:
+        sys.exit('✗ 這些部件的固定點讀不了（⛔ 不給空的 points）：' + '、'.join(bad))
+    return j.get('points', {}), {p['path']: p for p in j['links']}, {m['path']: m for m in j['models']}
 
 
 def read_rig(work, tmpdir, with_models=False):
@@ -205,7 +228,11 @@ def main():
     ap.add_argument('--models', action='store_true', help='連模型匯入的子模型一起（要配 --rig）')
     ap.add_argument('--list', default='', help='用既有的 export format=list 檔（省掉一次匯出）')
     ap.add_argument('--works-root', default=WORKS_ROOT_DEFAULT)
+    ap.add_argument('--meta', action='store_true', help='關聯（--parts）與模型（--rig --models）多帶 meta 與 points；header 多 points')
+    ap.add_argument('--senate', default='senate', help='senate 執行檔（預設 PATH 上的 senate）')
     o = ap.parse_args()
+    global SENATE
+    SENATE = o.senate
 
     t0 = time.time()
     tmp = tempfile.mkdtemp(prefix='vxk_')
@@ -232,6 +259,20 @@ def main():
         rig, skipped = read_rig(o.work, tmp, o.models)
         header['rig'] = rig
         header['rig_skipped'] = skipped
+    if o.meta:
+        # 平的 meta（{鍵: 字串或數字}）＋ points（{名字: [x,y,z]}）—— ame 2026-10-12 酒館 seq 24096 議定的形狀；對不上路徑就停（⛔ 不靜默少一筆）
+        root_pts, by_link, by_model = read_meta(o.work, o.links, tmp)
+        header['points'] = root_pts
+        for p in header.get('parts', []):
+            q = by_link.get(p['path'])
+            if q is None:
+                sys.exit('✗ 部件清單裡沒有關聯 `%s`' % p['path'])
+            p['meta'], p['points'] = q['meta'], q['points']
+        for m in header.get('rig', {}).get('models', []):
+            q = by_model.get(m['name'])
+            if q is None:
+                sys.exit('✗ 部件清單裡沒有模型 `%s`' % m['name'])
+            m['meta'], m['points'] = q['meta'], q['points']
     blob, header = pack(a, header)
 
     # 對拍：封裝回讀 ＝ 匯出清單（逐格、逐色）
@@ -253,6 +294,9 @@ def main():
             print('  模型 %d（網格 %d 份，去重後）' % (len(header['rig']['models']), len(header['rig']['meshes'])))
     if o.parts:
         print('  關聯外框 %d 條' % len(header['parts']))
+    if o.meta:
+        items = header.get('parts', []) + header.get('rig', {}).get('models', [])
+        print('  meta：%d 筆帶 meta、固定點 %d 個（本作品 %d）' % (sum(1 for x in items if x['meta']), sum(len(x['points']) for x in items) + len(header['points']), len(header['points'])))
     print('  對拍：封裝回讀 ＝ 匯出清單（逐格、逐色）✓　%.1f 秒' % (time.time() - t0))
 
 
