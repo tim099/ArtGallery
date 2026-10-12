@@ -5,7 +5,7 @@ type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "015"
 last_updated: "2026-10-10"
-last_referenced_chapter: "047"
+last_referenced_chapter: "051"
 image: "../RawImages/stephen_black_v1.png"
 tags: ["character", "butler", "household", "black"]
 ---
@@ -26,7 +26,7 @@ tags: ["character", "butler", "household", "black"]
 
 ## 劇透邊界
 
-只納入已讀至第四十七章的資訊；王位結果、真名與非洲王族身分仍未證實。
+只納入已讀至第五十一章的資訊；王位結果、真名與非洲王族身分仍未證實。
 
 ## 第三十章補充
 
@@ -44,3 +44,7 @@ tags: ["character", "butler", "household", "black"]
 
 在望穿堂告別，斯剛德斯說他嘴上有紅白玫瑰；他伸手摸嘴，沒有摸到實物，一度想求援，仍未信任而離開。場景取尚未上馬、事故尚未發生時，沿用v1面貌與管家服，不加後續摔傷。手停在嘴旁的具體姿態是詮釋；玫瑰採另一人的知覺，不表示他本人看得見。
 
+
+## 第51章補充（Sirius，2026-10-12）
+
+他在威尼斯頂樓指出白髮先生已被召來，又遞破布給斯特蘭奇，將白睡衣抖平、疊好放到小凳。沿用v1臉部、短黑髮、管家服與白領巾；不加沼澤泥破或王者贈禮。正文未說他知道睡衣是阿拉貝拉縫的；末段捉弄指令不記成已執行。
