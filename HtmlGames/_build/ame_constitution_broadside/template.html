@@ -141,6 +141,7 @@
       <div class="row" id="modes">
         <button data-m="pve" class="on">對戰電腦</button><button data-m="eve">觀戰（自動開砲）</button><button data-m="sandbox">沙盒（敵艦不還手）</button>
       </div>
+      <div class="row" id="shipsel">我艦 <select id="ship0" aria-label="我艦的船"></select>　敵艦 <select id="ship1" aria-label="敵艦的船"></select></div>
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
       </div>
@@ -156,15 +157,19 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?ballast= ?gunhp= ?gunw= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?speed= ?agile= ?cap= ?strike=</div>
-      <h3>船殼</h3>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?ship=我艦,敵艦 ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile=（這六個套到每一型）?gunhp= ?dmg24= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike=</div>
+      <h3>船隻設定</h3>
+      <div class="row slide"><label for="cfgShip">編輯</label><select id="cfgShip" aria-label="編輯哪一艘船的設定"></select></div>
+      <div class="row note">照船型套：同一型的兩艘共用這一組，不同船各自一組（壓艙物的預設 ＝ 那艘剛好浮在設計水線）。</div>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
       <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
       <div class="row slide"><label for="ballast">壓艙物</label><input type="range" id="ballast" step="25"><span id="ballastV"></span></div>
-      <div class="row note">減重上浮：船的重量 ＝ 格（每格 0.7 kg）＋ 砲（「砲」那一段的重量）＋ 火藥桶 ＋ 壓艙物（不會被打掉的重量：壓艙鐵與石、水、糧、彈丸）；比設計水線的排水（2,156 噸）輕就浮高、重就吃水深。預設剛好在設計水線；壓艙物調輕 ⇒ 一開始就浮得高。打掉的格、飛掉的砲讓船變輕、浮起來（打掉 10 萬格約 0.12 m）；浮出水面的洞不進水，浮得夠高，艙底的彈藥庫會露出水面。</div>
+      <div class="row note">減重上浮：船的重量 ＝ 格（每格 0.7 kg）＋ 砲（上面的「砲的重量」）＋ 火藥桶 ＋ 壓艙物（不會被打掉的重量：壓艙鐵與石、水、糧、彈丸）；比設計水線的排水（2,156 噸）輕就浮高、重就吃水深。預設剛好在設計水線；壓艙物調輕 ⇒ 一開始就浮得高。打掉的格、飛掉的砲讓船變輕、浮起來（打掉 10 萬格約 0.12 m）；浮出水面的洞不進水，浮得夠高，艙底的彈藥庫會露出水面。</div>
+      <div class="row slide"><label for="gunw">砲的重量</label><input type="range" id="gunw" step="0.25" aria-label="砲的重量倍率"><span id="gunwV"></span></div>
+      <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
+      <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
       <h3>砲</h3>
       <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
-      <div class="row slide"><label for="gunw">重量</label><input type="range" id="gunw" step="0.25" aria-label="砲的重量倍率"><span id="gunwV"></span></div>
       <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>
       <div class="row slide"><label for="dmg24">24 磅長砲</label><input type="range" id="dmg24" step="5" aria-label="24 磅長砲每發傷害"><span id="dmg24V"></span></div>
       <div class="row slide"><label for="dmg32">32 磅 carronade</label><input type="range" id="dmg32" step="5" aria-label="32 磅 carronade 每發傷害"><span id="dmg32V"></span></div>
@@ -193,9 +198,6 @@
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
       <div class="row note">兩間彈藥庫在艙底（後 22 桶、前 116 桶，每桶 100 磅；水線下，砲彈打不到）。兩層甲板在彈藥庫上方各有一個取用點（3 桶火藥＋彈藥），送藥手從那裡搬到砲旁的藥箱。<br>
         預設 675：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
-      <h3>航行</h3>
-      <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
-      <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
       <h3>砲長</h3>
       <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
       <div class="row slide"><label for="cap1">敵艦</label><select id="cap1"></select></div>

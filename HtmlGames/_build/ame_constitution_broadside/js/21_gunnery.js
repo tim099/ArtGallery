@@ -128,21 +128,21 @@ function impact(b, sh, L) {
   var dirL = norm(M4.dir(sh.inv, b.v[0], b.v[1], b.v[2])), sp = len(b.v), r, w = b.p.slice();
   if (sh.i !== b.owner) SHIPS[b.owner].hits += (b.hitOnce ? 0 : 1); b.hitOnce = true;
   if (b.ammo === 1) {                                                   // 爆裂彈：第一下就炸
-    r = shatter(sh, L, dirL, rr(10, 13) * Math.pow(HARDK, -0.3), mul(b.v, 0.05), 650, 0.85);
+    r = shatter(sh, L, dirL, rr(10, 13) * Math.pow(sh.cfg.hard, -0.3), mul(b.v, 0.05), 650, 0.85);
     explode(w, sh, r.n); blastModels(sh, L, 22, w, null, b.dmg); hurt(sh, L, 13, 30, null, '爆炸', crewBase(b)); b.alive = false; return;
   }
   if (b.ammo === 2) {                                                   // 鏈彈：橫著的一片
     r = slab(sh, L, dirL, b);
-    b.v = mul(b.v, Math.max(0, 1 - r.cost * 0.004 * HARDK));
+    b.v = mul(b.v, Math.max(0, 1 - r.cost * 0.004 * sh.cfg.hard));
     if (r.n) hurt(sh, L, 9, 16, dirL, '鏈彈', crewBase(b));
     if (len(b.v) < 30) { ballToDebris(b); }
     if (r.n > 30) { sfx('crack', w, 0.9); smoke(w, [0, 0.2, 0], 3, false); }
     return;
   }
-  var R = rr(3.4, 4.6) * (b.big ? 1.25 : 1) * Math.pow(HARDK, -0.25);
+  var R = rr(3.4, 4.6) * (b.big ? 1.25 : 1) * Math.pow(sh.cfg.hard, -0.25);
   r = shatter(sh, L, dirL, R, b.v, 260, 0.55);   // 實心彈：一口一口往裡鑽（carronade 的 32 磅彈洞大一點；越硬洞越小）
   if (r.n) hurt(sh, L, R * 1.1, R * 2.6, dirL, '碎木', crewBase(b));             // 碎木往前噴：船裡的人主要是被這個傷到的
-  var nsp = sp - r.cost * 0.24 * HARDK;
+  var nsp = sp - r.cost * 0.24 * sh.cfg.hard;
   if (r.n > 0) { sfx('crack', w, 0.6 + Math.min(1, r.n / 200)); if (r.n > 40) smoke(w, mul(norm(b.v), -0.3), 2, false); }
   if (nsp < 28) { ballToDebris(b); return; }
   b.v = mul(b.v, nsp / sp);
@@ -272,7 +272,7 @@ function ballToDebris(b) { spawnDebris(b.p, mul(b.v, 0.3), 36, 0.15, 20); b.aliv
 function slab(sh, L, dirL, b) {
   var side = norm(cross(dirL, [0, 0, 1])), cost = 0, n = 0, removed = [];
   for (var a = -13; a <= 13; a++) for (var h = -2; h <= 2; h++) for (var d = -2; d <= 2; d++) {
-    if (Math.abs(a) > (10.5 + 2.5 * hash3(a, h, d + (L[2] | 0))) * Math.pow(HARDK / 2, -0.25)) continue;   // 越硬撕開的那一片越窄
+    if (Math.abs(a) > (10.5 + 2.5 * hash3(a, h, d + (L[2] | 0))) * Math.pow(sh.cfg.hard / 2, -0.25)) continue;   // 越硬撕開的那一片越窄
     var x = Math.floor(L[0] + side[0] * a + dirL[0] * d), y = Math.floor(L[1] + side[1] * a + dirL[1] * d), z = Math.floor(L[2] + h);
     var c = removeVoxel(sh, x, y, z, true); if (c) { cost += (HARD[c] || 1) * 2.4; n++; removed.push(x, y, z, c); }
   }

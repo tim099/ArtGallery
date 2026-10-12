@@ -8,12 +8,26 @@ var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], g
   dmg24: [10, 300, 100], dmg32: [10, 300, 120], dmg18: [10, 300, 70],
   box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1] };                                   // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
-var HARDK = qnum('hard', LIM.hard);     // 船殼硬度倍率（越硬越難打穿、洞越小）：預設 3（Tim 2026-10-12：原本 2 ⇒ 1.5 倍）
-var FLOOD = qnum('flood', LIM.flood);   // 進水速度倍率（0 ＝ 不會沉）
-var GUNW_K = qnum('gunw', LIM.gunw);    // 砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多（Tim 2026-10-12）
-var BALLAST_T = Math.round(qnum('ballast', LIM.ballast));   // 壓艙物（噸）：不會被打掉的重量；預設 1,075 ⇒ 開戰時剛好在設計水線，越輕浮得越高（減重上浮，見 32_hull.js）
-var SPEEDK = qnum('speed', LIM.speed);  // 航速倍率（乘在 VMAX 上）
-var AGILK = qnum('agile', LIM.agile);   // 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
+// 船隻設定（照船型套；Tim 2026-10-12：不同船套用不同設定）：每一型一組，開戰時複製到每艘船（sh.cfg）。
+//   hard  船殼硬度倍率（越硬越難打穿、洞越小；被打的那艘照自己的）：預設 3（Tim：原本 2 ⇒ 1.5 倍）
+//   flood 進水速度倍率（0 ＝ 不會沉）
+//   ballast 壓艙物（噸）：不會被打掉的重量；預設 ＝ 那一型「剛好在設計水線」（T.ballast0：憲法號 1,075），越輕浮得越高（減重上浮，32_hull.js）
+//   gunw  砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多
+//   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
+// 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 那一型的 ballast0（船型載好才知道）。
+var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile'], SHIP_CFG = {};
+function cfgDefault(k, T) {
+  if (k !== 'ballast') return qnum(k, LIM[k]);
+  return Q.has('ballast') ? Math.round(qnum('ballast', LIM.ballast)) : T && isFinite(T.ballast0) ? T.ballast0 : LIM.ballast[2];
+}
+/** 那一型的設定（第一次用到才建；壓艙物等船型載好才填）。 */
+function shipCfg(id) {
+  var c = SHIP_CFG[id];
+  if (!c) { c = SHIP_CFG[id] = {}; SHIP_KEYS.forEach(function (k) { if (k !== 'ballast') c[k] = cfgDefault(k); }); }
+  if (c.ballast === undefined && HULLT[id]) c.ballast = cfgDefault('ballast', HULLT[id]);
+  return c;
+}
+function cfgCopy(id) { var c = shipCfg(id), o = {}; SHIP_KEYS.forEach(function (k) { o[k] = c[k]; }); return o; }
 var GUN_HP = Math.round(qnum('gunhp', LIM.gunhp));          // 砲的血量（舵輪 6 成）：預設 200 ⇒ 24 磅實心兩發（Tim 2026-10-12：100 太脆，翻倍）
 var SAIL_HP = Math.round(qnum('sailhp', LIM.sailhp));       // 帆的血量
 var CREW_HP = Math.round(qnum('crewhp', LIM.crewhp));       // 船員的血量：歸零陣亡、掉到一半以下受傷倒下、一半以上照常作戰（只閃紅）

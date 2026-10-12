@@ -21,13 +21,13 @@ function hydrostatics(T) {
   for (z = ZW + 1; z <= top; z++) HYD[z] = HYD[z - 1] - A[z - 1];
   T.disp = HYD[0] * RHO_W;                                                        // 設計水線的排水量（噸）
 }
-function modelT(m) { return m.kind === 'powder' ? KEG_T : (GUN_T[m.kind] || 0) * GUNW_K; }   // 模型的重量（砲照細節設定的倍率）
+function modelT(m, gunw) { return m.kind === 'powder' ? KEG_T : (GUN_T[m.kind] || 0) * gunw; }   // 模型的重量（砲乘船隻設定的倍率）
 /** 開戰時的重量（噸）：格 ＋ 模型 ＋ 壓艙物。 */
-function shipT(sh) { var t = sh.orig * VOX_T + BALLAST_T; sh.models.forEach(function (m) { t += modelT(m); }); return t; }
+function shipT(sh) { var t = sh.orig * VOX_T + sh.cfg.ballast; sh.models.forEach(function (m) { t += modelT(m, sh.cfg.gunw); }); return t; }
 /** 少掉的重量（噸）：格（被打掉、跟著斷開的一團走）＋ 不在船上的模型（飛掉、炸掉、跟著斷開的一團走）。帆桁不算。 */
 function massLost(sh) {
   var t = (sh.orig - sh.grid.count) * VOX_T;
-  sh.models.forEach(function (m) { if (!m.alive || m.moved) t += modelT(m); });
+  sh.models.forEach(function (m) { if (!m.alive || m.moved) t += modelT(m, sh.cfg.gunw); });
   return t;
 }
 /** 船型 T 比設計水線的排水輕 t 噸（負 ＝ 重）⇒ 浮高幾公尺（負 ＝ 吃水深）；還沒有船型 ⇒ null。 */
@@ -43,7 +43,7 @@ function stepShip(sh, dt) {
   var wz = Math.min(sh.T.sz - 1, Math.floor(sh.T.zw + (sh.sink - sh.lift - sh.bob) / S)), N = 0, Q = 0, Dsp = 0, Dbs = 0;
   for (var z = 0; z <= wz; z++) { var c = sh.flood[z * 3]; if (!c) continue; N += c; Q += c * Math.sqrt((wz - z) * S + 0.05); Dsp += sh.flood[z * 3 + 1]; Dbs += sh.flood[z * 3 + 2]; }
   sh.inflow = N;
-  var fk = sh.broken ? Math.max(FLOOD, 0.6) : FLOOD;                       // 斷成兩截 ⇒ 一定沉（進水速度 0 也沉）
+  var fk = sh.broken ? Math.max(sh.cfg.flood, 0.6) : sh.cfg.flood;                       // 斷成兩截 ⇒ 一定沉（進水速度 0 也沉）
   if (!sh.sunk) {
     sh.sink = Math.max(0, sh.sink + Math.min(Q * 1.1e-5 - 0.004, 0.25) * fk * dt);   // 進水與抽水一起照滑桿縮放（⛔ 只縮進水 ⇒ 調慢之後抽水永遠贏、永遠不沉）；
                                                                               // 上限 0.25 m/s：彈藥庫殉爆打掉三十幾萬格 ⇒ 不設上限兩秒就沉完，看不到船斷開

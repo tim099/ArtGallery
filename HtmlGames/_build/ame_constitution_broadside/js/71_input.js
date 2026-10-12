@@ -112,7 +112,8 @@ $('phys').onchange = function () { setPhys($('phys').checked); };
 /** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。
  *  船殼、砲、帆、火藥桶、航行、降旗的滑桿在「細節設定」那一頁（從主選單進）；主選單只留一行摘要（#detV）。 */
 /** 模型（砲、火藥桶）的總重（噸）：照匯出的模型清單＋取用點的 12 桶（細節設定的例子用；開戰時每艘照自己的模型算）。 */
-function modelMassT(T) { if (!T) return 0; var t = 12 * KEG_T; (T.rig.models || []).forEach(function (m) { t += modelT({ kind: modelKind(m) }); }); return t; }
+function modelMassT(T, gunw) { if (!T) return 0; var t = 12 * KEG_T; (T.rig.models || []).forEach(function (m) { t += modelT({ kind: modelKind(m) }, gunw); }); return t; }
+var CFG_ID = SHIP_SET[0];                              // 細節設定的「船隻設定」正在編輯哪一型
 var SLIDERS_SHOW = null;                               // 載入完（HYD 算好）再顯示一次 ⇒ 減重上浮的例子有數字
 function sliders() {
   var lf = $('ballast'), f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), gw = $('gunw'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), ch = $('crewhp');
@@ -127,9 +128,11 @@ function sliders() {
   bl.min = LIM.blast[0]; bl.max = LIM.blast[1]; ch.min = LIM.crewhp[0]; ch.max = LIM.crewhp[1];
   for (var t in dm) { dm[t].min = DLIM[t][0]; dm[t].max = DLIM[t][1]; }
   function am(r, k) { return $('am-' + r + '-' + k); }
-  function put() {                                     // 變數 ⇒ 滑桿位置（開頭、重設預設值時）
-    lf.value = BALLAST_T; f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = SPEEDK; ag.value = AGILK;
-    gh.value = GUN_HP; gw.value = GUNW_K; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; ch.value = CREW_HP;
+  function C() { return shipCfg(CFG_ID); }             // 正在編輯的那一型（船隻設定）
+  function put() {                                     // 變數 ⇒ 滑桿位置（開頭、重設預設值、換編輯的船時）
+    var k = C(); $('cfgShip').value = CFG_ID;
+    lf.value = k.ballast !== undefined ? k.ballast : LIM.ballast[2]; f.value = k.flood; h.value = Math.log(k.hard / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = k.speed; ag.value = k.agile;
+    gh.value = GUN_HP; gw.value = k.gunw; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; ch.value = CREW_HP;
     for (var t in dm) dm[t].value = DMG[t];
     bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
@@ -137,10 +140,11 @@ function sliders() {
     [0, 1].forEach(function (i) { $('cap' + i).value = CAP_SET[i]; });
   }
   function show() {
+    var K = C(), SPEEDK = K.speed, AGILK = K.agile, FLOOD = K.flood, HARDK = K.hard, GUNW_K = K.gunw, BALLAST_T = K.ballast !== undefined ? K.ballast : LIM.ballast[2];   // 正在編輯的那一型
     $('speedV').textContent = SPEEDK.toFixed(2) + '×（最快約 ' + (VMAX * SPEEDK * 1.944).toFixed(0) + ' 節）';
     $('agileV').textContent = AGILK.toFixed(2) + '×（滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGILK * 57.3).toFixed(1) + '°/秒）';
     $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
-    var HT = HULLT[SHIP_SET[0]], m0 = (HT ? HT.base.count * VOX_T : 0) + modelMassT(HT) + BALLAST_T, l0 = liftFor(HT, HT ? HT.disp - m0 : 0), lx = liftFor(HT, HT ? HT.disp - m0 + 70 : 0);   // 照我艦的船型   // 開戰時浮在哪；例子：再打掉 10 萬格（70 噸）
+    var HT = HULLT[CFG_ID], m0 = (HT ? HT.base.count * VOX_T : 0) + modelMassT(HT, GUNW_K) + BALLAST_T, l0 = liftFor(HT, HT ? HT.disp - m0 : 0), lx = liftFor(HT, HT ? HT.disp - m0 + 70 : 0);   // 照我艦的船型   // 開戰時浮在哪；例子：再打掉 10 萬格（70 噸）
     var gm = 0; if (HT) (HT.rig.models || []).forEach(function (m) { var k = modelKind(m); if (GUN_T[k]) gm += GUN_T[k] * GUNW_K; });
     $('gunwV').textContent = GUNW_K.toFixed(2) + '×（長砲 ' + (2.5 * GUNW_K).toFixed(1) + ' 噸、carronade ' + (0.9 * GUNW_K).toFixed(1) + '、追擊砲 ' + (2.1 * GUNW_K).toFixed(1) + (gm ? '；全部 ' + Math.round(gm) + ' 噸' : '') + '）';
     $('ballastV').textContent = BALLAST_T + ' 噸' + (l0 === null ? '' : '（' + HT.name + ' ' + Math.round(m0).toLocaleString() + ' 噸 ⇒ ' + (Math.abs(l0) < 0.05 ? '剛好在設計水線' : l0 > 0 ? '浮高 ' + l0.toFixed(1) + ' m' : '吃水深 ' + (-l0).toFixed(1) + ' m') + '；打掉 10 萬格再浮 ' + (lx - l0).toFixed(2) + ' m）');
@@ -158,18 +162,18 @@ function sliders() {
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
     $('strikeV').textContent = strikeText();
     var amDef = AMMO_K.every(function (r, i) { return r.every(function (v, j) { return v === AMMO_K0[i][j]; }); });
-    $('detV').textContent = '船殼硬度 ' + HARDK.toFixed(1) + '×・進水 ' + FLOOD.toFixed(2) + '×・壓艙物 ' + BALLAST_T + ' 噸・砲重 ' + GUNW_K.toFixed(2) + '×・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
+    $('detV').textContent = SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×'; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
       '・傷害 ' + DMG.long + '／' + DMG.carr + '／' + DMG.chase + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N +
-      '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・航速 ' + SPEEDK.toFixed(2) + '×・靈活 ' + AGILK.toFixed(2) + '×・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
+      '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
   }
-  lf.oninput = function () { BALLAST_T = Math.round(+lf.value); show(); };
-  f.oninput = function () { FLOOD = +f.value; show(); };
-  sp.oninput = function () { SPEEDK = +sp.value; show(); };
-  ag.oninput = function () { AGILK = +ag.value; show(); };
-  h.oninput = function () { HARDK = Math.round(LIM.hard[0] * Math.exp(h.value * hk) * 10) / 10; show(); };
+  lf.oninput = function () { C().ballast = Math.round(+lf.value); show(); };
+  f.oninput = function () { C().flood = +f.value; show(); };
+  sp.oninput = function () { C().speed = +sp.value; show(); };
+  ag.oninput = function () { C().agile = +ag.value; show(); };
+  h.oninput = function () { C().hard = Math.round(LIM.hard[0] * Math.exp(h.value * hk) * 10) / 10; show(); };
   c.oninput = function () { STRIKE.cas = c.value / 100; show(); };
   gh.oninput = function () { GUN_HP = Math.round(+gh.value); show(); };
-  gw.oninput = function () { GUNW_K = +gw.value; show(); };
+  gw.oninput = function () { C().gunw = +gw.value; show(); };
   sl.oninput = function () { SAIL_HP = Math.round(+sl.value); show(); };
   ph.oninput = function () { POWDER_HP = Math.round(+ph.value); show(); };
   bl.oninput = function () { BLAST_K = +bl.value; show(); };
@@ -185,20 +189,36 @@ function sliders() {
   })(r, k);
   ['guns', 'masts', 'officers'].forEach(function (k) { var b = $('st-' + k); b.onchange = function () { STRIKE[k] = b.checked; show(); }; });
   [0, 1].forEach(function (i) { var s = $('cap' + i); capOptions(s, CAP_SET[i]); s.onchange = function () { CAP_SET[i] = s.value; show(); }; });   // 砲長
+  var cs = $('cfgShip'); hullOptions(cs, CFG_ID);                // 船隻設定：編輯哪一型（選到還沒載的船 ⇒ 先載，壓艙物的預設要船型才算得出來）
+  cs.onchange = function () { CFG_ID = cs.value; loadHull(CFG_ID).then(function () { put(); show(); }); put(); show(); };
+  [0, 1].forEach(function (i) { var s = $('ship' + i); hullOptions(s, SHIP_SET[i]); s.onchange = function () { pickShip(i, s.value); }; });   // 主選單選船
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
   function page(det) { $('detail').style.display = det ? '' : 'none'; document.querySelector('#cover .card:not(#detail)').style.display = det ? 'none' : ''; $('cover').scrollTop = 0; }
   $('detB').onclick = function () { page(true); };
   $('detX').onclick = function () { page(false); };
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
-    FLOOD = LIM.flood[2]; BALLAST_T = LIM.ballast[2]; HARDK = LIM.hard[2]; SPEEDK = LIM.speed[2]; AGILK = LIM.agile[2];
-    GUN_HP = LIM.gunhp[2]; GUNW_K = LIM.gunw[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
+    SHIP_CFG = {}; Object.keys(HULLT).forEach(function (id) { var c = shipCfg(id); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? HULLT[id].ballast0 : LIM[k][2]; }); });   // 每一型回到它的預設（壓艙物 ＝ 剛好在設計水線）
+    GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
     DMG.long = LIM.dmg24[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
     put(); show();
   };
   window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
-  put(); show(); SLIDERS_SHOW = show;
+  put(); show(); SLIDERS_SHOW = function () { put(); show(); };
+}
+/** 選單列船：HULL_LIST 的每一艘。 */
+function hullOptions(sel, v) { sel.innerHTML = HULL_LIST.map(function (h) { return '<option value="' + h.id + '">' + h.name + '</option>'; }).join(''); sel.value = v; }
+/** 主選單換船：還沒載的先載（開戰鈕暫時停用），載好就把背景的兩艘換掉；細節設定跟著編輯我艦那一型。 */
+function pickShip(i, id) {
+  SHIP_SET[i] = id; if (i === 0) CFG_ID = id;
+  var go = $('go'); go.disabled = true; go.textContent = '載入' + hullInfo(id).name + '…';
+  loadHull(id).then(function () {
+    if (SHIP_SET.some(function (s) { return !HULLT[s]; })) return;          // 另一艘還在載
+    go.disabled = false; go.textContent = '開戰';
+    if (!RUNNING) reset();                                                  // 選單後面的兩艘換成選到的船
+    if (SLIDERS_SHOW) SLIDERS_SHOW();
+  }).catch(function (e) { go.textContent = '載不了：' + (e && e.message || e); console.error(e); });
 }
 sliders();
 [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });

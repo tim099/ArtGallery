@@ -73,7 +73,11 @@ var t0 = performance.now();
 function say(s) { $('load').textContent = s; }
 say('解碼船體…');
 programs(); geometry(); bbSetup(); QIDX = new VK.QuadIndex(gl);
-Promise.all(SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(loadHull)).then(function () {   // 只載選到的船（預設兩艘都是憲法號 ⇒ 一份）
+hullSay = function (s) { var go = $('go'); if (go.disabled) go.textContent = '解析' + s; };   // 解析中：開戰鈕寫進度（設定照樣能調）
+requestAnimationFrame(frame);                                       // 解析中也畫（天、海；船載好才有）
+yieldUI().then(function () {                                        // 先讓主選單畫出來，再開始解析
+  return Promise.all(SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(loadHull));   // 只載選到的船（預設兩艘都是憲法號 ⇒ 一份）
+}).then(function () {
   var T = HULLT[SHIP_SET[0]], h = T.h, chk = T.chk;
   if (SLIDERS_SHOW) SLIDERS_SHOW();
   var line = '1:1 ' + T.name + ' ' + chk.voxels.toLocaleString() + ' 格 checksum ' + chk.checksum.toString(16) + (chk.ok ? '（＝ 封裝檔 header，逐格相同 ✓）' : '（✗ 跟封裝檔對不上：' + h.voxels + '／' + h.checksum.toString(16) + '）') +
@@ -94,5 +98,4 @@ Promise.all(SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; })
     // 選單後面先擺好兩艘船當背景
     reset();
   }
-  requestAnimationFrame(frame);
 }).catch(function (e) { fail('載入失敗：' + (e && e.message || e)); console.error(e); });
