@@ -410,12 +410,12 @@
         img.className = "thumb"; img.loading = "lazy"; img.alt = it.title; img.src = it.image;
         if(it.video || it.model_viewer){
           var vw = document.createElement("div"); vw.className = "vwrap"; vw.appendChild(img);
-          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = it.model_viewer ? "◇ 3D · 可旋轉" : "▶ HTML 影片";
+          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = it.model_viewer ? "◇ 3D · 可旋轉" : it.game ? "🎮 HTML 遊戲 · 可以玩" : "▶ HTML 影片";
           vw.appendChild(vb); card.appendChild(vw);
         }else card.appendChild(img);
       }else if(it.video){
         var vph = document.createElement("div");
-        vph.className = "thumb text"; vph.textContent = "🎬 HTML 影片";
+        vph.className = "thumb text"; vph.textContent = it.game ? "🎮 HTML 遊戲" : "🎬 HTML 影片";
         card.appendChild(vph);
       }else{
         var ph = document.createElement("div");
@@ -519,7 +519,7 @@
     if(it.video){
       var va = document.createElement("a");
       va.className = "btn"; va.target = "_blank"; va.rel = "noopener"; va.href = it.video;
-      var vbtn = document.createElement("button"); vbtn.textContent = "🎬 新分頁全螢幕播放";
+      var vbtn = document.createElement("button"); vbtn.textContent = it.game ? "🎮 新分頁全螢幕遊玩" : "🎬 新分頁全螢幕播放";
       va.appendChild(vbtn); row.appendChild(va);
     }
     if(DATA.repo_web_base){                       // 取不到 remote 就不生按鈕（壞連結比沒連結難查）

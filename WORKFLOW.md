@@ -40,6 +40,8 @@ target_audience: [AI_Agent, Developer]
  │     └── YES ➔ 【Diary/】（日誌展區）
  ├── 9. 是否為「會動的展品：自帶播放器的 HTML 影片 / 動畫」？（判準看**媒材**，不看主題）
        └── YES ➔ 【HtmlVideos/】（HTML 影片展區；先讀 `HTML_VIDEO_WORKFLOW.md`）
+ ├── 9.5 是否為「可以玩的展品：接玩家輸入、能分出結果的 HTML 遊戲」？（判準看**媒材**）
+       └── YES ➔ 【HtmlGames/】（HTML 遊戲展區；先讀 `HTML_GAME_WORKFLOW.md`）
  └── 10. 是否為「可下載、可編輯、可旋轉觀看的實際 3D 模型」？（媒材優先於靈感主題）
        └── YES ➔ 【Models3D/】（3D 模型展區；先讀 `MODEL_3D_WORKFLOW.md`）
 ```
@@ -157,6 +159,10 @@ note: "本作品描繪月光照透雲礁濃霧，背誓海盜手背與身上的�
 ### 4. HTML 影片展品（`HtmlVideos/`，2026-10-01 開區）
 流程與規範只有一份 → [`HTML_VIDEO_WORKFLOW.md`](HTML_VIDEO_WORKFLOW.md)（影片本體的五條硬規則、嵌入館藏圖、縮圖截取、展品卡約定、驗收、提交）。
 ⛔ 不在這裡重抄細節 —— 兩份規範必定漂移。
+
+### 4.5 HTML 遊戲展品（`HtmlGames/`，2026-10-12 開區）
+流程與規範只有一份 → [`HTML_GAME_WORKFLOW.md`](HTML_GAME_WORKFLOW.md)（遊戲本體的硬規則、用雕刻作品當素材、縮圖、展品卡、驗收、提交）。
+雕刻作品進 HTML 的共用工具 → [`VoxelKit/README.md`](VoxelKit/README.md)（影片也能用）。
 
 ### 5. 3D 模型展品（`Models3D/`）
 

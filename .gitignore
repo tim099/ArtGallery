@@ -57,3 +57,6 @@ $RECYCLE.BIN/
 # 線上版：每次 push 由 .github/workflows/pages.yml 重生成並部署，不可能落後。
 # 本機逛展：自己跑一次 `python build_gallery.py`（讀不到索引時 index.html 會明說怎麼跑）。
 gallery_data.js
+
+# VoxelKit：匯出暫存與 .vxk（由 voxel_export.py 重產）
+VoxelKit/_cache/

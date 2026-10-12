@@ -54,6 +54,7 @@ SECTIONS = {
     "SculptureInterpretations": "3D 雕刻",
     "TRPG": "TRPG",
     "HtmlVideos": "HTML 影片",
+    "HtmlGames": "HTML 遊戲",
     "Models3D": "3D 模型",
 }
 
@@ -70,7 +71,8 @@ COMIC_SKIP_DIRS = {"template"}
 
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)
 IMG_RE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)")
-# HTML 影片：正文裡第一個指向 .html 的連結（`[▶ 播放](x.html)`）。圖片語法前面有 `!`，不會被這條吃到。
+# HTML 影片／遊戲：正文裡第一個指向 .html 的連結（`[▶ 播放](x.html)`）。圖片語法前面有 `!`，不會被這條吃到。
+# HtmlGames 展區的同一個欄位另外標 game ⇒ 網頁標「遊戲」而不是「影片」（播放方式相同：sandbox iframe）。
 VIDEO_RE = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+\.html)\)")
 H1_RE = re.compile(r"^#\s+(.+)$", re.M)
 
@@ -251,6 +253,7 @@ def collect(dates: dict) -> list:
                 "section_dir": sec_dir,
                 "image": img,
                 "video": video,
+                **({"game": True} if video and sec_dir == "HtmlGames" else {}),
                 **model_assets,
                 "date": date,
                 "date_src": date_src,
@@ -369,11 +372,12 @@ def main() -> int:
             + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n")
 
     n_img = sum(1 for i in items if i["image"])
-    n_vid = sum(1 for i in items if i.get("video"))
+    n_game = sum(1 for i in items if i.get("game"))
+    n_vid = sum(1 for i in items if i.get("video")) - n_game
     n_mtime = sum(1 for i in items if i["date_src"] == "mtime")
     n_ch = sum(w["chapter_count"] for w in comics)
     n_pg = sum(w["page_count"] for w in comics)
-    summary = (f"展品 {len(items)} 件（有圖 {n_img} / 純文字 {len(items) - n_img} / 影片 {n_vid}）"
+    summary = (f"展品 {len(items)} 件（有圖 {n_img} / 純文字 {len(items) - n_img} / 影片 {n_vid} / 遊戲 {n_game}）"
                f"｜漫畫 {len(comics)} 部 / {n_ch} 話 / {n_pg} 頁"
                f"｜日期來源：git {len(items) - n_mtime}、mtime {n_mtime}")
 
