@@ -44,6 +44,22 @@
     return { header: header, chunks: chunks };
   }
   function decode(u8) { return inflateRaw(u8).then(parse); }
+  /** <script type="application/x-asset" id="…" data-mime="…">base64</script>（vxk_inline.py 填的）；空的（optional 素材沒交）⇒ null。 */
+  function embedded(id) {
+    var el = document.getElementById(id); if (!el) return null;
+    var t = el.textContent.replace(/\s+/g, '');
+    return t ? { mime: el.getAttribute('data-mime') || 'application/octet-stream', b64: t } : null;
+  }
+  /** 內嵌的圖 ⇒ Promise<Image|null>（沒有或解不開 ⇒ null，呼叫端用替代品）。 */
+  function embeddedImage(id) {
+    var e = embedded(id); if (!e) return Promise.resolve(null);
+    return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { res(null); }; im.src = 'data:' + e.mime + ';base64,' + e.b64; });
+  }
+  /** 內嵌的 JSON ⇒ 物件（沒有或解不開 ⇒ null）。 */
+  function embeddedJSON(id) {
+    var e = embedded(id); if (!e) return null;
+    try { return JSON.parse(new TextDecoder().decode(b64ToBytes(e.b64))); } catch (x) { return null; }
+  }
   /** <script type="application/x-vxk" id="…">base64</script>（vxk_inline.py 填進去的）⇒ 模型。 */
   function loadEmbedded(id) {
     var el = document.getElementById(id);
@@ -400,6 +416,7 @@
   root.VoxelKit = {
     CHUNK: CH, rgb332: rgb332, hashVoxel: hashVoxel,
     b64ToBytes: b64ToBytes, inflateRaw: inflateRaw, parse: parse, decode: decode, loadEmbedded: loadEmbedded,
+    embeddedImage: embeddedImage, embeddedJSON: embeddedJSON,
     Grid: Grid, verify: verify, meshChunk: meshChunk, M4: M4, raycast: raycast, detached: detached,
     compile: compile, VOXEL_VS: VOXEL_VS, VOXEL_FS: VOXEL_FS, RegionSet: RegionSet, QuadIndex: QuadIndex,
     pack: function (x, y, z) { return x | (y << 10) | (z << 20); }

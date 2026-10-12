@@ -6,9 +6,13 @@
 # 用法：python -I vxk_inline.py <開發用.html> <成品.html>
 #   · <script src="相對路徑.js"></script>                          ⇒ 內嵌 JS
 #   · <script type="application/x-vxk" id="X" src="相對路徑.vxk"></script> ⇒ 內嵌 base64（voxelkit.js 的 VoxelKit.loadEmbedded('X') 讀）
+#   · <script type="application/x-asset" id="X" src="相對路徑.png|.json" [data-optional="1"]></script>
+#       ⇒ 內嵌 base64＋data-mime（VoxelKit.embeddedImage／embeddedJSON 讀）；optional 的檔不存在 ⇒ 留一個空的 tag（展品用替代品），不擋
 import base64, os, re, sys
 
 JS_RE = re.compile(r'<script\s+src="([^"]+)"\s*>\s*</script>')
+ASSET_RE = re.compile(r'<script\s+type="application/x-asset"\s+id="([^"]+)"\s+src="([^"]+)"(\s+data-optional="1")?\s*>\s*</script>')
+MIME = {'.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.json': 'application/json'}
 VXK_RE = re.compile(r'<script\s+type="application/x-vxk"\s+id="([^"]+)"\s+src="([^"]+)"\s*>\s*</script>')
 BAD = [(re.compile(r'<script[^>]*\ssrc\s*='), '外部 <script src>'),
        (re.compile(r'\bfetch\s*\('), 'fetch('),
@@ -42,10 +46,25 @@ def main():
         report.append('  JS    ← %s（%d 行）' % (m.group(1), t.count('\n') + 1))
         return '<script>\n' + t.replace('</script', '<\\/script') + '\n</script>'
 
+    def asset(m):
+        p = os.path.normpath(os.path.join(base, m.group(2)))
+        mime = MIME.get(os.path.splitext(p)[1].lower())
+        if not mime:
+            sys.exit('✗ 不認得的素材格式：%s（%s）' % (m.group(2), '、'.join(MIME)))
+        if not os.path.exists(p):
+            if m.group(3):
+                report.append('  素材  #%s ← %s（不存在，optional ⇒ 展品用替代品）' % (m.group(1), m.group(2)))
+                return '<script type="application/x-asset" id="%s" data-mime="%s"></script>' % (m.group(1), mime)
+            sys.exit('✗ 找不到 %s（%s）' % (m.group(2), p))
+        b = open(p, 'rb').read()
+        report.append('  素材  #%s ← %s（%.1f KB）' % (m.group(1), m.group(2), len(b) / 1e3))
+        return '<script type="application/x-asset" id="%s" data-mime="%s">%s</script>' % (m.group(1), mime, base64.b64encode(b).decode('ascii'))
+
     html = VXK_RE.sub(vxk, html)
+    html = ASSET_RE.sub(asset, html)
     html = JS_RE.sub(js, html)
     # 檢查（base64 區塊不參與比對：它只含 A–Z a–z 0–9 + / =，但太長，拿掉再查比較快）
-    probe = re.sub(r'<script type="application/x-vxk" id="[^"]+">[^<]*</script>', '', html)
+    probe = re.sub(r'<script type="application/x-(?:vxk|asset)" id="[^"]+"[^>]*>[^<]*</script>', '', html)
     bad = [name for rx, name in BAD if rx.search(probe)]
     if bad:
         sys.exit('✗ 成品還有外部依賴：' + '、'.join(bad) + '（未寫入）')

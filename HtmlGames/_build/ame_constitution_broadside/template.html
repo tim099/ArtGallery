@@ -34,6 +34,10 @@
   #cover button.on{ background:var(--gold); color:#111; border-color:var(--gold); }
   #cover button.go{ font-size:18px; padding:9px 30px; background:#b8452e; border-color:#e06a4f; }
   #cover button:disabled{ opacity:.4; cursor:wait; }
+  #cover .slide{ display:flex; align-items:center; justify-content:center; gap:10px; font-size:14px; }
+  #cover .slide label{ width:5em; text-align:right; }
+  #cover .slide input{ width:220px; accent-color:var(--gold); }
+  #cover .slide span{ width:9em; text-align:left; color:var(--dim); font-size:12px; }
   #load{ color:var(--dim); font-size:12px; min-height:18px; font-family:Consolas,monospace; white-space:pre-line; }
   #help{ position:absolute; right:12px; bottom:12px; max-width:330px; font-size:12px; display:none; pointer-events:none; }
   #help.on{ display:block; }
@@ -68,6 +72,7 @@
     <div><kbd>2</kbd> 爆裂彈：炸開大洞，但不深</div>
     <div><kbd>3</kbd> 鏈彈：橫掃一片，專打桅杆、繩與帆</div>
     <div><kbd>C</kbd> 鏡頭：自由／追砲彈／看敵艦／看我艦</div>
+    <div><kbd>人</kbd> 砲要有人操作：人少裝填慢，少於最少人數就開不了；人不夠時會集中到幾門砲上</div>
     <div><kbd>P</kbd> 暫停　<kbd>M</kbd> 靜音　<kbd>R</kbd> 回選單</div>
   </div>
 
@@ -82,6 +87,8 @@
       <div class="row" id="dists">距離
         <button data-d="90">90 m</button><button data-d="140" class="on">140 m</button><button data-d="220">220 m</button>
       </div>
+      <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" min="0" max="2" step="0.05" value="0.35"><span id="floodV"></span></div>
+      <div class="row slide"><label for="hard">船殼硬度</label><input type="range" id="hard" min="0.5" max="5" step="0.1" value="2"><span id="hardV"></span></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
       <div id="load"></div>
     </div>
@@ -93,6 +100,10 @@
 
 <script src="../../../VoxelKit/voxelkit.js"></script>
 <script type="application/x-vxk" id="ship" src="../../../VoxelKit/_cache/constitution.vxk"></script>
+<!-- 美術素材（選用）：沒交 ⇒ 遊戲用程式畫的替代品；規格見 README.md 與 TASK 的素材清單 -->
+<script type="application/x-asset" id="art-crew" src="art/crew.png" data-optional="1"></script>
+<script type="application/x-asset" id="art-fx" src="art/fx.png" data-optional="1"></script>
+<script type="application/x-asset" id="art-hud" src="art/hud.png" data-optional="1"></script>
 <script src="game.js"></script>
 </body>
 </html>

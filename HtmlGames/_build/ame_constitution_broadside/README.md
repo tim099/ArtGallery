@@ -4,12 +4,13 @@
 
 | 檔 | 做什麼 |
 |---|---|
-| `template.html` | 版面、HUD、選單；引用 `../../../VoxelKit/voxelkit.js`、`game.js` 與船的 `.vxk` |
-| `game.js` | 遊戲本體：兩艘船、砲彈、擊碎、斷開的那一團、碎屑、進水、電腦、鏡頭、音效 |
+| `template.html` | 版面、HUD、選單（模式、距離、進水速度與船殼硬度兩條滑桿）；引用 `../../../VoxelKit/voxelkit.js`、`game.js`、船的 `.vxk` 與 `art/` 的選用素材 |
+| `game.js` | 遊戲本體：兩艘船、砲彈、擊碎、斷開的那一團、碎屑、進水、模型（carronade／追擊砲／舵輪）、船員、電腦、鏡頭、音效 |
+| `art/`（選用） | 美術素材 `crew.png`、`fx.png`、`hud.png`；規格在 TASK-0516。沒交 ⇒ 程式畫的替代品 |
 
 ```bash
-# ① 船：basecamp 的《憲法號（組裝）》，1:1，連繩與帆、關聯外框（認砲位要用）
-python -I ../../../VoxelKit/voxel_export.py --work basecamp-frigate-constitution-01m-assembly --out ../../../VoxelKit/_cache/constitution.vxk --rig --parts
+# ① 船：basecamp 的《憲法號（組裝）》，1:1，連繩、帆、模型、關聯外框（認砲位要用）
+python -I ../../../VoxelKit/voxel_export.py --work basecamp-frigate-constitution-01m-assembly --out ../../../VoxelKit/_cache/constitution.vxk --rig --models --parts
 # ② 內嵌成單檔
 python -I ../../../VoxelKit/vxk_inline.py template.html ../../ame_constitution_broadside.html
 ```
@@ -20,6 +21,12 @@ python -I ../../../VoxelKit/vxk_inline.py template.html ../../ame_constitution_b
 
 - **砲位**：從 `--parts` 的關聯路徑 `…/砲-S01`～`S14` 認（右舷 14 門；兩艘都是右舷朝對方）。砲口 ＝ 外框裡 y 最大那一層的中心。關聯改名，砲就找不到。
 - **桅**：桅杆子作品的外框是整艘船（放在原點），認不出位置 ⇒ 從四種橫帆（`<fore|main|mizzen>-<course|topsail|topgallant|royal>`）推大概的 x，再在附近找中線上那根直立的柱子。
-- **繩的錨**：兩端各找 0.5 公尺內最近的實心格；找不到的（ratline 掛在 shroud 上）掛到端點旁邊那條繩上，靠著的斷了它跟著斷。兩邊都靠不到的 ⇒ 綁在模型上（舵索綁舵輪），模型這版不收，繩也不畫。
+- **繩的錨**：兩端各找 0.5 公尺內最近的實心格；找不到的端點，落在模型外框裡 ⇒ 綁在模型上（舵索綁舵輪，模型飛了才斷），否則掛到端點旁邊那條繩上（ratline 掛在 shroud 上），靠著的斷了它跟著斷。哪裡都靠不到 ⇒ 不畫。
+- **帆的依靠**：最高那一排、最低的前角與後角各找 0.6 公尺內的實心格；找不到就掛在 0.4 公尺內最近的繩上（三角帆掛在支索上）。任一個依靠沒了 ⇒ 帆掉下來；依靠全在斷開的那一團 ⇒ 跟著倒。
+- **模型**：carronade（24）、追擊砲 chase18、舵輪；不在格子裡，被打到（外框＋0.15 m；鏈彈 1 m）或在爆炸 2.2 m 內 ⇒ 整個飛出去，腳下那一格甲板沒了 ⇒ 掉下去。右舷 12 門 carronade 與追擊砲也是砲：carronade 砲管軸在甲板上方 9.75 格、初速 140 m/s、裝填 0.7 倍；追擊砲朝右舷偏船頭 20°。
+- **船員**（billboard）：每門長砲 8 人、carronade 5 人、追擊砲 6 人；送藥手、陸戰隊、軍官、舵手、桅頂水手。站位在載入時於格子上找（腳下實心、頭上 1.4 m 空、避開模型外框）。
+  砲要有人操作：在崗人數 < 最少人數（3／2／3）不能開，裝填速度 ∝ (在崗／滿編)^0.85；人不夠時倖存者集中到同一層甲板還開得動的砲，其餘沒人操作（HUD ○）。軍官全倒 ⇒ 瞄準散 1.7 倍。死傷超過六成或舷側砲全毀 ⇒ 降旗。
+  傷亡來源：碎木（洞的前方錐）、砲彈掠過、爆炸、火槍（陸戰隊與桅頂水手打對方露天的人）、腳下沒了落水、倒下的桅壓到、模型被打飛。
+- **滑桿**：進水速度（`?flood=`，0 ＝ 不會沉；進水與抽水一起縮放）、船殼硬度（`?hard=`；打穿的減速 ×硬度、洞 ×硬度^−0.25）。
 - **水線**：吃水 63 格（同 basecamp《從一根龍骨開始》的下水段）。
 - **預覽窗格在背景時** `requestAnimationFrame` 會停 ⇒ 模擬也停。量測用 `?debug=1` 的 `window.__game`（`start`／`run(秒)`／`fire`／`one`／`stats`／`cam`）手動推進。

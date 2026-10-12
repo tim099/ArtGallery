@@ -7,7 +7,8 @@
 #
 # 用法：
 #   python -I voxel_export.py --work <作品> --out <檔.vxk> [--rig] [--parts] [--links all|none] [--list <既有匯出清單>]
-#   --rig    ：連繩與帆一起（從 export format=obj 拿；⛔ 模型匯入的子模型不收）
+#   --rig    ：連繩與帆一起（從 export format=obj 拿）
+#   --models ：連模型匯入的子模型一起（配 --rig；每個模型＝一份去重過的三角形網格＋外框最小角）
 #   --parts  ：各條關聯的外框（路徑、來源作品、box、mirror）—— 給要認得「哪一塊是砲、哪一根是桅」的展品用
 import argparse, hashlib, json, os, re, struct, subprocess, sys, tempfile, time, zlib
 from collections import Counter
@@ -78,8 +79,9 @@ def read_parts(work, works_root):
     return parts
 
 
-def read_rig(work, tmpdir):
-    """繩（每圈取中心當中線）與帆（三角形）—— 從 export obj 拿。region 給一塊空的，只要繩與帆、不要格子。"""
+def read_rig(work, tmpdir, with_models=False):
+    """繩（每圈取中心當中線）與帆（三角形）—— 從 export obj 拿。region 給一塊空的，只要繩與帆、不要格子。
+    with_models：模型匯入的子模型也收（每個模型一份三角形網格＋每面材質色；同樣的網格只存一份）。"""
     d = os.path.join(tmpdir, 'obj')
     os.makedirs(d, exist_ok=True)
     r = run(['--arg', 'op=export', '--arg', 'format=obj', '--arg', 'work=' + work, '--arg', 'region=0..0,0..0,0..0',
@@ -98,17 +100,19 @@ def read_rig(work, tmpdir):
     for line in open(objf, encoding='utf-8'):
         if line.startswith('o '):
             nm = line.split('#', 1)[1].strip() if '#' in line else line.split()[1]
-            cur = dict(kind=line.split()[1].split('_')[0], name=nm, v0=len(V), faces=[], mtl=None)
+            cur = dict(kind=line.split()[1].split('_')[0], name=nm, v0=len(V), faces=[], fmtl=[], mtl=None)
             objs.append(cur)
         elif line.startswith('v '):
             X, Y, Z = (float(v) for v in line.split()[1:4])
             V.append((X, Z, Y))                       # obj 是 Y 朝上（x, 高, y）⇒ 換回作品的 (x, y, z)
         elif line.startswith('usemtl ') and cur is not None:
             cur['mtl'] = line.split()[1]
-        elif line.startswith('f ') and cur is not None and cur['kind'] in ('rope', 'sail'):
+        elif line.startswith('f ') and cur is not None and (cur['kind'] in ('rope', 'sail') or (with_models and cur['kind'] == 'model')):
             cur['faces'].append([int(t.split('/')[0]) - 1 for t in line.split()[1:]])
+            cur['fmtl'].append(cur['mtl'])
     V = np.array(V)
     ropes, sails, skipped = [], [], Counter()
+    meshes, mesh_key, models = [], {}, []
     for i, o in enumerate(objs):
         v1 = objs[i + 1]['v0'] if i + 1 < len(objs) else len(V)
         pts = V[o['v0']:v1]
@@ -129,9 +133,33 @@ def read_rig(work, tmpdir):
                     tri += [f[0] - o['v0'], f[k] - o['v0'], f[k + 1] - o['v0']]
             sails.append(dict(name=o['name'], color=mtl.get(o['mtl'], [0.95, 0.92, 0.85]),
                               verts=np.round(pts, 2).reshape(-1).tolist(), tris=tri))
+        elif o['kind'] == 'model' and with_models:
+            # 網格存相對於外框最小角的座標（0.01 格）；幾何＋材質一樣的只存一份（24 門 carronade ⇒ 兩舷各一份）
+            org = np.floor(pts.min(axis=0))
+            rel = np.round(pts - org, 2)
+            tri, tm, mats = [], [], []
+            for f, m in zip(o['faces'], o['fmtl']):
+                c = mtl.get(m, [0.5, 0.5, 0.5])
+                if c not in mats:
+                    mats.append(c)
+                for k in range(1, len(f) - 1):
+                    tri += [f[0] - o['v0'], f[k] - o['v0'], f[k + 1] - o['v0']]
+                    tm.append(mats.index(c))
+            mesh = dict(verts=rel.reshape(-1).tolist(), tris=tri, tmat=tm, mats=mats)
+            key = json.dumps(mesh, separators=(',', ':'))
+            if key not in mesh_key:
+                mesh_key[key] = len(meshes)
+                meshes.append(mesh)
+            mx = pts.max(axis=0)
+            models.append(dict(name=o['name'], mesh=mesh_key[key], origin=[int(v) for v in org],
+                               bbox=[round(float(v), 2) for v in list(pts.min(axis=0)) + list(mx)]))
         else:
             skipped[o['kind']] += 1
-    return dict(ropes=ropes, sails=sails), dict(skipped)
+    rig = dict(ropes=ropes, sails=sails)
+    if with_models:
+        rig['models'] = models
+        rig['meshes'] = meshes
+    return rig, dict(skipped)
 
 
 def pack(a, header):
@@ -174,6 +202,7 @@ def main():
     ap.add_argument('--links', default='')
     ap.add_argument('--rig', action='store_true')
     ap.add_argument('--parts', action='store_true')
+    ap.add_argument('--models', action='store_true', help='連模型匯入的子模型一起（要配 --rig）')
     ap.add_argument('--list', default='', help='用既有的 export format=list 檔（省掉一次匯出）')
     ap.add_argument('--works-root', default=WORKS_ROOT_DEFAULT)
     o = ap.parse_args()
@@ -200,7 +229,7 @@ def main():
     if o.parts:
         header['parts'] = read_parts(o.work, o.works_root)
     if o.rig:
-        rig, skipped = read_rig(o.work, tmp)
+        rig, skipped = read_rig(o.work, tmp, o.models)
         header['rig'] = rig
         header['rig_skipped'] = skipped
     blob, header = pack(a, header)
@@ -220,6 +249,8 @@ def main():
     print('  封裝 %.2f MB（deflate-raw；base64 內嵌後約 %.2f MB）' % (len(blob) / 1e6, len(blob) * 4 / 3 / 1e6))
     if o.rig:
         print('  繩 %d、帆 %d；略過 %s' % (len(header['rig']['ropes']), len(header['rig']['sails']), header['rig_skipped'] or '無'))
+        if o.models:
+            print('  模型 %d（網格 %d 份，去重後）' % (len(header['rig']['models']), len(header['rig']['meshes'])))
     if o.parts:
         print('  關聯外框 %d 條' % len(header['parts']))
     print('  對拍：封裝回讀 ＝ 匯出清單（逐格、逐色）✓　%.1f 秒' % (time.time() - t0))
