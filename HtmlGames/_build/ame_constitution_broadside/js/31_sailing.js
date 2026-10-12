@@ -49,7 +49,7 @@ function setSails(sh, k) {
 function sideGuns(sh, side) { return sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && g.side === side; }).length; }   // 這一舷開得動的砲
 function sail(sh, dt) {
   var F = fwd(sh.yaw), W = norm(WIND), deg = Math.acos(clamp(dot(F, W), -1, 1)) * 57.2958;
-  sh.sailFrac = sh.sails.reduce(function (a, s) { return a + (s.dead || s.furled ? 0 : s.area); }, 0) / sh.sailArea0;
+  sh.sailFrac = sh.sails.reduce(function (a, s) { return a + (s.dead || s.furled ? 0 : s.area * s.hp / s.hpMax); }, 0) / sh.sailArea0;   // 被打中還沒掉的帆：照剩下的耐久算推力
   sh.pos = pointName(deg);
   var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
   sh.manual = manual;

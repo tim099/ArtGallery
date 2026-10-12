@@ -6,6 +6,7 @@ var ROLE = { GUN: 0, POWDER: 1, OFFICER: 2, MARINE: 3, TOP: 4, HELM: 5 }, NROLE 
 var FR = { IDLE: 0, WORK_A: 1, WORK_B: 2, FIRE: 3, RUN_A: 4, RUN_B: 5, WOUNDED: 6, DEAD: 7 }, NFR = 8;
 var CREW_FULL = { long: 6, carr: 3, chase: 4 }, CREW_MIN = { long: 3, carr: 2, chase: 2 };   // 兩舷各一班；24 磅長砲一班 12 人＋送藥童 ⇒ 一個人物約兩人
 var ROLE_NAME = ['砲手', '送藥手', '軍官', '陸戰隊', '桅頂水手', '舵手'];
+var ART_CAPTAIN = 6, NART = 7;                    // 貼圖的列：0–5 照職位，6 船長（每艘船第一個軍官；職位照舊是軍官）
 function standZ(g, x, y, z0, z1, head) {          // (x, y) 這一柱裡，z0..z1 之間可以站的高度（腳下實心、頭上 head 格空）；沒有 ⇒ -1
   for (var z = z1; z >= z0; z--) {
     if (!g.get(x, y, z - 1) || g.get(x, y, z)) continue;
@@ -61,6 +62,7 @@ function makeCrew(sh) {
   }
   var qx = wheel ? Math.floor(wheel.c[0]) : HULL_X0 + 160;
   [[qx + 22, CY + 8], [qx + 30, CY - 6], [qx + 40, CY + 14], [qx + 14, CY - 12]].forEach(function (p) { add(ROLE.OFFICER, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, 1); });
+  var cap = crew.filter(function (c) { return c.role === ROLE.OFFICER; })[0]; if (cap) cap.art = ART_CAPTAIN;   // 船長：只換貼圖
   if (wheel) [[qx - 4, CY + 3], [qx - 4, CY - 3]].forEach(function (p) { add(ROLE.HELM, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, -1); });
   // 桅頂：每根桅的平台上找四個可以站的位置
   sh.masts.forEach(function (m) {

@@ -37,7 +37,7 @@ window.addEventListener('keydown', function (e) {
   else if (k === 'p') PAUSED = !PAUSED;
   else if (k === 'm') { muted = !muted; }
   else if (k === 'h' || k === '?') $('help').classList.toggle('on');
-  else if (k === 'r') { RUNNING = false; $('cover').style.display = ''; $('end').className = ''; }
+  else if (k === 'r') { RUNNING = false; if (END_T) { clearTimeout(END_T); END_T = 0; } $('cover').style.display = ''; $('end').className = ''; }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     e.preventDefault();
     var order = ['auto', 'manual', 'off'];
@@ -85,32 +85,57 @@ $('endA').onclick = start;
 $('phys').onchange = function () { setPhys($('phys').checked); };
 [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.onclick = function () { AMMO_I = +s.dataset.a; }; });
 [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
-/** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。 */
+/** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。
+ *  船殼、砲、帆、火藥桶、航行、降旗的滑桿在「細節設定」那一頁（從主選單進）；主選單只留一行摘要（#detV）。 */
 function sliders() {
-  var f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile');
+  var f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast');
   // 硬度跨 40 倍 ⇒ 對數刻度：滑桿 0..1 ↔ 硬度 LIM 下限 × (上限／下限)^v
   var hk = Math.log(LIM.hard[1] / LIM.hard[0]);
   f.min = LIM.flood[0]; f.max = LIM.flood[1]; h.min = 0; h.max = 1; h.step = 0.005; c.min = LIM.cas[0] * 100; c.max = LIM.cas[1] * 100;
-  f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100;
-  sp.min = LIM.speed[0]; sp.max = LIM.speed[1]; sp.value = SPEEDK; ag.min = LIM.agile[0]; ag.max = LIM.agile[1]; ag.value = AGILK;
+  sp.min = LIM.speed[0]; sp.max = LIM.speed[1]; ag.min = LIM.agile[0]; ag.max = LIM.agile[1];
+  gh.min = LIM.gunhp[0]; gh.max = LIM.gunhp[1]; sl.min = LIM.sailhp[0]; sl.max = LIM.sailhp[1]; ph.min = LIM.powderhp[0]; ph.max = LIM.powderhp[1];
+  bl.min = LIM.blast[0]; bl.max = LIM.blast[1];
+  function put() {                                     // 變數 ⇒ 滑桿位置（開頭、重設預設值時）
+    f.value = FLOOD; h.value = Math.log(HARDK / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = SPEEDK; ag.value = AGILK;
+    gh.value = GUN_HP; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K;
+    ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
+  }
   function show() {
     $('speedV').textContent = SPEEDK.toFixed(2) + '×（最快約 ' + (VMAX * SPEEDK * 1.944).toFixed(0) + ' 節）';
     $('agileV').textContent = AGILK.toFixed(2) + '×（滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGILK * 57.3).toFixed(1) + '°/秒）';
     $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
     $('hardV').textContent = HARDK.toFixed(1) + '×' + (HARDK < 1 ? '（容易打穿）' : HARDK > 10 ? '（幾乎打不穿）' : HARDK > 3 ? '（很難打穿）' : '');
+    $('gunhpV').textContent = GUN_HP === 1 ? '1（一打就飛）' : '被打中 ' + GUN_HP + ' 下才毀';
+    $('sailhpV').textContent = SAIL_HP === 1 ? '1（鏈彈一中就掉）' : '打中 ' + SAIL_HP + ' 次才掉';
+    $('powderhpV').textContent = powderNever() ? '拉滿（不會爆）' : '打中 ' + POWDER_HP + ' 下就殉爆';
+    $('blastV').textContent = BLAST_K.toFixed(2) + '×';
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
     $('strikeV').textContent = strikeText();
+    $('detV').textContent = '船殼硬度 ' + HARDK.toFixed(1) + '×・進水 ' + FLOOD.toFixed(2) + '×・砲耐久 ' + GUN_HP + '・帆耐久 ' + SAIL_HP +
+      '・火藥桶 ' + (powderNever() ? '不會爆' : '耐久 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・航速 ' + SPEEDK.toFixed(2) + '×・靈活 ' + AGILK.toFixed(2) + '×・' + strikeText();
   }
   f.oninput = function () { FLOOD = +f.value; show(); };
   sp.oninput = function () { SPEEDK = +sp.value; show(); };
   ag.oninput = function () { AGILK = +ag.value; show(); };
   h.oninput = function () { HARDK = Math.round(LIM.hard[0] * Math.exp(h.value * hk) * 10) / 10; show(); };
   c.oninput = function () { STRIKE.cas = c.value / 100; show(); };
-  ['guns', 'masts', 'officers'].forEach(function (k) {
-    var b = $('st-' + k); b.checked = STRIKE[k];
-    b.onchange = function () { STRIKE[k] = b.checked; show(); };
-  });
-  show();
+  gh.oninput = function () { GUN_HP = Math.round(+gh.value); show(); };
+  sl.oninput = function () { SAIL_HP = Math.round(+sl.value); show(); };
+  ph.oninput = function () { POWDER_HP = Math.round(+ph.value); show(); };
+  bl.oninput = function () { BLAST_K = +bl.value; show(); };
+  ['guns', 'masts', 'officers'].forEach(function (k) { var b = $('st-' + k); b.onchange = function () { STRIKE[k] = b.checked; show(); }; });
+  // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
+  function page(det) { $('detail').style.display = det ? '' : 'none'; document.querySelector('#cover .card:not(#detail)').style.display = det ? 'none' : ''; $('cover').scrollTop = 0; }
+  $('detB').onclick = function () { page(true); };
+  $('detX').onclick = function () { page(false); };
+  $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
+    FLOOD = LIM.flood[2]; HARDK = LIM.hard[2]; SPEEDK = LIM.speed[2]; AGILK = LIM.agile[2];
+    GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2];
+    STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false;
+    put(); show();
+  };
+  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
+  put(); show();
 }
 sliders();
 [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });

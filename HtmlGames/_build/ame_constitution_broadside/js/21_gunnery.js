@@ -97,11 +97,12 @@ function stepBall(b, dt) {
       var cc = sh.center, dx = b.p[0] - cc[0], dy = b.p[1] - cc[1], dz = b.p[2] - cc[2];
       if (dx * dx + dy * dy + dz * dz > sh.rad2) continue;
       var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]);
-      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5);
-      if (hm) {                                                          // 打到模型：整個飛出去，砲彈被擋掉一大半
+      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 耐久 3 一發就沒）
+      if (hm) {                                                          // 打到模型：扣耐久（歸零整個飛出去），砲彈被擋掉一大半
         if (sh.i !== b.owner && !b.hitOnce) { SHIPS[b.owner].hits++; b.hitOnce = true; }
-        blowModel(sh, hm, b.v);
-        if (b.ammo === 1) { explode(b.p.slice(), sh, 0); blastModels(sh, L, 22, b.p); b.alive = false; return; }
+        (b.hitM = b.hitM || []).push(hm);
+        damageModel(sh, hm, b.v, 1);
+        if (b.ammo === 1) { explode(b.p.slice(), sh, 0); blastModels(sh, L, 22, b.p, b.hitM); b.alive = false; return; }   // 直接打中的那一門已經扣過，不再吃爆風
         b.v = mul(b.v, b.ammo === 2 ? 0.5 : 0.55);
         if (len(b.v) < 30) { ballToDebris(b); return; }
       }
@@ -145,10 +146,10 @@ function impact(b, sh, L) {
   b.v = mul(b.v, nsp / sp);
 }
 /** 格座標 L 落在哪個還在的模型外框裡（外擴 m 格）。 */
-function hitModel(sh, L, m) {
+function hitModel(sh, L, m, skip) {                                     // skip：這顆砲彈已經打過的（略過它、找後面那一個）
   for (var i = 0; i < sh.models.length; i++) {
     var o = sh.models[i], b = o.bb;
-    if (o.alive && L[0] > b[0] - m && L[0] < b[3] + m && L[1] > b[1] - m && L[1] < b[4] + m && L[2] > b[2] - m && L[2] < b[5] + m) return o;
+    if (o.alive && !(skip && skip.indexOf(o) >= 0) && L[0] > b[0] - m && L[0] < b[3] + m && L[1] > b[1] - m && L[1] < b[4] + m && L[2] > b[2] - m && L[2] < b[5] + m) return o;
   }
   return null;
 }
@@ -172,13 +173,25 @@ function blowModel(sh, m, vel, drop) {
   if (m.kind === 'wheel') note(sh, '舵輪被打飛了');
   else if (m.kind === 'carr' && !drop) note(sh, m.name + ' 被打飛');
 }
+/** 模型被打中：扣耐久（細節設定的「砲的耐久」；舵輪 1），歸零才整個飛出去。還撐得住 ⇒ 火星、聲音、旁邊的人被碎片波及。
+ *  耐久 1（預設）⇒ 第一下就飛，跟以前同一條路（同樣的速度、同樣的亂數順序）。 */
+function damageModel(sh, m, vel, dmg) {
+  if (!m.alive) return;
+  m.hp -= dmg;
+  if (m.hp <= 0) { blowModel(sh, m, vel); return; }
+  var c0 = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]), vd = norm(vel);
+  for (var i = 0; i < 8; i++) spawnPt(c0, add(mul(vd, rr(-6, -2)), [gauss() * 3, rr(1, 4), gauss() * 3]), rr(0.15, 0.35), [1, 0.8, 0.45], 1, 0.2, 0.08, G, 0.5, 3);
+  hurt(sh, m.c, 3, 8, null, '碎木');
+  sfx('crack', c0, 0.8);
+  if (m.kind === 'carr' || m.kind === 'chase') note(sh, m.name + ' 被打中（耐久 ' + m.hp + '／' + m.hpMax + '）');
+}
 /** 爆炸：r 格內的模型往外飛。 */
-function blastModels(sh, L, r, w) {
+function blastModels(sh, L, r, w, skip) {
   sh.models.forEach(function (m) {
-    if (!m.alive) return;
+    if (!m.alive || (skip && skip.indexOf(m) >= 0)) return;
     var d = len(sub(m.c, L)); if (d > r) return;
     var cw = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]);
-    blowModel(sh, m, mul(norm(sub(cw, w)), 200 * (1 - d / r) + 60));
+    damageModel(sh, m, mul(norm(sub(cw, w)), 200 * (1 - d / r) + 60), d < r * 0.4 ? 2 : 1);   // 爆心附近扣兩下
   });
 }
 function stepFly(f, dt) {
@@ -241,7 +254,11 @@ function cutRig(sh, L, r, b) {
   if (b.ammo === 2) sh.sails.forEach(function (s) {
     if (s.dead || s.furled) return;
     var v = s.verts;
-    for (var j = 0; j < v.length; j += 9) { var dx = v[j] - L[0], dy = v[j + 1] - L[1], dz = v[j + 2] - L[2]; if (dx * dx + dy * dy + dz * dz < 64) { tearCloth(sh, s, L); dropSail(sh, s, true); changed = true; break; } }
+    if (b.sails && b.sails.indexOf(s) >= 0) return;                    // 同一顆鏈彈穿過一面帆要好幾個小步 ⇒ 只算一次（記帆本身：兩艘的同編號帆是不同的帆）
+    for (var j = 0; j < v.length; j += 9) { var dx = v[j] - L[0], dy = v[j + 1] - L[1], dz = v[j + 2] - L[2]; if (dx * dx + dy * dy + dz * dz < 64) {
+      tearCloth(sh, s, L); s.hp--; (b.sails = b.sails || []).push(s);
+      if (s.hp <= 0) dropSail(sh, s, true); else shredSail(sh, s, L);     // 帆的耐久（細節設定）：歸零才掉；還撐得住 ⇒ 撕下幾片、少一份推力
+      changed = true; break; } }
   });
   if (changed) sh.rigDirty = true;
 }
@@ -265,6 +282,11 @@ function dropSail(owner, s, torn) {
     var vel = [gauss() * 1.5, rr(-0.5, 1.5), gauss() * 1.5], life = rr(5, 9);
     if (!cl || torn) spawnPt(w, vel, life, [c[0] * t, c[1] * t, c[2] * t], 1, sz, sz * 0.85, 3, 1.2, 4);   // 終端速度 ≈ 3／1.2 ＝ 2.5 m/s，跟著風飄
   }
+}
+/** 帆被打中但還撐得住：撕下幾片布（不掉）。 */
+function shredSail(owner, s, L) {
+  var w = M4.pt(owner.M, L[0], L[1], L[2]), c = s.col || [0.95, 0.92, 0.85];
+  for (var k = 0; k < 3; k++) { var sz = rr(1.2, 2.2); spawnPt(w, [gauss() * 1.5, rr(-0.5, 1.5), gauss() * 1.5], rr(4, 7), c, 1, sz, sz * 0.85, 3, 1.2, 4); }
 }
 function sailLinesDie(owner, s) { (s.lines || []).forEach(function (j) { owner.ropes[j].dead = true; }); owner.rigDirty = true; }
 

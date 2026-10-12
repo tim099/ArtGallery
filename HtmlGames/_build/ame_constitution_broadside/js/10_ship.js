@@ -32,14 +32,16 @@ function makeShip(i, team, yaw, pz) {
     for (x = b[0]; x <= b[3]; x++) for (y = b[1]; y <= b[4]; y++) for (z = b[2]; z <= b[5]; z++) if (BASE.get(x, y, z)) { cnt++; if (side === 'S' ? y > edge : y < edge) edge = y; }
     var y0 = side === 'S' ? edge - 1 : edge, y1 = side === 'S' ? edge : edge + 1;
     for (x = b[0]; x <= b[3]; x++) for (z = b[2]; z <= b[5]; z++) for (y = y0; y <= y1; y++) if (BASE.get(x, y, z)) { sx += x; sz += z; n++; }
-    sh.guns.push({ name: p.path.split('/').pop(), type: 'long', side: side, box: b, muz: [sx / n + 0.5, side === 'S' ? edge + 1.5 : edge - 0.5, sz / n + 0.5], orig: cnt, alive: true, reload: rr(0, 1.2) });
+    sh.guns.push({ name: p.path.split('/').pop(), type: 'long', side: side, box: b, muz: [sx / n + 0.5, side === 'S' ? edge + 1.5 : edge - 0.5, sz / n + 0.5], orig: cnt, alive: true, reload: rr(0, 1.2),
+      thr: 0.55, hp01: 1 });   // 長砲還是格子：外框裡剩不到 55% 就毀（照舊）。⛔ 不跟著砲的耐久往下壓：外框約一半是船殼木板，門檻一低，砲身打爛也到不了 ⇒ 等長砲改成模型再套耐久
   });
   // 模型（carronade、追擊砲、舵輪）：整個是一塊剛體 —— 被打到就整個飛出去，⛔ 不拆格
   sh.models = (RIG.models || []).map(function (m, k) {
     var b = m.bbox, kind = /carronade/.test(m.name) ? 'carr' : /chase/.test(m.name) ? 'chase' : /wheel/.test(m.name) ? 'wheel' : 'model';
     var cx = Math.floor((b[0] + b[3]) / 2), cy = Math.floor((b[1] + b[4]) / 2), fz = Math.floor(b[2]) - 1;
     while (fz > 0 && !BASE.get(cx, cy, fz)) fz--;                     // 腳下那一格甲板（被打掉 ⇒ 掉下去）
-    return { k: k, name: m.name.split('/').pop(), kind: kind, side: /carronade-S/.test(m.name) ? 'S' : /carronade-P/.test(m.name) ? 'P' : '',
+    var hpm = kind === 'carr' || kind === 'chase' ? GUN_HP : 1;      // 砲（carronade、追擊砲）照細節設定的耐久；舵輪一打就飛
+    return { k: k, name: m.name.split('/').pop(), kind: kind, hp: hpm, hpMax: hpm, side: /carronade-S/.test(m.name) ? 'S' : /carronade-P/.test(m.name) ? 'P' : '',
       mesh: m.mesh, origin: m.origin, bb: b, c: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2], foot: VK.pack(cx, cy, fz), alive: true };
   });
   sh.models.forEach(function (m) {                                       // 兩舷的 carronade 與船頭的追擊砲也是砲（S 那一舷砲口朝 +y、P 那一舷朝 −y）
@@ -64,7 +66,7 @@ function makeShip(i, team, yaw, pz) {
   });
   // 帆自己的繩（`<帆名>.sheet-S`、`.tack-P`…）：帆腳那一端綁在帆上 ⇒ 帆掉了或被帶走，它們跟著斷
   // （⛔ 只靠繩的依靠不夠：sheet 與 tack 互相掛著、另一端綁甲板，帆沒了也還浮在半空）
-  sh.sails.forEach(function (s, k) { s.k = k; s.lines = []; sh.ropes.forEach(function (r, j) { if (r.name && r.name.indexOf(s.name + '.') === 0) s.lines.push(j); }); });
+  sh.sails.forEach(function (s, k) { s.k = k; s.hp = s.hpMax = SAIL_HP; s.lines = []; sh.ropes.forEach(function (r, j) { if (r.name && r.name.indexOf(s.name + '.') === 0) s.lines.push(j); }); });
   sh.ropes.forEach(function (r) { r.never = r.lz = !!r.dead; });        // 一開始就不畫的繩不會變成垂下來的繩（物理，見 physStep）
   sh.cl = CLOTHT.map(function (T) { return { T: T, p: null, hidden: true }; }); sh.loose = [];
   sh.sails.forEach(function (s) { s.area = sailArea(s); }); sh.sailArea0 = sh.sails.reduce(function (a, s) { return a + s.area; }, 0) || 1;

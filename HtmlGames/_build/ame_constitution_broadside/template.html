@@ -50,6 +50,12 @@
   #cover .checks{ display:flex; justify-content:center; flex-wrap:wrap; gap:4px 16px; font-size:13px; }
   #cover .checks input{ accent-color:var(--gold); vertical-align:-2px; }
   #strikeV{ color:var(--dim); font-size:12px; }
+  #cover h2{ margin:0 0 4px; font-size:24px; letter-spacing:1px; }
+  #cover h3{ margin:14px 0 4px; font-size:14px; color:var(--gold); border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:2px; }
+  #cover .note{ color:var(--dim); font-size:12px; }
+  #cover #detV{ color:var(--dim); font-size:12px; max-width:560px; margin:2px auto 6px; line-height:1.6; }   /* ⛔ 只寫 #detV：被 #cover .row 的 margin 蓋掉 */
+  .hp{ position:relative; } .hp::after{ content:''; position:absolute; left:0; bottom:-1px; height:2px; width:var(--hp); background:#e0574a; }   /* 砲列：受損的砲底下一條血條 */
+  .ico.hp::after{ bottom:-4px; }   /* 圖示版：人手狀態的底線在圖示裡面，血條放到它下面 */
   @media (max-width:520px){ #cover .card{ padding:18px 16px; } #cover .slide input{ width:130px; } #cover .slide span{ width:9em; } }
   #load{ color:var(--dim); font-size:12px; min-height:18px; font-family:Consolas,monospace; white-space:pre-line; }
   #help{ position:absolute; right:12px; bottom:12px; max-width:330px; font-size:12px; display:none; pointer-events:none; }
@@ -96,7 +102,8 @@
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
     <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
-    <div><kbd>旗</kbd> 降旗規則在選單設定（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
+    <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
+    <div><kbd>耐</kbd> 砲、帆、火藥桶的耐久與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的耐久</div>
     <div><kbd>P</kbd> 暫停　<kbd>M</kbd> 靜音　<kbd>N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd>R</kbd> 回選單</div>
   </div>
 
@@ -114,17 +121,37 @@
       <div class="row" id="dists">距離
         <button data-d="90">90 m</button><button data-d="140" class="on">140 m</button><button data-d="220">220 m</button>
       </div>
-      <!-- 滑桿的上下限與預設在 game.js 的 LIM（網址參數共用同一組） -->
-      <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
-      <div class="row slide"><label for="hard">船殼硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
-      <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
-      <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
-      <div class="row slide"><label for="cas">死傷降旗</label><input type="range" id="cas" step="5"><span id="casV"></span></div>
-      <div class="row checks"><label><input type="checkbox" id="st-guns"> 砲全啞 10 秒</label><label><input type="checkbox" id="st-masts"> 桅全倒且死傷 ≥ 33%</label><label><input type="checkbox" id="st-officers"> 軍官全倒且死傷 ≥ 25%</label></div>
-      <div class="row" id="strikeV"></div>
+      <div class="row"><button id="detB">細節設定…</button></div>
+      <div class="row" id="detV"></div>
       <div class="row checks"><label><input type="checkbox" id="phys"> 帆與繩的物理（帆被風吹鼓、斷掉的會垂下來擺；關掉 ＝ 靜態）</label></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
       <div id="load"></div>
+    </div>
+    <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
+    <div class="card panel" id="detail" style="display:none">
+      <h2>細節設定</h2>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?hard= ?flood= ?gunhp= ?sailhp= ?powderhp= ?blast= ?speed= ?agile= ?strike=</div>
+      <h3>船殼</h3>
+      <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
+      <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
+      <h3>砲</h3>
+      <div class="row slide"><label for="gunhp">耐久</label><input type="range" id="gunhp" step="1" aria-label="砲的耐久"><span id="gunhpV"></span></div>
+      <div class="row note">carronade、追擊砲：被打中幾下才整門飛出去（爆心附近一次扣兩下）。長砲現在還是格子：照舊（外框剩不到 55% 就毀），等改成模型再套耐久。</div>
+      <h3>帆</h3>
+      <div class="row slide"><label for="sailhp">耐久</label><input type="range" id="sailhp" step="1" aria-label="帆的耐久"><span id="sailhpV"></span></div>
+      <div class="row note">被鏈彈打中幾次才掉；還沒掉的帆每中一次少一份推力（物理開著會看到破洞）。收起來的帆打不壞。</div>
+      <h3>火藥桶（殉爆）</h3>
+      <div class="row slide"><label for="powderhp">耐久</label><input type="range" id="powderhp" step="1" aria-label="火藥桶的耐久"><span id="powderhpV"></span></div>
+      <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
+      <div class="row note">彈藥庫與火藥桶的模型還沒上船：這兩格先記著，上船後才生效。耐久拉滿 ＝ 不會爆（預設）。</div>
+      <h3>航行</h3>
+      <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
+      <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
+      <h3>降旗</h3>
+      <div class="row slide"><label for="cas">死傷降旗</label><input type="range" id="cas" step="5"><span id="casV"></span></div>
+      <div class="row checks"><label><input type="checkbox" id="st-guns"> 砲全啞 10 秒</label><label><input type="checkbox" id="st-masts"> 桅全倒且死傷 ≥ 33%</label><label><input type="checkbox" id="st-officers"> 軍官全倒且死傷 ≥ 25%</label></div>
+      <div class="row" id="strikeV"></div>
+      <div class="row"><button id="detR">重設預設值</button><button id="detX" class="on">返回</button></div>
     </div>
   </div>
   <div id="end"><div class="card panel"><h2 id="endT"></h2><div id="endS"></div>

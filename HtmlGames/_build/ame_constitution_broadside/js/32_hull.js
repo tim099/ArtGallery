@@ -31,7 +31,11 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
     if (!countBox(sh.grid, x - 2, y - 2, z - 1, x + 2, y + 2, z)) blowModel(sh, m, [0, -1, 0], true);   // 腳下的甲板被打掉 ⇒ 掉下去
   });
   sh.guns.forEach(function (g) {
-    if (g.alive) g.alive = g.model ? g.model.alive : countBox(sh.grid, g.box[0], g.box[1], g.box[2], g.box[3], g.box[4], g.box[5]) >= g.orig * 0.55;
+    if (g.alive && g.model) { g.alive = g.model.alive; g.hp01 = g.model.hp / g.model.hpMax; }
+    else if (g.alive) {                                                   // 長砲（格子）：剩下的比例 ≥ thr 才算還在；血條 ＝ 從滿到 thr 走了多少
+      var cnt = countBox(sh.grid, g.box[0], g.box[1], g.box[2], g.box[3], g.box[4], g.box[5]);
+      g.alive = cnt >= g.orig * g.thr; g.hp01 = clamp((cnt / g.orig - g.thr) / (1 - g.thr), 0, 1);   // ⛔ 比較式照以前寫（cnt ≥ orig × 0.55）：改成比例比，邊界上浮點會差一格
+    }
     if (g.alive) alive++;
   });
   sh.gunsAlive = alive;

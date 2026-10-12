@@ -286,7 +286,7 @@ function physStep(sh) {
     }
     c.late = false;
     if (s.furled && !s.dead) { c.hidden = true; return; }
-    if (c.hidden || !c.p) { clothInit(c); c.hidden = false; }
+    if (c.hidden || !c.p) { var keep = c.p && c.torn ? { brk: c.brk, bbrk: c.bbrk, tv: c.tv } : null; clothInit(c); c.hidden = false; if (keep) { c.brk = keep.brk; c.bbrk = keep.bbrk; c.tv = keep.tv; c.torn = true; } }   // 收帆再張：形狀重來、破洞留著
     if (chk || c.npin < 0) clothPins(sh, s, c);
     if ((si + k + sh.i) & 1) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
     if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }

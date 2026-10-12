@@ -22,8 +22,10 @@ function gunRow(sh, side) {
   function cell(g) {
     var st = !g.alive ? 'dead' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
     var k = !g.alive ? 3 : gunRate(g) <= 0 ? 2 : g.reload > 0 ? 1 : 0;
-    if (HUD_ART) return '<span class="ico g-' + st + '" style="background-position:' + ((3 + k) * 100 / 7).toFixed(3) + '% 0"></span>';
-    return '<span class="g-' + st + '">' + '●◌○✕'[k] + '</span>';
+    var hp = !g.alive ? 0 : g.model ? g.model.hp / g.model.hpMax : g.hp01, hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的耐久）
+    var cls = 'g-' + st + (hurt ? ' hp' : ''), sty = hurt ? '--hp:' + Math.round(hp * 100) + '%;' : '';
+    if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + k) * 100 / 7).toFixed(3) + '% 0"></span>';
+    return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕'[k] + '</span>';
   }
   var gs = sh.guns.filter(function (x) { return x.type === 'long' && x.side === side; }), cs = sh.guns.filter(function (x) { return x.type !== 'long' && x.side === side; });
   var foe = SHIPS[1 - sh.i], w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
@@ -103,6 +105,7 @@ function hud(dt) {
   $('tip').textContent = t;
   drawNav(me);
 }
+var END_T = 0;
 function checkEnd() {
   if (OVER || MODE === 'sandbox' || DEMO >= 0) return;
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
@@ -114,6 +117,6 @@ function checkEnd() {
   $('endT').textContent = txt;
   $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
     '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
-  setTimeout(function () { $('end').className = 'on'; }, 2500);
+  END_T = setTimeout(function () { END_T = 0; $('end').className = 'on'; }, 2500);   // 重開／回選單時取消（⛔ 不取消 ⇒ 結束後 2.5 秒內按重新開始，新的一局會跳出結算）
 }
 

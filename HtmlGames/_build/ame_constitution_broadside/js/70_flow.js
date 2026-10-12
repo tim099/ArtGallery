@@ -1,5 +1,6 @@
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
+  if (END_T) { clearTimeout(END_T); END_T = 0; }
   rs = SEED;
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
