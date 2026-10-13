@@ -981,6 +981,28 @@
           }
         ]
       ]
+    },
+    "019_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage17_main_staysail_yaw-75.png",
+            "fit": "cover",
+            "aspect": 1.3
+          }
+        ]
+      ]
+    },
+    "019_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage18_magazine_section.png",
+            "fit": "cover",
+            "aspect": 1.3
+          }
+        ]
+      ]
     }
   }
 }
