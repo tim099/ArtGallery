@@ -279,6 +279,26 @@
   ]},
   "033_p02": {"rows": [
     [{"src": "E/stage7_rigging_bowq.png", "crop": [420, 80, 1240, 1000]}, {"src": "E/stage7_rigging_sternq.png", "crop": [440, 150, 1200, 1050]}]
+  ]},
+  "034_p01": {"rows": [
+    [{"src": "F/sheet07_rooms_v1.png"}]
+  ]},
+  "034_p02": {"rows": [
+    [{"src": "E/stage8a_berth_rooms.png", "crop": [540, 30, 1000, 810]}, {"src": "E/stage8a_orlop_rooms.png", "crop": [540, 30, 1000, 810]}]
+  ]},
+  "035_p01": {"rows": [
+    [{"src": "F/sheet08_ladders_v1.png"}]
+  ]},
+  "035_p02": {"rows": [
+    [{"src": "E/stage8b_ladder_after.png", "crop": [560, 1380, 1620, 2180]}]
+  ]},
+  "036_p01": {"rows": [
+    [{"src": "F/sheet09_cabin_v1.png"}],
+    [{"src": "E/stage8c_cabin_only_b.png", "crop": [100, 40, 1300, 870]}]
+  ]},
+  "036_p02": {"rows": [
+    [{"src": "E/stage8c_cabin_only_side.png", "crop": [40, 270, 1370, 630]}],
+    [{"src": "E/stage8c_cabin_only_fwd.png", "crop": [50, 90, 1350, 810]}]
   ]}
  }
 }
