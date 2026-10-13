@@ -76,7 +76,7 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
   });
   // 帆自己的繩（`<帆名>.sheet-S`、`.tack-P`…）：帆腳那一端綁在帆上 ⇒ 帆掉了或被帶走，它們跟著斷
   // （⛔ 只靠繩的依靠不夠：sheet 與 tack 互相掛著、另一端綁甲板，帆沒了也還浮在半空）
-  sh.sails.forEach(function (s, k) { s.k = k; s.hp = s.hpMax = SAIL_HP; s.lines = []; sh.ropes.forEach(function (r, j) { if (r.name && r.name.indexOf(s.name + '.') === 0) s.lines.push(j); }); });
+  sh.sails.forEach(function (s, k) { s.k = k; s.hp = s.hpMax = SAIL_HP; s.lines = []; sh.ropes.forEach(function (r, j) { if (sailRope(r.name, s.name)) s.lines.push(j); }); });
   sh.sails.forEach(function (s) {
     s.yards = sh.yards.filter(function (y) { return y.sail === s.name; });   // 掛這面帆的帆桁（spanker：gaff＋boom）
     // 帆腳跟著轉的帆桁：topsail 以上 ＝ 下一根（sheet 綁在它兩端）；course ＝ 沒有（綁甲板）；spanker（沒有帆腳，下緣綁 boom）＝ 低的那根
@@ -214,6 +214,9 @@ function sailAnchors(sh, sail, top) {
   sail.a = sail.as.length ? sail.as[0] : -1;
   return sail;
 }
+/** 這條繩是不是這面帆自己的（帆腳的 sheet、tack）：`<帆名>.xxx`（basecamp：憲法號、餘燼號）或 `<帆名>-sheet…`／`<帆名>-tack…`（summit：夜隼號）。
+ *  ⛔ 只認 `<帆名>-` ⇒ `fore-topsail-lift-S`、`-brace-`、`-footrope-` 這些帆桁的繩也算進來。量過：新規則在憲法號、餘燼號一條都沒多認到。 */
+function sailRope(name, sail) { if (!name) return false; if (name.indexOf(sail + '.') === 0) return true; if (name.indexOf(sail + '-') !== 0) return false; var r = name.slice(sail.length + 1); return /^(sheet|tack)(-|$)/.test(r); }
 function ropeBox(p) {
   var b = [1e9, 1e9, 1e9, -1e9, -1e9, -1e9];
   for (var j = 0; j < p.length; j += 3) for (var a = 0; a < 3; a++) { if (p[j + a] < b[a]) b[a] = p[j + a]; if (p[j + a] > b[a + 3]) b[a + 3] = p[j + a]; }
