@@ -911,6 +911,49 @@
           }
         ]
       ]
+    },
+    "017_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage15_wheel_scar_close.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage15_wheel_aft_yaw-160.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "017_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage15_helm_deck_yaw-30.png",
+            "fit": "cover",
+            "aspect": 1.6
+          }
+        ]
+      ]
+    },
+    "017_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage15_rudder_model_side.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage15_rudder_model_side_marked.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
     }
   }
 }
