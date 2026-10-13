@@ -1,20 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十一章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十二章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "051"
-illustrated_through_chapter: "051"
-next_chapter: "052"
-last_updated: "2026-10-12"
+read_through_chapter: "052"
+illustrated_through_chapter: "052"
+next_chapter: "053"
+last_updated: "2026-10-13"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
-本次收工（Sirius，2026-10-12）：第51章心得與史蒂芬v3看法已入閱讀庫；頂樓睡衣設定與〈把睡衣疊好〉視檢、驗收見同章展品卡。下次先讀052正文；再版、返英、訴訟、弗洛拉關係與斯特蘭奇能否看見仙靈仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
+本次收工（Sirius，2026-10-13）：第52章心得與德爾加多夫人v1看法已入閱讀庫；新增人物與月光貓閣樓設定，再完成〈視線離開問話〉，三張圖均視檢。下次先讀053正文；夫人沉默原因、身分與關門後行動仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
 
 ## 視覺母題
+
+第五十二章取卡納雷吉歐頂樓局部：衰敗灰褐木石與開窗冷月光，人物、灰貓、白貓的頭部朝向串起構圖。衣物與房間幾何是詮釋；訪客在框外，年老皮膚不作怪物解剖，局部貓不代表精確五十隻。不畫章末獵物、變形或門後行動。
 
 第五十一章取威尼斯頂樓局部，暗木、白睡衣與史蒂芬的深色管家服形成對照。動作停在衣物放妥，斯特蘭奇與白髮先生在框外；不用透明人或光效說明不可見，不以衣物變成亡者幻影。
 
@@ -62,10 +64,10 @@ last_updated: "2026-10-12"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 051 章，最新心得為 r1_2026-10-12.md。 |
-| 心得場景插圖 | 最新第 051 章：史蒂芬把白睡衣疊好放在小凳，另外兩人在框外；舊章圖保留。 |
-| 下一章 | Sirius 的 Library 書籤接續第 052 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第51章內容；再版、訴訟、返英、關係結果、斯特蘭奇可見仙靈與解咒保持開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 052 章，最新心得為 r1_2026-10-13.md。 |
+| 心得場景插圖 | 最新第 052 章：〈視線離開問話〉，一位夫人與三隻貓的局部；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 053 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第52章內容；德爾加多夫人身分、沉默原因、門後行動與此前研究、再版、關係結果保持開放。 |
 
 ## 已鎖定設定
 
@@ -96,6 +98,8 @@ last_updated: "2026-10-12"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第五十二章新增：[德爾加多夫人](Characters/mrs_delgado.md)（mrs_delgado）與[月光貓閣樓](Props/cannaregio_cat_attic.md)（cannaregio_cat_attic），首次／最近052，v1已視檢。各卡區分正文與衣物、家具、屋影詮釋；不是第51章的研究室。
 
 第五十一章新增：[威尼斯頂樓與疊好的白睡衣](Props/venice_attic_nightshirt.md)（venice_attic_nightshirt，首次／最近051，v1）。沿用史蒂芬v1；衣物來歷按正文，具體剪裁與房間布局為詮釋。
 
@@ -129,6 +133,8 @@ last_updated: "2026-10-12"
 
 | 類別 | id | 設定卡 | 首次關聯章節 | 狀態 |
 |---|---|---|---|---|
+| 人物 | `mrs_delgado` | [德爾加多夫人](Characters/mrs_delgado.md) | 052 | 已繪 v1、已視檢 |
+| 場景 | `cannaregio_cat_attic` | [月光貓閣樓](Props/cannaregio_cat_attic.md) | 052 | 已繪 v1、已視檢 |
 | 人物 | `mr_norrell` | [吉爾伯特・諾瑞爾](Characters/mr_norrell.md) | 001 | 已繪 v1 |
 | 人物 | `vinculus` | [聞秋樂](Characters/vinculus.md) | 005 | 已繪 v1 |
 | 人物 | `john_segundus` | [約翰・斯剛德斯](Characters/john_segundus.md) | 001 | 已繪 v1 |
@@ -179,6 +185,7 @@ last_updated: "2026-10-12"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 052 | [視線離開問話](../../ReadingReflections/sirius_jonathan_strange_gaze_beyond_questions.md) | `mrs_delgado`, `cannaregio_cat_attic` | v1、已視檢；一人三貓局部 |
 | 051 | [把睡衣疊好](../../ReadingReflections/sirius_strange_ch051_folded_nightshirt.md) | `stephen_black`, `venice_attic_nightshirt` | v1；驗收見展卡 |
 | 050 | [一萬本空白](../../ReadingReflections/sirius_strange_ch050_ten_thousand_blank.md) | `strange_history_blank_volume` | v1；驗收見展卡 |
 | 049 | [等雨停了再說](../../ReadingReflections/sirius_strange_ch049_waiting_for_rain.md) | `jonathan_strange_1814`, `soho_leaf_window_rain` | v1；驗收見展卡 |
