@@ -311,8 +311,8 @@
       <div class="row slide"><label for="powderhp">血量</label><input type="range" id="powderhp" step="10" aria-label="火藥桶的血量"><span id="powderhpV"></span></div>
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
       <div class="row slide"><label for="blastv">威力浮動</label><input type="range" id="blastv" step="5" aria-label="每次爆炸的威力浮動（%）"><span id="blastvV"></span></div>
-      <div class="row note">彈藥庫在艙底、水線下，砲彈打不到（每桶 100 磅）：憲法號前後兩間（後 22 桶、前 116 桶），餘燼號船中段一間（230 桶）。每層砲甲板在每間彈藥庫上方各有一個取用點（3 桶火藥＋彈藥；正上方沒有甲板就往前後找），送藥手從那裡搬到砲旁的藥箱。<br>
-        預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+      <div class="row note">彈藥庫在艙底、水線下，砲彈打不到（每桶 100 磅）：憲法號前後兩間（後 22 桶、前 116 桶），餘燼號船中段一間（230 桶）。每層砲甲板在每間彈藥庫上方各有一個取用點（3 桶火藥＋彈藥；正上方沒有甲板就往前後找；只有一間彈藥庫的船每層前後各一個），送藥手從離要送的那門砲最近的取用點搬到砲旁的藥箱。<br>
+        預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血（同一間 3 秒只算一次）⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>砲長</h3>
       <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
       <div class="row slide"><label for="cap1">敵艦</label><select id="cap1"></select></div>
@@ -3076,22 +3076,35 @@ function makeStations(sh) {
     for (var dy = 0; dy <= 9; dy += 3) for (var dx = 0; dx <= 9; dx += 3) { var zz = standZ(BASE, x + dx, y + dy, z - 1, z + 1, 8); if (zz < 0) return false; }
     return !guns.some(function (m) { var b = m.bb; return x + 11 > b[0] && x - 2 < b[3] && y + 11 > b[1] && y - 2 < b[4] && z + 8 > b[2] && z - 3 < b[5]; });
   }
+  /** 從 x0 找一塊空地。dir 0 ⇒ 先在正上方 ±30 格找，找不到再往船頭、船尾兩邊找；dir ±1 ⇒ 只往那一頭找（x0 起算）。 */
+  function findSpot(x0, dir, zr) {
+    var spot = null, ex, e2, oy;
+    if (!dir) for (var r = 0; r <= 30 && !spot; r += 2) for (var s = -1; s <= 1 && !spot; s += 2) for (var dx = -r; dx <= r && !spot; dx += 2) {
+      var x = x0 + dx, y = s > 0 ? CY + 6 + (r - Math.abs(dx)) : CY - 15 - (r - Math.abs(dx)), z = standZ(BASE, x + 4, y + 4, zr[0], zr[1], 8);
+      if (z >= 0 && clear(x, y, z)) spot = [x, y, z];
+    }
+    // 正上方沒有甲板（餘燼號的中央彈藥庫在船腰，上甲板那一段是開的）⇒ 沿那一層往船頭、船尾找最近的一塊空地
+    // ⛔ 不找 ⇒ 那一層沒有取用點，送藥手只拿自己那一層的（stationFor）⇒ 上甲板 18 門 carronade 打完藥箱的兩發就永遠停了
+    for (ex = dir ? 0 : 32; ex <= 400 && !spot; ex += dir ? 2 : 4) for (e2 = -1; e2 <= 1 && !spot; e2 += 2) for (oy = 0; oy < 4 && !spot; oy++) {
+      if (dir && e2 !== dir) continue;
+      var x2 = x0 + e2 * ex, y2 = [CY + 6, CY - 15, CY + 16, CY - 25][oy], z2 = standZ(BASE, x2 + 4, y2 + 4, zr[0], zr[1], 8);
+      if (z2 >= 0 && clear(x2, y2, z2)) spot = [x2, y2, z2];
+    }
+    return spot;
+  }
+  // 只有一間彈藥庫（餘燼號的中央彈藥庫）⇒ 每層前後各一個取用點：從彈藥庫前端往船頭、後端往船尾各退 1.6 m 找（Tim 2026-10-13：「取用點分到前後兩處」）。
+  //   ⛔ 一層只有一個、疊在彈藥庫正上方 ⇒ 那一層的送藥手全擠在船中段，電腦的瞄準點也在船中段 ⇒ 第一輪齊射就連炸（餘燼號對打 180 秒 2／3 場殉爆、一場第 4.5 秒）。
+  //   兩間以上（憲法號前後兩間）⇒ 照舊每間正上方一個。送藥手照要送的那門砲挑最近的取用點（stationFor）⇒ 自然分成前後兩批。
+  function anchors(mag) {
+    if (sh.mags.length !== 1) return [{ x: Math.round(mag.blast[0]), dir: 0, tag: magTag(mag) }];
+    return [{ x: Math.round(mag.box[3]) + 16, dir: 1, tag: '前' }, { x: Math.round(mag.box[0]) - 16, dir: -1, tag: '後' }];
+  }
   sh.decks.forEach(function (D) {
     var deck = D.key, zr = D.zr;
-    sh.mags.forEach(function (mag) {
-      var x0 = Math.round(mag.blast[0]), spot = null;
-      for (var r = 0; r <= 30 && !spot; r += 2) for (var s = -1; s <= 1 && !spot; s += 2) for (var dx = -r; dx <= r && !spot; dx += 2) {
-        var x = x0 + dx, y = s > 0 ? CY + 6 + (r - Math.abs(dx)) : CY - 15 - (r - Math.abs(dx)), z = standZ(BASE, x + 4, y + 4, zr[0], zr[1], 8);
-        if (z >= 0 && clear(x, y, z)) spot = [x, y, z];
-      }
-      // 正上方沒有甲板（餘燼號的中央彈藥庫在船腰，上甲板那一段是開的）⇒ 沿那一層往船頭、船尾找最近的一塊空地
-      // ⛔ 不找 ⇒ 那一層沒有取用點，送藥手只拿自己那一層的（stationFor）⇒ 上甲板 18 門 carronade 打完藥箱的兩發就永遠停了
-      for (var ex = 32; ex <= 400 && !spot; ex += 4) for (var e2 = -1; e2 <= 1 && !spot; e2 += 2) for (var oy = 0; oy < 4 && !spot; oy++) {
-        var x2 = x0 + e2 * ex, y2 = [CY + 6, CY - 15, CY + 16, CY - 25][oy], z2 = standZ(BASE, x2 + 4, y2 + 4, zr[0], zr[1], 8);
-        if (z2 >= 0 && clear(x2, y2, z2)) spot = [x2, y2, z2];
-      }
+    sh.mags.forEach(function (mag) { anchors(mag).forEach(function (A) {
+      var spot = findSpot(A.x, A.dir, zr);
       if (!spot) return;
-      var st = { deck: deck, mag: mag, name: D.name + magTag(mag) + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
+      var st = { deck: deck, mag: mag, name: D.name + A.tag + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
         var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: powderHP(), hpMax: powderHP(), mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
@@ -3106,7 +3119,7 @@ function makeStations(sh) {
         return [x + 0.5, y + 0.5, z];
       }).filter(Boolean));
       out.push(st);
-    });
+    }); });
   });
   return out;
 }
@@ -3218,11 +3231,13 @@ function cartBoom(sh, L, n, what) {
   if (what) note(sh, '<b style="color:#ffb35a">' + what + '</b>');
   flashCheck(sh, L);
 }
-/** 爆炸離取用點 3 m 內 ⇒ 火光順著艙口竄下彈藥庫：靠門最近的 6 桶各扣 300 × 威力（同一個取用點 3 秒內只算一次）。 */
+/** 爆炸離取用點 3 m 內 ⇒ 火光順著艙口竄下彈藥庫：靠門最近的 6 桶各扣 300 × 威力（**同一間彈藥庫** 3 秒內只算一次）。
+ *  ⛔ 以前照取用點算：下層、上層砲甲板的取用點上下疊著（相距 2.3 m），一次爆炸同時在兩個的 3 m 內 ⇒ 竄下兩次、門邊的桶吃 600
+ *  ⇒ 娛樂 450 一次就整間殉爆（「要竄下去幾次才會著」的設計整個沒了）；餘燼號對打第 4.8 秒、憲法號也一樣會中。 */
 function flashCheck(sh, L) {
   (sh.stations || []).forEach(function (st) {
-    if (st.mag.gone || SIMT - st.flashT < FLASH_CD || len(sub(L, st.pos)) > FLASH_R) return;
-    st.flashT = SIMT;
+    if (st.mag.gone || SIMT - (st.mag.flashT === undefined ? -99 : st.mag.flashT) < FLASH_CD || len(sub(L, st.pos)) > FLASH_R) return;
+    st.flashT = st.mag.flashT = SIMT;
     var door = (st.mag.pts && st.mag.pts.door) || st.mag.blast;
     var near = st.mag.kegs.filter(function (m) { return m.alive && !m.lit; }).sort(function (a, b) { return len(sub(a.c, door)) - len(sub(b.c, door)); }).slice(0, 6);
     if (!near.length) return;
