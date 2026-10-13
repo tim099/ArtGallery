@@ -485,6 +485,63 @@
           }
         ]
       ]
+    },
+    "008_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage5_stern_yaw-150.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage6_stern_yaw-150.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ],
+        [
+          {
+            "src": "O/stage6_stern_yaw150.png",
+            "fit": "cover",
+            "aspect": 2.0
+          }
+        ]
+      ]
+    },
+    "008_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage6_stern_yaw-100.png",
+            "fit": "cover",
+            "aspect": 1.6
+          }
+        ]
+      ]
+    },
+    "008_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage6_bow_yaw60.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage6_bow_yaw-30.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ],
+        [
+          {
+            "src": "O/stage6_assembly_yaw45.png",
+            "fit": "cover",
+            "aspect": 2.0
+          }
+        ]
+      ]
     }
   }
 }
