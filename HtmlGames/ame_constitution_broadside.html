@@ -99,12 +99,12 @@
   /* 說明外點一下就關（蓋住整個畫面，含下方控制列；Tim 2026-10-13：手機上不好關說明） */
   /* 停格（P；Tim 2026-10-13：暫停改叫停格，停格時才打得開進水細節頁）：上方一條；進水細節頁不蓋整個畫面 ⇒ 開著也能拖鏡頭 */
   #frz{ left:50%; top:12px; transform:translateX(-50%); display:none; pointer-events:auto; z-index:4; padding:6px 10px; white-space:nowrap; } #frz.on{ display:block; }
-  #frz .chip{ font-size:14px; padding:4px 12px; margin:0 3px; } #frz .fz{ color:var(--gold); font-weight:700; margin-right:4px; }
+  #frz .chip{ font-size:14px; padding:4px 12px; margin:0 3px; } #frz .fz{ color:var(--gold); font-weight:700; margin-right:4px; } #frz .fzL{ color:var(--dim); margin:0 2px 0 8px; }
   #floodp{ left:50%; top:58px; transform:translateX(-50%); display:none; pointer-events:auto; z-index:4; width:min(94vw,680px); box-sizing:border-box; max-height:calc(100% - 280px); overflow-y:auto; padding:10px 12px; font-size:12px; }
   #floodp.on{ display:block; } #floodp .hT{ display:flex; justify-content:space-between; align-items:center; color:var(--gold); font-size:14px; margin-bottom:4px; }
   #floodp .hX{ cursor:pointer; padding:2px 10px; border:1px solid rgba(232,194,106,.55); border-radius:4px; } #floodp .fpS{ margin:6px 0 10px; } #floodp .fpH{ color:var(--gold); font-weight:700; }
   #floodp .fpL{ color:var(--dim); margin-top:4px; } #floodp .fpC{ position:static; inset:auto; width:100%; height:auto; display:block; border-radius:3px; cursor:default; touch-action:auto; }   /* ⛔ 全域的 canvas 規則是給遊戲畫布的（絕對定位、鋪滿）⇒ 剖面四張疊在同一個位置 */
-  @media (max-width:760px){ #frz{ top:144px; } #floodp{ top:188px; max-height:calc(100% - 400px); }
+  @media (max-width:760px){ #frz{ top:144px; white-space:normal; width:min(94vw,380px); box-sizing:border-box; text-align:center; line-height:2.1; } #frz .chip{ font-size:13px; padding:3px 9px; } #floodp{ top:188px; max-height:calc(100% - 400px); }
     #help{ left:8px; right:8px; max-width:none; max-height:68%; } }   /* 手機：說明不佔滿 ⇒ 上面留一塊點得到的「外面」（⛔ 佔滿 ⇒ 只剩左邊一條細縫可以點） */
   #helpBg{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.25); z-index:5; } #helpBg.on{ display:block; }
   #help .hT{ display:flex; justify-content:space-between; align-items:center; color:var(--gold); font-size:14px; margin-bottom:4px; } #help .hX{ cursor:pointer; padding:2px 10px; border:1px solid rgba(232,194,106,.55); border-radius:4px; }
@@ -136,10 +136,10 @@
   <div id="tip" class="hud"></div>
   <div id="fps" class="hud"></div>
   <div id="nav" class="hud panel"><canvas id="navc"></canvas><div id="navt"></div></div>
-  <div id="frz" class="hud panel"><span class="fz">⏸ 停格中</span><span class="chip" id="frzFlood">💧 進水細節（I）</span><span class="chip" id="frzGo">▶ 繼續（P）</span></div>
+  <div id="frz" class="hud panel"><span class="fz">⏸ 停格中</span><span class="fzL">進水</span><span class="chip" id="frzFlood">📊 圖表（I）</span><span class="chip" id="frzX">🔍 透視（X）</span><span class="chip" id="frzGo">▶ 繼續（P）</span></div>
   <div id="floodp" class="hud panel">
-    <div class="hT">進水細節（停格中）<span class="hX" id="floodX">✕ 關閉</span></div>
-    <div class="note" style="color:var(--dim)">灰 ＝ 艙內空間、藍 ＝ 水（越滿越深）、紅點 ＝ 水下的破口、橙點 ＝ 水上的、青線 ＝ 外面的水面、虛線 ＝ 設計水線。開著時 3D 裡的艙內水面與破口是透視的（隔著船殼看得到），可以照樣拖鏡頭。</div>
+    <div class="hT">進水圖表（停格中）<span class="hX" id="floodX">✕ 關閉</span></div>
+    <div class="note" style="color:var(--dim)">灰 ＝ 艙內空間、藍 ＝ 水（越滿越深）、紅點 ＝ 水下的破口、橙點 ＝ 水上的、青線 ＝ 外面的水面、虛線 ＝ 設計水線。要在 3D 裡隔著船殼看艙內的水與破口：上方「🔍 透視」（X；船附近的海面也會拿掉），跟這個圖表分開開關；可以照樣拖鏡頭。</div>
     <div id="floodBody"></div>
   </div>
   <div id="helpBg"></div>
@@ -173,7 +173,7 @@
     <div><kbd>畫</kbd> 畫質在主選單（低／中／高；「畫質設定…」可以一項一項調：陰影、海面反射、海水折射、海面細緻度、解析度、反鋸齒），只改畫面、不改戰局；浪的大小在「細節設定」</div>
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
-    <div><kbd data-k="p">P</kbd> 停格（停住、照樣轉鏡頭；停格時看得到「💧 進水細節」，I 也行）　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 說明（打開時暫停；點外面就關）</div>
+    <div><kbd data-k="p">P</kbd> 停格（停住、照樣轉鏡頭；停格時看得到進水的「📊 圖表」（I）與「🔍 透視」（X），兩個分開開關）　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 說明（打開時暫停；點外面就關）</div>
   </div>
 
   <div id="gsetBg"></div>
@@ -875,7 +875,9 @@ function programs() {
     '  for(int i=0;i<16;i++){ if(float(i)>=uDet) break; float fi=float(i)+1.0; float l=L*(0.85+0.3*hs1(fi*3.1)); float k=6.2832/l, a=SEA_WA+(hs1(fi*7.7)-0.5)*2.4; vec2 d=vec2(cos(a),sin(a));\n' +
     '    g+=d*st*(1.0-smoothstep(0.25*l,0.6*l,fp))*cos(dot(p,d)*k-sqrt(9.81*k)*uSeaT+hs1(fi*5.3)*6.2832); L*=0.8; st*=0.88; }\n' +
     '  return g*(0.45+1.1*vn(p*0.025+vec2(uSeaT*0.013,uSeaT*0.007))); }\n' +
-    'void main(){ if((uHide.x>0.5&&inHull(uInv0,uHull0,uHullK0))||(uHide.y>0.5&&inHull(uInv1,uHull1,uHullK1))) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
+    // 停格的「🔍 透視」（72_floodui.js）：船附近的海面不畫 ⇒ 看得到水線下的船殼與破口。uXb ＝ 那艘船型在格座標的中心與半長、半寬（xrBox），再往外 6 m（60 格）；uXr ＝ 0 ⇒ 照原本畫
+    'uniform float uXr; uniform vec4 uXb0,uXb1; bool nearShip(mat4 inv,vec4 b){ vec4 l=inv*vec4(vW,1.0); vec2 q=abs(l.xy-b.xy)-b.zw; return length(max(q,vec2(0.0)))<60.0; }\n' +
+    'void main(){ if((uHide.x>0.5&&inHull(uInv0,uHull0,uHullK0))||(uHide.y>0.5&&inHull(uInv1,uHull1,uHullK1))) discard; if(uXr>0.5&&(nearShip(uInv0,uXb0)||nearShip(uInv1,uXb1))) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
     ' vec2 dd=fwidth(vW.xz); float fp=max(dd.x,dd.y);\n' +
     ' vec2 g=seaGf(p,fp)+detail(p,fp);\n' +
     ' vec3 n=normalize(vec3(-g.x,1.0,-g.y)); vec3 v=normalize(uEye-vW); float fr=0.04+0.96*pow(1.0-max(dot(n,v),0.0),5.0);\n' +
@@ -3632,13 +3634,15 @@ function gp(g, p) { return g.get(p & 1023, (p >> 10) & 1023, p >> 20); }
 //   · 抽水機：每秒從最低的那一層水抽掉 FL_PUMP ×（滑桿／預設）m³（約每分鐘 18 噸：四台鏈式抽水機全力抽）。
 //     ⛔ 照公式那邊的抽水換算（0.004 m/s × 水線面積 ≈ 每秒 0.84 m³）⇒ 比水線附近那幾個洞進得還快，戰鬥 420 秒艙裡一滴水都留不住（量過）。
 //   · 船：艙內的水 ＝ 加上去的重量 ⇒ 照浮力表（32_hull.js liftFor）算多吃水多少，sh.sink 照它慢慢跟過去（FL_TAU 秒）；
-//     水的重心偏哪一舷 ⇒ 往那邊傾斜（穩心高 FL_GM）、偏船頭船尾 ⇒ 縱傾（FL_GML）；上限跟公式一樣（開始沉之前 0.21 rad、縱傾 0.07）。
+//     水的重心偏哪一舷 ⇒ 往那邊傾斜（穩心高 FL_GM，見下）、偏船頭船尾 ⇒ 縱傾（FL_GML）；上限跟公式一樣（開始沉之前 0.21 rad、縱傾 0.07）。
 //     開始沉（下沉 4.2 m）之後照舊加速沉下去；斷成兩截照舊（公式，一定沉）。
 // 精細等級 FL_LV：c 水格邊長幾格、ev 幾步算一次水格、jn 粒子上限（每艘）、vj 每顆帶多少 m³、dn 每次最多重算幾格被打壞的水格與破口。
 // 戰局：自己的亂數 rndF（開局重設）；各檔水格不同 ⇒ 各檔是各自的一局（同一個種子各自逐字重現）。⛔ 不碰 rnd()、不讀畫面的設定。
 //   進水模式開戰時決定（FLOOD_LV，70_flow.js），戰鬥中改了下一場生效。
 var FL_LV = [null, { c: 10, ev: 4, jn: 300, vj: 0.25, dn: 120 }, { c: 7, ev: 2, jn: 800, vj: 0.08, dn: 200 }, { c: 5, ev: 2, jn: 2000, vj: 0.03, dn: 300 }];
-var FL_C = 1.0, FL_PUMP = 0.3, FL_GM = 1.1, FL_GML = 60, FL_TAU = 2;
+// FL_GM 穩心高（Tim 2026-10-13：傾斜收一點）：1.1 m（巡防艦的量級）⇒ 水往低的那一舷跑（自由液面），一舷有洞積 200 噸就斜到上限 12°、兩舷都有洞也一樣；
+//   4 m ⇒ 一舷有洞 180／380／600／840 噸時 1.9°／4.7°／8.4°／12°，兩舷都有洞 1,140 噸才 3.7°（沙盒 60 秒量的；2 m、3 m 還是很快頂到上限，5 m 一舷 830 噸才 8.3°）。
+var FL_C = 1.0, FL_PUMP = 0.3, FL_GM = 4, FL_GML = 60, FL_TAU = 2;
 var FL_HIDE = false, FLOOD_LV = 0, RSF0 = 0x3C6EF372, rsF = SEED ^ RSF0;
 function rndF() { rsF |= 0; rsF = rsF + 0x6D2B79F5 | 0; var t = Math.imul(rsF ^ rsF >>> 15, 1 | rsF); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
 function rgF(a, b) { return a + (b - a) * rndF(); }
@@ -3906,7 +3910,7 @@ function flDraw() {
   SHIPS.forEach(function (sh) {
     var fl = sh.fl; if (!fl || !fl.actN || sh.broken || sh.sinkingFinal || sh.sunk) return;
     var me = flMesh(sh, fl); if (!me.n) return;
-    if (!any) { any = true; gl.useProgram(P.pool.prog); setCommon(P.pool); gl.uniform1f(P.pool.u.uX, FLX ? 1 : 0); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.disable(gl.CULL_FACE); if (FLX) gl.disable(gl.DEPTH_TEST); }   // 進水細節頁開著 ⇒ 透視（72_floodui.js）
+    if (!any) { any = true; gl.useProgram(P.pool.prog); setCommon(P.pool); gl.uniform1f(P.pool.u.uX, FLX3 ? 1 : 0); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.disable(gl.CULL_FACE); if (FLX3) gl.disable(gl.DEPTH_TEST); }   // 停格的「🔍 透視」開著 ⇒ 隔著船殼看得到（72_floodui.js）
     gl.uniformMatrix4fv(P.pool.u.uModel, false, sh.M); gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
   });
   if (any) { gl.depthMask(true); gl.enable(gl.DEPTH_TEST); }
@@ -4811,9 +4815,11 @@ function render() {
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, RT.B.col); gl.uniform1i(P.water.u.uScene, 7);
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, RT.B.dep); gl.uniform1i(P.water.u.uSceneD, 3);
   hullUniforms(P.water);
+  gl.uniform1f(P.water.u.uXr, FLX3 ? 1 : 0);                             // 停格的「🔍 透視」：船附近的海面不畫（72_floodui.js）
+  [0, 1].forEach(function (i) { var s = SHIPS[i], b = s ? xrBox(s.T) : null; gl.uniform4f(P.water.u['uXb' + i], b ? b[0] : 0, b ? b[1] : 0, b ? b[2] : -1e9, b ? b[3] : -1e9); });
   gl.bindVertexArray(SEAG.vao); gl.drawElements(gl.TRIANGLES, SEAG.n, gl.UNSIGNED_INT, 0);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
+  if (!FLX3) wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
   flDraw();                                                              // 艙內的水面（33_flood.js，粒子模式）
   // 粒子＋砲彈＋瞄準點
   var m = 0;
@@ -4831,7 +4837,7 @@ function render() {
     u = ul > 0.35 ? mul(u, 1 / ul) : norm(cross(vd, [0, 1, 0]));
     for (i = 0; i < 16; i++) { var an = i / 16 * 6.2832 + SIMT; pushPt(add(c, add(mul(u, Math.cos(an) * 2.2), [0, Math.sin(an) * 2.2, 0])), 0.5, [1, 0.85, 0.3], 0.9); }
   }
-  if (FLX) flHoleMarks(pushPt);                                          // 進水細節頁開著：破口畫成點、隔著船殼看得到（72_floodui.js）
+  if (FLX3) flHoleMarks(pushPt);                                         // 停格的「🔍 透視」開著：破口畫成點、隔著船殼看得到（72_floodui.js）
   if (m) {
     gl.depthMask(false); gl.useProgram(P.pt.prog); setCommon(P.pt); gl.uniform1f(P.pt.u.uPx, CAM.h / (2 * Math.tan(0.45)));
     gl.uniform1f(P.pt.u.uUseFx, FX_TEX ? 1 : 0); if (FX_TEX) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, FX_TEX); gl.uniform1i(P.pt.u.uFx, 0); }
@@ -5252,7 +5258,7 @@ function pick(cx, cy) {
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
   var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' ';
-  if (k === 'escape') { e.preventDefault(); if (HELP.open) helpClose(); else if (FLX) floodClose(); else gsetToggle(); return; }   // 遊戲內的設定面板
+  if (k === 'escape') { e.preventDefault(); if (HELP.open) helpClose(); else if (FLX) floodClose(); else if (FLX3) xrayToggle(); else gsetToggle(); return; }   // 遊戲內的設定面板
   if (k === ' ' || k === 'tab' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
   doKey(k, e.repeat);
 });
@@ -5265,8 +5271,9 @@ function doKey(k, repeat) {
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
   else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
-  else if (k === 'p') PAUSED = !PAUSED;                               // 停格（72_floodui.js：停格時上方一條、進水細節頁）
-  else if (k === 'i') { if (PAUSED) floodToggle(); }
+  else if (k === 'p') { PAUSED = !PAUSED; frzShow(); }                               // 停格（72_floodui.js：停格時上方一條、進水細節頁）
+  else if (k === 'i') { if (PAUSED) floodToggle(); }                 // 停格時：進水圖表／透視（72_floodui.js）
+  else if (k === 'x') xrayToggle();
   else if (k === 'm') { muted = !muted; gsetShow(); }
   else if (k === 'h' || k === '?') helpToggle();
   else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; }
@@ -5527,23 +5534,32 @@ $('endC').onclick = function () { $('end').className = ''; };
 $('endR').onclick = function () { RUNNING = false; $('end').className = ''; $('cover').style.display = ''; };
 // ── js/72_floodui.js ──
 // ───────────────────────── 停格與進水細節頁（Tim 2026-10-13） ─────────────────────────
-// P ＝「停格」（以前叫暫停；停住模擬、照樣能轉鏡頭）：上方出現一條「⏸ 停格中　💧 進水細節（I）　▶ 繼續（P）」。設定、說明打開時不出現（它們自己會暫停）。
-// 進水細節頁只在停格時打得開，繼續就收起；不蓋整個畫面（⇒ 開著也能拖鏡頭從各個角度看），右上 ✕ 或 I 關。
+// P ＝「停格」（以前叫暫停；停住模擬、照樣能轉鏡頭）：上方出現一條「⏸ 停格中　進水：📊 圖表（I）🔍 透視（X）　▶ 繼續（P）」。設定、說明打開時不出現（它們自己會暫停）。
+// 進水細節分兩個開關（Tim 2026-10-13：不然圖表會擋住 3D）——只在停格時打得開，繼續就都收起：
+//   📊 圖表（FLX，I）：數字與剖面的面板，右上 ✕ 也能關；🔍 透視（FLX3，X）：3D 裡的艙內水面與破口隔著船殼看得到，
+//   而且船附近的海面與白沫不畫（Tim 2026-10-13：會影響觀察）⇒ 看得到水線下的船殼與破口。
 //   兩艘各一段：數字（積水、破口（水下幾個）、進出水、抽水、下沉、傾斜、水的重心、粒子與水格）＋ 側視、俯視的剖面（艙內的水、破口、外面的水面、設計水線）。
-//   開著的時候 3D 裡艙內的水面改成透視（33_flood.js flDraw：不做深度測試）、破口畫成點（水下紅、水上橙，flHoleMarks）⇒ 隔著船殼看得到。
+//   透視：艙內的水面不做深度測試（33_flood.js flDraw）、破口畫成點（水下紅；水上橙、小而淡 —— 暴風雨打爛的船水上的洞上百個，⛔ 一樣大 ⇒ 糊成一片，flHoleMarks）。
 // 公式模式沒有艙內的水 ⇒ 只寫公式的讀數。⛔ 只讀模擬、不改（停格中沒有在走）。
-var FLX = false;
+var FLX = false, FLX3 = false;
 /** 每一格（90_main.js frame）：停格條顯示與否；繼續了 ⇒ 進水細節頁收起。 */
 function frzShow() {
   var on = RUNNING && PAUSED && !GSET.open && !HELP.open;
-  $('frz').classList.toggle('on', on);
-  if (FLX && !on) floodClose();
+  $('frz').classList.toggle('on', on); $('msg').style.visibility = on ? 'hidden' : '';   // 停格條跟上方廣播同一個位置（⛔ 不藏 ⇒ 廣播的字透過半透明的條）
+  if (!on) { if (FLX) floodClose(); FLX3 = false; }
+  $('frzFlood').classList.toggle('on', FLX); $('frzX').classList.toggle('on', FLX3);
 }
-function floodOpen() { if (!RUNNING || !PAUSED) return; FLX = true; $('floodp').classList.add('on'); floodPanel(); }
-function floodClose() { FLX = false; $('floodp').classList.remove('on'); }
+/** 船型 T 在格座標的 [中心 x, 中線 y, 半長, 半寬]（設計水線那一層；透視時拿掉附近海面用，01_gl.js nearShip）。 */
+function xrBox(T) {
+  if (!T.xrB) { var hb = 0; for (var x = T.wl0; x <= T.wl1; x++) hb = Math.max(hb, T.hullHB[T.zw * T.hullTW + x] || 0); T.xrB = [(T.wl0 + T.wl1) / 2, T.cy, (T.wl1 - T.wl0) / 2, hb]; }
+  return T.xrB;
+}
+function xrayToggle() { if (!RUNNING || !PAUSED) return; FLX3 = !FLX3; frzShow(); }   // 按了就更新按鈕（⛔ 只靠每一格的 frzShow ⇒ 分頁在背景時按鈕不動）
+function floodOpen() { if (!RUNNING || !PAUSED) return; FLX = true; $('floodp').classList.add('on'); floodPanel(); frzShow(); }
+function floodClose() { FLX = false; $('floodp').classList.remove('on'); $('frzFlood').classList.remove('on'); }
 function floodToggle() { if (FLX) floodClose(); else floodOpen(); }
-$('frzFlood').onclick = floodToggle;
-$('frzGo').onclick = function () { PAUSED = false; };
+$('frzFlood').onclick = floodToggle; $('frzX').onclick = xrayToggle;
+$('frzGo').onclick = function () { PAUSED = false; frzShow(); };
 $('floodX').onclick = floodClose;
 function deg(a) { return (a * 57.2958).toFixed(1) + '°'; }
 /** 填進水細節頁：兩艘各一段，畫完剖面。 */
@@ -5605,14 +5621,14 @@ function fpDraw(cv, sh, view) {
     g.fillStyle = wet ? 'rgba(255,60,50,0.95)' : 'rgba(255,170,40,0.85)'; g.beginPath(); g.arc(px(fl.hX[hh]), pv(view ? fl.hY[hh] : fl.hZ[hh]), r, 0, 6.2832); g.fill();
   });
 }
-/** 進水細節頁開著：破口在 3D 裡畫成點（不做深度測試 ⇒ 隔著船殼看得到；60_render.js 瞄準圈那一批）。 */
+/** 透視開著：破口在 3D 裡畫成點（不做深度測試 ⇒ 隔著船殼看得到；60_render.js 瞄準圈那一批）。水下的紅、照洞的大小；水上的橙、小而淡。 */
 function flHoleMarks(pushPt) {
   SHIPS.forEach(function (sh) {
     var fl = sh.fl; if (!fl || sh.broken || sh.sinkingFinal || sh.sunk) return;
     fl.holes.forEach(function (h) {
       if (!(fl.hA[h] > 0)) return;
       var P = M4.pt(sh.M, fl.hX[h], fl.hY[h], fl.hZ[h]), wet = P[1] < seaH(P[0], P[2], SIMT);
-      pushPt(P, 0.25 + Math.sqrt(fl.hA[h]) * 0.8, wet ? [1, 0.25, 0.2] : [1, 0.65, 0.15], 0.9);
+      if (wet) pushPt(P, 0.25 + Math.sqrt(fl.hA[h]) * 0.8, [1, 0.25, 0.2], 0.95); else pushPt(P, 0.12 + Math.sqrt(fl.hA[h]) * 0.25, [1, 0.65, 0.15], 0.45);
     });
   });
 }
@@ -5662,6 +5678,7 @@ if (DEBUG) window.__game = {
   /** 進水（33_flood.js，粒子模式）：第 i 艘的水量、破口、進出水、抽水、粒子、重心、該下沉多少；公式模式 ⇒ null。 */
   flood: function (i, o) {
     if (o && 'hide' in o) FL_HIDE = !!o.hide;
+    if (o && o.gm > 0) FL_GM = o.gm;                                   // 調穩心高（量傾斜用）
     var sh = SHIPS[i || 0], fl = sh.fl; if (!fl) return null;
     var cells = 0; for (var t = 0; t < fl.actN; t++) if (fl.A[fl.act[t]] > 0) cells++;
     return { lv: FLOOD_LV, c: fl.F.c, grid: [fl.F.NX, fl.F.NY, fl.F.NZ], m3: +fl.vol.toFixed(3), t: +(fl.vol * RHO_W).toFixed(2), cells: cells, jets: fl.J.n, holes: fl.open, area: +fl.area.toFixed(3),
@@ -5775,15 +5792,15 @@ yieldUI().then(function () {                                        // 先讓主
     var steps = Math.round(DEMO / DT), phys = PHYS, from = Math.max(0, steps - 360);     // 帆與繩只畫最後那一格 ⇒ 物理只在最後 6 秒跑（不影響戰局）
     if (phys && from > 0) setPhys(false);
     // ?dump=1：每半秒記每艘的最大橫傾、開始沉／沉沒／降旗的時間，跑完寫進頁面（#dump；無頭 Chrome --dump-dom 讀，量進水模式用）
-    var rec = Q.get('dump') === '1' ? SHIPS.map(function () { return { maxList: 0, final: null, sunk: null, struck: null }; }) : null;
+    var rec = Q.get('dump') === '1' ? SHIPS.map(function () { return { maxList: 0, maxPre: 0, final: null, sunk: null, struck: null }; }) : null;
     for (var i = 0; i < steps; i++) {
       if (phys && i === from && from > 0) setPhys(true); step(); if (i % 30 === 29) SHIPS.forEach(function (sh) { sh.rs.flush(); });
-      if (rec && i % 30 === 29) SHIPS.forEach(function (sh, k) { var r = rec[k]; r.maxList = Math.max(r.maxList, Math.abs(sh.rollA)); if (sh.sinkingFinal && r.final === null) r.final = +SIMT.toFixed(1); if (sh.sunk && r.sunk === null) r.sunk = +SIMT.toFixed(1); if (sh.struck && r.struck === null) r.struck = +SIMT.toFixed(1); });
+      if (rec && i % 30 === 29) SHIPS.forEach(function (sh, k) { var r = rec[k]; r.maxList = Math.max(r.maxList, Math.abs(sh.rollA)); if (!sh.sinkingFinal) r.maxPre = Math.max(r.maxPre, Math.abs(sh.rollA)); if (sh.sinkingFinal && r.final === null) r.final = +SIMT.toFixed(1); if (sh.sunk && r.sunk === null) r.sunk = +SIMT.toFixed(1); if (sh.struck && r.struck === null) r.struck = +SIMT.toFixed(1); });
     }
     SHIPS.forEach(function (sh) { sh.rs.flush(); }); RUNNING = false; $('cover').style.display = 'none';
     if (rec) { var pre = document.createElement('pre'); pre.id = 'dump'; document.body.appendChild(pre);
       pre.textContent = JSON.stringify({ seed: SEED, t: +SIMT.toFixed(1), flood: FLOOD_LV, ships: SHIPS.map(function (sh, k) { var r = rec[k];
-        return { maxListDeg: +(r.maxList * 57.3).toFixed(1), final: r.final, sunk: r.sunk, struck: r.struck, fate: sh.fate, lost: sh.lost, hits: sh.hits, sink: +sh.sink.toFixed(2), water: sh.fl ? Math.round(sh.fl.vol * RHO_W) : null, area: sh.fl ? +sh.fl.area.toFixed(1) : null, inflow: sh.inflow }; }) }); }
+        return { maxListDeg: +(r.maxList * 57.3).toFixed(1), maxPreDeg: +(r.maxPre * 57.3).toFixed(1), final: r.final, sunk: r.sunk, struck: r.struck, fate: sh.fate, lost: sh.lost, hits: sh.hits, sink: +sh.sink.toFixed(2), water: sh.fl ? Math.round(sh.fl.vol * RHO_W) : null, area: sh.fl ? +sh.fl.area.toFixed(1) : null, inflow: sh.inflow }; }) }); }
     window.__vxk.demo = { t: SIMT, lost: SHIPS.map(function (s) { return s.lost; }), pieces: PIECES.length, debris: D.n };
   } else {
     // 選單後面先擺好兩艘船當背景

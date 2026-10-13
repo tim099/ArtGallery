@@ -99,12 +99,12 @@
   /* 說明外點一下就關（蓋住整個畫面，含下方控制列；Tim 2026-10-13：手機上不好關說明） */
   /* 停格（P；Tim 2026-10-13：暫停改叫停格，停格時才打得開進水細節頁）：上方一條；進水細節頁不蓋整個畫面 ⇒ 開著也能拖鏡頭 */
   #frz{ left:50%; top:12px; transform:translateX(-50%); display:none; pointer-events:auto; z-index:4; padding:6px 10px; white-space:nowrap; } #frz.on{ display:block; }
-  #frz .chip{ font-size:14px; padding:4px 12px; margin:0 3px; } #frz .fz{ color:var(--gold); font-weight:700; margin-right:4px; }
+  #frz .chip{ font-size:14px; padding:4px 12px; margin:0 3px; } #frz .fz{ color:var(--gold); font-weight:700; margin-right:4px; } #frz .fzL{ color:var(--dim); margin:0 2px 0 8px; }
   #floodp{ left:50%; top:58px; transform:translateX(-50%); display:none; pointer-events:auto; z-index:4; width:min(94vw,680px); box-sizing:border-box; max-height:calc(100% - 280px); overflow-y:auto; padding:10px 12px; font-size:12px; }
   #floodp.on{ display:block; } #floodp .hT{ display:flex; justify-content:space-between; align-items:center; color:var(--gold); font-size:14px; margin-bottom:4px; }
   #floodp .hX{ cursor:pointer; padding:2px 10px; border:1px solid rgba(232,194,106,.55); border-radius:4px; } #floodp .fpS{ margin:6px 0 10px; } #floodp .fpH{ color:var(--gold); font-weight:700; }
   #floodp .fpL{ color:var(--dim); margin-top:4px; } #floodp .fpC{ position:static; inset:auto; width:100%; height:auto; display:block; border-radius:3px; cursor:default; touch-action:auto; }   /* ⛔ 全域的 canvas 規則是給遊戲畫布的（絕對定位、鋪滿）⇒ 剖面四張疊在同一個位置 */
-  @media (max-width:760px){ #frz{ top:144px; } #floodp{ top:188px; max-height:calc(100% - 400px); }
+  @media (max-width:760px){ #frz{ top:144px; white-space:normal; width:min(94vw,380px); box-sizing:border-box; text-align:center; line-height:2.1; } #frz .chip{ font-size:13px; padding:3px 9px; } #floodp{ top:188px; max-height:calc(100% - 400px); }
     #help{ left:8px; right:8px; max-width:none; max-height:68%; } }   /* 手機：說明不佔滿 ⇒ 上面留一塊點得到的「外面」（⛔ 佔滿 ⇒ 只剩左邊一條細縫可以點） */
   #helpBg{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.25); z-index:5; } #helpBg.on{ display:block; }
   #help .hT{ display:flex; justify-content:space-between; align-items:center; color:var(--gold); font-size:14px; margin-bottom:4px; } #help .hX{ cursor:pointer; padding:2px 10px; border:1px solid rgba(232,194,106,.55); border-radius:4px; }
@@ -136,10 +136,10 @@
   <div id="tip" class="hud"></div>
   <div id="fps" class="hud"></div>
   <div id="nav" class="hud panel"><canvas id="navc"></canvas><div id="navt"></div></div>
-  <div id="frz" class="hud panel"><span class="fz">⏸ 停格中</span><span class="chip" id="frzFlood">💧 進水細節（I）</span><span class="chip" id="frzGo">▶ 繼續（P）</span></div>
+  <div id="frz" class="hud panel"><span class="fz">⏸ 停格中</span><span class="fzL">進水</span><span class="chip" id="frzFlood">📊 圖表（I）</span><span class="chip" id="frzX">🔍 透視（X）</span><span class="chip" id="frzGo">▶ 繼續（P）</span></div>
   <div id="floodp" class="hud panel">
-    <div class="hT">進水細節（停格中）<span class="hX" id="floodX">✕ 關閉</span></div>
-    <div class="note" style="color:var(--dim)">灰 ＝ 艙內空間、藍 ＝ 水（越滿越深）、紅點 ＝ 水下的破口、橙點 ＝ 水上的、青線 ＝ 外面的水面、虛線 ＝ 設計水線。開著時 3D 裡的艙內水面與破口是透視的（隔著船殼看得到），可以照樣拖鏡頭。</div>
+    <div class="hT">進水圖表（停格中）<span class="hX" id="floodX">✕ 關閉</span></div>
+    <div class="note" style="color:var(--dim)">灰 ＝ 艙內空間、藍 ＝ 水（越滿越深）、紅點 ＝ 水下的破口、橙點 ＝ 水上的、青線 ＝ 外面的水面、虛線 ＝ 設計水線。要在 3D 裡隔著船殼看艙內的水與破口：上方「🔍 透視」（X；船附近的海面也會拿掉），跟這個圖表分開開關；可以照樣拖鏡頭。</div>
     <div id="floodBody"></div>
   </div>
   <div id="helpBg"></div>
@@ -173,7 +173,7 @@
     <div><kbd>畫</kbd> 畫質在主選單（低／中／高；「畫質設定…」可以一項一項調：陰影、海面反射、海水折射、海面細緻度、解析度、反鋸齒），只改畫面、不改戰局；浪的大小在「細節設定」</div>
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
-    <div><kbd data-k="p">P</kbd> 停格（停住、照樣轉鏡頭；停格時看得到「💧 進水細節」，I 也行）　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 說明（打開時暫停；點外面就關）</div>
+    <div><kbd data-k="p">P</kbd> 停格（停住、照樣轉鏡頭；停格時看得到進水的「📊 圖表」（I）與「🔍 透視」（X），兩個分開開關）　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 說明（打開時暫停；點外面就關）</div>
   </div>
 
   <div id="gsetBg"></div>

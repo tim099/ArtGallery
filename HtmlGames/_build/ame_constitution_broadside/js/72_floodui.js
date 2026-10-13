@@ -1,21 +1,30 @@
 // ───────────────────────── 停格與進水細節頁（Tim 2026-10-13） ─────────────────────────
-// P ＝「停格」（以前叫暫停；停住模擬、照樣能轉鏡頭）：上方出現一條「⏸ 停格中　💧 進水細節（I）　▶ 繼續（P）」。設定、說明打開時不出現（它們自己會暫停）。
-// 進水細節頁只在停格時打得開，繼續就收起；不蓋整個畫面（⇒ 開著也能拖鏡頭從各個角度看），右上 ✕ 或 I 關。
+// P ＝「停格」（以前叫暫停；停住模擬、照樣能轉鏡頭）：上方出現一條「⏸ 停格中　進水：📊 圖表（I）🔍 透視（X）　▶ 繼續（P）」。設定、說明打開時不出現（它們自己會暫停）。
+// 進水細節分兩個開關（Tim 2026-10-13：不然圖表會擋住 3D）——只在停格時打得開，繼續就都收起：
+//   📊 圖表（FLX，I）：數字與剖面的面板，右上 ✕ 也能關；🔍 透視（FLX3，X）：3D 裡的艙內水面與破口隔著船殼看得到，
+//   而且船附近的海面與白沫不畫（Tim 2026-10-13：會影響觀察）⇒ 看得到水線下的船殼與破口。
 //   兩艘各一段：數字（積水、破口（水下幾個）、進出水、抽水、下沉、傾斜、水的重心、粒子與水格）＋ 側視、俯視的剖面（艙內的水、破口、外面的水面、設計水線）。
-//   開著的時候 3D 裡艙內的水面改成透視（33_flood.js flDraw：不做深度測試）、破口畫成點（水下紅、水上橙，flHoleMarks）⇒ 隔著船殼看得到。
+//   透視：艙內的水面不做深度測試（33_flood.js flDraw）、破口畫成點（水下紅；水上橙、小而淡 —— 暴風雨打爛的船水上的洞上百個，⛔ 一樣大 ⇒ 糊成一片，flHoleMarks）。
 // 公式模式沒有艙內的水 ⇒ 只寫公式的讀數。⛔ 只讀模擬、不改（停格中沒有在走）。
-var FLX = false;
+var FLX = false, FLX3 = false;
 /** 每一格（90_main.js frame）：停格條顯示與否；繼續了 ⇒ 進水細節頁收起。 */
 function frzShow() {
   var on = RUNNING && PAUSED && !GSET.open && !HELP.open;
-  $('frz').classList.toggle('on', on);
-  if (FLX && !on) floodClose();
+  $('frz').classList.toggle('on', on); $('msg').style.visibility = on ? 'hidden' : '';   // 停格條跟上方廣播同一個位置（⛔ 不藏 ⇒ 廣播的字透過半透明的條）
+  if (!on) { if (FLX) floodClose(); FLX3 = false; }
+  $('frzFlood').classList.toggle('on', FLX); $('frzX').classList.toggle('on', FLX3);
 }
-function floodOpen() { if (!RUNNING || !PAUSED) return; FLX = true; $('floodp').classList.add('on'); floodPanel(); }
-function floodClose() { FLX = false; $('floodp').classList.remove('on'); }
+/** 船型 T 在格座標的 [中心 x, 中線 y, 半長, 半寬]（設計水線那一層；透視時拿掉附近海面用，01_gl.js nearShip）。 */
+function xrBox(T) {
+  if (!T.xrB) { var hb = 0; for (var x = T.wl0; x <= T.wl1; x++) hb = Math.max(hb, T.hullHB[T.zw * T.hullTW + x] || 0); T.xrB = [(T.wl0 + T.wl1) / 2, T.cy, (T.wl1 - T.wl0) / 2, hb]; }
+  return T.xrB;
+}
+function xrayToggle() { if (!RUNNING || !PAUSED) return; FLX3 = !FLX3; frzShow(); }   // 按了就更新按鈕（⛔ 只靠每一格的 frzShow ⇒ 分頁在背景時按鈕不動）
+function floodOpen() { if (!RUNNING || !PAUSED) return; FLX = true; $('floodp').classList.add('on'); floodPanel(); frzShow(); }
+function floodClose() { FLX = false; $('floodp').classList.remove('on'); $('frzFlood').classList.remove('on'); }
 function floodToggle() { if (FLX) floodClose(); else floodOpen(); }
-$('frzFlood').onclick = floodToggle;
-$('frzGo').onclick = function () { PAUSED = false; };
+$('frzFlood').onclick = floodToggle; $('frzX').onclick = xrayToggle;
+$('frzGo').onclick = function () { PAUSED = false; frzShow(); };
 $('floodX').onclick = floodClose;
 function deg(a) { return (a * 57.2958).toFixed(1) + '°'; }
 /** 填進水細節頁：兩艘各一段，畫完剖面。 */
@@ -77,14 +86,14 @@ function fpDraw(cv, sh, view) {
     g.fillStyle = wet ? 'rgba(255,60,50,0.95)' : 'rgba(255,170,40,0.85)'; g.beginPath(); g.arc(px(fl.hX[hh]), pv(view ? fl.hY[hh] : fl.hZ[hh]), r, 0, 6.2832); g.fill();
   });
 }
-/** 進水細節頁開著：破口在 3D 裡畫成點（不做深度測試 ⇒ 隔著船殼看得到；60_render.js 瞄準圈那一批）。 */
+/** 透視開著：破口在 3D 裡畫成點（不做深度測試 ⇒ 隔著船殼看得到；60_render.js 瞄準圈那一批）。水下的紅、照洞的大小；水上的橙、小而淡。 */
 function flHoleMarks(pushPt) {
   SHIPS.forEach(function (sh) {
     var fl = sh.fl; if (!fl || sh.broken || sh.sinkingFinal || sh.sunk) return;
     fl.holes.forEach(function (h) {
       if (!(fl.hA[h] > 0)) return;
       var P = M4.pt(sh.M, fl.hX[h], fl.hY[h], fl.hZ[h]), wet = P[1] < seaH(P[0], P[2], SIMT);
-      pushPt(P, 0.25 + Math.sqrt(fl.hA[h]) * 0.8, wet ? [1, 0.25, 0.2] : [1, 0.65, 0.15], 0.9);
+      if (wet) pushPt(P, 0.25 + Math.sqrt(fl.hA[h]) * 0.8, [1, 0.25, 0.2], 0.95); else pushPt(P, 0.12 + Math.sqrt(fl.hA[h]) * 0.25, [1, 0.65, 0.15], 0.45);
     });
   });
 }
