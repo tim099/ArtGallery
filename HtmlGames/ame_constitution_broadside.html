@@ -3787,7 +3787,7 @@ function deg3(b) { return ('00' + Math.round(b) % 360).slice(-3) + '°'; }
 function drawNav(sh) {
   if (!CAM.look) return;
   var c2 = $('navc'), g = c2.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = 150;
-  if (c2.width !== W * dpr) { c2.width = c2.height = W * dpr; }
+  if (c2.width !== W * dpr || c2.height !== W * dpr) { c2.width = c2.height = W * dpr; }   // ⛔ 只比寬：canvas 預設 300×150，dpr 2（手機）時寬剛好是 300 ⇒ 高停在 150，羅盤被拉成兩倍高、下半截切掉
   g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, W);
   var f = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), rt = [-f[2], 0, f[0]], cx = W / 2, cy = W / 2, R = 56;
   function P(d, k) { return [cx + (d[0] * rt[0] + d[2] * rt[2]) * R * k, cy - (d[0] * f[0] + d[2] * f[2]) * R * k]; }
