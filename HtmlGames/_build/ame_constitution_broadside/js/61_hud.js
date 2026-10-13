@@ -174,11 +174,11 @@ function drawNav(sh) {
     var e = norm([foe.center[0] - sh.center[0], 0, foe.center[2] - sh.center[2]]), pe = P(e, 0.86);
     g.fillStyle = foe.sunk ? '#666' : '#ff6f6f'; g.beginPath(); g.arc(pe[0], pe[1], 4.5, 0, 6.2832); g.fill();
   }
-  // 我艦：從上面俯瞰的船（05_hull.js navImg，載入時算一次；船頭朝上、右舷在右 ⇒ 只轉不翻），船長（含艏斜桅）＝ 半徑的 1.05 倍
-  //   （⛔ 0.8 倍 ⇒ 船長寬比約 6:1，在 150 px 的圈裡細成一條線）；外面一圈我方的顏色。沒有圖 ⇒ 以前的三角形
+  // 我艦：從上面俯瞰的船（05_hull.js navImg，載入時算一次；船頭朝上、右舷在右 ⇒ 只轉不翻），船長（含艏斜桅）＝ 半徑的 1.575 倍（中心到兩端約 0.79 R，還在圈裡）
+  //   （⛔ 0.8 倍 ⇒ 船長寬比約 6:1，在 150 px 的圈裡細成一條線；Tim 2026-10-13：1.05 倍再放大 1.5 倍）；外面一圈我方的顏色。沒有圖 ⇒ 以前的三角形
   var tc = sh.i === 0 ? '#6f9bff' : '#ff6f6f', NI = sh.T.navImg;
   if (NI) {
-    var tip = P(F, 1), sc = R * 1.05 / NI.height;
+    var tip = P(F, 1), sc = R * 1.575 / NI.height;
     g.save(); g.translate(cx, cy); g.rotate(Math.atan2(tip[1] - cy, tip[0] - cx) + Math.PI / 2); g.scale(sc, sc);
     g.shadowColor = tc; g.shadowBlur = 5; g.imageSmoothingEnabled = true; g.drawImage(NI, -sh.T.navU, -sh.T.navV);
     g.restore();
