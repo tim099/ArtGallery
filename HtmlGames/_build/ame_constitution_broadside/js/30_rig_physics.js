@@ -344,7 +344,7 @@ function ropeStep(sh, o, wl, gv) {
 function underWater(sh, p, i) { var w = M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]); return w[1] < seaH(w[0], w[2], SIMT) - 0.5; }
 /** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
 function physStep(sh) {
-  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2));   // 陣風（不用亂數）
+  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2)) * WX.wind;   // 陣風（不用亂數）；天氣：暴風雨 ×2.2
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
   var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }

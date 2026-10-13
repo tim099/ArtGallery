@@ -85,7 +85,7 @@ function stepPts(dt) {
       i--; continue;
     }
     var o = i * 3, k = 1 - PT.drag[i] * dt;
-    PT.v[o] = PT.v[o] * k + WIND[0] * PT.drag[i] * dt; PT.v[o + 1] = PT.v[o + 1] * k - PT.grav[i] * dt; PT.v[o + 2] = PT.v[o + 2] * k + WIND[2] * PT.drag[i] * dt;
+    PT.v[o] = PT.v[o] * k + WIND[0] * WX.wind * PT.drag[i] * dt; PT.v[o + 1] = PT.v[o + 1] * k - PT.grav[i] * dt; PT.v[o + 2] = PT.v[o + 2] * k + WIND[2] * WX.wind * PT.drag[i] * dt;   // 天氣：暴風雨煙飄得快
     PT.p[o] += PT.v[o] * dt; PT.p[o + 1] += PT.v[o + 1] * dt; PT.p[o + 2] += PT.v[o + 2] * dt;
     if (PT.grav[i] > 0 && PT.p[o + 1] < 0) PT.life[i] = Math.min(PT.life[i], 0.05);
   }

@@ -141,6 +141,7 @@
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
+    <div><kbd>天</kbd> 天氣在主選單：晴／暴風雨（浪 ×2.5、風強、天暗下雨打雷；船晃得越兇砲越散、舵難使、順風快一點）。雨的濃淡在畫質設定</div>
     <div><kbd>畫</kbd> 畫質在主選單（低／中／高；「畫質設定…」可以一項一項調：陰影、海面反射、海水折射、海面細緻度、解析度、反鋸齒），只改畫面、不改戰局；浪的大小在「細節設定」</div>
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
@@ -162,6 +163,9 @@
       </div>
       <div class="row" id="dists">距離
         <button data-d="90">90 m</button><button data-d="140" class="on">140 m</button><button data-d="220">220 m</button>
+      </div>
+      <div class="row" id="wxs">天氣
+        <button data-w="clear">晴</button><button data-w="storm">暴風雨</button>
       </div>
       <div class="row" id="gfxs">畫質
         <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button><button id="gfxB">畫質設定…</button>
@@ -190,7 +194,7 @@
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="gfxp" style="display:none">
       <h2>畫質設定</h2>
-      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa=（第幾檔，從 0 起）</div>
+      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa= ?g_rain=（第幾檔，從 0 起）</div>
       <div class="row" id="gfxPre">預設 <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button>　<span id="gfxLv" class="note"></span></div>
       <div id="gfxItems"></div>
       <div class="row checks"><label><input type="checkbox" id="gfxFps"> 顯示 FPS（畫面上方中間）</label></div>
@@ -765,12 +769,13 @@ var P = {};
 //   uShOn ＝ 0 關、1 低（硬體 2×2）、2 高（再 4 點柔邊）；沿法線推出去 uShOff 公尺再比（⛔ 不推 ⇒ 平面上自己遮自己的條紋）；
 //   陽光越斜推越遠（呼叫端把法線乘 1～3 倍：斜面在陰影圖上一格跨的深度大）。
 // uClip：反射那一趟丟掉水面以下的（平常是 −10⁹）。
-var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0, uShM1; uniform float uShOn, uShPx, uShOff, uClip;\n' +
+// uSunK：直射光的強度（天氣；晴天 1）—— 收陰影的地方都乘 shadowK，順便乘在這裡。
+var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0, uShM1; uniform float uShOn, uShPx, uShOff, uClip, uSunK;\n' +
   'float shOne(highp sampler2DShadow S, mat4 M, vec3 w){ vec4 p=M*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
   '  if(q.x<0.002||q.y<0.002||q.x>0.998||q.y>0.998||q.z>0.999) return 2.0; q.z-=0.0006;\n' +
   '  if(uShOn<1.5) return texture(S,q);\n' +
   '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
-  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return 1.0; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0); }\n';
+  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0)*uSunK; }\n';
 function programs() {
   P.vox = VK.compile(gl, VK.VOXEL_VS, voxFS());
   P.deb = VK.compile(gl,
@@ -778,10 +783,10 @@ function programs() {
     'uniform mat4 uVP; out vec3 vN; out vec3 vW; flat out float vC;\n' +
     'vec3 rq(vec4 q, vec3 v){ return v+2.0*cross(q.xyz, cross(q.xyz,v)+q.w*v); }\n' +
     'void main(){ vec3 w=iP.xyz+rq(iQ,aP*iP.w); vW=w; vN=rq(iQ,aN); vC=iC; gl_Position=uVP*vec4(w,1.0); }\n',
-    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; flat in float vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD; out vec4 o;\n' +
+    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; flat in float vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD,uLum; out vec4 o;\n' +
     'void main(){ uint c=uint(vC+0.5); vec3 b=vec3(float((c>>5u)&7u)/7.0,float((c>>2u)&7u)/7.0,float(c&3u)/3.0); vec3 n=normalize(vN);\n' +
     ' vec3 col=b*(mix(uGround,uSky,n.y*0.5+0.5)*0.62+vec3(1.0,0.96,0.88)*max(dot(n,uSun),0.0)*0.78);\n' +
-    ' if(vW.y<seaH(vW.xz)) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
+    ' col*=uLum; if(vW.y<seaH(vW.xz)) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
   P.tri = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec3 aC; uniform mat4 uModel,uVP; out vec3 vN; out vec3 vW; out vec3 vC;\n' +
     'void main(){ vec4 w=uModel*vec4(aP,1.0); vW=w.xyz; vN=mat3(uModel)*aN; vC=aC; gl_Position=uVP*w; }\n',
@@ -812,7 +817,7 @@ function programs() {
   P.water = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; uniform mat4 uVP; uniform vec2 uC;\n' + SEA_GLSL +
     'out vec3 vW; void main(){ vec2 p=uC+aP.xy; float h=seaHs(p,aP.z)*(1.0-smoothstep(900.0,1600.0,length(aP.xy))); vW=vec3(p.x,h,p.y); gl_Position=uVP*vec4(vW,1.0); }\n',
-    '#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uDet,uReflOn,uRefr; uniform vec2 uView; uniform sampler2D uRefl,uScene,uSceneD; out vec4 o;\n' + SEA_GLSL + SHADOW_GLSL +
+    '#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uDet,uReflOn,uRefr,uFoam; uniform vec2 uView; uniform sampler2D uRefl,uScene,uSceneD; out vec4 o;\n' + SEA_GLSL + SHADOW_GLSL +
     // 反射（uReflOn）：RT.R 是鏡像過來的船，照螢幕座標＋法線擾動讀，沒畫到的地方（a ＝ 0）照舊是天空。
     // 折射（uRefr）：0 不透明、1 半透明（底下的照舊混進來）、2 讀 RT.B（畫海之前的場景）：照法線擾動、照水的厚度（兩個深度相減）吸收成海的顏色。
     'float linZ(float d){ float z=d*2.0-1.0; return 5000.0/(5000.5-z*4999.5); }\n' +
@@ -839,7 +844,18 @@ function programs() {
     '   if(zs<zw){ off=vec2(0.0); zs=linZ(textureLod(uSceneD,sc,0.0).r); } float th=max(zs-zw,0.0);\n' +
     '   vec3 under=textureLod(uScene,sc+off,0.0).rgb*vec3(0.55,0.86,0.92); deep=mix(deep,under,exp(-th*0.3)*clamp(1.0-fd/500.0,0.0,1.0)); a=1.0; }\n' +
     ' vec3 c=mix(deep,sky,fr)+vec3(1.0,0.92,0.75)*sp;\n' +
+    // 白沫（天氣：暴風雨）：浪頭（高度在全部振幅的 40% 以上）照一層慢慢飄的雜訊碎成一塊一塊；晴天 uFoam ＝ 0 ⇒ 整段跳過（畫面逐位元組不變）
+    ' if(uFoam>0.0){ float hn=seaH(p)/max(uSeaK*1.14,1e-3); float fm=smoothstep(0.4,0.8,hn)*smoothstep(0.3,0.7,vn(p*0.16+vec2(uSeaT*0.05,0.0)))+0.25*smoothstep(0.6,0.9,vn(p*0.9-vec2(0.0,uSeaT*0.2)))*smoothstep(0.2,0.6,hn);\n' +
+    '   c=mix(c,vec3(0.82,0.86,0.88)*(0.55+0.45*uSunK),clamp(fm,0.0,1.0)*0.8*uFoam*(1.0-smoothstep(200.0,900.0,fd))); }\n' +
     ' c=mix(c,uFog,1.0-exp(-fd*uFogD)); o=vec4(c,a); }\n');
+  // 雨（天氣 × 畫質的「雨」）：整個畫面一層斜的雨絲，三層遠近（越近越粗越快）；欄位照雜湊挑哪幾欄有雨、每欄的相位亂撒。鏡頭轉的時候雨絲跟著水平滑（uYaw）。
+  P.rain = VK.compile(gl, '#version 300 es\nlayout(location=0) in vec2 aP; void main(){ gl_Position=vec4(aP,0.0,1.0); }\n',
+    '#version 300 es\nprecision highp float; uniform float uT,uRain,uYaw; uniform vec2 uView; out vec4 o;\n' +
+    'float h1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +
+    'float lay(vec2 uv,float sc,float sp,float th){ vec2 q=uv*sc; q.x+=q.y*0.16; float col=floor(q.x), h=h1(col+sc*17.0); if(h<th) return 0.0;\n' +
+    '  float y=fract(q.y*0.05+uT*sp*(0.75+0.5*h)+h*7.0); float w=1.0-smoothstep(0.0,0.12,abs(fract(q.x)-0.5)); return w*smoothstep(0.0,0.1,y)*smoothstep(0.4,0.12,y); }\n' +
+    'void main(){ vec2 uv=gl_FragCoord.xy/uView.y; uv.x+=uYaw*0.5; float th=1.0-0.55*uRain;\n' +
+    ' float a=lay(uv,90.0,1.6,th)*0.35+lay(uv,55.0,1.25,th)*0.5+lay(uv,32.0,0.95,th)*0.65; o=vec4(vec3(0.78,0.82,0.86),clamp(a,0.0,1.0)*0.45*uRain); }\n');
   // 只寫深度（陰影圖）：體素照 VoxelKit 的頂點著色器、模型與帆共用一支
   var NOFS = '#version 300 es\nprecision highp float; void main(){}\n';
   P.dvox = VK.compile(gl, VK.VOXEL_VS, NOFS);
@@ -858,12 +874,15 @@ function setCommon(p) {
   if (u.uFog) gl.uniform3fv(u.uFog, HORIZON);
   if (u.uSky) gl.uniform3fv(u.uSky, SKY);
   if (u.uGround) gl.uniform3fv(u.uGround, GROUND);
-  if (u.uFogD) gl.uniform1f(u.uFogD, 0.0016);
+  if (u.uFogD) gl.uniform1f(u.uFogD, WX.fog);                   // 霧（天氣：晴 0.0016、暴風雨 0.0042）
   if (u.uWater) gl.uniform1f(u.uWater, 0.0);
   if (u.uTint) gl.uniform1f(u.uTint, 0.0);
-  if (u.uSeaK) gl.uniform1f(u.uSeaK, SEA_K);                  // 浪（08_sea.js）：大小、時間（模擬時間 ⇒ 暫停時浪也停）
+  if (u.uSeaK) gl.uniform1f(u.uSeaK, SEA_K * WX.sea);                  // 浪（08_sea.js）：大小、時間（模擬時間 ⇒ 暫停時浪也停）
   if (u.uSeaT) gl.uniform1f(u.uSeaT, SIMT);
   if (u.uClip) gl.uniform1f(u.uClip, PASS.clip);
+  if (u.uSunK) gl.uniform1f(u.uSunK, WX.sun);                   // 天氣（08_weather.js）：陽光、水手與碎木的亮度、白沫
+  if (u.uLum) gl.uniform1f(u.uLum, WX.lum);
+  if (u.uFoam) gl.uniform1f(u.uFoam, WX.foam);
   if (u.uShOn) {                                              // 陰影圖綁在第 4、5 號（60_render.js render 開頭綁）
     gl.uniform1f(u.uShOn, PASS.sh ? GFX.shadow : 0); gl.uniform1i(u.uSh0, 4); gl.uniform1i(u.uSh1, 5);
     gl.uniformMatrix4fv(u.uShM0, false, SHM.maps[0].m); gl.uniformMatrix4fv(u.uShM1, false, SHM.maps[1].m);
@@ -905,6 +924,7 @@ function sfx(kind, at, vol) {
   } else if (kind === 'crack') { f.type = 'bandpass'; f.frequency.value = 900 + Math.random() * 900; f.Q.value = 0.8; env(1.4, 0.35); }
   else if (kind === 'splash') { f.type = 'highpass'; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(2500, t + 0.5); env(0.6, 0.8); }
   else if (kind === 'blast') { f.type = 'lowpass'; f.frequency.setValueAtTime(2400, t); f.frequency.exponentialRampToValueAtTime(60, t + 1.8); env(1.6, 2.2); }
+  else if (kind === 'thunder') { f.type = 'lowpass'; f.frequency.setValueAtTime(260, t); f.frequency.exponentialRampToValueAtTime(40, t + 3.2); env(1.5, 3.6); }   // 暴風雨的雷（08_weather.js）
   else if (kind === 'creak') { f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(80, t + 2.5); env(1.2, 2.8); }
 }
 // ── js/03_camera.js ──
@@ -1241,18 +1261,19 @@ function meshesFromCache(rs, M) {
 // ⛔ 只改畫面：這裡的值一個都不能被 step() 讀到（反向對照：同一個種子，低與高跑同樣秒數，戰局讀數逐項相同）。
 //   浪的大小（SEA_K）是物理，在細節設定；這裡的「海面細緻度」只是網格多密、漣漪幾道。
 // 每一項怎麼畫在 60_render.js（管線：陰影圖 → 反射 → 場景 → 折射 → 海 → 粒子 → 縮放貼到畫布）。
-// 網址：?gfx=low|mid|high（縮圖、對拍用），單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa=（數字 ＝ 第幾檔，從 0 起）。
+// 網址：?gfx=low|mid|high（縮圖、對拍用），單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa= ?g_rain=（數字 ＝ 第幾檔，從 0 起）。
 var GFX_ITEMS = [
   { k: 'shadow', name: '陰影', opt: ['關', '低（1024）', '高（2048、柔邊）'] },
   { k: 'refl', name: '海面反射', opt: ['關（只反射天空）', '低（船身，1/4 解析度）', '高（船身＋砲與帆，1/2 解析度）'] },
   { k: 'refr', name: '海水折射', opt: ['關（不透明）', '低（半透明）', '高（折射＋水深）'] },
   { k: 'sea', name: '海面細緻度', opt: ['低', '中', '高'] },
   { k: 'res', name: '解析度', opt: ['50%', '75%', '100%'] },
-  { k: 'aa', name: '反鋸齒', opt: ['關', '開（MSAA 4×）'] }];
+  { k: 'aa', name: '反鋸齒', opt: ['關', '開（MSAA 4×）'] },
+  { k: 'rain', name: '雨', opt: ['關', '低（稀）', '高（密）'] }];   // 只在暴風雨下（08_weather.js）
 var GFX_PRESET = {
-  low: { shadow: 0, refl: 0, refr: 0, sea: 0, res: 1, aa: 0 },
-  mid: { shadow: 1, refl: 1, refr: 1, sea: 1, res: 2, aa: 1 },
-  high: { shadow: 2, refl: 2, refr: 2, sea: 2, res: 2, aa: 1 } };
+  low: { shadow: 0, refl: 0, refr: 0, sea: 0, res: 1, aa: 0, rain: 0 },
+  mid: { shadow: 1, refl: 1, refr: 1, sea: 1, res: 2, aa: 1, rain: 1 },
+  high: { shadow: 2, refl: 2, refr: 2, sea: 2, res: 2, aa: 1, rain: 2 } };
 var GFX_NAME = { low: '低', mid: '中', high: '高', custom: '自訂' }, GFX_DEFAULT = 'mid';
 var GFX = {}, GFX_FPS = false;                     // GFX_FPS：畫面右上角顯示 FPS（畫質設定頁的勾選）
 var GFX_RES = [0.5, 0.75, 1];                      // 解析度：乘在畫布的像素上（畫布 ＝ 螢幕像素，裝置像素比最多 1.5）
@@ -1294,7 +1315,7 @@ function seaH(x, z, t) {
   if (!(SEA_K > 0)) return 0;
   var h = 0;
   for (var i = 0; i < WAVES.length; i++) { var w = WAVES[i]; h += w.a * Math.sin(w.kx * x + w.kz * z - w.w * t + w.ph); }
-  return h * SEA_K;
+  return h * SEA_K * WX.sea;                    // 天氣（08_weather.js）：暴風雨 ×2.5；晴天 ×1（逐位元組不變）
 }
 // 著色器用的同一組浪（常數照 WAVES 生成；uSeaK、uSeaT 在 setCommon 給）。seaH ＝ 高度，seaG ＝ 坡度（∂h/∂x, ∂h/∂z）；
 // seaHs ＝ 照網格間距 s 拿掉太短的浪（⛔ 頂點間距比波長的 1/4 還粗 ⇒ 鋸齒、浪在網格上游動）；
@@ -1336,6 +1357,41 @@ function stepWaves(sh, dt) {
   V.rv += (WV_K.r[0] * (tr - V.r) - WV_K.r[1] * V.rv) * dt; V.r += V.rv * dt;
   sh.wl = hm; sh.bob = V.h - hm; sh.pitchW = V.p; sh.rollW = V.r;
 }
+// ── js/08_weather.js ──
+// ───────────────────────── 天氣（TASK-0523） ─────────────────────────
+// 主選單「天氣」：晴（預設）／暴風雨；網址 ?weather=storm。開戰前選、整場不變。
+// 進戰局的（物理）：浪（seaH 再乘 sea）、風（煙飄的速度與帆上的風再乘 wind）、航速（乘 speed）、操舵（最大轉向率乘 agile）、
+//   開砲的散布（aim：照船搖晃的角速度放大，wxSpread）。
+// 只在畫面的：天色（SKY／HORIZON／GROUND）、霧（fog）、陽光（sun：直射光的強度）、水手與碎木的亮度（lum）、浪頭的白沫（foam）、
+//   雨（rain，大小再看畫質設定的「雨」）、閃電（bolt：照模擬時間的雜湊挑時刻，不抽亂數；打雷的聲音照距離延後）。
+// ⛔ 晴天的每一個係數都是 1（或 0 且有分支擋著）⇒ 跟加天氣之前逐位元組相同：同一個種子的戰局、縮圖都一樣（反向對照）。
+//   新的效果一律寫成「晴天剛好是 1 的乘數」，⛔ 不要另外抽 rnd()（會讓晴天的亂數錯位）。
+var WEATHERS = {
+  clear: { name: '晴', sea: 1, wind: 1, speed: 1, agile: 1, aim: 0, sky: SKY, horizon: HORIZON, ground: GROUND, fog: 0.0016, sun: 1, lum: 1, foam: 0, rain: 0, bolt: 0 },
+  storm: { name: '暴風雨', sea: 2.5, wind: 2.2, speed: 1.15, agile: 0.8, aim: 1,
+    sky: [0.25, 0.28, 0.32], horizon: [0.34, 0.36, 0.38], ground: [0.13, 0.13, 0.12], fog: 0.0042, sun: 0.3, lum: 0.62, foam: 1, rain: 1, bolt: 1 } };
+var WX_ID = WEATHERS[Q.get('weather')] ? Q.get('weather') : 'clear', WX = WEATHERS[WX_ID];
+/** 換天氣：天色跟著換（00_core.js 的 SKY／HORIZON／GROUND；晴天 ＝ 原本那三個陣列本身）。 */
+function setWeather(id) {
+  WX_ID = WEATHERS[id] ? id : 'clear'; WX = WEATHERS[WX_ID];
+  SKY = WX.sky; HORIZON = WX.horizon; GROUND = WX.ground;
+  [].forEach.call(document.querySelectorAll('#wxs button'), function (b) { b.className = b.dataset.w === WX_ID ? 'on' : ''; });
+}
+/** 開砲散布的倍率：晴天 1；暴風雨 ＝ 1.25 ＋ 9 ×（橫搖角速度 ＋ 一半的縱搖角速度，rad/s）—— 船晃得越快，點火那一下差得越多。 */
+function wxSpread(sh) {
+  if (!WX.aim || !sh.wv) return 1;
+  return 1.25 + 9 * (Math.abs(sh.wv.rv) + 0.5 * Math.abs(sh.wv.pv));
+}
+/** 閃電（只在畫面）：每 0.1 秒一格，照模擬時間的雜湊決定那一格有沒有打（平均約 7 秒一次）；回傳最近一道的亮度（0.3 秒內衰減）與它在哪（方位、多遠）。 */
+function wxBolt(t) {
+  if (!WX.bolt) return null;
+  for (var k = 0; k < 4; k++) {
+    var n = Math.floor(t * 10) - k, h = fract(Math.sin(n * 91.7 + 13.1) * 43758.5453);
+    if (h < 0.014) { var age = t - n / 10; return { f: Math.max(0, 1 - age / 0.3) * (0.6 + 0.4 * fract(h * 977)), n: n, az: fract(h * 7919) * 6.2832, d: 600 + 1800 * fract(h * 31337) }; }
+  }
+  return null;
+}
+function fract(x) { return x - Math.floor(x); }
 // ── js/09_phx.js ──
 // ───────────────────────── 物理效果分級（TASK-0526） ─────────────────────────
 // 主選單：全開／高／中／低（PHX_PRESET）；「物理設定…」頁一項一項調，跟四檔都對不上 ⇒ 主選單顯示「自訂」。
@@ -1765,7 +1821,7 @@ function stepPts(dt) {
       i--; continue;
     }
     var o = i * 3, k = 1 - PT.drag[i] * dt;
-    PT.v[o] = PT.v[o] * k + WIND[0] * PT.drag[i] * dt; PT.v[o + 1] = PT.v[o + 1] * k - PT.grav[i] * dt; PT.v[o + 2] = PT.v[o + 2] * k + WIND[2] * PT.drag[i] * dt;
+    PT.v[o] = PT.v[o] * k + WIND[0] * WX.wind * PT.drag[i] * dt; PT.v[o + 1] = PT.v[o + 1] * k - PT.grav[i] * dt; PT.v[o + 2] = PT.v[o + 2] * k + WIND[2] * WX.wind * PT.drag[i] * dt;   // 天氣：暴風雨煙飄得快
     PT.p[o] += PT.v[o] * dt; PT.p[o + 1] += PT.v[o + 1] * dt; PT.p[o + 2] += PT.v[o + 2] * dt;
     if (PT.grav[i] > 0 && PT.p[o + 1] < 0) PT.life[i] = Math.min(PT.life[i], 0.05);
   }
@@ -1845,6 +1901,7 @@ function fireGun(sh, g, target, ammo) {
   var spread = sh.i === PLAYER_I && !AUTOFIRE ? 0.0045 : sh.aiSpread || 0.008;
   if (!sh.crew.some(function (c) { return c.role === ROLE.OFFICER && able(c); })) spread *= 1.7;   // 軍官全倒 ⇒ 沒人指揮，瞄得散
   spread *= [0.7, 0.75, 0.85, 1][sh.sailSet];                       // 帆收得越多，船越穩
+  spread *= wxSpread(sh);                                          // 天氣：暴風雨裡船晃得越快，點火那一下差得越多（晴天 ×1）
   el = clamp(el + gauss() * spread, -0.17, 0.26); az += gauss() * spread;
   var dir = [Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)];
   var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: GS.big, dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）
@@ -2933,7 +2990,7 @@ function ropeStep(sh, o, wl, gv) {
 function underWater(sh, p, i) { var w = M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]); return w[1] < seaH(w[0], w[2], SIMT) - 0.5; }
 /** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
 function physStep(sh) {
-  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2));   // 陣風（不用亂數）
+  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2)) * WX.wind;   // 陣風（不用亂數）；天氣：暴風雨 ×2.2
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
   var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
@@ -3039,7 +3096,7 @@ function sail(sh, dt) {
   sh.pos = pointName(deg);
   var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
   sh.manual = manual;
-  var SPK = sh.cfg.speed * playK('speed');                             // 航速倍率（船隻設定 × 玩法的加成）
+  var SPK = sh.cfg.speed * playK('speed') * WX.speed;                 // 航速倍率（船隻設定 × 玩法的加成 × 天氣：暴風雨風大 ×1.15）
   var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - deg)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
   sh.irons = nogo;
   var target = sh.sunk || stop ? 0 : VMAX * SPK * sh.sailFrac * polar(deg) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
@@ -3048,7 +3105,7 @@ function sail(sh, dt) {
   // 舵
   var foe = SHIPS[1 - sh.i], tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
-  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * sh.cfg.agile * playK('agile');   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
+  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * sh.cfg.agile * playK('agile') * WX.agile;   // 天氣：暴風雨浪大、舵難使 ×0.8。⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
   if (stop) { sh.rudder = 0; rate = 0; }
   else if (manual && !sh.struck && !sh.sunk) {
     var want = (KEYS.l ? 1 : 0) - (KEYS.r ? 1 : 0);                    // 舵角正 ＝ yaw 變大 ＝ 畫面上左轉
@@ -3586,8 +3643,8 @@ function bbSetup() {
     '   w=iP.xyz+sx*q.x+a*q.y+vec3(0.0,iS.w,0.0); }\n' +
     ' else { float c=cos(iS.z), s=sin(iS.z); q=vec2(c*q.x-s*q.y,s*q.x+c*q.y); w=iP.xyz+uRight*q.x+vec3(0.0,q.y+iS.w,0.0); }\n' +
     ' vW=w; vUV=vec2(mix(iU.x,iU.z,aQ.x+0.5),mix(iU.w,iU.y,aQ.y)); vS=iS.y; vF=iA.x; gl_Position=uVP*vec4(w,1.0); }\n',
-    '#version 300 es\nprecision highp float; in vec2 vUV; in vec3 vW; in float vS; in float vF; uniform sampler2D uTex; uniform vec3 uEye,uFog; uniform float uFogD; out vec4 o;\n' +
-    'void main(){ vec4 t=texture(uTex,vUV); if(t.a<0.5) discard; vec3 c=mix(t.rgb*vS,vec3(1.0,0.12,0.08),vF*0.8); if(vW.y<0.0) c=mix(c,vec3(0.04,0.18,0.22),0.6);\n' +
+    '#version 300 es\nprecision highp float; in vec2 vUV; in vec3 vW; in float vS; in float vF; uniform sampler2D uTex; uniform vec3 uEye,uFog; uniform float uFogD,uLum; out vec4 o;\n' +
+    'void main(){ vec4 t=texture(uTex,vUV); if(t.a<0.5) discard; vec3 c=mix(t.rgb*vS*uLum,vec3(1.0,0.12,0.08),vF*0.8); if(vW.y<0.0) c=mix(c,vec3(0.04,0.18,0.22),0.6);\n' +
     ' float fd=length(vW-uEye); o=vec4(mix(c,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
   BBVAO = gl.createVertexArray(); gl.bindVertexArray(BBVAO);
   var q = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, q); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.5, 0, 0.5, 0, 0.5, 1, -0.5, 0, 0.5, 1, -0.5, 1]), gl.STATIC_DRAW);
@@ -3941,7 +3998,7 @@ function resize() {
 //   收的那邊（體素、模型、帆、海）兩張都看、取暗的。陰影關 ⇒ 兩張 1×1 的假圖（取樣器的型別要對，⛔ 沒綁 ⇒ 畫不出來）。
 // 反射：鏡頭對海面（y ＝ 0）鏡像，把船畫進 RT.R（低 1/4、高 1/2 解析度；水面以下丟掉），海照螢幕座標＋法線擾動讀。浪的起伏不進鏡像（擾動蓋過去）。
 // ⛔ 這裡不碰模擬的狀態（反向對照見 07_gfx.js）。帆與繩的緩衝（buildRig／sailBuf）一格只做一次，在所有趟之前（prepRig）。
-var RT = null, SHM = null, DUMMY = null, PASS = { vp: null, eye: null, clip: -1e9, sh: 1 };
+var RT = null, SHM = null, DUMMY = null, PASS = { vp: null, eye: null, clip: -1e9, sh: 1 }, LAST_BOLT = null;
 var MIRROR = new Float32Array([1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]), FAR_M = new Float32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 1]);
 function mkTex(ifmt, fmt, type, w, h, lin, cmp) {
   var t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, ifmt, w, h, 0, fmt, type, null);
@@ -4055,6 +4112,10 @@ function reflPass() {
 }
 function render() {
   resize(); var w = CAM.w, h = CAM.h;
+  // 閃電（天氣，08_weather.js）：那一格的天空與環境光拉亮、0.3 秒內退掉；雷聲照距離延後（340 m/s）。只在畫面，畫完把天色還回去
+  var bolt = wxBolt(SIMT), sky0 = SKY, hor0 = HORIZON;
+  if (bolt && bolt.f > 0) { SKY = lerp3(SKY, [0.82, 0.86, 0.98], bolt.f * 0.7); HORIZON = lerp3(HORIZON, [0.76, 0.79, 0.88], bolt.f * 0.6); }
+  if (bolt && bolt.n !== LAST_BOLT) { LAST_BOLT = bolt.n; if (RUNNING && !STILL) setTimeout(function () { sfx('thunder', null, 1 / (1 + bolt.d / 1500)); }, bolt.d / 340 * 1000); }
   targets(w, h); shadowMaps();
   if (!DUMMY) { DUMMY = mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, false); }
   prepRig();
@@ -4143,6 +4204,15 @@ function render() {
     if (m > mWorld) { gl.disable(gl.DEPTH_TEST); gl.drawArrays(gl.POINTS, mWorld, m - mWorld); gl.enable(gl.DEPTH_TEST); }
     gl.depthMask(true);
   }
+  // 雨（天氣 × 畫質的「雨」）：最上面一層，不做深度測試
+  var rk = WX.rain * [0, 0.55, 1][GFX.rain || 0];
+  if (rk > 0) {
+    gl.enable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.useProgram(P.rain.prog);
+    gl.uniform1f(P.rain.u.uT, SIMT); gl.uniform1f(P.rain.u.uRain, rk); gl.uniform2f(P.rain.u.uView, w, h);
+    gl.uniform1f(P.rain.u.uYaw, Math.atan2(CAM.look[2] - CAM.eye[2], CAM.look[0] - CAM.eye[0]));
+    gl.bindVertexArray(SKYVAO); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.enable(gl.DEPTH_TEST);
+  }
+  SKY = sky0; HORIZON = hor0;
   gl.disable(gl.BLEND); gl.bindVertexArray(null);
   // 收尾：RT.A（MSAA ⇒ 先解析到 RT.B）縮放貼到畫布
   var src = RT.A.fb;
@@ -4348,7 +4418,7 @@ function checkEnd() {
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -4367,7 +4437,7 @@ function prefsSnap() {
   if (Object.keys(cfg).length) o.cfg = cfg;
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
   put('blast', BLAST_K, LIM.blast[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('wind', WIND_K, LIM.wind[2]);
-  put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, 'fun'); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]);
+  put('weather', WX_ID, 'clear'); put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, 'fun'); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]);
   var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
   if (Object.keys(dm).length) o.dmg = dm;
   if (AMMO_K.some(function (r, i) { return r.some(function (v, j) { return v !== AMMO_K0[i][j]; }); })) o.ammoK = AMMO_K.map(function (r) { return r.slice(); });
@@ -4403,6 +4473,7 @@ function prefsApply(p) {
   if (!Q.has('play') && (p.play === 'fun' || p.play === 'real')) PLAY = p.play;
   set('stall', p.stall, LIM.stall, false, function (x) { STALL_K = x; });
   set('sea', p.sea, LIM.sea, false, function (x) { SEA_K = x; });
+  if (!Q.has('weather') && WEATHERS[p.weather]) { WX_ID = p.weather; WX = WEATHERS[WX_ID]; }   // 天色在 71_input.js 開頭 setWeather 套
   set('funspeed', p.funspeed, LIM.funspeed, false, function (x) { FUN.speed = x; });
   set('funagile', p.funagile, LIM.funagile, false, function (x) { FUN.agile = x; });
   set('funstall', p.funstall, LIM.funstall, false, function (x) { FUN.stall = x; });
@@ -4489,6 +4560,7 @@ function start() {
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // 不然空白鍵會再按一次「開戰」
   reset(); RUNNING = true;
   note(SHIPS[PLAYER_I], AUTOFIRE ? '自動開砲中（G 關掉就自己打）' : '點敵艦設瞄準點，空白鍵齊射（G 自動開砲）');
+  if (WX.aim) note(SHIPS[PLAYER_I], '暴風雨：浪大、風強 —— 船晃得越兇砲越散，舵也難使');
 }
 // ── js/71_input.js ──
 // ───────────────────────── 輸入 ─────────────────────────
@@ -4673,7 +4745,7 @@ function sliders() {
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
     $('strikeV').textContent = strikeText();
     var amDef = AMMO_K.every(function (r, i) { return r.every(function (v, j) { return v === AMMO_K0[i][j]; }); });
-    $('detV').textContent = '玩法 ' + (PLAY === 'fun' ? '娛樂（航速 ×' + FUN.speed.toFixed(2) + '、靈活 ×' + FUN.agile.toFixed(2) + '、頂風失速 ' + Math.round(SK * 100) + '%）' : '寫實（頂風失速 ' + Math.round(SK * 100) + '%）') + '・浪 ' + (SEA_K > 0 ? SEA_K.toFixed(2) + '×' : '平靜') + '・' + SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×'; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
+    $('detV').textContent = '玩法 ' + (PLAY === 'fun' ? '娛樂（航速 ×' + FUN.speed.toFixed(2) + '、靈活 ×' + FUN.agile.toFixed(2) + '、頂風失速 ' + Math.round(SK * 100) + '%）' : '寫實（頂風失速 ' + Math.round(SK * 100) + '%）') + '・天氣 ' + WX.name + '・浪 ' + (SEA_K > 0 ? SEA_K.toFixed(2) + '×' : '平靜') + '・' + SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×'; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
       '・傷害 ' + DMG.long + '／' + DMG.long32 + '／' + DMG.carr + '／' + DMG.chase + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N +
       '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
   }
@@ -4779,7 +4851,8 @@ function pickShip(i, id) {
     if (SLIDERS_SHOW) SLIDERS_SHOW();
   }).catch(function (e) { go.textContent = '載不了：' + (e && e.message || e); console.error(e); });
 }
-sliders(); setPlay(PLAY);
+sliders(); setPlay(PLAY); setWeather(WX_ID);
+[].forEach.call(document.querySelectorAll('#wxs button'), function (b) { b.onclick = function () { setWeather(b.dataset.w); if (SLIDERS_SHOW) SLIDERS_SHOW(); }; });   // 主選單：天氣（08_weather.js）
 [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
 [].forEach.call(document.querySelectorAll('#sails button'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
 setSailMode(SAIL); setCamTrack(true); $('physT').classList.toggle('on', PHYS);
@@ -4821,6 +4894,8 @@ if (DEBUG) window.__game = {
   },
   /** 畫質（07_gfx.js）：給 level（low／mid／high）或 { shadow: 2, … } 就換；回傳現在的設定與管線的讀數。 */
   gfx: function (o) { if (typeof o === 'string') gfxSet(o); else if (o) for (var k in o) GFX[k] = o[k]; if (o && typeof gfxShow === 'function' && $('gfxB')) gfxShow(); return { level: gfxLevel(), gfx: JSON.parse(JSON.stringify(GFX)), w: CAM.w, h: CAM.h, msaa: RT ? RT.s : null, shadow: SHM ? SHM.n : null, refl: RT && RT.R ? [RT.R.w, RT.R.h] : null, sea: SEAG ? { lv: SEAG.lv, verts: SEAG.verts, tris: SEAG.n / 3 } : null }; },
+  /** 天氣（08_weather.js）：給 id（clear／storm）就換；回傳現在的天氣。 */
+  weather: function (id) { if (id) setWeather(id); return { id: WX_ID, wx: WX }; },
   /** 浪（08_sea.js）：(x, z) 的水面高度（t 不給 ＝ 現在）；sea() ＝ 浪的設定。 */
   sea: function (x, z, t) { return x === undefined ? { k: SEA_K, waves: WAVES } : seaH(x, z, t === undefined ? SIMT : t); },
   camFollow: function (dt) { camFollow(dt); return CAM.follow; },

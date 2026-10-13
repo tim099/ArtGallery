@@ -58,7 +58,7 @@ function sail(sh, dt) {
   sh.pos = pointName(deg);
   var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
   sh.manual = manual;
-  var SPK = sh.cfg.speed * playK('speed');                             // 航速倍率（船隻設定 × 玩法的加成）
+  var SPK = sh.cfg.speed * playK('speed') * WX.speed;                 // 航速倍率（船隻設定 × 玩法的加成 × 天氣：暴風雨風大 ×1.15）
   var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - deg)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
   sh.irons = nogo;
   var target = sh.sunk || stop ? 0 : VMAX * SPK * sh.sailFrac * polar(deg) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
@@ -67,7 +67,7 @@ function sail(sh, dt) {
   // 舵
   var foe = SHIPS[1 - sh.i], tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
-  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * sh.cfg.agile * playK('agile');   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
+  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * sh.cfg.agile * playK('agile') * WX.agile;   // 天氣：暴風雨浪大、舵難使 ×0.8。⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
   if (stop) { sh.rudder = 0; rate = 0; }
   else if (manual && !sh.struck && !sh.sunk) {
     var want = (KEYS.l ? 1 : 0) - (KEYS.r ? 1 : 0);                    // 舵角正 ＝ yaw 變大 ＝ 畫面上左轉

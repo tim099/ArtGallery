@@ -26,7 +26,7 @@ function seaH(x, z, t) {
   if (!(SEA_K > 0)) return 0;
   var h = 0;
   for (var i = 0; i < WAVES.length; i++) { var w = WAVES[i]; h += w.a * Math.sin(w.kx * x + w.kz * z - w.w * t + w.ph); }
-  return h * SEA_K;
+  return h * SEA_K * WX.sea;                    // 天氣（08_weather.js）：暴風雨 ×2.5；晴天 ×1（逐位元組不變）
 }
 // 著色器用的同一組浪（常數照 WAVES 生成；uSeaK、uSeaT 在 setCommon 給）。seaH ＝ 高度，seaG ＝ 坡度（∂h/∂x, ∂h/∂z）；
 // seaHs ＝ 照網格間距 s 拿掉太短的浪（⛔ 頂點間距比波長的 1/4 還粗 ⇒ 鋸齒、浪在網格上游動）；

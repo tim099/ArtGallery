@@ -8,12 +8,13 @@ var P = {};
 //   uShOn ＝ 0 關、1 低（硬體 2×2）、2 高（再 4 點柔邊）；沿法線推出去 uShOff 公尺再比（⛔ 不推 ⇒ 平面上自己遮自己的條紋）；
 //   陽光越斜推越遠（呼叫端把法線乘 1～3 倍：斜面在陰影圖上一格跨的深度大）。
 // uClip：反射那一趟丟掉水面以下的（平常是 −10⁹）。
-var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0, uShM1; uniform float uShOn, uShPx, uShOff, uClip;\n' +
+// uSunK：直射光的強度（天氣；晴天 1）—— 收陰影的地方都乘 shadowK，順便乘在這裡。
+var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0, uShM1; uniform float uShOn, uShPx, uShOff, uClip, uSunK;\n' +
   'float shOne(highp sampler2DShadow S, mat4 M, vec3 w){ vec4 p=M*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
   '  if(q.x<0.002||q.y<0.002||q.x>0.998||q.y>0.998||q.z>0.999) return 2.0; q.z-=0.0006;\n' +
   '  if(uShOn<1.5) return texture(S,q);\n' +
   '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
-  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return 1.0; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0); }\n';
+  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0)*uSunK; }\n';
 function programs() {
   P.vox = VK.compile(gl, VK.VOXEL_VS, voxFS());
   P.deb = VK.compile(gl,
@@ -21,10 +22,10 @@ function programs() {
     'uniform mat4 uVP; out vec3 vN; out vec3 vW; flat out float vC;\n' +
     'vec3 rq(vec4 q, vec3 v){ return v+2.0*cross(q.xyz, cross(q.xyz,v)+q.w*v); }\n' +
     'void main(){ vec3 w=iP.xyz+rq(iQ,aP*iP.w); vW=w; vN=rq(iQ,aN); vC=iC; gl_Position=uVP*vec4(w,1.0); }\n',
-    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; flat in float vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD; out vec4 o;\n' +
+    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; flat in float vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD,uLum; out vec4 o;\n' +
     'void main(){ uint c=uint(vC+0.5); vec3 b=vec3(float((c>>5u)&7u)/7.0,float((c>>2u)&7u)/7.0,float(c&3u)/3.0); vec3 n=normalize(vN);\n' +
     ' vec3 col=b*(mix(uGround,uSky,n.y*0.5+0.5)*0.62+vec3(1.0,0.96,0.88)*max(dot(n,uSun),0.0)*0.78);\n' +
-    ' if(vW.y<seaH(vW.xz)) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
+    ' col*=uLum; if(vW.y<seaH(vW.xz)) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
   P.tri = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec3 aC; uniform mat4 uModel,uVP; out vec3 vN; out vec3 vW; out vec3 vC;\n' +
     'void main(){ vec4 w=uModel*vec4(aP,1.0); vW=w.xyz; vN=mat3(uModel)*aN; vC=aC; gl_Position=uVP*w; }\n',
@@ -55,7 +56,7 @@ function programs() {
   P.water = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; uniform mat4 uVP; uniform vec2 uC;\n' + SEA_GLSL +
     'out vec3 vW; void main(){ vec2 p=uC+aP.xy; float h=seaHs(p,aP.z)*(1.0-smoothstep(900.0,1600.0,length(aP.xy))); vW=vec3(p.x,h,p.y); gl_Position=uVP*vec4(vW,1.0); }\n',
-    '#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uDet,uReflOn,uRefr; uniform vec2 uView; uniform sampler2D uRefl,uScene,uSceneD; out vec4 o;\n' + SEA_GLSL + SHADOW_GLSL +
+    '#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uDet,uReflOn,uRefr,uFoam; uniform vec2 uView; uniform sampler2D uRefl,uScene,uSceneD; out vec4 o;\n' + SEA_GLSL + SHADOW_GLSL +
     // 反射（uReflOn）：RT.R 是鏡像過來的船，照螢幕座標＋法線擾動讀，沒畫到的地方（a ＝ 0）照舊是天空。
     // 折射（uRefr）：0 不透明、1 半透明（底下的照舊混進來）、2 讀 RT.B（畫海之前的場景）：照法線擾動、照水的厚度（兩個深度相減）吸收成海的顏色。
     'float linZ(float d){ float z=d*2.0-1.0; return 5000.0/(5000.5-z*4999.5); }\n' +
@@ -82,7 +83,18 @@ function programs() {
     '   if(zs<zw){ off=vec2(0.0); zs=linZ(textureLod(uSceneD,sc,0.0).r); } float th=max(zs-zw,0.0);\n' +
     '   vec3 under=textureLod(uScene,sc+off,0.0).rgb*vec3(0.55,0.86,0.92); deep=mix(deep,under,exp(-th*0.3)*clamp(1.0-fd/500.0,0.0,1.0)); a=1.0; }\n' +
     ' vec3 c=mix(deep,sky,fr)+vec3(1.0,0.92,0.75)*sp;\n' +
+    // 白沫（天氣：暴風雨）：浪頭（高度在全部振幅的 40% 以上）照一層慢慢飄的雜訊碎成一塊一塊；晴天 uFoam ＝ 0 ⇒ 整段跳過（畫面逐位元組不變）
+    ' if(uFoam>0.0){ float hn=seaH(p)/max(uSeaK*1.14,1e-3); float fm=smoothstep(0.4,0.8,hn)*smoothstep(0.3,0.7,vn(p*0.16+vec2(uSeaT*0.05,0.0)))+0.25*smoothstep(0.6,0.9,vn(p*0.9-vec2(0.0,uSeaT*0.2)))*smoothstep(0.2,0.6,hn);\n' +
+    '   c=mix(c,vec3(0.82,0.86,0.88)*(0.55+0.45*uSunK),clamp(fm,0.0,1.0)*0.8*uFoam*(1.0-smoothstep(200.0,900.0,fd))); }\n' +
     ' c=mix(c,uFog,1.0-exp(-fd*uFogD)); o=vec4(c,a); }\n');
+  // 雨（天氣 × 畫質的「雨」）：整個畫面一層斜的雨絲，三層遠近（越近越粗越快）；欄位照雜湊挑哪幾欄有雨、每欄的相位亂撒。鏡頭轉的時候雨絲跟著水平滑（uYaw）。
+  P.rain = VK.compile(gl, '#version 300 es\nlayout(location=0) in vec2 aP; void main(){ gl_Position=vec4(aP,0.0,1.0); }\n',
+    '#version 300 es\nprecision highp float; uniform float uT,uRain,uYaw; uniform vec2 uView; out vec4 o;\n' +
+    'float h1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +
+    'float lay(vec2 uv,float sc,float sp,float th){ vec2 q=uv*sc; q.x+=q.y*0.16; float col=floor(q.x), h=h1(col+sc*17.0); if(h<th) return 0.0;\n' +
+    '  float y=fract(q.y*0.05+uT*sp*(0.75+0.5*h)+h*7.0); float w=1.0-smoothstep(0.0,0.12,abs(fract(q.x)-0.5)); return w*smoothstep(0.0,0.1,y)*smoothstep(0.4,0.12,y); }\n' +
+    'void main(){ vec2 uv=gl_FragCoord.xy/uView.y; uv.x+=uYaw*0.5; float th=1.0-0.55*uRain;\n' +
+    ' float a=lay(uv,90.0,1.6,th)*0.35+lay(uv,55.0,1.25,th)*0.5+lay(uv,32.0,0.95,th)*0.65; o=vec4(vec3(0.78,0.82,0.86),clamp(a,0.0,1.0)*0.45*uRain); }\n');
   // 只寫深度（陰影圖）：體素照 VoxelKit 的頂點著色器、模型與帆共用一支
   var NOFS = '#version 300 es\nprecision highp float; void main(){}\n';
   P.dvox = VK.compile(gl, VK.VOXEL_VS, NOFS);
@@ -101,12 +113,15 @@ function setCommon(p) {
   if (u.uFog) gl.uniform3fv(u.uFog, HORIZON);
   if (u.uSky) gl.uniform3fv(u.uSky, SKY);
   if (u.uGround) gl.uniform3fv(u.uGround, GROUND);
-  if (u.uFogD) gl.uniform1f(u.uFogD, 0.0016);
+  if (u.uFogD) gl.uniform1f(u.uFogD, WX.fog);                   // 霧（天氣：晴 0.0016、暴風雨 0.0042）
   if (u.uWater) gl.uniform1f(u.uWater, 0.0);
   if (u.uTint) gl.uniform1f(u.uTint, 0.0);
-  if (u.uSeaK) gl.uniform1f(u.uSeaK, SEA_K);                  // 浪（08_sea.js）：大小、時間（模擬時間 ⇒ 暫停時浪也停）
+  if (u.uSeaK) gl.uniform1f(u.uSeaK, SEA_K * WX.sea);                  // 浪（08_sea.js）：大小、時間（模擬時間 ⇒ 暫停時浪也停）
   if (u.uSeaT) gl.uniform1f(u.uSeaT, SIMT);
   if (u.uClip) gl.uniform1f(u.uClip, PASS.clip);
+  if (u.uSunK) gl.uniform1f(u.uSunK, WX.sun);                   // 天氣（08_weather.js）：陽光、水手與碎木的亮度、白沫
+  if (u.uLum) gl.uniform1f(u.uLum, WX.lum);
+  if (u.uFoam) gl.uniform1f(u.uFoam, WX.foam);
   if (u.uShOn) {                                              // 陰影圖綁在第 4、5 號（60_render.js render 開頭綁）
     gl.uniform1f(u.uShOn, PASS.sh ? GFX.shadow : 0); gl.uniform1i(u.uSh0, 4); gl.uniform1i(u.uSh1, 5);
     gl.uniformMatrix4fv(u.uShM0, false, SHM.maps[0].m); gl.uniformMatrix4fv(u.uShM1, false, SHM.maps[1].m);
