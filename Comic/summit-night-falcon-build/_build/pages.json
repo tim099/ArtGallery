@@ -738,6 +738,54 @@
           }
         ]
       ]
+    },
+    "013_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage11_sails_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage11_sails_yaw-30.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "013_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage11_sails_yaw90.png",
+            "fit": "cover",
+            "aspect": 1.09
+          },
+          {
+            "src": "O/stage11_sails_yaw160.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "013_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage11_sails_yaw45.png",
+            "fit": "cover",
+            "aspect": 0.9
+          },
+          {
+            "src": "O/stage11_sails_wind2.4_yaw45.png",
+            "fit": "cover",
+            "aspect": 0.9
+          }
+        ]
+      ]
     }
   }
 }
