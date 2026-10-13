@@ -40,16 +40,29 @@ function sideName(side) { return side === 'S' ? '右舷' : '左舷'; }        //
 var SAILSETS = ['全收', '收帆', '戰鬥帆', '滿帆'];
 /** 帆裝 k 張不張這面帆：0 全收（一面都不張）／1 收帆（三面上桅帆＋jib）／2 戰鬥帆（再加上桅頂帆、後桅縱帆、前支索帆）／3 滿帆。
  *  收起來的帆不畫、不算航速、鏈彈打不到、依靠的格或繩斷了也不掉 —— 只有桅斷了（依靠跟著斷開的那一團走）才跟著走。 */
-function setHas(name, k) {
+/** 帆裝（W／S）：這面帆最少在哪一段打開（1 收帆、2 戰鬥帆、3 滿帆）。
+ *  照 meta（TASK-0539，造船規格 §9.1）：有 `set` ⇒ 照它；否則照種類 `sail` 的預設（topsail、jib 1；topgallant、gaff 2；其他 3）。
+ *  沒有 meta 的舊匯出照名字（以前的規則，一一對應：結尾 topsail、jib ⇒ 1；結尾 topgallant、spanker、fore-topmast-staysail ⇒ 2；其他 3）。 */
+var SAIL_SET0 = { topsail: 1, jib: 1, topgallant: 2, gaff: 2 };
+function sailSetLevel(s) {
+  var m = s.meta;
+  if (m && m.kind === 'sail' && m.sail) return +m.set || SAIL_SET0[m.sail] || 3;
+  var name = s.name;
+  if (/topsail$/.test(name) || name === 'jib') return 1;
+  if (/topgallant$/.test(name) || name === 'spanker' || name === 'fore-topmast-staysail') return 2;
+  return 3;
+}
+function setHas(s, k) {
   if (k >= 3) return true;
   if (k <= 0) return false;
-  if (/topsail$/.test(name) || name === 'jib') return true;
-  return k >= 2 && (/topgallant$/.test(name) || name === 'spanker' || name === 'fore-topmast-staysail');
+  return sailSetLevel(s) <= k;
 }
 /** 旗（餘燼號階段十九：船尾旗 ensign、主桅長旗 pennant；繩帆格式裡也是「帆」，沒有 meta ⇒ 照名字）：不收、不算推力；降旗時船尾旗降下來（strikeColors）。 */
-function isFlag(name) { return /^(ensign|pennant|flag)/.test(name); }
-function strikeColors(sh) { sh.sails.forEach(function (s) { if (s.name === 'ensign') { s.furled = true; s.struck = true; } }); sh.rigDirty = true; }
-function applySailSet(sh) { sh.sails.forEach(function (s) { s.furled = s.flag ? !!s.struck : !setHas(s.name, sh.sailSet); }); sh.rigDirty = true; }
+/** 旗：照 meta `kind=flag`（TASK-0539）；有 meta 但不是 flag ⇒ 不是；沒有 meta 的舊匯出照名字（ensign／pennant／flag 開頭）。 */
+function isFlag(s) { var m = s.meta; if (m && m.kind) return m.kind === 'flag'; return /^(ensign|pennant|flag)/.test(s.name); }
+/** 降旗：降船尾旗（meta `flag=ensign`；沒有 meta ⇒ 名字叫 ensign 的那面）。 */
+function strikeColors(sh) { sh.sails.forEach(function (s) { if (s.flag && (s.meta && s.meta.kind ? s.meta.flag === 'ensign' : s.name === 'ensign')) { s.furled = true; s.struck = true; } }); sh.rigDirty = true; }
+function applySailSet(sh) { sh.sails.forEach(function (s) { s.furled = s.flag ? !!s.struck : !setHas(s, sh.sailSet); }); sh.rigDirty = true; }
 function setSails(sh, k) {
   k = clamp(k, 0, SAILSETS.length - 1); if (k === sh.sailSet) return;
   sh.sailSet = k; applySailSet(sh); note(sh, '帆裝：' + SAILSETS[k]);

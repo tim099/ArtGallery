@@ -115,7 +115,7 @@ function clothTemplate(H, s) {                         // H：船型（帆的布
     var w = P(i), an = anchorNear(H, w[0], w[1], w[2], 6);
     if (an >= 0) { hk[i] = 1; hv[i] = an; } else { var rp = ropeNear(w, 16); if (rp >= 0) { hk[i] = 2; hv[i] = rp; } }
   }
-  var own = []; H.rig.ropes.forEach(function (r, j2) { if (sailRope(r.name, s.name)) own.push(j2); });   // 帆自己的 sheet、tack（10_ship.js sailRope：兩種命名）
+  var own = []; H.rig.ropes.forEach(function (r, j2) { if (sailRope(r, s.name)) own.push(j2); });   // 帆自己的 sheet、tack（10_ship.js sailRope：照 meta，沒有才照名字）
   var clews = 0, clewYard = {};                          // 帆腳 → 跟哪根帆桁轉（-1 ＝ 不轉）
   corner.forEach(function (kc) {
     var q = loop[kc]; if (hk[q]) return;

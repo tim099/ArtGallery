@@ -136,6 +136,14 @@ python -I ../../../VoxelKit/vxk_inline.py template.html ../../ame_constitution_b
       夜隼號：上桅帆跟 course 帆桁、上上桅帆跟上桅帆桁、main-topsail 跟主桅那根空的 course 帆桁（沒掛帆，照樣追風）；夜隼號的縮圖 bd1b9747 → 3f40d976。
     - 縮圖（`?demo=75&still=1&cam=deck`）a7cfa14f → 7c5bc046：後桅 x 195 → 198 ⇒ 砲長瞄桅的點跟著動、第 75 秒的戰況不同；旗也照貼圖上色了。
 
+- **照 meta 判斷帆、繩、旗、帆裝、彈藥庫**（TASK-0539；Tim 2026-10-13「之後依 meta 判斷吧，然後需要定義好 meta」；定義在 Senate 造船規格 §9.1）：
+  - 帆自己的繩（`sailRope`）：繩 meta 的 `sail` ＝ 帆名；旗（`isFlag`）：帆 meta `kind=flag`；降旗：`flag=ensign`；帆裝（`sailSetLevel`）：`set` ＞ 種類 `sail` 的預設（topsail、jib 1；topgallant、gaff 2；其他 3）；
+    彈藥庫的前／中／後（`magTag`）：關聯 meta `pos`。⚠ 沒有 meta 的舊匯出照舊照名字（每一條規則一一對應）。
+  - 三艘的 meta 由 ame 標在作品上（Sculpture e80831c，`work sub=meta`、不限作者、記 meta_log.jsonl）。這一筆**只重匯夜隼號**（格子、繩、帆、模型逐欄跟上一版相同，只多 meta）；
+    憲法號、餘燼號的作品之後有改過船體（等 Tim 說接才重匯）⇒ 遊戲裡那兩艘照舊是沒有 meta 的 .vxk、走名字的退路。
+  - 對拍：把同一份 meta 補進憲法號、餘燼號現在那份 .vxk 的 header（格子不動）建一份測試頁 ⇒ 縮圖憲法號 7c5bc046、夜隼號對憲法號 3f40d976、餘燼號對打 6fb88816，
+    照名字與照 meta 逐位元組相同；75 秒 dump 三組（憲法號對打、夜隼號對憲法號、餘燼號對打）全同。
+  - 反向對照（meta 真的有在讀）：夜隼號的 mainsail 標 `sail=gaff` ⇒ 戰鬥帆時打開（照名字的時候因為不叫 spanker 被收起來）；flying-jib `set=3` ⇒ 收起來。
 - **多船的架構**（TASK-0537，`52_fleet.js`；Tim 2026-10-13：「先嘗試把寫死的部分拆成支援多船，目前仍然只用兩船，但架構上調整為支援多船」）：
   主選單、網址、存檔照舊只開兩艘；底下改成 N 艘都跑得動。**一對一跟改之前逐位元組相同**（縮圖 `?demo=75&still=1&cam=deck` 7c5bc046、夜隼號對憲法號 bd1b9747；
   電腦對電腦 75 秒的 dump：憲法號對打、夜隼號對憲法號、餘燼號對憲法號、夜隼號對打四組全同）。
