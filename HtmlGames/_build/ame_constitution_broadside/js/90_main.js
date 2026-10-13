@@ -1,5 +1,5 @@
 // ───────────────────────── 主迴圈 ─────────────────────────
-var last = 0, acc = 0, FPS = 60;
+var last = 0, acc = 0, FPS = 60, fpsT = 0;
 function frame(ts) {
   var dt = last ? Math.min(0.1, (ts - last) / 1000) : DT; last = ts;
   FPS = FPS * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
@@ -11,6 +11,7 @@ function frame(ts) {
   camFollow(dt);                                                      // 追砲彈（03_camera.js）
   SHIPS.forEach(function (sh) { sh.rs.flush(); });
   camUpdate(dt); render(); hud(dt);
+  if (GFX_FPS && (fpsT -= dt) <= 0) { fpsT = 0.5; $('fps').textContent = 'FPS ' + Math.round(FPS) + '　畫質 ' + GFX_NAME[gfxLevel()] + '　' + CAM.w + '×' + CAM.h + (RT && RT.s ? '　MSAA ' + RT.s + '×' : ''); }   // 畫質設定頁的「顯示 FPS」
   requestAnimationFrame(frame);
 }
 
@@ -29,6 +30,8 @@ if (DEBUG) window.__game = {
     sh.crew.forEach(function (c) { if (need > 0 && able(c) && (role === undefined || c.role === role)) { killCrew(sh, c, '量測'); need--; } });
     return sh.crew.filter(able).length;
   },
+  /** 畫質（07_gfx.js）：給 level（low／mid／high）或 { shadow: 2, … } 就換；回傳現在的設定與管線的讀數。 */
+  gfx: function (o) { if (typeof o === 'string') gfxSet(o); else if (o) for (var k in o) GFX[k] = o[k]; if (o && typeof gfxShow === 'function' && $('gfxB')) gfxShow(); return { level: gfxLevel(), gfx: JSON.parse(JSON.stringify(GFX)), w: CAM.w, h: CAM.h, msaa: RT ? RT.s : null, shadow: SHM ? SHM.n : null, refl: RT && RT.R ? [RT.R.w, RT.R.h] : null, sea: SEAG ? { lv: SEAG.lv, verts: SEAG.verts, tris: SEAG.n / 3 } : null }; },
   /** 浪（08_sea.js）：(x, z) 的水面高度（t 不給 ＝ 現在）；sea() ＝ 浪的設定。 */
   sea: function (x, z, t) { return x === undefined ? { k: SEA_K, waves: WAVES } : seaH(x, z, t === undefined ? SIMT : t); },
   camFollow: function (dt) { camFollow(dt); return CAM.follow; },

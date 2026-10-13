@@ -215,10 +215,13 @@ function sliders() {
   cs.onchange = function () { CFG_ID = cs.value; loadHull(CFG_ID).then(function () { put(); show(); }); put(); show(); };
   [0, 1].forEach(function (i) { var s = $('ship' + i); hullOptions(s, SHIP_SET[i]); s.onchange = function () { pickShip(i, s.value); }; });   // 主選單選船
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
-  function page(det) { $('detail').style.display = det ? '' : 'none'; document.querySelector('#cover .card:not(#detail)').style.display = det ? 'none' : ''; $('cover').scrollTop = 0; }
+  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定
   [].forEach.call(document.querySelectorAll('#plays button'), function (b) { b.onclick = function () { setPlay(b.dataset.p); show(); }; });   // 主選單：玩法
-  $('detB').onclick = function () { page(true); };
-  $('detX').onclick = function () { page(false); };
+  $('detB').onclick = function () { page('det'); };
+  $('detX').onclick = function () { page(''); };
+  $('gfxB').onclick = function () { page('gfx'); };
+  $('gfxX').onclick = function () { page(''); };
+  gfxUI();
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
     SHIP_CFG = {}; Object.keys(HULLT).forEach(function (id) { var c = shipCfg(id); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? HULLT[id].ballast0 : LIM[k][2]; }); });   // 每一型回到它的預設（壓艙物 ＝ 剛好在設計水線）
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
@@ -228,8 +231,26 @@ function sliders() {
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
     put(); show(); prefsReset();                         // 存檔跟著清（69_prefs.js：只剩主選單的選擇）
   };
-  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
+  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && ($('detail').style.display !== 'none' || $('gfxp').style.display !== 'none')) page(''); });
   put(); show(); SLIDERS_SHOW = function () { put(); show(); };
+}
+/** 畫質（07_gfx.js）：主選單的低／中／高、畫質設定頁每一項的按鈕、顯示 FPS。改了立刻生效（render 每一格讀 GFX）。 */
+function gfxUI() {
+  var box = $('gfxItems');
+  box.innerHTML = GFX_ITEMS.map(function (it) {
+    return '<div class="row"><label>' + it.name + '</label>' + it.opt.map(function (o, v) { return '<button data-k="' + it.k + '" data-v="' + v + '">' + o + '</button>'; }).join('') + '</div>';
+  }).join('');
+  [].forEach.call(box.querySelectorAll('button'), function (b) { b.onclick = function () { GFX[b.dataset.k] = +b.dataset.v; gfxShow(); }; });
+  [].forEach.call(document.querySelectorAll('#gfxs button[data-g], #gfxPre button'), function (b) { b.onclick = function () { gfxSet(b.dataset.g); gfxShow(); }; });
+  var f = $('gfxFps'); f.checked = GFX_FPS; f.onchange = function () { GFX_FPS = f.checked; gfxShow(); };
+  gfxShow();
+}
+function gfxShow() {
+  var lv = gfxLevel();
+  [].forEach.call(document.querySelectorAll('#gfxs button[data-g], #gfxPre button'), function (b) { b.className = b.dataset.g === lv ? 'on' : ''; });
+  var gb = $('gfxB'); gb.textContent = lv === 'custom' ? '自訂（畫質設定…）' : '畫質設定…'; gb.className = lv === 'custom' ? 'on' : '';
+  [].forEach.call(document.querySelectorAll('#gfxItems button'), function (b) { b.className = GFX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
+  $('gfxLv').textContent = '現在：' + GFX_NAME[lv]; $('gfxFps').checked = GFX_FPS; $('fps').className = GFX_FPS ? 'hud on' : 'hud';
 }
 /** 玩法：娛樂／寫實（04_state.js 的 PLAY）＋主選單按鈕的亮燈。航行每一步都讀（playK）；按鈕在主選單，沒開戰時才按得到。 */
 function setPlay(p) { PLAY = p === 'real' ? 'real' : 'fun'; [].forEach.call(document.querySelectorAll('#plays button'), function (x) { x.className = x.dataset.p === PLAY ? 'on' : ''; }); }

@@ -1,9 +1,19 @@
 // ───────────────────────── WebGL ─────────────────────────
-var cv = $('cv'), gl = cv.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true });
+var cv = $('cv'), gl = cv.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });   // 反鋸齒自己做（MSAA framebuffer，畫質設定；60_render.js targets）
 function fail(msg) { var e = $('err'); e.style.display = 'block'; e.textContent = msg; $('load').textContent = msg; }
 if (!gl) { fail('這個瀏覽器沒有 WebGL2，畫不出來。'); throw new Error('no WebGL2'); }   // 拆檔後這裡是閉包的頂層：throw ＝ 原本的 return（停下來）
 
 var P = {};
+// 陰影（畫質；60_render.js shadowPass）：每艘船一張陰影圖（uSh0／1，太陽方向的正交投影，uShM0／1），收的那一點落在哪張就用哪張（都在 ⇒ 取暗的）；
+//   uShOn ＝ 0 關、1 低（硬體 2×2）、2 高（再 4 點柔邊）；沿法線推出去 uShOff 公尺再比（⛔ 不推 ⇒ 平面上自己遮自己的條紋）；
+//   陽光越斜推越遠（呼叫端把法線乘 1～3 倍：斜面在陰影圖上一格跨的深度大）。
+// uClip：反射那一趟丟掉水面以下的（平常是 −10⁹）。
+var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0, uShM1; uniform float uShOn, uShPx, uShOff, uClip;\n' +
+  'float shOne(highp sampler2DShadow S, mat4 M, vec3 w){ vec4 p=M*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
+  '  if(q.x<0.002||q.y<0.002||q.x>0.998||q.y>0.998||q.z>0.999) return 2.0; q.z-=0.0006;\n' +
+  '  if(uShOn<1.5) return texture(S,q);\n' +
+  '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
+  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return 1.0; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0); }\n';
 function programs() {
   P.vox = VK.compile(gl, VK.VOXEL_VS, voxFS());
   P.deb = VK.compile(gl,
@@ -18,16 +28,17 @@ function programs() {
   P.tri = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec3 aC; uniform mat4 uModel,uVP; out vec3 vN; out vec3 vW; out vec3 vC;\n' +
     'void main(){ vec4 w=uModel*vec4(aP,1.0); vW=w.xyz; vN=mat3(uModel)*aN; vC=aC; gl_Position=uVP*w; }\n',
-    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; in vec3 vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD,uLit; out vec4 o;\n' +
-    'void main(){ vec3 n=normalize(vN); float d=abs(dot(n,uSun)); vec3 col=uLit>0.5 ? vC*(mix(uGround,uSky,0.6)*0.65+vec3(1.0,0.96,0.88)*d*0.7) : vC;\n' +
+    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + SHADOW_GLSL + 'in vec3 vN; in vec3 vW; in vec3 vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD,uLit; out vec4 o;\n' +
+    'void main(){ if(vW.y<uClip) discard; vec3 n=normalize(vN); float sd=dot(n,uSun), d=abs(sd); vec3 col=vC;\n' +
+    ' if(uLit>0.5){ d*=shadowK(vW,(sd<0.0?-n:n)*(3.0-2.0*d)); col=vC*(mix(uGround,uSky,0.6)*0.65+vec3(1.0,0.96,0.88)*d*0.7); }\n' +
     ' if(vW.y<seaH(vW.xz)) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
   // 帆：頂點法線（平滑，不是一個三角形一個平面）；法線翻向看的那一面；包覆光（背光面不死黑、明暗過渡慢）＋太陽在帆後面時布透出暖光
   P.sail = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec3 aC; uniform mat4 uModel,uVP; out vec3 vN; out vec3 vW; out vec3 vC;\n' +
     'void main(){ vec4 w=uModel*vec4(aP,1.0); vW=w.xyz; vN=mat3(uModel)*aN; vC=aC; gl_Position=uVP*w; }\n',
-    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; in vec3 vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD; out vec4 o;\n' +
-    'void main(){ vec3 n=normalize(vN); if(!gl_FrontFacing) n=-n; float s=dot(n,uSun);\n' +
-    ' float lit=max(s,0.0)*0.45+(s*0.5+0.5)*0.32; float thru=max(-s,0.0)*0.30;\n' +
+    '#version 300 es\nprecision highp float;\n' + SEA_GLSL + SHADOW_GLSL + 'in vec3 vN; in vec3 vW; in vec3 vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD; out vec4 o;\n' +
+    'void main(){ if(vW.y<uClip) discard; vec3 n=normalize(vN); if(!gl_FrontFacing) n=-n; float s=dot(n,uSun), sk=shadowK(vW,(s<0.0?-n:n)*(3.0-2.0*abs(s)));\n' +
+    ' float lit=max(s,0.0)*0.45*sk+(s*0.5+0.5)*0.32*(0.55+0.45*sk); float thru=max(-s,0.0)*0.30*sk;\n' +
     ' vec3 col=vC*(mix(uGround,uSky,n.y*0.5+0.5)*0.62+vec3(1.0,0.96,0.88)*lit)+vC*vec3(1.0,0.88,0.66)*thru;\n' +
     ' if(vW.y<seaH(vW.xz)) col=mix(col,vec3(0.04,0.18,0.22),0.6); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),1.0); }\n');
   P.pt = VK.compile(gl,
@@ -44,19 +55,38 @@ function programs() {
   P.water = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec3 aP; uniform mat4 uVP; uniform vec2 uC;\n' + SEA_GLSL +
     'out vec3 vW; void main(){ vec2 p=uC+aP.xy; float h=seaHs(p,aP.z)*(1.0-smoothstep(900.0,1600.0,length(aP.xy))); vW=vec3(p.x,h,p.y); gl_Position=uVP*vec4(vW,1.0); }\n',
-    '#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uDet; out vec4 o;\n' + SEA_GLSL +
+    '#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uDet,uReflOn,uRefr; uniform vec2 uView; uniform sampler2D uRefl,uScene,uSceneD; out vec4 o;\n' + SEA_GLSL + SHADOW_GLSL +
+    // 反射（uReflOn）：RT.R 是鏡像過來的船，照螢幕座標＋法線擾動讀，沒畫到的地方（a ＝ 0）照舊是天空。
+    // 折射（uRefr）：0 不透明、1 半透明（底下的照舊混進來）、2 讀 RT.B（畫海之前的場景）：照法線擾動、照水的厚度（兩個深度相減）吸收成海的顏色。
+    'float linZ(float d){ float z=d*2.0-1.0; return 5000.0/(5000.5-z*4999.5); }\n' +
     // 船艙裡不畫海：海面那一點換到船的格座標，落在原本船殼的外形裡（uHull0／1：那艘船型每個 (x, z) 船殼的半寬）⇒ 丟掉。uHide ＝ 那艘還沒開始沉（見 render）
     'uniform mat4 uInv0,uInv1; uniform vec2 uHide; uniform sampler2D uHull0,uHull1; uniform vec3 uHullK0,uHullK1;\n' +
     'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n' +
-    'vec2 wv(vec2 p,vec2 d,float f,float s){ float k=dot(p,d)*f+uSeaT*s; return d*cos(k)*f; }\n' +
+    // 細浪（只在畫面）：uDet 道，波長從 7 m 往下每道 ×0.8 再亂一點、方向在風向 ±70° 亂撒、相位亂撒（雜湊，不抽亂數）⇒ 不成整數比、不會一格一格重複；
+    // 每道照像素寬 fp 淡掉（遠處自動變平滑，不疊紋）；再乘一層慢慢飄的雜訊 ⇒ 海面一塊皺、一塊平（陣風吹過的樣子）。
+    'float hs1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +
+    'float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); float a=hs1(dot(i,vec2(1.0,57.0))), b=hs1(dot(i+vec2(1.0,0.0),vec2(1.0,57.0))), c=hs1(dot(i+vec2(0.0,1.0),vec2(1.0,57.0))), d=hs1(dot(i+vec2(1.0,1.0),vec2(1.0,57.0))); return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }\n' +
+    'vec2 detail(vec2 p,float fp){ vec2 g=vec2(0.0); float L=7.0, st=0.07;\n' +
+    '  for(int i=0;i<16;i++){ if(float(i)>=uDet) break; float fi=float(i)+1.0; float l=L*(0.85+0.3*hs1(fi*3.1)); float k=6.2832/l, a=SEA_WA+(hs1(fi*7.7)-0.5)*2.4; vec2 d=vec2(cos(a),sin(a));\n' +
+    '    g+=d*st*(1.0-smoothstep(0.25*l,0.6*l,fp))*cos(dot(p,d)*k-sqrt(9.81*k)*uSeaT+hs1(fi*5.3)*6.2832); L*=0.8; st*=0.88; }\n' +
+    '  return g*(0.45+1.1*vn(p*0.025+vec2(uSeaT*0.013,uSeaT*0.007))); }\n' +
     'void main(){ if((uHide.x>0.5&&inHull(uInv0,uHull0,uHullK0))||(uHide.y>0.5&&inHull(uInv1,uHull1,uHullK1))) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
-    ' vec2 g=k0*seaG(p);\n' +
-    ' if(uDet>0.5) g+=0.07*k1*wv(p,normalize(vec2(-0.4,1.0)),0.6,1.9); if(uDet>1.5) g+=0.04*k2*wv(p,normalize(vec2(0.7,-0.7)),1.3,2.7);\n' +
-    ' if(uDet>2.5) g+=0.02*k2*wv(p,normalize(vec2(0.2,0.9)),2.9,3.9); if(uDet>3.5) g+=0.012*k2*wv(p,normalize(vec2(-0.8,-0.3)),6.1,5.3);\n' +
+    ' vec2 dd=fwidth(vW.xz); float fp=max(dd.x,dd.y);\n' +
+    ' vec2 g=seaGf(p,fp)+detail(p,fp);\n' +
     ' vec3 n=normalize(vec3(-g.x,1.0,-g.y)); vec3 v=normalize(uEye-vW); float fr=0.04+0.96*pow(1.0-max(dot(n,v),0.0),5.0);\n' +
-    ' vec3 r=reflect(-v,n); vec3 sky=mix(uFog,uSky,clamp(r.y*1.6,0.0,1.0)); float sp=pow(max(dot(r,uSun),0.0),180.0)*1.6;\n' +
-    ' vec3 deep=vec3(0.03,0.16,0.21); vec3 c=mix(deep,sky,fr)+vec3(1.0,0.92,0.75)*sp; float fd=length(vW-uEye);\n' +
-    ' c=mix(c,uFog,1.0-exp(-fd*uFogD)); o=vec4(c,mix(0.86,1.0,clamp(fd/600.0,0.0,1.0))); }\n');
+    ' vec3 r=reflect(-v,n); vec3 sky=mix(uFog,uSky,clamp(r.y*1.6,0.0,1.0)); vec2 sc=gl_FragCoord.xy/uView; float sk=shadowK(vW,vec3(0.0,1.0,0.0));\n' +
+    ' if(uReflOn>0.5){ vec4 rc=textureLod(uRefl,sc+n.xz*0.035,0.0); sky=mix(sky,rc.rgb,rc.a); }\n' +
+    ' float sp=pow(max(dot(r,uSun),0.0),180.0)*1.6*sk; float fd=length(vW-uEye), a=mix(0.86,1.0,clamp(fd/600.0,0.0,1.0));\n' +
+    ' vec3 deep=vec3(0.03,0.16,0.21)*mix(0.72,1.0,sk);\n' +
+    ' if(uRefr<0.5) a=1.0; else if(uRefr>1.5){ float zw=linZ(gl_FragCoord.z); vec2 off=n.xz*0.045; float zs=linZ(textureLod(uSceneD,sc+off,0.0).r);\n' +
+    '   if(zs<zw){ off=vec2(0.0); zs=linZ(textureLod(uSceneD,sc,0.0).r); } float th=max(zs-zw,0.0);\n' +
+    '   vec3 under=textureLod(uScene,sc+off,0.0).rgb*vec3(0.55,0.86,0.92); deep=mix(deep,under,exp(-th*0.3)*clamp(1.0-fd/500.0,0.0,1.0)); a=1.0; }\n' +
+    ' vec3 c=mix(deep,sky,fr)+vec3(1.0,0.92,0.75)*sp;\n' +
+    ' c=mix(c,uFog,1.0-exp(-fd*uFogD)); o=vec4(c,a); }\n');
+  // 只寫深度（陰影圖）：體素照 VoxelKit 的頂點著色器、模型與帆共用一支
+  var NOFS = '#version 300 es\nprecision highp float; void main(){}\n';
+  P.dvox = VK.compile(gl, VK.VOXEL_VS, NOFS);
+  P.dtri = VK.compile(gl, '#version 300 es\nlayout(location=0) in vec3 aP; uniform mat4 uModel,uVP; void main(){ gl_Position=uVP*(uModel*vec4(aP,1.0)); }\n', NOFS);
   P.sky = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec2 aP; uniform mat4 uInv; out vec3 vD; void main(){ vec4 a=uInv*vec4(aP,1.0,1.0); vD=a.xyz/a.w; gl_Position=vec4(aP,0.9999,1.0); }\n',
     '#version 300 es\nprecision highp float; in vec3 vD; uniform vec3 uEye,uSun,uFog,uSky; out vec4 o;\n' +
@@ -65,9 +95,9 @@ function programs() {
 }
 function setCommon(p) {
   var u = p.u;
-  if (u.uVP) gl.uniformMatrix4fv(u.uVP, false, CAM.vp);
+  if (u.uVP) gl.uniformMatrix4fv(u.uVP, false, PASS.vp || CAM.vp);          // PASS：反射、陰影那一趟換掉（60_render.js）
   if (u.uSun) gl.uniform3fv(u.uSun, SUN);
-  if (u.uEye) gl.uniform3fv(u.uEye, CAM.eye);
+  if (u.uEye) gl.uniform3fv(u.uEye, PASS.eye || CAM.eye);
   if (u.uFog) gl.uniform3fv(u.uFog, HORIZON);
   if (u.uSky) gl.uniform3fv(u.uSky, SKY);
   if (u.uGround) gl.uniform3fv(u.uGround, GROUND);
@@ -76,11 +106,18 @@ function setCommon(p) {
   if (u.uTint) gl.uniform1f(u.uTint, 0.0);
   if (u.uSeaK) gl.uniform1f(u.uSeaK, SEA_K);                  // 浪（08_sea.js）：大小、時間（模擬時間 ⇒ 暫停時浪也停）
   if (u.uSeaT) gl.uniform1f(u.uSeaT, SIMT);
+  if (u.uClip) gl.uniform1f(u.uClip, PASS.clip);
+  if (u.uShOn) {                                              // 陰影圖綁在第 4、5 號（60_render.js render 開頭綁）
+    gl.uniform1f(u.uShOn, PASS.sh ? GFX.shadow : 0); gl.uniform1i(u.uSh0, 4); gl.uniform1i(u.uSh1, 5);
+    gl.uniformMatrix4fv(u.uShM0, false, SHM.maps[0].m); gl.uniformMatrix4fv(u.uShM1, false, SHM.maps[1].m);
+    gl.uniform1f(u.uShPx, 1 / SHM.n); gl.uniform1f(u.uShOff, SHM.off);
+  }
 }
 /** 船殼的著色器：VoxelKit 那一份＋這個遊戲要的（水下的顏色照浪的水面）。⛔ 不改 VoxelKit（別的作品也用）；找不到要換的那一段 ⇒ 照原本的畫。 */
 function voxFS() {
-  var s = VK.VOXEL_FS, a = 'out vec4 o;', b = 'if(vW.y<uWater){ float dd=clamp((uWater-vW.y)*0.12';
-  if (s.indexOf(a) < 0 || s.indexOf(b) < 0) { console.warn('VoxelKit 的體素著色器改過了：船殼的水下顏色不跟著浪'); return s; }
-  return s.replace(a, SEA_GLSL + a).replace(b, 'float wy=uWater+seaH(vW.xz); if(vW.y<wy){ float dd=clamp((wy-vW.y)*0.12');
+  var s = VK.VOXEL_FS, a = 'out vec4 o;', b = 'if(vW.y<uWater){ float dd=clamp((uWater-vW.y)*0.12', c = 'float di=max(dot(n,uSun),0.0);', d = 'void main(){';
+  if ([a, b, c, d].some(function (x) { return s.indexOf(x) < 0; })) { console.warn('VoxelKit 的體素著色器改過了：船殼不跟著浪著色、不收陰影'); return s; }
+  return s.replace(a, SEA_GLSL + SHADOW_GLSL + a).replace(b, 'float wy=uWater+seaH(vW.xz); if(vW.y<wy){ float dd=clamp((wy-vW.y)*0.12')
+    .replace(c, 'float di=max(dot(n,uSun),0.0); if(di>0.0) di*=shadowK(vW,n*(3.0-2.0*di));').replace(d, d + ' if(vW.y<uClip) discard;');
 }
 

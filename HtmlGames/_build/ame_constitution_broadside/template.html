@@ -38,6 +38,10 @@
   #msg{ left:50%; top:12px; transform:translateX(-50%); font-size:14px; font-weight:700; text-align:center; width:max(280px, min(720px, calc(100vw - 520px))); line-height:1.45; }   /* 廣播：兩邊面板中間那一欄，一則一行、最多 5 行、各自淡掉（⛔ 寬到蓋住兩邊面板） */
   #msg div{ margin:1px 0 3px; transition:opacity .4s; } #msg div:last-child{ font-size:16px; }
   #tip{ left:12px; bottom:12px; color:var(--dim); font-size:12px; }
+  #fps{ left:50%; top:2px; transform:translateX(-50%); font:12px Consolas,monospace; color:#bfe9ff; text-shadow:0 0 3px #000, 0 0 3px #000; display:none; z-index:5; }
+  #fps.on{ display:block; }
+  #gfxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #gfxItems label{ width:6em; text-align:right; margin-right:6px; }
+  #gfxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
   #nav{ left:12px; bottom:34px; width:176px; padding:6px 10px 8px; font-size:11px; line-height:1.5; }
   #navc{ position:static; inset:auto; width:150px; height:150px; display:block; margin:0 auto 2px; cursor:default; }
   /* 手機直拿：兩邊面板縮成一半並排、羅盤縮小塞進兩個面板中間（Tim 2026-10-13）、控制列換行、按鈕放大
@@ -109,6 +113,7 @@
   </div>
   <div id="msg" class="hud"></div>
   <div id="tip" class="hud"></div>
+  <div id="fps" class="hud"></div>
   <div id="nav" class="hud panel"><canvas id="navc"></canvas><div id="navt"></div></div>
   <div id="help" class="hud panel">
     <div class="note" style="color:var(--dim)">金框的鍵點下去就等於按那個鍵（手機也能玩）</div>
@@ -133,6 +138,7 @@
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
+    <div><kbd>畫</kbd> 畫質在主選單（低／中／高；「畫質設定…」可以一項一項調：陰影、海面反射、海水折射、海面細緻度、解析度、反鋸齒），只改畫面、不改戰局；浪的大小在「細節設定」</div>
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
     <div><kbd data-k="p">P</kbd> 暫停　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 關掉說明</div>
@@ -156,11 +162,24 @@
       <div class="row" id="dists">距離
         <button data-d="90">90 m</button><button data-d="140" class="on">140 m</button><button data-d="220">220 m</button>
       </div>
+      <div class="row" id="gfxs">畫質
+        <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button><button id="gfxB">畫質設定…</button>
+      </div>
       <div class="row"><button id="detB">細節設定…</button></div>
       <div class="row" id="detV"></div>
       <div class="row checks"><label><input type="checkbox" id="phys"> 帆與繩的物理（帆被風吹鼓、斷掉的會垂下來擺；關掉 ＝ 靜態）</label></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
       <div id="load"></div>
+    </div>
+    <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
+    <div class="card panel" id="gfxp" style="display:none">
+      <h2>畫質設定</h2>
+      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa=（第幾檔，從 0 起）</div>
+      <div class="row" id="gfxPre">預設 <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button>　<span id="gfxLv" class="note"></span></div>
+      <div id="gfxItems"></div>
+      <div class="row checks"><label><input type="checkbox" id="gfxFps"> 顯示 FPS（畫面上方中間）</label></div>
+      <div class="row note">比較吃效能的是陰影（船多畫兩趟）、反射（再畫一趟鏡像）、解析度與反鋸齒（每個像素的成本）；海面細緻度是海的網格多密、漣漪幾道。浪的大小是物理，在「細節設定」。</div>
+      <div class="row"><button id="gfxX">返回</button></div>
     </div>
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
@@ -247,6 +266,7 @@
 <script src="js/04_state.js" data-bundle="game"></script>
 <script src="js/05_hull.js" data-bundle="game"></script>
 <script src="js/06_cache.js" data-bundle="game"></script>
+<script src="js/07_gfx.js" data-bundle="game"></script>
 <script src="js/08_sea.js" data-bundle="game"></script>
 <script src="js/10_ship.js" data-bundle="game"></script>
 <script src="js/11_rig_gpu.js" data-bundle="game"></script>

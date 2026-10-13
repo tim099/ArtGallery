@@ -8,11 +8,15 @@
 //   ⇒ 進水、電腦瞄水線那些「水線在船上的哪一層」照舊用 sink − lift − bob（相對的），船的矩陣多加 sh.wl（10_ship.js shipMatrix）。
 // 畫面（60_render.js 的海面網格）頂點照同一個 h 位移，法線在片段裡照解析的坡度算；細的漣漪只在法線裡、跟畫質走 ——
 //   ⛔ 漣漪不進物理 ⇒ 畫質不改戰局。⛔ 相位寫死、不抽 rnd() ⇒ 浪不打亂亂數的順序。
+// 七道：波長之間不是整數比、方向左右交錯（⛔ 四道整齊的浪 ⇒ 海面一格一格的重複紋路，Tim 2026-10-13）
 var WAVES = [                                   // a 振幅（m，再乘 SEA_K）、L 波長（m）、d 偏離風向幾度、ph 相位
-  { a: 0.45, L: 74, d: 0, ph: 0.0 },              // 主浪（週期 6.9 秒）：搖得動整艘船
-  { a: 0.26, L: 43, d: 26, ph: 1.7 },
-  { a: 0.15, L: 24, d: -34, ph: 4.1 },
-  { a: 0.07, L: 12.5, d: 57, ph: 2.3 }];          // 最短的：船上感覺不到，只看得到
+  { a: 0.40, L: 78, d: 0, ph: 0.0 },              // 主浪（週期 7.1 秒）：搖得動整艘船
+  { a: 0.24, L: 51, d: 31, ph: 1.7 },
+  { a: 0.19, L: 37, d: -23, ph: 4.1 },
+  { a: 0.12, L: 26.5, d: 52, ph: 2.3 },
+  { a: 0.09, L: 19, d: -61, ph: 5.2 },
+  { a: 0.06, L: 13.3, d: 14, ph: 0.9 },
+  { a: 0.04, L: 9.1, d: -38, ph: 3.6 }];          // 最短的：船上感覺不到，只看得到
 (function () {
   var wa = Math.atan2(WIND[2], WIND[0]);
   WAVES.forEach(function (w) { var k = 2 * Math.PI / w.L, a = wa + w.d * Math.PI / 180; w.kx = Math.cos(a) * k; w.kz = Math.sin(a) * k; w.w = Math.sqrt(G * k); });
@@ -25,20 +29,24 @@ function seaH(x, z, t) {
   return h * SEA_K;
 }
 // 著色器用的同一組浪（常數照 WAVES 生成；uSeaK、uSeaT 在 setCommon 給）。seaH ＝ 高度，seaG ＝ 坡度（∂h/∂x, ∂h/∂z）；
-// seaHs ＝ 照網格間距 s 拿掉太短的浪（⛔ 頂點間距比波長的 1/4 還粗 ⇒ 鋸齒、浪在網格上游動）。
+// seaHs ＝ 照網格間距 s 拿掉太短的浪（⛔ 頂點間距比波長的 1/4 還粗 ⇒ 鋸齒、浪在網格上游動）；
+// seaGf ＝ 照一個像素在海面上多寬（fp，公尺）淡掉太短的浪的坡度（⛔ 不淡 ⇒ 遠處的浪比像素還細，疊出規則的疊紋）。
 var SEA_GLSL = (function () {
   var f = function (v) { var s = (+v).toPrecision(9); return s.indexOf('.') < 0 && s.indexOf('e') < 0 ? s + '.0' : s; };
-  var h = [], g = [], hs = [];
+  var h = [], g = [], hs = [], gf = [];
   WAVES.forEach(function (w) {
     var arg = 'dot(p,vec2(' + f(w.kx) + ',' + f(w.kz) + '))-' + f(w.w) + '*uSeaT+' + f(w.ph);
     h.push(f(w.a) + '*sin(' + arg + ')');
     g.push(f(w.a) + '*cos(' + arg + ')*vec2(' + f(w.kx) + ',' + f(w.kz) + ')');
     hs.push(f(w.a) + '*(1.0-smoothstep(' + f(w.L * 0.18) + ',' + f(w.L * 0.3) + ',s))*sin(' + arg + ')');
+    gf.push(f(w.a) + '*(1.0-smoothstep(' + f(w.L * 0.25) + ',' + f(w.L * 0.6) + ',fp))*cos(' + arg + ')*vec2(' + f(w.kx) + ',' + f(w.kz) + ')');
   });
   return 'uniform float uSeaK, uSeaT;\n' +
     'float seaH(vec2 p){ return uSeaK*(' + h.join('+') + '); }\n' +
     'vec2 seaG(vec2 p){ return uSeaK*(' + g.join('+') + '); }\n' +
-    'float seaHs(vec2 p,float s){ return uSeaK*(' + hs.join('+') + '); }\n';
+    'float seaHs(vec2 p,float s){ return uSeaK*(' + hs.join('+') + '); }\n' +
+    'vec2 seaGf(vec2 p,float fp){ return uSeaK*(' + gf.join('+') + '); }\n' +
+    'const float SEA_WA=' + f(Math.atan2(WIND[2], WIND[0])) + ';\n';
 })();
 // 彈簧 [k, c]（k ＝ ωn²、c ＝ 2ζωn）：起伏、縱搖週期 2.5 秒、阻尼比 0.6 ⇒ 長浪（6.9 秒）幾乎同相跟著走；橫搖週期 5 秒、阻尼比 0.35 ⇒ 會晃、會落後一點。
 //   ⛔ 起伏設成 5 秒（照巡防艦的固有週期）⇒ 跟主浪差不多快、落後 60°，船身對水面的上下跟浪本身一樣大（量過：相對 0.33 m 對浪 0.32 m），看起來像沒在跟
