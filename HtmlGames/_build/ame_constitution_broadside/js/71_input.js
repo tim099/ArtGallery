@@ -51,6 +51,7 @@ function pick(cx, cy) {
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
   var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' ';
+  if (k === 'escape') { e.preventDefault(); gsetToggle(); return; }   // 遊戲內的設定面板
   if (k === ' ' || k === 'tab' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
   doKey(k, e.repeat);
 });
@@ -64,9 +65,9 @@ function doKey(k, repeat) {
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
   else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') PAUSED = !PAUSED;
-  else if (k === 'm') { muted = !muted; }
+  else if (k === 'm') { muted = !muted; gsetShow(); }
   else if (k === 'h' || k === '?') $('help').classList.toggle('on');
-  else if (k === 'r') { RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
+  else if (k === 'r') { gsetClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     var order = ['auto', 'manual', 'off'];
     setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
@@ -77,7 +78,7 @@ function doKey(k, repeat) {
   else if (k === 'v') setCamTrack(!CAM.track);
   else if (k === 'g') setAutoFire(!AUTOFIRE);
   else if (k === 'b') setPhys(!PHYS);
-  else if (k === 'n') start();                                        // 重新開始：同樣的模式、距離、滑桿，不用打完
+  else if (k === 'n') { gsetClose(); start(); }                                        // 重新開始：同樣的模式、距離、滑桿，不用打完
   else if (k === 'w' || k === 's' || k === 'arrowup' || k === 'arrowdown') {     // 帆裝
     if (!repeat) setSails(me, me.sailSet + (k === 'w' || k === 'arrowup' ? 1 : -1));
   }
@@ -115,7 +116,26 @@ function setAutoFire(on) {
 $('autoF').onclick = function () { setAutoFire(!AUTOFIRE); };
 $('camT').onclick = function () { setCamTrack(!CAM.track); };
 $('physT').onclick = function () { setPhys(!PHYS); };
-$('restartB').onclick = function () { if (RUNNING) start(); };
+$('restartB').onclick = function () { if (RUNNING) { gsetClose(); start(); } };
+// 遊戲內的設定面板（⚙ 設定、Esc）：打開 ⇒ 暫停（關掉回到打開之前的暫停狀態）；畫質、物理效果的檔位跟主選單是同一份（07_gfx.js／09_phx.js）
+var GSET = { open: false, paused: false };
+function gsetOpen() { if (!RUNNING || GSET.open) return; GSET.open = true; GSET.paused = PAUSED; PAUSED = true; $('gset').classList.add('on'); $('help').classList.remove('on'); gsetShow(); }
+function gsetClose() { if (!GSET.open) return; GSET.open = false; PAUSED = GSET.paused; $('gset').classList.remove('on'); }
+function gsetToggle() { if (GSET.open) gsetClose(); else gsetOpen(); }
+function gsetShow() {
+  var gl = gfxLevel(), xl = phxLevel();
+  [].forEach.call(document.querySelectorAll('#gset [data-gg]'), function (b) { b.classList.toggle('on', b.dataset.gg === gl); });
+  [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.classList.toggle('on', b.dataset.gx === xl); });
+  $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
+  $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
+}
+$('setB').onclick = gsetOpen;
+$('gsGo').onclick = gsetClose;
+$('menuB').onclick = function () { doKey('r'); };
+$('muteT').onclick = function () { muted = !muted; gsetShow(); };
+$('fpsT').onclick = function () { GFX_FPS = !GFX_FPS; gfxShow(); };
+[].forEach.call(document.querySelectorAll('#gset [data-gg]'), function (b) { b.onclick = function () { gfxSet(b.dataset.gg); gfxShow(); }; });
+[].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.onclick = function () { phxSet(b.dataset.gx); phxSync(); }; });
 $('endA').onclick = start;
 [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.onclick = function () { AMMO_I = +s.dataset.a; }; });
 [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
@@ -252,6 +272,7 @@ function gfxShow() {
   var gb = $('gfxB'); gb.textContent = lv === 'custom' ? '自訂（畫質設定…）' : '畫質設定…'; gb.className = lv === 'custom' ? 'on' : '';
   [].forEach.call(document.querySelectorAll('#gfxItems button'), function (b) { b.className = GFX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
   $('gfxLv').textContent = '現在：' + GFX_NAME[lv]; $('gfxFps').checked = GFX_FPS; $('fps').className = GFX_FPS ? 'hud on' : 'hud';
+  if (typeof gsetShow === 'function') gsetShow();
 }
 /** 物理效果（09_phx.js）：主選單的全開／高／中／低、物理設定頁每一項的按鈕。帆與繩換到「關」或從「關」換出來 ⇒ setPhys（跟 B 鍵同一支）。 */
 function phxUI() {
@@ -270,6 +291,7 @@ function phxShow() {
   var pb = $('phxB'); pb.textContent = lv === 'custom' ? '自訂（物理設定…）' : '物理設定…'; pb.className = lv === 'custom' ? 'on' : '';
   [].forEach.call(document.querySelectorAll('#phxItems button'), function (b) { b.className = PHX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
   $('phxLv').textContent = '現在：' + PHX_NAME[lv];
+  if (typeof gsetShow === 'function') gsetShow();
 }
 /** 玩法：娛樂／寫實（04_state.js 的 PLAY）＋主選單按鈕的亮燈。航行每一步都讀（playK）；按鈕在主選單，沒開戰時才按得到。 */
 function setPlay(p) { PLAY = p === 'real' ? 'real' : 'fun'; [].forEach.call(document.querySelectorAll('#plays button'), function (x) { x.className = x.dataset.p === PLAY ? 'on' : ''; }); }

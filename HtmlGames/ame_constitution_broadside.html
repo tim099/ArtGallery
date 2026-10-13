@@ -38,6 +38,11 @@
   #msg{ left:50%; top:12px; transform:translateX(-50%); font-size:14px; font-weight:700; text-align:center; width:max(280px, min(720px, calc(100vw - 520px))); line-height:1.45; }   /* 廣播：兩邊面板中間那一欄，一則一行、最多 5 行、各自淡掉（⛔ 寬到蓋住兩邊面板） */
   #msg div{ margin:1px 0 3px; transition:opacity .4s; } #msg div:last-child{ font-size:16px; }
   #tip{ left:12px; bottom:12px; color:var(--dim); font-size:12px; }
+  /* 遊戲內的設定面板（⚙ 設定、Esc）：打開時暫停；重新開始、回主選單、畫質與物理的三四檔、帆繩物理、鏡頭跟船、靜音、FPS（Tim 2026-10-13：手機下方列省空間） */
+  #gset{ left:50%; top:50%; transform:translate(-50%,-50%); display:none; text-align:center; padding:14px 16px; width:min(92vw,460px); box-sizing:border-box; pointer-events:auto; z-index:6; }   /* ⛔ 只給 max-width：left:50% ⇒ 最多只有半個螢幕寬、每一列都折行 */
+  #gset.on{ display:block; } #gset .gsT{ font-size:16px; color:var(--gold); margin-bottom:6px; } #gset .note{ color:var(--dim); font-size:12px; }
+  #gset .gsR{ margin:9px 0; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:5px; } #gset .gsL{ color:var(--dim); font-size:13px; margin-right:2px; }
+  #gset .chip{ font-size:14px; padding:4px 12px; margin:0; } #gset .chip.big{ font-size:15px; padding:6px 16px; }
   #fps{ left:50%; top:2px; transform:translateX(-50%); font:12px Consolas,monospace; color:#bfe9ff; text-shadow:0 0 3px #000, 0 0 3px #000; display:none; z-index:5; }
   #fps.on{ display:block; }
   #gfxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #gfxItems label{ width:6em; text-align:right; margin-right:6px; }
@@ -110,9 +115,9 @@
   <div id="foe" class="hud panel"></div>
   <div id="ctl" class="hud panel">
     <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
-    <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="autoF"><b>G</b> 自動開砲</span><span class="chip" id="physT"><b>B</b> 帆繩物理</span>　<span class="chip" id="restartB"><b>N</b> 重新開始</span></div>
+    <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>
     <div id="guns"></div>
-    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span></div>
+    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 暫停</span><span class="kb" data-k="h"><b>H</b> 說明</span><span class="kb" id="setB">⚙ 設定</span></div>
   </div>
   <div id="msg" class="hud"></div>
   <div id="tip" class="hud"></div>
@@ -135,6 +140,7 @@
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
     <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」</div>
     <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
+    <div><kbd>⚙</kbd> 下方「⚙ 設定」（說明旁邊）或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
     <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
@@ -147,6 +153,15 @@
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
     <div><kbd data-k="p">P</kbd> 暫停　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 關掉說明</div>
+  </div>
+
+  <div id="gset" class="hud panel">
+    <div class="gsT">設定　<span class="note">遊戲暫停中（Esc 或「繼續」回到戰鬥）</span></div>
+    <div class="gsR"><span class="chip big" id="gsGo">▶ 繼續</span><span class="chip big" id="restartB"><b>N</b> 重新開始</span><span class="chip big" id="menuB"><b>R</b> 回主選單</span></div>
+    <div class="gsR"><span class="gsL">畫質</span><span class="chip" data-gg="low">低</span><span class="chip" data-gg="mid">中</span><span class="chip" data-gg="high">高</span><span class="note" id="gsGfx"></span></div>
+    <div class="gsR"><span class="gsL">物理效果</span><span class="chip" data-gx="full">全開</span><span class="chip" data-gx="high">高</span><span class="chip" data-gx="mid">中</span><span class="chip" data-gx="low">低</span><span class="note" id="gsPhx"></span></div>
+    <div class="gsR"><span class="chip" id="physT"><b>B</b> 帆繩物理</span><span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="muteT"><b>M</b> 靜音</span><span class="chip" id="fpsT">顯示 FPS</span></div>
+    <div class="note">畫質與物理的細項在主選單的「畫質設定…」「物理設定…」；血量、傷害、浪、天氣在開戰前設定</div>
   </div>
 
   <div id="cover">
@@ -4648,6 +4663,7 @@ function pick(cx, cy) {
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
   var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' ';
+  if (k === 'escape') { e.preventDefault(); gsetToggle(); return; }   // 遊戲內的設定面板
   if (k === ' ' || k === 'tab' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
   doKey(k, e.repeat);
 });
@@ -4661,9 +4677,9 @@ function doKey(k, repeat) {
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
   else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') PAUSED = !PAUSED;
-  else if (k === 'm') { muted = !muted; }
+  else if (k === 'm') { muted = !muted; gsetShow(); }
   else if (k === 'h' || k === '?') $('help').classList.toggle('on');
-  else if (k === 'r') { RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
+  else if (k === 'r') { gsetClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     var order = ['auto', 'manual', 'off'];
     setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
@@ -4674,7 +4690,7 @@ function doKey(k, repeat) {
   else if (k === 'v') setCamTrack(!CAM.track);
   else if (k === 'g') setAutoFire(!AUTOFIRE);
   else if (k === 'b') setPhys(!PHYS);
-  else if (k === 'n') start();                                        // 重新開始：同樣的模式、距離、滑桿，不用打完
+  else if (k === 'n') { gsetClose(); start(); }                                        // 重新開始：同樣的模式、距離、滑桿，不用打完
   else if (k === 'w' || k === 's' || k === 'arrowup' || k === 'arrowdown') {     // 帆裝
     if (!repeat) setSails(me, me.sailSet + (k === 'w' || k === 'arrowup' ? 1 : -1));
   }
@@ -4712,7 +4728,26 @@ function setAutoFire(on) {
 $('autoF').onclick = function () { setAutoFire(!AUTOFIRE); };
 $('camT').onclick = function () { setCamTrack(!CAM.track); };
 $('physT').onclick = function () { setPhys(!PHYS); };
-$('restartB').onclick = function () { if (RUNNING) start(); };
+$('restartB').onclick = function () { if (RUNNING) { gsetClose(); start(); } };
+// 遊戲內的設定面板（⚙ 設定、Esc）：打開 ⇒ 暫停（關掉回到打開之前的暫停狀態）；畫質、物理效果的檔位跟主選單是同一份（07_gfx.js／09_phx.js）
+var GSET = { open: false, paused: false };
+function gsetOpen() { if (!RUNNING || GSET.open) return; GSET.open = true; GSET.paused = PAUSED; PAUSED = true; $('gset').classList.add('on'); $('help').classList.remove('on'); gsetShow(); }
+function gsetClose() { if (!GSET.open) return; GSET.open = false; PAUSED = GSET.paused; $('gset').classList.remove('on'); }
+function gsetToggle() { if (GSET.open) gsetClose(); else gsetOpen(); }
+function gsetShow() {
+  var gl = gfxLevel(), xl = phxLevel();
+  [].forEach.call(document.querySelectorAll('#gset [data-gg]'), function (b) { b.classList.toggle('on', b.dataset.gg === gl); });
+  [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.classList.toggle('on', b.dataset.gx === xl); });
+  $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
+  $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
+}
+$('setB').onclick = gsetOpen;
+$('gsGo').onclick = gsetClose;
+$('menuB').onclick = function () { doKey('r'); };
+$('muteT').onclick = function () { muted = !muted; gsetShow(); };
+$('fpsT').onclick = function () { GFX_FPS = !GFX_FPS; gfxShow(); };
+[].forEach.call(document.querySelectorAll('#gset [data-gg]'), function (b) { b.onclick = function () { gfxSet(b.dataset.gg); gfxShow(); }; });
+[].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.onclick = function () { phxSet(b.dataset.gx); phxSync(); }; });
 $('endA').onclick = start;
 [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.onclick = function () { AMMO_I = +s.dataset.a; }; });
 [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
@@ -4849,6 +4884,7 @@ function gfxShow() {
   var gb = $('gfxB'); gb.textContent = lv === 'custom' ? '自訂（畫質設定…）' : '畫質設定…'; gb.className = lv === 'custom' ? 'on' : '';
   [].forEach.call(document.querySelectorAll('#gfxItems button'), function (b) { b.className = GFX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
   $('gfxLv').textContent = '現在：' + GFX_NAME[lv]; $('gfxFps').checked = GFX_FPS; $('fps').className = GFX_FPS ? 'hud on' : 'hud';
+  if (typeof gsetShow === 'function') gsetShow();
 }
 /** 物理效果（09_phx.js）：主選單的全開／高／中／低、物理設定頁每一項的按鈕。帆與繩換到「關」或從「關」換出來 ⇒ setPhys（跟 B 鍵同一支）。 */
 function phxUI() {
@@ -4867,6 +4903,7 @@ function phxShow() {
   var pb = $('phxB'); pb.textContent = lv === 'custom' ? '自訂（物理設定…）' : '物理設定…'; pb.className = lv === 'custom' ? 'on' : '';
   [].forEach.call(document.querySelectorAll('#phxItems button'), function (b) { b.className = PHX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
   $('phxLv').textContent = '現在：' + PHX_NAME[lv];
+  if (typeof gsetShow === 'function') gsetShow();
 }
 /** 玩法：娛樂／寫實（04_state.js 的 PLAY）＋主選單按鈕的亮燈。航行每一步都讀（playK）；按鈕在主選單，沒開戰時才按得到。 */
 function setPlay(p) { PLAY = p === 'real' ? 'real' : 'fun'; [].forEach.call(document.querySelectorAll('#plays button'), function (x) { x.className = x.dataset.p === PLAY ? 'on' : ''; }); }
