@@ -4,7 +4,7 @@
 //   ⇒ 一對一時永遠是另一艘 ⇒ 跟以前一位元都不差。只用船的位置（px、pz）、不抽亂數。
 // 友軍跟敵軍只差在挑目標（Tim 2026-10-13）：同陣營不當目標；砲彈照舊打得到每一艘 ⇒ 誤擊照樣扣血、算傷亡（讀數 sh.ff：被友船打中幾發）。
 // 瞄準點（sh.aim）是「那艘船」的格座標 ⇒ 一併記是哪艘（sh.aimOn，setAim）；換目標之前瞄的那一點不會被套到另一艘的座標上。
-// 船數上限 MAX_SHIPS（00_core.js）：GPU 的格數（陰影圖、船艙遮罩、透視）照它生著色器，執行時只跑場上那幾艘（uNS）。
+// 船數上限 MAX_SHIPS（00_core.js）；GPU 的格（陰影圖、船艙遮罩、透視）只給視野裡最近的幾艘（畫質設定「陰影船數」「船艙遮罩」；60_render.js gpuSlots），其他的靠全局陰影圖。
 /** 誤擊的讀數：被友船打中幾發（sh.ff）、打中友船幾發（ffOut）。一顆彈只算一次（跟 hits 同一個 hitOnce）。 */
 function ffHit(sh, b) { var o = SHIPS[b.owner]; if (o && o !== sh && o.team === sh.team) { sh.ff = (sh.ff || 0) + 1; o.ffOut = (o.ffOut || 0) + 1; } }
 /** 落水的人上不了自己的船 ⇒ 往哪幾艘游（43_swim.js）：友船先、再敵船，各照 SHIPS 的順序（一對一 ＝ [敵艦]）。 */
@@ -39,9 +39,10 @@ function playerTeam() { var me = SHIPS[PLAYER_I]; return me ? me.team : 'blue'; 
 function foeTeam() { return playerTeam() === 'blue' ? 'red' : 'blue'; }
 /** 那個陣營打完了沒：每艘都沉了或降旗。 */
 function teamDown(team) { var L = teamShips(team); return L.length > 0 && L.every(function (o) { return o.sunk || o.struck; }); }
-/** 開局的編隊（70_flow.js reset）：每一邊照編成排成縱隊（沿船長方向）、兩邊面對面 ±DIST/2；一邊一艘 ⇒ 跟以前同一個位置。
+/** 開局的編隊（70_flow.js reset；Tim 2026-10-13「兩邊船頭相對互相接近」「友軍就排在旁邊」）：
+ *  兩邊船頭相對（藍往 −z、紅往 +z），船頭（水線最前那一格）相距 DIST；同一邊排成橫隊（並排，左右隔 FLEET_GAP），船頭對齊。
  *  spec：[{ team, hull }]，一對一 ＝ [我艦, 敵艦]；SHIPS 照這個順序建（i ＝ 序號；我艦是 0）。艘數超過 MAX_SHIPS ⇒ 截掉。 */
-var FLEET_GAP = 85;                                                       // 同一邊兩艘之間隔多遠（m，沿船長方向；憲法號水線長 55 m ⇒ 頭尾隔 30 m）
+var FLEET_GAP = 70;                                                       // 同一邊並排的兩艘，中心左右隔多遠（m；船寬 13 m）
 var FLEET_DBG = null;                                                     // ?debug=1 的 __game.fleet([...])：直接給一串（蓋過主選單的編成）
 /** 主選單的編成（FLEET_SET，05_hull.js）⇒ 一串：我艦、敵方第一艘、我方其他、敵方其他（一對一 ＝ [我艦, 敵艦]，跟以前同一個順序）。 */
 function fleetSpec() {
@@ -55,9 +56,15 @@ function spawnFleet(spec) {
   spec = spec.slice(0, MAX_SHIPS);
   var n = { blue: 0, red: 0 }, k = { blue: 0, red: 0 };
   spec.forEach(function (f) { n[f.team]++; });
+  function slots(m) {                                                    // 橫隊的左右位置，從中間往兩側排（第一艘 ＝ 我艦／敵方第一艘在中間）
+    var r = []; for (var q = 0; q < m; q++) r.push((q - (m - 1) / 2) * FLEET_GAP);
+    return r.sort(function (a, b) { return Math.abs(a) - Math.abs(b) || a - b; });
+  }
+  var X = { blue: slots(n.blue), red: slots(n.red) };
   spec.forEach(function (f, i) {
-    var blue = f.team === 'blue', j = k[f.team]++, off = (j - (n[f.team] - 1) / 2) * FLEET_GAP;
-    SHIPS.push(makeShip(i, f.team, blue ? 0 : Math.PI, blue ? DIST / 2 : -DIST / 2, HULLT[f.hull], blue ? off : -off));   // 一邊一艘 ⇒ px 0，跟以前一樣
+    var blue = f.team === 'blue', off = X[f.team][k[f.team]++];        // 兩邊第 j 艘站同一個 x ⇒ 各自對著對面那一艘
+    var T = HULLT[f.hull], bow = (T.wl1 - T.cx) * S;                    // 船的原點（x ＝ T.cx）到船頭的距離
+    SHIPS.push(makeShip(i, f.team, blue ? Math.PI / 2 : -Math.PI / 2, blue ? DIST / 2 + bow : -DIST / 2 - bow, T, off));
   });
 }
 

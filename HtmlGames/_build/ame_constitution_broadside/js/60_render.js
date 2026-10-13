@@ -39,15 +39,11 @@ function seaGrid(lv) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, I, gl.STATIC_DRAW); gl.bindVertexArray(null);
   g.n = I.length; g.lv = lv; g.snap = L.min * 2; g.verts = V.length / 3; SEAG = g;
 }
-/** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ R8 貼圖，海的著色器拿來判斷「在不在船艙裡」。 */
-function hullTex(T, hb) {                              // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠；hb ＝ 快取的那張（06_cache.js）
-  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz);
-  T.hullHB = hb = hb || hullMask(T);                   // 留著：存快取、對拍用（__game.hullCheck）
-  T.hullTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, TW, TH, 0, gl.RED, gl.UNSIGNED_BYTE, hb);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.bindTexture(gl.TEXTURE_2D, null);
+/** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ 海的著色器拿來判斷「在不在船艙裡」。
+ *  這裡只算資料（T.hullHB、寬高）；上 GPU 是所有船型併成一個貼圖陣列（hullArr，畫的時候看到新的船型才重建）。 */
+function hullTex(T, hb) {                              // hb ＝ 快取的那張（06_cache.js）
+  T.hullTW = T.base.sx; T.hullTH = Math.min(256, T.base.sz);
+  T.hullHB = hb || hullMask(T);                        // 存快取、對拍用（__game.hullCheck）
 }
 function hullMask(T) {
   var TW = T.base.sx, TH = Math.min(256, T.base.sz), CY = T.cy, hb = new Uint8Array(TW * TH);
@@ -100,18 +96,66 @@ function targets(w, h) {
   if (rq) { var d = rq === 2 ? 2 : 4, rw = Math.max(1, w / d | 0), rh = Math.max(1, h / d | 0); RT.R = mkFB(mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, rw, rh, true), mkRB(gl.DEPTH_COMPONENT24, rw, rh, 0)); RT.R.w = rw; RT.R.h = rh; }
   else RT.R = null;
 }
-/** 陰影圖（兩張）：大小照畫質（關 ⇒ 1×1 的假圖）。off ＝ 收陰影時沿法線推出去的距離（約 1.5 個陰影圖格子）。 */
+/** 陰影圖：深度貼圖陣列（SHM.tex，第 4 號），每一層一張、大小照畫質（關 ⇒ 1×1 的假圖）。off ＝ 收陰影時沿法線推出去的距離（約 1.5 個陰影圖格子）；offG ＝ 全局那一層的。
+ *  SHM.maps[k] ＝ 第 k 層的 { F（畫進那一層的 framebuffer）, m（矩陣） }：前 SSLOTS.length 層 ＝ 陰影的格、下一層 ＝ 全局（有的話）。
+ *  SHM.mats ＝ 著色器的 uShM（MAX_SHIPS＋1 個）：第 k 個 ＝ 第 k 格、最後一個 ＝ 全局。 */
 function shadowMaps() {
   var n = [1, 1024, 2048][GFX.shadow] || 1;
   if (SHM && SHM.n === n) return;
-  if (SHM) SHM.maps.forEach(function (m) { freeFB(m.F); });
-  SHM = { n: n, off: 0, maps: [] };
+  if (SHM) shadowFree();
+  SHM = { n: n, off: 0, offG: 0, maps: [], tex: null, layers: 0, glob: false, mats: new Float32Array((MAX_SHIPS + 1) * 16) };
 }
-/** 場上要跑的格數（陰影圖張數、著色器的 uNS）：至少 2（一對一跟以前一樣兩張）、最多 MAX_SHIPS。 */
-function nsGPU() { return Math.max(2, Math.min(SHIPS.length, MAX_SHIPS)); }
-/** 陰影圖照場上的船數配（TASK-0537：沒用到的上限不佔記憶體）；多了不收（換場又會用到）。 */
+function shadowFree() { SHM.maps.forEach(function (m) { gl.deleteFramebuffer(m.F.fb); }); if (SHM.tex) gl.deleteTexture(SHM.tex); SHM.maps = []; SHM.tex = null; SHM.layers = 0; }
+/** 陰影圖陣列照用到的層數配（TASK-0537：沒用到的不佔記憶體）：陰影的格數 ＋ 有船排不進去 ⇒ 再一層全局。不夠才重配、多了不收（換場又會用到）。 */
 function shadowGrow() {
-  while (SHM.maps.length < nsGPU()) { var F = mkFB(null, mkTex(gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, SHM.n, SHM.n, true, true)); SHM.maps.push({ F: F, m: FAR_M }); }
+  var need = Math.max(1, SSLOTS.length + (SSLOTS.rest.length ? 1 : 0));
+  if (SHM.layers >= need) return;
+  shadowFree();
+  var t = SHM.tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D_ARRAY, t);
+  gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.DEPTH_COMPONENT24, SHM.n, SHM.n, need, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+  [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.LINEAR); });
+  [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.CLAMP_TO_EDGE); });
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE); gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+  for (var k = 0; k < need; k++) {
+    var f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+    gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, t, 0, k); gl.drawBuffers([gl.NONE]); gl.readBuffer(gl.NONE);
+    SHM.maps.push({ F: { fb: f, ok: gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE }, m: FAR_M });
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  SHM.layers = need;
+}
+/** GPU 的格這一格給哪幾艘（Tim 2026-10-13：「優先選最近的 N 條船」「超過的靠全局覆蓋」「只選視野範圍內最近的」；N 是畫質設定）：
+ *  · SSLOTS：自己的陰影圖，GFX.shships 艘（0～MAX_SHIPS）；排不進去的 SSLOTS.rest ⇒ 全局陰影圖。
+ *  · MSLOTS：船艙遮罩與透視，GFX.masks 艘（0～MASK_NEAR）；排不進去的沒有。
+ *  船數 ≤ N ⇒ 全部、照 SHIPS 的順序（一對一跟以前一樣）；否則 ⇒ 外接球碰到鏡頭視錐的船裡離鏡頭最近的 N 艘，
+ *  上一格已經在裡面的打九折（⛔ 不打折 ⇒ 兩艘差不多遠時每一格換來換去、陰影閃）；選到的照 SHIPS 的順序排。 */
+var SSLOTS = [], MSLOTS = [];
+SSLOTS.rest = MSLOTS.rest = [];
+function gpuSlots() {
+  var cand = null;
+  function pick(n, prev) {
+    var L;
+    if (SHIPS.length <= n) L = SHIPS.slice();
+    else {
+      if (!cand) {
+        var vp = CAM.vp, pl = [];                                         // 視錐的六個面（列優先的矩陣：第 r 列 ＝ vp[r], vp[4+r], vp[8+r], vp[12+r]）
+        [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]].forEach(function (q) {
+          var a = [0, 1, 2, 3].map(function (c) { return vp[c * 4 + 3] + q[1] * vp[c * 4 + q[0]]; }), l = Math.hypot(a[0], a[1], a[2]) || 1;
+          pl.push(a.map(function (v) { return v / l; }));
+        });
+        cand = SHIPS.map(function (s) {
+          var B = s.T.base, R = s.T.shR || (s.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c = M4.pt(s.M, B.sx / 2, B.sy / 2, B.sz / 2);
+          return { s: s, vis: s.sink <= 40 && pl.every(function (p) { return p[0] * c[0] + p[1] * c[1] + p[2] * c[2] + p[3] > -R; }), d: Math.hypot(c[0] - CAM.eye[0], c[1] - CAM.eye[1], c[2] - CAM.eye[2]) };
+        });
+      }
+      L = cand.filter(function (o) { return o.vis; }).map(function (o) { return { s: o.s, d: o.d * (prev.indexOf(o.s) >= 0 ? 0.9 : 1) }; })
+        .sort(function (a, b) { return a.d - b.d || a.s.i - b.s.i; }).slice(0, n).map(function (o) { return o.s; }).sort(function (a, b) { return a.i - b.i; });
+    }
+    L.rest = SHIPS.filter(function (s) { return L.indexOf(s) < 0; });
+    return L;
+  }
+  SSLOTS = pick(GFX.shships, SSLOTS); MSLOTS = pick(Math.min(GFX.masks, MASK_NEAR), MSLOTS);
 }
 function ortho(r, n, f) { return new Float32Array([1 / r, 0, 0, 0, 0, 1 / r, 0, 0, 0, 0, -2 / (f - n), 0, 0, 0, -(f + n) / (f - n), 1]); }
 /** 帆與繩的緩衝：一格做一次（之後陰影、反射、場景都用同一份）。 */
@@ -188,23 +232,57 @@ function drawSails(prog, near) {
     gl.bindVertexArray(ow.sb.vao); gl.drawElements(gl.TRIANGLES, ow.sb.n, gl.UNSIGNED_INT, 0);
   });
 }
-/** 陰影圖：每艘船一張，罩住它的外接球（船型的格子外框對角線的一半）。不在了 ⇒ 那張的矩陣把所有點丟到範圍外。 */
+/** 陰影圖：GPU 的每一格（gpuSlots）一層，罩住那艘的外接球（船型的格子外框對角線的一半）。那一格沒有船 ⇒ 矩陣把所有點丟到範圍外。
+ *  有船排不進去（SSLOTS.rest）⇒ 下一層 ＝ 全局：一張罩住那幾艘全部的外接球（格子大、解析度低；近的那幾艘不畫進去 ⇒ 不會粗的疊在細的上面）。 */
 function shadowPass() {
   gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1.5, 3);
   gl.viewport(0, 0, SHM.n, SHM.n);
-  SHM.maps.forEach(function (M, i) {
-    var sh = SHIPS[i];
-    if (!sh || sh.sink > 40) { M.m = FAR_M; return; }
-    var B = sh.T.base, R = sh.T.shR || (sh.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c = M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), D = R + 30;
+  function one(M, R, c, near) {
+    var D = R + 30;
     M.m = M4.mul(ortho(R, D - R - 10, D + R + 10), M4.lookAt([c[0] + SUN[0] * D, c[1] + SUN[1] * D, c[2] + SUN[2] * D], c, [0, 1, 0]));
-    SHM.off = 1.5 * 2 * R / SHM.n;
-    var near = function (o) { if (o === sh) return true; if (o.crew) return false; var p = o.c || (o.M ? [o.M[12], o.M[13], o.M[14]] : c); return Math.hypot(p[0] - c[0], p[2] - c[2]) < R * 1.3; };
     gl.bindFramebuffer(gl.FRAMEBUFFER, M.F.fb); gl.clear(gl.DEPTH_BUFFER_BIT);
     PASS.vp = M.m;
     gl.useProgram(P.dvox.prog); setCommon(P.dvox); drawHulls(P.dvox, near);
     gl.useProgram(P.dtri.prog); setCommon(P.dtri); drawModels(P.dtri, near); drawSails(P.dtri, near);
-  });
+  }
+  function ball(sh) { var B = sh.T.base; return { R: sh.T.shR || (sh.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2) }; }
+  for (var i = 0; i < SSLOTS.length; i++) (function (M, sh) {
+    if (!sh || sh.sink > 40) { M.m = FAR_M; return; }
+    var b = ball(sh), R = b.R, c = b.c;
+    SHM.off = 1.5 * 2 * R / SHM.n;
+    one(M, R, c, function (o) { if (o === sh) return true; if (o.crew) return false; var p = o.c || (o.M ? [o.M[12], o.M[13], o.M[14]] : c); return Math.hypot(p[0] - c[0], p[2] - c[2]) < R * 1.3; });
+  })(SHM.maps[i], SSLOTS[i]);
+  var rest = SSLOTS.rest.filter(function (s) { return s.sink <= 40; }), MG = SHM.maps[SSLOTS.length];
+  SHM.glob = rest.length > 0 && !!MG;
+  if (SHM.glob) {                                                          // 全局：罩住排不進去的那幾艘（xz 的外框中心、半徑 ＝ 最遠那艘的距離＋它的外接球）
+    var bs = rest.map(ball), x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y = 0;
+    bs.forEach(function (b) { x0 = Math.min(x0, b.c[0]); x1 = Math.max(x1, b.c[0]); z0 = Math.min(z0, b.c[2]); z1 = Math.max(z1, b.c[2]); y += b.c[1] / bs.length; });
+    var C = [(x0 + x1) / 2, y, (z0 + z1) / 2], RG = 0;
+    bs.forEach(function (b) { RG = Math.max(RG, Math.hypot(b.c[0] - C[0], b.c[1] - C[1], b.c[2] - C[2]) + b.R); });
+    SHM.offG = 1.5 * 2 * RG / SHM.n;
+    one(MG, RG, C, function (o) { if (o.crew) return rest.indexOf(o) >= 0; var p = o.c || (o.M ? [o.M[12], o.M[13], o.M[14]] : C); return bs.some(function (b) { return Math.hypot(p[0] - b.c[0], p[2] - b.c[2]) < b.R * 1.3; }); });
+  } else if (MG) MG.m = FAR_M;
   PASS.vp = null; gl.disable(gl.POLYGON_OFFSET_FILL);
+}
+/** 著色器的 uShM（每一層的矩陣串起來；沒有那一層 ⇒ FAR_M）。 */
+function shadowMats() {
+  for (var k = 0; k < MAX_SHIPS; k++) SHM.mats.set(k < SSLOTS.length && SHM.maps[k] ? SHM.maps[k].m : FAR_M, k * 16);
+  var MG = SHM.maps[SSLOTS.length]; SHM.mats.set(SHM.glob && MG ? MG.m : FAR_M, MAX_SHIPS * 16);
+}
+/** 船艙遮罩的貼圖陣列（uHullA，第 1 號）：載好的每一型一層（T.hullLayer），寬高取最大的那一型；載了新的船型 ⇒ 重建。 */
+var HULLA = { tex: null, key: '' };
+function hullArr() {
+  var Ts = Object.keys(HULLT).map(function (id) { return HULLT[id]; }).filter(function (T) { return T.hullHB; }), key = Ts.map(function (T) { return T.id; }).join(',');
+  if (HULLA.tex && HULLA.key === key) return;
+  if (HULLA.tex) gl.deleteTexture(HULLA.tex);
+  var W = 1, H = 1; Ts.forEach(function (T) { W = Math.max(W, T.hullTW); H = Math.max(H, T.hullTH); });
+  var t = HULLA.tex = gl.createTexture(); HULLA.key = key;
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, t); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.R8, W, H, Math.max(1, Ts.length), 0, gl.RED, gl.UNSIGNED_BYTE, null);
+  Ts.forEach(function (T, k) { T.hullLayer = k; gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, k, T.hullTW, T.hullTH, 1, gl.RED, gl.UNSIGNED_BYTE, T.hullHB); });
+  [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.NEAREST); });
+  [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.CLAMP_TO_EDGE); });
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
 }
 /** 反射：鏡像的鏡頭把船畫進 RT.R（水面以下丟掉）。低 ＝ 船身；高 ＝ 再加砲、模型與帆。 */
 function reflPass() {
@@ -221,16 +299,19 @@ function reflPass() {
 }
 /** 船艙遮罩的 uniform（海與白沫共用，01_gl.js HULL_GLSL）。開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了） */
 var MASK_OFF = -1;                                                        // ?debug=1 的 __game.mask(k)：第 k 艘的遮罩關掉（量 4 艘時每一格遮罩都有作用：關掉那艘 ⇒ 它的船艙裡才看得到海）
+var HU = { inv: new Float32Array(MASK_NEAR * 16), hide: new Float32Array(MASK_NEAR), k: new Float32Array(MASK_NEAR * 4), xb: new Float32Array(MASK_NEAR * 4) };
 function hullUniforms(prog) {
   var u = prog.u;
-  for (var i = 0; i < MAX_SHIPS; i++) {                                   // 每艘照自己船型的遮罩（各型可以不一樣）；格數照 MAX_SHIPS（TASK-0537）
-    var s = SHIPS[i], T = s && s.T;
-    gl.uniform1f(u['uHide' + i], s && !s.sinkingFinal && !s.sunk && T.hullTex && i !== MASK_OFF ? 1 : 0);
-    gl.activeTexture(gl.TEXTURE0 + hullUnit(i));
-    if (!T || !T.hullTex) { if (i >= 2) { gl.bindTexture(gl.TEXTURE_2D, DUMMY); gl.uniform1i(u['uHull' + i], hullUnit(i)); } continue; }   // 沒有那艘：指到 1×1 的空貼圖（uHide 0 ⇒ 不取樣）；前兩格照以前不動
-    gl.uniformMatrix4fv(u['uInv' + i], false, s.inv);
-    gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(u['uHull' + i], hullUnit(i)); gl.uniform3f(u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
+  hullArr(); HU.hide.fill(0);
+  for (var i = 0; i < MASK_NEAR; i++) {                                   // 遮罩的每一格（gpuSlots MSLOTS）照那艘船型的那一層；排不進去的船 ⇒ 沒有遮罩
+    var s = MSLOTS[i], T = s && s.T;
+    if (s) HU.inv.set(s.inv, i * 16);                                     // 透視（nearShip）也用
+    if (!T || !T.hullHB || T.hullLayer === undefined) continue;
+    HU.hide[i] = !s.sinkingFinal && !s.sunk && s.i !== MASK_OFF ? 1 : 0;
+    HU.k[i * 4] = T.hullTW; HU.k[i * 4 + 1] = T.hullTH; HU.k[i * 4 + 2] = T.cy; HU.k[i * 4 + 3] = T.hullLayer;
   }
+  gl.uniform1fv(u.uHide, HU.hide); gl.uniformMatrix4fv(u.uInv, false, HU.inv); gl.uniform4fv(u.uHullK, HU.k);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D_ARRAY, HULLA.tex); gl.uniform1i(u.uHullA, 1);
   gl.activeTexture(gl.TEXTURE0);
 }
 function render() {
@@ -239,11 +320,13 @@ function render() {
   var bolt = wxBolt(SIMT), sky0 = SKY, hor0 = HORIZON;
   if (bolt && bolt.f > 0) { SKY = lerp3(SKY, [0.82, 0.86, 0.98], bolt.f * 0.7); HORIZON = lerp3(HORIZON, [0.76, 0.79, 0.88], bolt.f * 0.6); }
   if (bolt && bolt.n !== LAST_BOLT) { LAST_BOLT = bolt.n; if (RUNNING && !STILL) setTimeout(function () { sfx('thunder', null, 1 / (1 + bolt.d / 1500)); }, bolt.d / 340 * 1000); }
-  targets(w, h); shadowMaps(); shadowGrow();
+  targets(w, h); shadowMaps(); gpuSlots(); shadowGrow();             // gpuSlots：這一格 GPU 的格給哪幾艘（視野裡最近的幾艘：畫質設定）
   if (!DUMMY) { DUMMY = mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, false); }
   prepRig();
-  if (GFX.shadow && !cutOn()) shadowPass(); else SHM.maps.forEach(function (m) { m.m = FAR_M; });   // 剖面、隱藏甲板開著 ⇒ 不算陰影（拿掉的甲板不擋光；74_cutaway.js）
-  SHM.maps.forEach(function (M, k) { gl.activeTexture(gl.TEXTURE0 + shUnit(k)); gl.bindTexture(gl.TEXTURE_2D, M.F.dep); });
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, null); gl.activeTexture(gl.TEXTURE0);   // 畫陰影圖時不綁著它（⛔ 綁著 ⇒ 讀寫同一張）
+  if (GFX.shadow && !cutOn()) shadowPass(); else { SHM.maps.forEach(function (m) { m.m = FAR_M; }); SHM.glob = false; }   // 剖面、隱藏甲板開著 ⇒ 不算陰影（拿掉的甲板不擋光；74_cutaway.js）
+  shadowMats();
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, SHM.tex);   // 陰影圖陣列：固定第 4 號（01_gl.js SHADOW_GLSL）
   gl.activeTexture(gl.TEXTURE0);
   if (RT.R) reflPass();
   gl.bindFramebuffer(gl.FRAMEBUFFER, RT.A.fb); gl.viewport(0, 0, w, h);
@@ -297,10 +380,11 @@ function render() {
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, RT.B.dep); gl.uniform1i(P.water.u.uSceneD, 3);
   hullUniforms(P.water);
   gl.uniform1f(P.water.u.uXr, FLX3 || CUTV.half ? 1 : 0);              // 停格的「🔍 透視」、剖面：船附近的海面不畫（72_floodui.js、74_cutaway.js；只拿掉甲板 ⇒ 船殼裡本來就不畫海，船邊照畫）
-  for (var xi = 0; xi < MAX_SHIPS; xi++) (function (i) {
-    var s = SHIPS[i], b = s ? xrBox(s.T) : null, e = s && CUTV.half ? cutSide(s) * XR_CUT : 0;   // 剖面：往鏡頭那一側多拿掉 XR_CUT 格（⛔ 只拿船邊 6 m ⇒ 從側面看，鏡頭到船之間的海面把水線下整片擋住）
-    gl.uniform4f(P.water.u['uXb' + i], b ? b[0] : 0, b ? b[1] + e / 2 : 0, b ? b[2] : -1e9, b ? b[3] + Math.abs(e) / 2 : -1e9);
+  for (var xi = 0; xi < MASK_NEAR; xi++) (function (i) {              // 遮罩的格（gpuSlots MSLOTS）：排不進去的船沒有透視
+    var s = MSLOTS[i], b = s ? xrBox(s.T) : null, e = s && CUTV.half ? cutSide(s) * XR_CUT : 0;   // 剖面：往鏡頭那一側多拿掉 XR_CUT 格（⛔ 只拿船邊 6 m ⇒ 從側面看，鏡頭到船之間的海面把水線下整片擋住）
+    HU.xb[i * 4] = b ? b[0] : 0; HU.xb[i * 4 + 1] = b ? b[1] + e / 2 : 0; HU.xb[i * 4 + 2] = b ? b[2] : -1e9; HU.xb[i * 4 + 3] = b ? b[3] + Math.abs(e) / 2 : -1e9;
   })(xi);
+  gl.uniform4fv(P.water.u.uXb, HU.xb);
   gl.bindVertexArray(SEAG.vao); gl.drawElements(gl.TRIANGLES, SEAG.n, gl.UNSIGNED_INT, 0);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   if (!FLX3 && !CUTV.half) wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度

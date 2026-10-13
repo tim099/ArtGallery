@@ -84,7 +84,10 @@ if (Q.has('strike')) Q.get('strike').split(',').forEach(function (w) {
 var CAP_SET = ['random', 'random'];
 if (Q.has('cap')) Q.get('cap').split(',').forEach(function (w, i) { if (i < 2) CAP_SET[i] = w; });
 var LAST_MODE = null;                                // 上一場的模式（自動開砲換了模式才套預設，見 reset）
-var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
+// DIST：開局兩邊船頭相距幾公尺（主選單滑桿，範圍 LIM_DIST；網址 ?dist=）。Tim 2026-10-13：「距離改成滑桿、50～1000 m」「兩邊船頭相對互相接近，而不是直接橫排一開場就開砲」。
+//   電腦想保持的交戰距離另算（aiRange，31_sailing.js：夾在 90～220 m；⛔ 照 DIST ⇒ 開局 1000 m 時電腦在 1000 m 外繞圈、打不到）。
+var LIM_DIST = [50, 1000, 140];
+var MODE = 'pve', DIST = Q.has('dist') && isFinite(+Q.get('dist')) ? clamp(Math.round(+Q.get('dist')), LIM_DIST[0], LIM_DIST[1]) : LIM_DIST[2], SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
 var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
 // 殉爆的慢動作與特寫（73_slowmo.js）：on／cam 是設定；ts 現在的時間倍率。SLOW_VIS：這一格畫面裡只給人看的效果改由 frame 走（step() 讀它決定要不要跳過）

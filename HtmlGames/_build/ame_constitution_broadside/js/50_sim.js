@@ -4,6 +4,7 @@ function ai(sh, dt) {
   if (sh.sunk || sh.struck || sh.sinkingFinal || !foe) return;
   if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
   captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
+  aiSecond(sh, foe, dt);                                            // 另一舷：對不到目標、但對得到別的敵艦的那幾門（沒有別的敵艦 ⇒ 什麼都不做）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
   var ready = 0, alive = 0, held = 0, FK = friendKeels(sh);         // 隔著友船的那幾門不算（52_fleet.js；沒有友船 ⇒ 空的）
@@ -17,6 +18,34 @@ function ai(sh, dt) {
   broadside(sh, ammo, true);
   sh.aiWait = rr(1.0, 3.5);
 }
+/** 兩舷都開（Tim 2026-10-13：「兩側都有敵人時，也只能單側開砲」）：主要目標 foe 照舊（ai）；另外挑一艘別的敵艦（近的先），
+ *  拿「對不到 foe、對得到它」的那幾門（還沒排進齊射、沒隔著友船）另開一輪 —— 自己的節奏 sh.aiWait2、自己的瞄準點（broadsideAt）。
+ *  只有別的敵艦時才動（一對一 ⇒ 一進來就回去，不抽亂數 ⇒ 一位元都不差）。 */
+function aiSecond(sh, foe, dt) {
+  var others = SHIPS.filter(function (o) { return isFoe(sh, o) && o !== foe && !o.sunk && !o.struck && !o.sinkingFinal && o.center; });
+  if (!others.length) return;
+  sh.aiWait2 = (sh.aiWait2 || 0) - dt; if (sh.aiWait2 > 0) return;
+  sh.aiWait2 = 0.5;                                                 // 沒開成 ⇒ 半秒後再看
+  others.sort(function (a, b) { return Math.hypot(a.px - sh.px, a.pz - sh.pz) - Math.hypot(b.px - sh.px, b.pz - sh.pz); });
+  var pend = EVENTS.filter(function (e) { return e.sh === sh.i; }).map(function (e) { return e.g; }), FK = friendKeels(sh);
+  var fAim = [foe.T.cx, foe.T.cy, foe.T.geo.aim];
+  var free = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && pend.indexOf(g) < 0 && !withAim(sh, fAim, foe, function () { return gunTarget(sh, g, foe.center); }); });
+  for (var j = 0; j < others.length; j++) {
+    var o = others[j], oAim = [o.T.cx, o.T.cy, o.T.geo.aim], alive = [], ready = [];
+    free.forEach(function (g) {
+      if (!withAim(sh, oAim, o, function () { return gunTarget(sh, g, o.center); })) return;
+      if (FK.length && friendInLine(FK, M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), o.center)) return;
+      alive.push(g); if (g.reload <= 0) ready.push(g);
+    });
+    if (!ready.length || ready.length < Math.ceil(alive.length * 0.65)) continue;
+    var a = modeAim(o, sh.aimMode || 'hull', true), t = a.t, err = Math.max(0.6, 4.5 - sh.salvo * 0.55) / S;
+    var aim = [t[0] + gauss() * err * 1.6, t[1], t[2] + gauss() * err * 0.5];
+    var tgt = M4.pt(o.M, aim[0], aim[1], aim[2]);
+    var guns = ready.filter(function (g) { return withAim(sh, aim, o, function () { return gunTarget(sh, g, tgt); }); });
+    sh.aiSpread = 0.006;
+    if (broadsideAt(sh, a.ammo, o, aim, guns)) { sh.aiWait2 = rr(1.0, 3.5); return; }
+  }
+}
 
 // ───────────────────────── 一步 ─────────────────────────
 function step() {
@@ -27,8 +56,9 @@ function step() {
   for (var i = 0; i < EVENTS.length; i++) {
     var e = EVENTS[i]; if (e.t > SIMT) continue;
     EVENTS.splice(i--, 1);
-    var sh = SHIPS[e.sh], et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off)));   // 開火那一刻才挑點（兩艘都在動）
-    if (et) fireGun(sh, e.g, et, e.ammo);
+    var sh = SHIPS[e.sh];
+    if (e.on) withAim(sh, e.aim, e.on, function () { var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
+    else { var et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et) fireGun(sh, e.g, et, e.ammo); }   // 開火那一刻才挑點（兩艘都在動）
   }
   if (PF) pfLap('fire');
   SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); if (PF) pfLap('ship'); stepCrew(sh, DT); if (PF) pfLap('crew'); });

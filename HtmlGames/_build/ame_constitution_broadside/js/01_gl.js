@@ -4,30 +4,32 @@ function fail(msg) { var e = $('err'); e.style.display = 'block'; e.textContent 
 if (!gl) { fail('這個瀏覽器沒有 WebGL2，畫不出來。'); throw new Error('no WebGL2'); }   // 拆檔後這裡是閉包的頂層：throw ＝ 原本的 return（停下來）
 
 var P = {};
-// 陰影（畫質；60_render.js shadowPass）：每艘船一張陰影圖（uSh0…，太陽方向的正交投影，uShM0…），收的那一點落在哪張就用哪張（都在 ⇒ 取暗的）；
-//   格數照 MAX_SHIPS 生（TASK-0537），只查前 uNS 張（場上幾艘；沒用到的上限不吃效能）。一對一 ⇒ 跟以前同一個算式（min(min(s0, s1), 1)）。
+// 陰影（畫質；60_render.js shadowPass）：每艘船一張陰影圖（太陽方向的正交投影，uShM[k]），收的那一點落在哪張就用哪張（都在 ⇒ 取暗的）；
+//   全部放在同一個深度貼圖陣列 uShA（固定第 4 號）⇒ 船再多也只佔一個貼圖單元（TASK-0537：上限 8 艘時，每艘一張 ⇒ 片段著色器 16 個單元不夠）。
+//   第 k 層 ＝ 陰影的第 k 格（60_render.js gpuSlots：視野裡最近的 GFX.shships 艘），只查前 uNS 層（0 ＝ 一層都不查）；
+//   全局（沒排進去的船，uShG 開著才查）：矩陣 uShM[MAX_SHIPS]、層 uShGL（＝ uNS，緊接在後面 ⇒ 陣列只配用到的層數）、格子大 ⇒ 沿法線推得遠 uShOffG。
+//   一對一 ⇒ 跟以前同一個值：min(2, s0, s1) ＝ min(s0, s1)（shOne 最大就是 2）。
 //   uShOn ＝ 0 關、1 低（硬體 2×2）、2 高（再 4 點柔邊）；沿法線推出去 uShOff 公尺再比（⛔ 不推 ⇒ 平面上自己遮自己的條紋）；
 //   陽光越斜推越遠（呼叫端把法線乘 1～3 倍：斜面在陰影圖上一格跨的深度大）。
 // uClip：反射那一趟丟掉水面以下的（平常是 −10⁹）。
 // uSunK：直射光的強度（天氣；晴天 1）—— 收陰影的地方都乘 shadowK，順便乘在這裡。
-function nsList(pre) { var r = []; for (var k = 0; k < MAX_SHIPS; k++) r.push(pre + k); return r.join(','); }   // 'uSh0,uSh1,…'（MAX_SHIPS 格）
-function nsJoin(f, op) { var r = []; for (var k = 0; k < MAX_SHIPS; k++) r.push(f(k)); return r.join(op); }
-/** 第 k 艘的貼圖單元（00_core.js MAX_SHIPS 的說明）：船艙遮罩、陰影圖。 */
-function hullUnit(k) { return k < 2 ? 1 + k : 9 + 2 * (k - 2); }
-function shUnit(k) { return k < 2 ? 4 + k : 10 + 2 * (k - 2); }
-var SHADOW_GLSL = 'uniform highp sampler2DShadow ' + nsList('uSh') + '; uniform mat4 ' + nsList('uShM') + '; uniform int uNS; uniform float uShOn, uShPx, uShOff, uClip, uSunK;\n' +
-  'float shOne(highp sampler2DShadow S, mat4 M, vec3 w){ vec4 p=M*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
+var NS_SH = String(MAX_SHIPS), NS_MK = String(MASK_NEAR);                // 著色器的陣列長度：陰影照 MAX_SHIPS（＋1 格全局）、船艙遮罩照 MASK_NEAR（00_core.js）
+var SHADOW_GLSL = 'uniform highp sampler2DArrayShadow uShA; uniform mat4 uShM[' + (MAX_SHIPS + 1) + ']; uniform int uNS; uniform float uShOn, uShPx, uShOff, uShG, uShGL, uShOffG, uClip, uSunK;\n' +
+  'float shOne(int k, float L, vec3 w){ vec4 p=uShM[k]*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
   '  if(q.x<0.002||q.y<0.002||q.x>0.998||q.y>0.998||q.z>0.999) return 2.0; q.z-=0.0006;\n' +
-  '  if(uShOn<1.5) return texture(S,q);\n' +
-  '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
-  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; float m=shOne(uSh0,uShM0,p);' +
-  nsJoin(function (k) { return k ? ' if(uNS>' + k + ') m=min(m,shOne(uSh' + k + ',uShM' + k + ',p));' : ''; }, '') + ' return min(m,1.0)*uSunK; }\n';
-// 船艙遮罩（海、船邊水花的白沫共用；要有 in vec3 vW）：那一點換到船的格座標，落在原本船殼的外形裡（uHull0…：那艘船型每個 (x, z) 船殼的半寬）⇒ 呼叫端丟掉（HULL_HIT）。
-//   格數照 MAX_SHIPS；沒用到的那幾格 uHide ＝ 0 ⇒ 一比就跳過、不取樣。
-//   uHide ＝ 那艘還沒開始沉（60_render.js hullUniforms）
-var HULL_GLSL = 'uniform mat4 ' + nsList('uInv') + '; uniform float ' + nsList('uHide') + '; uniform sampler2D ' + nsList('uHull') + '; uniform vec3 ' + nsList('uHullK') + ';\n' +
-  'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n';
-var HULL_HIT = nsJoin(function (k) { return '(uHide' + k + '>0.5&&inHull(uInv' + k + ',uHull' + k + ',uHullK' + k + '))'; }, '||');   // 落在哪一艘的船艙裡（一對一 ＝ 以前那兩項）
+  '  if(uShOn<1.5) return texture(uShA,vec4(q.xy,L,q.z));\n' +
+  '  float e=uShPx*0.9; return 0.25*(texture(uShA,vec4(q.xy+vec2(-e,-e),L,q.z))+texture(uShA,vec4(q.xy+vec2(e,-e),L,q.z))+texture(uShA,vec4(q.xy+vec2(-e,e),L,q.z))+texture(uShA,vec4(q.xy+vec2(e,e),L,q.z))); }\n' +
+  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; float m=2.0;' +
+  ' for(int k=0;k<' + NS_SH + ';k++){ if(k>=uNS) break; m=min(m,shOne(k,float(k),p)); }' +
+  ' if(uShG>0.5) m=min(m,shOne(' + NS_SH + ',uShGL,w+n*uShOffG)); return min(m,1.0)*uSunK; }\n';
+// 船艙遮罩（海、船邊水花的白沫共用；要有 in vec3 vW）：那一點換到船的格座標，落在原本船殼的外形裡 ⇒ 呼叫端丟掉（HULL_HIT）。
+//   遮罩照船型一層（uHullA：R8 貼圖陣列，每層 ＝ 那一型每個 (x, z) 船殼的半寬；固定第 1 號；60_render.js hullArr）；
+//   格（60_render.js gpuSlots：視野裡最近的 GFX.masks 艘，最多 MASK_NEAR）：uInv[k]（世界 → 格）、uHullK[k] ＝ (那一型的寬, 高, 中線 y, 第幾層)、
+//   uHide[k] ＝ 那艘還沒開始沉（60_render.js hullUniforms）。沒用到的那幾格 uHide 0 ⇒ 一比就跳過、不取樣。uNM ＝ 用到幾格（透視 nearAny 也照它）。
+var HULL_GLSL = 'uniform mat4 uInv[' + NS_MK + ']; uniform float uHide[' + NS_MK + ']; uniform highp sampler2DArray uHullA; uniform vec4 uHullK[' + NS_MK + ']; uniform int uNM;\n' +
+  'bool inHull(int k){ vec4 K=uHullK[k]; vec4 l=uInv[k]*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(uHullA,ivec3(int(l.x),int(l.z),int(K.w)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n' +
+  'bool hullHit(){ for(int k=0;k<' + NS_MK + ';k++) if(uHide[k]>0.5&&inHull(k)) return true; return false; }\n';
+var HULL_HIT = 'hullHit()';                                              // 落在哪一艘的船艙裡
 // 剖面與隱藏甲板（停格；74_cutaway.js）：照船的格座標丟掉 —— uCut ＝ (中線 y, 剖哪一邊 ±1（0 ＝ 不剖）, 拿掉到第幾層（−1 ＝ 不拿）, 開關)；
 //   uCutT：那艘船型每一層的切高（R32F，寬 ＝ 格的 x、高 ＝ 層；照舷弧逐欄），uCutW.x ＝ 寬。模型、繩、帆另給 uCutInv（世界 → 格）。
 //   uCutT 一律指第 8 號（setCommon；沒開時綁 1×1 的空貼圖）：⛔ 預設的第 0 號 ⇒ 那一號綁著正在畫的畫布的貼圖時，整次繪製被丟掉（Feedback loop，量到 203 筆警告）——
@@ -97,8 +99,9 @@ function programs() {
     '    g+=d*st*(1.0-smoothstep(0.25*l,0.6*l,fp))*cos(dot(p,d)*k-sqrt(9.81*k)*uSeaT+hs1(fi*5.3)*6.2832); L*=0.8; st*=0.88; }\n' +
     '  return g*(0.45+1.1*vn(p*0.025+vec2(uSeaT*0.013,uSeaT*0.007))); }\n' +
     // 停格的「🔍 透視」（72_floodui.js）：船附近的海面不畫 ⇒ 看得到水線下的船殼與破口。uXb ＝ 那艘船型在格座標的中心與半長、半寬（xrBox），再往外 6 m（60 格）；uXr ＝ 0 ⇒ 照原本畫
-    'uniform float uXr; uniform vec4 ' + nsList('uXb') + '; bool nearShip(mat4 inv,vec4 b){ vec4 l=inv*vec4(vW,1.0); vec2 q=abs(l.xy-b.xy)-b.zw; return length(max(q,vec2(0.0)))<60.0; }\n' +
-    'void main(){ if(' + HULL_HIT + ') discard; if(uXr>0.5&&(' + nsJoin(function (k) { return '(uNS>' + k + '&&nearShip(uInv' + k + ',uXb' + k + '))'; }, '||') + ')) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
+    'uniform float uXr; uniform vec4 uXb[' + NS_MK + ']; bool nearShip(int k){ vec4 b=uXb[k]; vec4 l=uInv[k]*vec4(vW,1.0); vec2 q=abs(l.xy-b.xy)-b.zw; return length(max(q,vec2(0.0)))<60.0; }\n' +
+    'bool nearAny(){ for(int k=0;k<' + NS_MK + ';k++){ if(k>=uNM) break; if(nearShip(k)) return true; } return false; }\n' +
+    'void main(){ if(' + HULL_HIT + ') discard; if(uXr>0.5&&nearAny()) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
     ' vec2 dd=fwidth(vW.xz); float fp=max(dd.x,dd.y);\n' +
     ' vec2 g=seaGf(p,fp)+detail(p,fp);\n' +
     ' vec3 n=normalize(vec3(-g.x,1.0,-g.y)); vec3 v=normalize(uEye-vW); float fr=0.04+0.96*pow(1.0-max(dot(n,v),0.0),5.0);\n' +
@@ -150,11 +153,13 @@ function setCommon(p) {
   if (u.uSunK) gl.uniform1f(u.uSunK, WX.sun);                   // 天氣（08_weather.js）：陽光、水手與碎木的亮度、白沫
   if (u.uLum) gl.uniform1f(u.uLum, WX.lum);
   if (u.uFoam) gl.uniform1f(u.uFoam, WX.foam);
-  if (u.uNS) gl.uniform1i(u.uNS, nsGPU());                      // 場上幾艘（陰影、透視只跑這幾格；60_render.js）
-  if (u.uShOn) {                                              // 陰影圖綁在 shUnit(k) 號（60_render.js render 開頭綁）；沒有那張 ⇒ 指第一張（每個取樣器都要指到深度貼圖，就算分支沒走到）
+  if (u.uNS) gl.uniform1i(u.uNS, SSLOTS.length);               // 陰影用到幾格（60_render.js gpuSlots）
+  if (u.uNM) gl.uniform1i(u.uNM, MSLOTS.length);               // 船艙遮罩、透視用到幾格
+  if (u.uShOn) {                                              // 陰影圖陣列綁在第 4 號（60_render.js render 開頭綁）；每一層的矩陣一次給（沒用到的 ＝ FAR_M）
     gl.uniform1f(u.uShOn, PASS.sh ? GFX.shadow : 0);
-    for (var k = 0; k < MAX_SHIPS; k++) { var mk = SHM.maps[k]; gl.uniform1i(u['uSh' + k], shUnit(mk ? k : 0)); gl.uniformMatrix4fv(u['uShM' + k], false, mk ? mk.m : FAR_M); }
+    gl.uniform1i(u.uShA, 4); gl.uniformMatrix4fv(u.uShM, false, SHM.mats);
     gl.uniform1f(u.uShPx, 1 / SHM.n); gl.uniform1f(u.uShOff, SHM.off);
+    gl.uniform1f(u.uShG, SHM.glob ? 1 : 0); gl.uniform1f(u.uShGL, SSLOTS.length); gl.uniform1f(u.uShOffG, SHM.offG);
   }
 }
 /** 船殼的著色器：VoxelKit 那一份＋這個遊戲要的（水下的顏色照浪的水面）。⛔ 不改 VoxelKit（別的作品也用）；找不到要換的那一段 ⇒ 照原本的畫。 */

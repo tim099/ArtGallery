@@ -213,9 +213,7 @@
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
       </div>
-      <div class="row" id="dists">距離
-        <button data-d="90">90 m</button><button data-d="140" class="on">140 m</button><button data-d="220">220 m</button>
-      </div>
+      <div class="row slide" id="dists"><label for="dist">距離</label><input type="range" id="dist" step="10" aria-label="開局兩邊船頭相距幾公尺"><span id="distV"></span></div>
       <div class="row" id="wxs">天氣
         <button data-w="clear">晴</button><button data-w="storm">暴風雨</button>
       </div>
@@ -248,12 +246,13 @@
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="gfxp" style="display:none">
       <h2>畫質設定</h2>
-      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa= ?g_rain= ?g_drops= ?g_dropspl=（第幾檔，從 0 起）</div>
+      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa= ?g_rain= ?g_drops= ?g_dropspl= ?g_shships= ?g_masks=（第幾檔，從 0 起）</div>
       <div class="row" id="gfxPre">預設 <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button>　<span id="gfxLv" class="note"></span></div>
       <div id="gfxItems"></div>
       <div class="row checks"><label><input type="checkbox" id="gfxFps"> 顯示 FPS（畫面上方中間）</label></div>
       <div class="row note">比較吃效能的是陰影（船多畫兩趟）、反射（再畫一趟鏡像）、解析度與反鋸齒（每個像素的成本）；海面細緻度是海的網格多密、漣漪幾道。浪的大小是物理，在「細節設定」。<br>
-        雨只在暴風雨下：「雨」是整個畫面一層的雨絲；「雨滴（3D）」是鏡頭周圍 3D 空間裡的雨絲（跟著風斜、會被船擋住）；「雨滴水花」是它打在海面與甲板上濺的那一下。高 ＝ 只開 3D 的多＋水花；兩種雨可以一起開。</div>
+        雨只在暴風雨下：「雨」是整個畫面一層的雨絲；「雨滴（3D）」是鏡頭周圍 3D 空間裡的雨絲（跟著風斜、會被船擋住）；「雨滴水花」是它打在海面與甲板上濺的那一下。高 ＝ 只開 3D 的多＋水花；兩種雨可以一起開。<br>
+        <span id="gfxNote">多船時（上限 8 艘）只有視野裡離鏡頭最近的幾艘有：<b>陰影船數</b> ＝ 幾艘有自己的陰影圖（其他的船畫進一張罩住它們的全局陰影圖，比較粗；0 ＝ 全部只靠全局那一張）；<b>船艙遮罩</b> ＝ 幾艘的船艙裡不畫海水 —— 海面是一整片平面、會穿過船身（艙底在水線下），沒有遮罩的船，從艙口、砲門、被打穿的破洞、停格的拿掉甲板／剖面看進去，艙裡會有一層海水像淹了（遠處看不出來；船開始沉之後本來就不擋）。排不進去的船也沒有停格的「透視」。兩項在船數不超過那個數時都是每艘都有。</span></div>
       <div class="row"><button id="gfxX">返回</button></div>
     </div>
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->

@@ -213,9 +213,7 @@
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
       </div>
-      <div class="row" id="dists">距離
-        <button data-d="90">90 m</button><button data-d="140" class="on">140 m</button><button data-d="220">220 m</button>
-      </div>
+      <div class="row slide" id="dists"><label for="dist">距離</label><input type="range" id="dist" step="10" aria-label="開局兩邊船頭相距幾公尺"><span id="distV"></span></div>
       <div class="row" id="wxs">天氣
         <button data-w="clear">晴</button><button data-w="storm">暴風雨</button>
       </div>
@@ -248,12 +246,13 @@
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="gfxp" style="display:none">
       <h2>畫質設定</h2>
-      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa= ?g_rain= ?g_drops= ?g_dropspl=（第幾檔，從 0 起）</div>
+      <div class="sub">只改畫面、不改戰局（同一個種子、同樣的設定，低與高打出來一模一樣）；改了立刻生效，跟著設定存檔。<br>網址：?gfx=low｜mid｜high，單項 ?g_shadow= ?g_refl= ?g_refr= ?g_sea= ?g_res= ?g_aa= ?g_rain= ?g_drops= ?g_dropspl= ?g_shships= ?g_masks=（第幾檔，從 0 起）</div>
       <div class="row" id="gfxPre">預設 <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button>　<span id="gfxLv" class="note"></span></div>
       <div id="gfxItems"></div>
       <div class="row checks"><label><input type="checkbox" id="gfxFps"> 顯示 FPS（畫面上方中間）</label></div>
       <div class="row note">比較吃效能的是陰影（船多畫兩趟）、反射（再畫一趟鏡像）、解析度與反鋸齒（每個像素的成本）；海面細緻度是海的網格多密、漣漪幾道。浪的大小是物理，在「細節設定」。<br>
-        雨只在暴風雨下：「雨」是整個畫面一層的雨絲；「雨滴（3D）」是鏡頭周圍 3D 空間裡的雨絲（跟著風斜、會被船擋住）；「雨滴水花」是它打在海面與甲板上濺的那一下。高 ＝ 只開 3D 的多＋水花；兩種雨可以一起開。</div>
+        雨只在暴風雨下：「雨」是整個畫面一層的雨絲；「雨滴（3D）」是鏡頭周圍 3D 空間裡的雨絲（跟著風斜、會被船擋住）；「雨滴水花」是它打在海面與甲板上濺的那一下。高 ＝ 只開 3D 的多＋水花；兩種雨可以一起開。<br>
+        <span id="gfxNote">多船時（上限 8 艘）只有視野裡離鏡頭最近的幾艘有：<b>陰影船數</b> ＝ 幾艘有自己的陰影圖（其他的船畫進一張罩住它們的全局陰影圖，比較粗；0 ＝ 全部只靠全局那一張）；<b>船艙遮罩</b> ＝ 幾艘的船艙裡不畫海水 —— 海面是一整片平面、會穿過船身（艙底在水線下），沒有遮罩的船，從艙口、砲門、被打穿的破洞、停格的拿掉甲板／剖面看進去，艙裡會有一層海水像淹了（遠處看不出來；船開始沉之後本來就不擋）。排不進去的船也沒有停格的「透視」。兩項在船數不超過那個數時都是每艘都有。</span></div>
       <div class="row"><button id="gfxX">返回</button></div>
     </div>
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
@@ -806,9 +805,12 @@ function hash3(x, y, z) { var h = (Math.imul(x, 374761393) + Math.imul(y, 668265
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
 // ───────────────────────── 常數 ─────────────────────────
-// 一場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4、改檔案可調，不做遊戲內設定）：GPU 的格數（陰影圖、船艙遮罩）照它生著色器，場上沒用到的格不跑（52_fleet.js）。
-//   貼圖單元：前兩艘照舊（船艙 1–2、陰影 4–5），第三艘起 9、10、11…（每艘兩號）⇒ 5 艘用到 15 號（WebGL2 片段著色器至少 16 個）；再多要先看 MAX_TEXTURE_IMAGE_UNITS。
-var MAX_SHIPS = 4;
+// 一場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4 ⇒ 8，改檔案可調；之後放進設定後台 TASK-0542）。
+// 每一格只給「視野裡離鏡頭最近的幾艘」GPU 的格（Tim 2026-10-13「優先選最近的 N 條船，超過的就沒陰影＆遮罩」「超過的靠全局覆蓋」「只選視野範圍內最近的」；60_render.js gpuSlots）：
+//   · 自己的陰影圖：最近的 GFX.shships 艘（畫質設定「陰影船數」0～MAX_SHIPS，最高畫質 ＝ MAX_SHIPS）；其他的船畫進一張罩住它們的全局陰影圖（解析度低）。
+//   · 船艙遮罩（與透視）：最近的 MASK_NEAR 艘；其他的沒有（遠處看不到艙裡）。
+//   陰影圖、船艙遮罩都是貼圖陣列（各佔一個單元：陰影第 4 號、遮罩第 1 號）⇒ 船數不受貼圖單元限制。
+var MAX_SHIPS = 8, MASK_NEAR = 4;
 var DT = 1 / 60, G = 9.81, V0 = 175, ZW0 = 63;    // ZW0：沒有 meta 時的設計水線（憲法號吃水 63 格，basecamp 的下水段同一個數）；每種船的在 T.zw
 var RELOAD = 7, RELOAD_SANDBOX = 1.6;
 var AMMO = ['實心彈', '爆裂彈', '鏈彈'];
@@ -836,30 +838,32 @@ function fail(msg) { var e = $('err'); e.style.display = 'block'; e.textContent 
 if (!gl) { fail('這個瀏覽器沒有 WebGL2，畫不出來。'); throw new Error('no WebGL2'); }   // 拆檔後這裡是閉包的頂層：throw ＝ 原本的 return（停下來）
 
 var P = {};
-// 陰影（畫質；60_render.js shadowPass）：每艘船一張陰影圖（uSh0…，太陽方向的正交投影，uShM0…），收的那一點落在哪張就用哪張（都在 ⇒ 取暗的）；
-//   格數照 MAX_SHIPS 生（TASK-0537），只查前 uNS 張（場上幾艘；沒用到的上限不吃效能）。一對一 ⇒ 跟以前同一個算式（min(min(s0, s1), 1)）。
+// 陰影（畫質；60_render.js shadowPass）：每艘船一張陰影圖（太陽方向的正交投影，uShM[k]），收的那一點落在哪張就用哪張（都在 ⇒ 取暗的）；
+//   全部放在同一個深度貼圖陣列 uShA（固定第 4 號）⇒ 船再多也只佔一個貼圖單元（TASK-0537：上限 8 艘時，每艘一張 ⇒ 片段著色器 16 個單元不夠）。
+//   第 k 層 ＝ 陰影的第 k 格（60_render.js gpuSlots：視野裡最近的 GFX.shships 艘），只查前 uNS 層（0 ＝ 一層都不查）；
+//   全局（沒排進去的船，uShG 開著才查）：矩陣 uShM[MAX_SHIPS]、層 uShGL（＝ uNS，緊接在後面 ⇒ 陣列只配用到的層數）、格子大 ⇒ 沿法線推得遠 uShOffG。
+//   一對一 ⇒ 跟以前同一個值：min(2, s0, s1) ＝ min(s0, s1)（shOne 最大就是 2）。
 //   uShOn ＝ 0 關、1 低（硬體 2×2）、2 高（再 4 點柔邊）；沿法線推出去 uShOff 公尺再比（⛔ 不推 ⇒ 平面上自己遮自己的條紋）；
 //   陽光越斜推越遠（呼叫端把法線乘 1～3 倍：斜面在陰影圖上一格跨的深度大）。
 // uClip：反射那一趟丟掉水面以下的（平常是 −10⁹）。
 // uSunK：直射光的強度（天氣；晴天 1）—— 收陰影的地方都乘 shadowK，順便乘在這裡。
-function nsList(pre) { var r = []; for (var k = 0; k < MAX_SHIPS; k++) r.push(pre + k); return r.join(','); }   // 'uSh0,uSh1,…'（MAX_SHIPS 格）
-function nsJoin(f, op) { var r = []; for (var k = 0; k < MAX_SHIPS; k++) r.push(f(k)); return r.join(op); }
-/** 第 k 艘的貼圖單元（00_core.js MAX_SHIPS 的說明）：船艙遮罩、陰影圖。 */
-function hullUnit(k) { return k < 2 ? 1 + k : 9 + 2 * (k - 2); }
-function shUnit(k) { return k < 2 ? 4 + k : 10 + 2 * (k - 2); }
-var SHADOW_GLSL = 'uniform highp sampler2DShadow ' + nsList('uSh') + '; uniform mat4 ' + nsList('uShM') + '; uniform int uNS; uniform float uShOn, uShPx, uShOff, uClip, uSunK;\n' +
-  'float shOne(highp sampler2DShadow S, mat4 M, vec3 w){ vec4 p=M*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
+var NS_SH = String(MAX_SHIPS), NS_MK = String(MASK_NEAR);                // 著色器的陣列長度：陰影照 MAX_SHIPS（＋1 格全局）、船艙遮罩照 MASK_NEAR（00_core.js）
+var SHADOW_GLSL = 'uniform highp sampler2DArrayShadow uShA; uniform mat4 uShM[' + (MAX_SHIPS + 1) + ']; uniform int uNS; uniform float uShOn, uShPx, uShOff, uShG, uShGL, uShOffG, uClip, uSunK;\n' +
+  'float shOne(int k, float L, vec3 w){ vec4 p=uShM[k]*vec4(w,1.0); vec3 q=p.xyz*0.5+0.5;\n' +
   '  if(q.x<0.002||q.y<0.002||q.x>0.998||q.y>0.998||q.z>0.999) return 2.0; q.z-=0.0006;\n' +
-  '  if(uShOn<1.5) return texture(S,q);\n' +
-  '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
-  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; float m=shOne(uSh0,uShM0,p);' +
-  nsJoin(function (k) { return k ? ' if(uNS>' + k + ') m=min(m,shOne(uSh' + k + ',uShM' + k + ',p));' : ''; }, '') + ' return min(m,1.0)*uSunK; }\n';
-// 船艙遮罩（海、船邊水花的白沫共用；要有 in vec3 vW）：那一點換到船的格座標，落在原本船殼的外形裡（uHull0…：那艘船型每個 (x, z) 船殼的半寬）⇒ 呼叫端丟掉（HULL_HIT）。
-//   格數照 MAX_SHIPS；沒用到的那幾格 uHide ＝ 0 ⇒ 一比就跳過、不取樣。
-//   uHide ＝ 那艘還沒開始沉（60_render.js hullUniforms）
-var HULL_GLSL = 'uniform mat4 ' + nsList('uInv') + '; uniform float ' + nsList('uHide') + '; uniform sampler2D ' + nsList('uHull') + '; uniform vec3 ' + nsList('uHullK') + ';\n' +
-  'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n';
-var HULL_HIT = nsJoin(function (k) { return '(uHide' + k + '>0.5&&inHull(uInv' + k + ',uHull' + k + ',uHullK' + k + '))'; }, '||');   // 落在哪一艘的船艙裡（一對一 ＝ 以前那兩項）
+  '  if(uShOn<1.5) return texture(uShA,vec4(q.xy,L,q.z));\n' +
+  '  float e=uShPx*0.9; return 0.25*(texture(uShA,vec4(q.xy+vec2(-e,-e),L,q.z))+texture(uShA,vec4(q.xy+vec2(e,-e),L,q.z))+texture(uShA,vec4(q.xy+vec2(-e,e),L,q.z))+texture(uShA,vec4(q.xy+vec2(e,e),L,q.z))); }\n' +
+  'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; float m=2.0;' +
+  ' for(int k=0;k<' + NS_SH + ';k++){ if(k>=uNS) break; m=min(m,shOne(k,float(k),p)); }' +
+  ' if(uShG>0.5) m=min(m,shOne(' + NS_SH + ',uShGL,w+n*uShOffG)); return min(m,1.0)*uSunK; }\n';
+// 船艙遮罩（海、船邊水花的白沫共用；要有 in vec3 vW）：那一點換到船的格座標，落在原本船殼的外形裡 ⇒ 呼叫端丟掉（HULL_HIT）。
+//   遮罩照船型一層（uHullA：R8 貼圖陣列，每層 ＝ 那一型每個 (x, z) 船殼的半寬；固定第 1 號；60_render.js hullArr）；
+//   格（60_render.js gpuSlots：視野裡最近的 GFX.masks 艘，最多 MASK_NEAR）：uInv[k]（世界 → 格）、uHullK[k] ＝ (那一型的寬, 高, 中線 y, 第幾層)、
+//   uHide[k] ＝ 那艘還沒開始沉（60_render.js hullUniforms）。沒用到的那幾格 uHide 0 ⇒ 一比就跳過、不取樣。uNM ＝ 用到幾格（透視 nearAny 也照它）。
+var HULL_GLSL = 'uniform mat4 uInv[' + NS_MK + ']; uniform float uHide[' + NS_MK + ']; uniform highp sampler2DArray uHullA; uniform vec4 uHullK[' + NS_MK + ']; uniform int uNM;\n' +
+  'bool inHull(int k){ vec4 K=uHullK[k]; vec4 l=uInv[k]*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(uHullA,ivec3(int(l.x),int(l.z),int(K.w)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n' +
+  'bool hullHit(){ for(int k=0;k<' + NS_MK + ';k++) if(uHide[k]>0.5&&inHull(k)) return true; return false; }\n';
+var HULL_HIT = 'hullHit()';                                              // 落在哪一艘的船艙裡
 // 剖面與隱藏甲板（停格；74_cutaway.js）：照船的格座標丟掉 —— uCut ＝ (中線 y, 剖哪一邊 ±1（0 ＝ 不剖）, 拿掉到第幾層（−1 ＝ 不拿）, 開關)；
 //   uCutT：那艘船型每一層的切高（R32F，寬 ＝ 格的 x、高 ＝ 層；照舷弧逐欄），uCutW.x ＝ 寬。模型、繩、帆另給 uCutInv（世界 → 格）。
 //   uCutT 一律指第 8 號（setCommon；沒開時綁 1×1 的空貼圖）：⛔ 預設的第 0 號 ⇒ 那一號綁著正在畫的畫布的貼圖時，整次繪製被丟掉（Feedback loop，量到 203 筆警告）——
@@ -929,8 +933,9 @@ function programs() {
     '    g+=d*st*(1.0-smoothstep(0.25*l,0.6*l,fp))*cos(dot(p,d)*k-sqrt(9.81*k)*uSeaT+hs1(fi*5.3)*6.2832); L*=0.8; st*=0.88; }\n' +
     '  return g*(0.45+1.1*vn(p*0.025+vec2(uSeaT*0.013,uSeaT*0.007))); }\n' +
     // 停格的「🔍 透視」（72_floodui.js）：船附近的海面不畫 ⇒ 看得到水線下的船殼與破口。uXb ＝ 那艘船型在格座標的中心與半長、半寬（xrBox），再往外 6 m（60 格）；uXr ＝ 0 ⇒ 照原本畫
-    'uniform float uXr; uniform vec4 ' + nsList('uXb') + '; bool nearShip(mat4 inv,vec4 b){ vec4 l=inv*vec4(vW,1.0); vec2 q=abs(l.xy-b.xy)-b.zw; return length(max(q,vec2(0.0)))<60.0; }\n' +
-    'void main(){ if(' + HULL_HIT + ') discard; if(uXr>0.5&&(' + nsJoin(function (k) { return '(uNS>' + k + '&&nearShip(uInv' + k + ',uXb' + k + '))'; }, '||') + ')) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
+    'uniform float uXr; uniform vec4 uXb[' + NS_MK + ']; bool nearShip(int k){ vec4 b=uXb[k]; vec4 l=uInv[k]*vec4(vW,1.0); vec2 q=abs(l.xy-b.xy)-b.zw; return length(max(q,vec2(0.0)))<60.0; }\n' +
+    'bool nearAny(){ for(int k=0;k<' + NS_MK + ';k++){ if(k>=uNM) break; if(nearShip(k)) return true; } return false; }\n' +
+    'void main(){ if(' + HULL_HIT + ') discard; if(uXr>0.5&&nearAny()) discard; vec2 p=vW.xz; float fd0=length(vW-uEye); float k0=1.0-smoothstep(300.0,1400.0,fd0), k1=1.0-smoothstep(60.0,260.0,fd0), k2=1.0-smoothstep(25.0,110.0,fd0);\n' +
     ' vec2 dd=fwidth(vW.xz); float fp=max(dd.x,dd.y);\n' +
     ' vec2 g=seaGf(p,fp)+detail(p,fp);\n' +
     ' vec3 n=normalize(vec3(-g.x,1.0,-g.y)); vec3 v=normalize(uEye-vW); float fr=0.04+0.96*pow(1.0-max(dot(n,v),0.0),5.0);\n' +
@@ -982,11 +987,13 @@ function setCommon(p) {
   if (u.uSunK) gl.uniform1f(u.uSunK, WX.sun);                   // 天氣（08_weather.js）：陽光、水手與碎木的亮度、白沫
   if (u.uLum) gl.uniform1f(u.uLum, WX.lum);
   if (u.uFoam) gl.uniform1f(u.uFoam, WX.foam);
-  if (u.uNS) gl.uniform1i(u.uNS, nsGPU());                      // 場上幾艘（陰影、透視只跑這幾格；60_render.js）
-  if (u.uShOn) {                                              // 陰影圖綁在 shUnit(k) 號（60_render.js render 開頭綁）；沒有那張 ⇒ 指第一張（每個取樣器都要指到深度貼圖，就算分支沒走到）
+  if (u.uNS) gl.uniform1i(u.uNS, SSLOTS.length);               // 陰影用到幾格（60_render.js gpuSlots）
+  if (u.uNM) gl.uniform1i(u.uNM, MSLOTS.length);               // 船艙遮罩、透視用到幾格
+  if (u.uShOn) {                                              // 陰影圖陣列綁在第 4 號（60_render.js render 開頭綁）；每一層的矩陣一次給（沒用到的 ＝ FAR_M）
     gl.uniform1f(u.uShOn, PASS.sh ? GFX.shadow : 0);
-    for (var k = 0; k < MAX_SHIPS; k++) { var mk = SHM.maps[k]; gl.uniform1i(u['uSh' + k], shUnit(mk ? k : 0)); gl.uniformMatrix4fv(u['uShM' + k], false, mk ? mk.m : FAR_M); }
+    gl.uniform1i(u.uShA, 4); gl.uniformMatrix4fv(u.uShM, false, SHM.mats);
     gl.uniform1f(u.uShPx, 1 / SHM.n); gl.uniform1f(u.uShOff, SHM.off);
+    gl.uniform1f(u.uShG, SHM.glob ? 1 : 0); gl.uniform1f(u.uShGL, SSLOTS.length); gl.uniform1f(u.uShOffG, SHM.offG);
   }
 }
 /** 船殼的著色器：VoxelKit 那一份＋這個遊戲要的（水下的顏色照浪的水面）。⛔ 不改 VoxelKit（別的作品也用）；找不到要換的那一段 ⇒ 照原本的畫。 */
@@ -1221,7 +1228,10 @@ if (Q.has('strike')) Q.get('strike').split(',').forEach(function (w) {
 var CAP_SET = ['random', 'random'];
 if (Q.has('cap')) Q.get('cap').split(',').forEach(function (w, i) { if (i < 2) CAP_SET[i] = w; });
 var LAST_MODE = null;                                // 上一場的模式（自動開砲換了模式才套預設，見 reset）
-var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
+// DIST：開局兩邊船頭相距幾公尺（主選單滑桿，範圍 LIM_DIST；網址 ?dist=）。Tim 2026-10-13：「距離改成滑桿、50～1000 m」「兩邊船頭相對互相接近，而不是直接橫排一開場就開砲」。
+//   電腦想保持的交戰距離另算（aiRange，31_sailing.js：夾在 90～220 m；⛔ 照 DIST ⇒ 開局 1000 m 時電腦在 1000 m 外繞圈、打不到）。
+var LIM_DIST = [50, 1000, 140];
+var MODE = 'pve', DIST = Q.has('dist') && isFinite(+Q.get('dist')) ? clamp(Math.round(+Q.get('dist')), LIM_DIST[0], LIM_DIST[1]) : LIM_DIST[2], SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
 var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
 // 殉爆的慢動作與特寫（73_slowmo.js）：on／cam 是設定；ts 現在的時間倍率。SLOW_VIS：這一格畫面裡只給人看的效果改由 frame 走（step() 讀它決定要不要跳過）
@@ -1232,7 +1242,7 @@ var PHYS = Q.get('phys') !== '0';                      // 帆與繩的物理（�
 // ───────────────────────── 船型（一種船一份；兩艘同型就共用） ─────────────────────────
 // 船型 T：內嵌的 .vxk（<script type="application/x-vxk" id="…">）解碼之後的一切 —— 格子（T.base）、合併過的網格（T.pristine）、
 //   繩與帆與模型（T.rig）、模型的網格（T.meshes）、桅（T.masts）、帆的布模板（T.cloth）、水線（T.wl0／wl1／bowHalf）、
-//   海面遮罩（T.hullTex）、浮力表（T.hyd／disp），以及從 header 來的中線、外框、設計水線（T.cx／cy／hx0／hx1／zw／sz）。
+//   海面遮罩（T.hullHB）、浮力表（T.hyd／disp），以及從 header 來的中線、外框、設計水線（T.cx／cy／hx0／hx1／zw／sz）。
 // 每艘船 sh.T 指向它的船型；⛔ 船型是共用的、不能改（被打掉的格子在 sh.grid：Grid.share 寫的時候才複製那一塊）。
 // 只在被選到時才解碼（Tim 2026-10-12：預設只載憲法號，其他船選了才載）—— 資料本身還是內嵌在同一個 HTML 裡
 //   （畫廊的 iframe 只開 allow-scripts、讀不了旁邊的檔，展品也要零外部依賴），省的是解碼與網格化的時間和記憶體。
@@ -1439,11 +1449,15 @@ var GFX_ITEMS = [
   { k: 'aa', name: '反鋸齒', opt: ['關', '開（MSAA 4×）'] },
   { k: 'rain', name: '雨', opt: ['關', '低（稀）', '高（密）'] },     // 只在暴風雨下（08_weather.js）：整個畫面一層
   { k: 'drops', name: '雨滴（3D）', opt: ['關', '少（1500）', '中（3000）', '多（6000）'] },   // 只在暴風雨下：3D 空間裡的雨絲粒子（14_rain.js）
-  { k: 'dropspl', name: '雨滴水花', opt: ['關', '開'] }];                                   // 3D 雨滴打在海面與船上濺起的小水花
+  { k: 'dropspl', name: '雨滴水花', opt: ['關', '開'] },                                    // 3D 雨滴打在海面與船上濺起的小水花
+  // 多船（TASK-0537；60_render.js gpuSlots）：視野裡離鏡頭最近的幾艘才有自己的陰影圖／船艙遮罩（第幾檔 ＝ 幾艘）
+  { k: 'shships', name: '陰影船數', opt: gfxOpts(MAX_SHIPS + 1, function (i) { return i ? String(i) : '0（只有全局）'; }) },   // 其他的船畫進一張全局陰影圖（解析度低）
+  { k: 'masks', name: '船艙遮罩', opt: gfxOpts(MASK_NEAR + 1, function (i) { return i ? String(i) : '0（艙裡看得到海）'; }) }];   // 說明在畫質設定頁（template #gfxNote）
+function gfxOpts(n, f) { var r = []; for (var i = 0; i < n; i++) r.push(f(i)); return r; }
 var GFX_PRESET = {
-  low: { shadow: 0, refl: 0, refr: 0, sea: 0, res: 1, aa: 0, rain: 0, drops: 0, dropspl: 0 },
-  mid: { shadow: 1, refl: 1, refr: 1, sea: 1, res: 2, aa: 1, rain: 1, drops: 0, dropspl: 0 },
-  high: { shadow: 2, refl: 2, refr: 2, sea: 2, res: 2, aa: 1, rain: 0, drops: 3, dropspl: 1 } };
+  low: { shadow: 0, refl: 0, refr: 0, sea: 0, res: 1, aa: 0, rain: 0, drops: 0, dropspl: 0, shships: 2, masks: 2 },
+  mid: { shadow: 1, refl: 1, refr: 1, sea: 1, res: 2, aa: 1, rain: 1, drops: 0, dropspl: 0, shships: 4, masks: MASK_NEAR },
+  high: { shadow: 2, refl: 2, refr: 2, sea: 2, res: 2, aa: 1, rain: 0, drops: 3, dropspl: 1, shships: MAX_SHIPS, masks: MASK_NEAR } };   // 最高 ＝ 每艘都有（Tim 2026-10-13「最高畫質開到 N」）
 var GFX_NAME = { low: '低', mid: '中', high: '高', custom: '自訂' }, GFX_DEFAULT = 'mid';
 var GFX = {}, GFX_FPS = false;                     // GFX_FPS：畫面右上角顯示 FPS（畫質設定頁的勾選）
 var GFX_RES = [0.5, 0.75, 1];                      // 解析度：乘在畫布的像素上（畫布 ＝ 螢幕像素，裝置像素比最多 1.5）
@@ -2514,6 +2528,21 @@ function broadside(sh, ammo, careful) {                            // careful：
     EVENTS.push({ t: SIMT + k * 0.075 + rr(0, 0.03), sh: sh.i, g: g, ammo: ammo, off: off }); k++;   // 瞄準點在開火那一刻才算（兩艘都在動）
   });
   if (k) { sh.salvo++; sh.salvoT = SIMT; }
+  return k;
+}
+/** 暫時把瞄準點換成 (aim, on) 跑 f（瞄準、前置量、gunTarget 都讀 sh.aim／aimShip）——另一舷的那一輪齊射用（50_sim.js aiSecond），跑完換回來。 */
+function withAim(sh, aim, on, f) { var a = sh.aim, o = sh.aimOn; sh.aim = aim; sh.aimOn = on; try { return f(); } finally { sh.aim = a; sh.aimOn = o; } }
+/** 另一舷的齊射（Tim 2026-10-13：兩側都有敵人時兩舷都開）：瞄 on 那艘的 aim（格座標），只排 guns 這幾門；瞄準點記在每一發上（e.on、e.aim），
+ *  開火那一刻照它算 ⇒ 主要那一輪換了瞄準點也不會把這一輪拉過去。 */
+function broadsideAt(sh, ammo, on, aim, guns) {
+  if (sh.struck) return 0;
+  var k = 0, mid = 0;
+  guns.forEach(function (g) { mid += g.muz[0]; }); mid /= guns.length || 1;
+  guns.forEach(function (g) {
+    var off = (g.muz[0] - mid) * S * (ammo === 2 ? 0.15 : 1);
+    EVENTS.push({ t: SIMT + k * 0.075 + rr(0, 0.03), sh: sh.i, g: g, ammo: ammo, off: off, on: on, aim: aim }); k++;
+  });
+  if (k) { sh.salvo++; sh.salvoT = SIMT; sh.salvo2 = (sh.salvo2 || 0) + 1; }
   return k;
 }
 function fireOne(sh, ammo) {
@@ -3786,6 +3815,8 @@ function waterline(T) {
   for (y = 0; y < G.sy; y++) if (G.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
   T.bowHalf = hi >= lo ? (hi - lo) / 2 + 3 : 20;
 }
+/** 電腦想保持的交戰距離（m）：開局距離夾在 90～220 m（以前距離只有 90／140／220 三檔、開局就在這個距離）。 */
+function aiRange() { return clamp(DIST, 90, 220); }
 function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 −y（左舷 P）那一側轉 ＝ 畫面上的左轉
 function sideName(side) { return side === 'S' ? '右舷' : '左舷'; }        // 模型的 S（格 +y）＝ 右舷（shipBaseMatrix 照雕刻引擎的手性）
 var SAILSETS = ['全收', '收帆', '戰鬥帆', '滿帆'];
@@ -3853,7 +3884,8 @@ function sail(sh, dt) {
       // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦
       var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? 1 : -1;   // sg：敵艦要在畫面左邊（左舷 P）⇒ +1
       var dx = foe.px - sh.px, dz = foe.pz - sh.pz, d = Math.hypot(dx, dz) || 1;
-      tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - DIST) / DIST * 1.5, -0.4, 0.4);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
+      var R = aiRange();                                                 // 想保持的交戰距離：遠了往敵艦切（遠很多 ⇒ 最多切 1.2 rad，幾乎船頭對著開過去）、近了往外拉（最多 0.4）
+      tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - R) / R * 1.5, -0.4, 1.2);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }
     if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av !== null) tY = av; }   // 讓友船（52_fleet.js；沒有友船 ⇒ null）
     var e = Math.atan2(Math.sin(tY - sh.yaw), Math.cos(tY - sh.yaw));
@@ -5405,6 +5437,7 @@ function ai(sh, dt) {
   if (sh.sunk || sh.struck || sh.sinkingFinal || !foe) return;
   if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
   captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
+  aiSecond(sh, foe, dt);                                            // 另一舷：對不到目標、但對得到別的敵艦的那幾門（沒有別的敵艦 ⇒ 什麼都不做）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
   var ready = 0, alive = 0, held = 0, FK = friendKeels(sh);         // 隔著友船的那幾門不算（52_fleet.js；沒有友船 ⇒ 空的）
@@ -5418,6 +5451,34 @@ function ai(sh, dt) {
   broadside(sh, ammo, true);
   sh.aiWait = rr(1.0, 3.5);
 }
+/** 兩舷都開（Tim 2026-10-13：「兩側都有敵人時，也只能單側開砲」）：主要目標 foe 照舊（ai）；另外挑一艘別的敵艦（近的先），
+ *  拿「對不到 foe、對得到它」的那幾門（還沒排進齊射、沒隔著友船）另開一輪 —— 自己的節奏 sh.aiWait2、自己的瞄準點（broadsideAt）。
+ *  只有別的敵艦時才動（一對一 ⇒ 一進來就回去，不抽亂數 ⇒ 一位元都不差）。 */
+function aiSecond(sh, foe, dt) {
+  var others = SHIPS.filter(function (o) { return isFoe(sh, o) && o !== foe && !o.sunk && !o.struck && !o.sinkingFinal && o.center; });
+  if (!others.length) return;
+  sh.aiWait2 = (sh.aiWait2 || 0) - dt; if (sh.aiWait2 > 0) return;
+  sh.aiWait2 = 0.5;                                                 // 沒開成 ⇒ 半秒後再看
+  others.sort(function (a, b) { return Math.hypot(a.px - sh.px, a.pz - sh.pz) - Math.hypot(b.px - sh.px, b.pz - sh.pz); });
+  var pend = EVENTS.filter(function (e) { return e.sh === sh.i; }).map(function (e) { return e.g; }), FK = friendKeels(sh);
+  var fAim = [foe.T.cx, foe.T.cy, foe.T.geo.aim];
+  var free = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && pend.indexOf(g) < 0 && !withAim(sh, fAim, foe, function () { return gunTarget(sh, g, foe.center); }); });
+  for (var j = 0; j < others.length; j++) {
+    var o = others[j], oAim = [o.T.cx, o.T.cy, o.T.geo.aim], alive = [], ready = [];
+    free.forEach(function (g) {
+      if (!withAim(sh, oAim, o, function () { return gunTarget(sh, g, o.center); })) return;
+      if (FK.length && friendInLine(FK, M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), o.center)) return;
+      alive.push(g); if (g.reload <= 0) ready.push(g);
+    });
+    if (!ready.length || ready.length < Math.ceil(alive.length * 0.65)) continue;
+    var a = modeAim(o, sh.aimMode || 'hull', true), t = a.t, err = Math.max(0.6, 4.5 - sh.salvo * 0.55) / S;
+    var aim = [t[0] + gauss() * err * 1.6, t[1], t[2] + gauss() * err * 0.5];
+    var tgt = M4.pt(o.M, aim[0], aim[1], aim[2]);
+    var guns = ready.filter(function (g) { return withAim(sh, aim, o, function () { return gunTarget(sh, g, tgt); }); });
+    sh.aiSpread = 0.006;
+    if (broadsideAt(sh, a.ammo, o, aim, guns)) { sh.aiWait2 = rr(1.0, 3.5); return; }
+  }
+}
 
 // ───────────────────────── 一步 ─────────────────────────
 function step() {
@@ -5428,8 +5489,9 @@ function step() {
   for (var i = 0; i < EVENTS.length; i++) {
     var e = EVENTS[i]; if (e.t > SIMT) continue;
     EVENTS.splice(i--, 1);
-    var sh = SHIPS[e.sh], et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off)));   // 開火那一刻才挑點（兩艘都在動）
-    if (et) fireGun(sh, e.g, et, e.ammo);
+    var sh = SHIPS[e.sh];
+    if (e.on) withAim(sh, e.aim, e.on, function () { var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
+    else { var et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et) fireGun(sh, e.g, et, e.ammo); }   // 開火那一刻才挑點（兩艘都在動）
   }
   if (PF) pfLap('fire');
   SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); if (PF) pfLap('ship'); stepCrew(sh, DT); if (PF) pfLap('crew'); });
@@ -5548,7 +5610,7 @@ function capOptions(sel, v) {
 //   ⇒ 一對一時永遠是另一艘 ⇒ 跟以前一位元都不差。只用船的位置（px、pz）、不抽亂數。
 // 友軍跟敵軍只差在挑目標（Tim 2026-10-13）：同陣營不當目標；砲彈照舊打得到每一艘 ⇒ 誤擊照樣扣血、算傷亡（讀數 sh.ff：被友船打中幾發）。
 // 瞄準點（sh.aim）是「那艘船」的格座標 ⇒ 一併記是哪艘（sh.aimOn，setAim）；換目標之前瞄的那一點不會被套到另一艘的座標上。
-// 船數上限 MAX_SHIPS（00_core.js）：GPU 的格數（陰影圖、船艙遮罩、透視）照它生著色器，執行時只跑場上那幾艘（uNS）。
+// 船數上限 MAX_SHIPS（00_core.js）；GPU 的格（陰影圖、船艙遮罩、透視）只給視野裡最近的幾艘（畫質設定「陰影船數」「船艙遮罩」；60_render.js gpuSlots），其他的靠全局陰影圖。
 /** 誤擊的讀數：被友船打中幾發（sh.ff）、打中友船幾發（ffOut）。一顆彈只算一次（跟 hits 同一個 hitOnce）。 */
 function ffHit(sh, b) { var o = SHIPS[b.owner]; if (o && o !== sh && o.team === sh.team) { sh.ff = (sh.ff || 0) + 1; o.ffOut = (o.ffOut || 0) + 1; } }
 /** 落水的人上不了自己的船 ⇒ 往哪幾艘游（43_swim.js）：友船先、再敵船，各照 SHIPS 的順序（一對一 ＝ [敵艦]）。 */
@@ -5583,9 +5645,10 @@ function playerTeam() { var me = SHIPS[PLAYER_I]; return me ? me.team : 'blue'; 
 function foeTeam() { return playerTeam() === 'blue' ? 'red' : 'blue'; }
 /** 那個陣營打完了沒：每艘都沉了或降旗。 */
 function teamDown(team) { var L = teamShips(team); return L.length > 0 && L.every(function (o) { return o.sunk || o.struck; }); }
-/** 開局的編隊（70_flow.js reset）：每一邊照編成排成縱隊（沿船長方向）、兩邊面對面 ±DIST/2；一邊一艘 ⇒ 跟以前同一個位置。
+/** 開局的編隊（70_flow.js reset；Tim 2026-10-13「兩邊船頭相對互相接近」「友軍就排在旁邊」）：
+ *  兩邊船頭相對（藍往 −z、紅往 +z），船頭（水線最前那一格）相距 DIST；同一邊排成橫隊（並排，左右隔 FLEET_GAP），船頭對齊。
  *  spec：[{ team, hull }]，一對一 ＝ [我艦, 敵艦]；SHIPS 照這個順序建（i ＝ 序號；我艦是 0）。艘數超過 MAX_SHIPS ⇒ 截掉。 */
-var FLEET_GAP = 85;                                                       // 同一邊兩艘之間隔多遠（m，沿船長方向；憲法號水線長 55 m ⇒ 頭尾隔 30 m）
+var FLEET_GAP = 70;                                                       // 同一邊並排的兩艘，中心左右隔多遠（m；船寬 13 m）
 var FLEET_DBG = null;                                                     // ?debug=1 的 __game.fleet([...])：直接給一串（蓋過主選單的編成）
 /** 主選單的編成（FLEET_SET，05_hull.js）⇒ 一串：我艦、敵方第一艘、我方其他、敵方其他（一對一 ＝ [我艦, 敵艦]，跟以前同一個順序）。 */
 function fleetSpec() {
@@ -5599,9 +5662,15 @@ function spawnFleet(spec) {
   spec = spec.slice(0, MAX_SHIPS);
   var n = { blue: 0, red: 0 }, k = { blue: 0, red: 0 };
   spec.forEach(function (f) { n[f.team]++; });
+  function slots(m) {                                                    // 橫隊的左右位置，從中間往兩側排（第一艘 ＝ 我艦／敵方第一艘在中間）
+    var r = []; for (var q = 0; q < m; q++) r.push((q - (m - 1) / 2) * FLEET_GAP);
+    return r.sort(function (a, b) { return Math.abs(a) - Math.abs(b) || a - b; });
+  }
+  var X = { blue: slots(n.blue), red: slots(n.red) };
   spec.forEach(function (f, i) {
-    var blue = f.team === 'blue', j = k[f.team]++, off = (j - (n[f.team] - 1) / 2) * FLEET_GAP;
-    SHIPS.push(makeShip(i, f.team, blue ? 0 : Math.PI, blue ? DIST / 2 : -DIST / 2, HULLT[f.hull], blue ? off : -off));   // 一邊一艘 ⇒ px 0，跟以前一樣
+    var blue = f.team === 'blue', off = X[f.team][k[f.team]++];        // 兩邊第 j 艘站同一個 x ⇒ 各自對著對面那一艘
+    var T = HULLT[f.hull], bow = (T.wl1 - T.cx) * S;                    // 船的原點（x ＝ T.cx）到船頭的距離
+    SHIPS.push(makeShip(i, f.team, blue ? Math.PI / 2 : -Math.PI / 2, blue ? DIST / 2 + bow : -DIST / 2 - bow, T, off));
   });
 }
 
@@ -5686,15 +5755,11 @@ function seaGrid(lv) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, I, gl.STATIC_DRAW); gl.bindVertexArray(null);
   g.n = I.length; g.lv = lv; g.snap = L.min * 2; g.verts = V.length / 3; SEAG = g;
 }
-/** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ R8 貼圖，海的著色器拿來判斷「在不在船艙裡」。 */
-function hullTex(T, hb) {                              // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠；hb ＝ 快取的那張（06_cache.js）
-  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz);
-  T.hullHB = hb = hb || hullMask(T);                   // 留著：存快取、對拍用（__game.hullCheck）
-  T.hullTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, TW, TH, 0, gl.RED, gl.UNSIGNED_BYTE, hb);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.bindTexture(gl.TEXTURE_2D, null);
+/** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ 海的著色器拿來判斷「在不在船艙裡」。
+ *  這裡只算資料（T.hullHB、寬高）；上 GPU 是所有船型併成一個貼圖陣列（hullArr，畫的時候看到新的船型才重建）。 */
+function hullTex(T, hb) {                              // hb ＝ 快取的那張（06_cache.js）
+  T.hullTW = T.base.sx; T.hullTH = Math.min(256, T.base.sz);
+  T.hullHB = hb || hullMask(T);                        // 存快取、對拍用（__game.hullCheck）
 }
 function hullMask(T) {
   var TW = T.base.sx, TH = Math.min(256, T.base.sz), CY = T.cy, hb = new Uint8Array(TW * TH);
@@ -5747,18 +5812,66 @@ function targets(w, h) {
   if (rq) { var d = rq === 2 ? 2 : 4, rw = Math.max(1, w / d | 0), rh = Math.max(1, h / d | 0); RT.R = mkFB(mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, rw, rh, true), mkRB(gl.DEPTH_COMPONENT24, rw, rh, 0)); RT.R.w = rw; RT.R.h = rh; }
   else RT.R = null;
 }
-/** 陰影圖（兩張）：大小照畫質（關 ⇒ 1×1 的假圖）。off ＝ 收陰影時沿法線推出去的距離（約 1.5 個陰影圖格子）。 */
+/** 陰影圖：深度貼圖陣列（SHM.tex，第 4 號），每一層一張、大小照畫質（關 ⇒ 1×1 的假圖）。off ＝ 收陰影時沿法線推出去的距離（約 1.5 個陰影圖格子）；offG ＝ 全局那一層的。
+ *  SHM.maps[k] ＝ 第 k 層的 { F（畫進那一層的 framebuffer）, m（矩陣） }：前 SSLOTS.length 層 ＝ 陰影的格、下一層 ＝ 全局（有的話）。
+ *  SHM.mats ＝ 著色器的 uShM（MAX_SHIPS＋1 個）：第 k 個 ＝ 第 k 格、最後一個 ＝ 全局。 */
 function shadowMaps() {
   var n = [1, 1024, 2048][GFX.shadow] || 1;
   if (SHM && SHM.n === n) return;
-  if (SHM) SHM.maps.forEach(function (m) { freeFB(m.F); });
-  SHM = { n: n, off: 0, maps: [] };
+  if (SHM) shadowFree();
+  SHM = { n: n, off: 0, offG: 0, maps: [], tex: null, layers: 0, glob: false, mats: new Float32Array((MAX_SHIPS + 1) * 16) };
 }
-/** 場上要跑的格數（陰影圖張數、著色器的 uNS）：至少 2（一對一跟以前一樣兩張）、最多 MAX_SHIPS。 */
-function nsGPU() { return Math.max(2, Math.min(SHIPS.length, MAX_SHIPS)); }
-/** 陰影圖照場上的船數配（TASK-0537：沒用到的上限不佔記憶體）；多了不收（換場又會用到）。 */
+function shadowFree() { SHM.maps.forEach(function (m) { gl.deleteFramebuffer(m.F.fb); }); if (SHM.tex) gl.deleteTexture(SHM.tex); SHM.maps = []; SHM.tex = null; SHM.layers = 0; }
+/** 陰影圖陣列照用到的層數配（TASK-0537：沒用到的不佔記憶體）：陰影的格數 ＋ 有船排不進去 ⇒ 再一層全局。不夠才重配、多了不收（換場又會用到）。 */
 function shadowGrow() {
-  while (SHM.maps.length < nsGPU()) { var F = mkFB(null, mkTex(gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, SHM.n, SHM.n, true, true)); SHM.maps.push({ F: F, m: FAR_M }); }
+  var need = Math.max(1, SSLOTS.length + (SSLOTS.rest.length ? 1 : 0));
+  if (SHM.layers >= need) return;
+  shadowFree();
+  var t = SHM.tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D_ARRAY, t);
+  gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.DEPTH_COMPONENT24, SHM.n, SHM.n, need, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+  [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.LINEAR); });
+  [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.CLAMP_TO_EDGE); });
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE); gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+  for (var k = 0; k < need; k++) {
+    var f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+    gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, t, 0, k); gl.drawBuffers([gl.NONE]); gl.readBuffer(gl.NONE);
+    SHM.maps.push({ F: { fb: f, ok: gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE }, m: FAR_M });
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  SHM.layers = need;
+}
+/** GPU 的格這一格給哪幾艘（Tim 2026-10-13：「優先選最近的 N 條船」「超過的靠全局覆蓋」「只選視野範圍內最近的」；N 是畫質設定）：
+ *  · SSLOTS：自己的陰影圖，GFX.shships 艘（0～MAX_SHIPS）；排不進去的 SSLOTS.rest ⇒ 全局陰影圖。
+ *  · MSLOTS：船艙遮罩與透視，GFX.masks 艘（0～MASK_NEAR）；排不進去的沒有。
+ *  船數 ≤ N ⇒ 全部、照 SHIPS 的順序（一對一跟以前一樣）；否則 ⇒ 外接球碰到鏡頭視錐的船裡離鏡頭最近的 N 艘，
+ *  上一格已經在裡面的打九折（⛔ 不打折 ⇒ 兩艘差不多遠時每一格換來換去、陰影閃）；選到的照 SHIPS 的順序排。 */
+var SSLOTS = [], MSLOTS = [];
+SSLOTS.rest = MSLOTS.rest = [];
+function gpuSlots() {
+  var cand = null;
+  function pick(n, prev) {
+    var L;
+    if (SHIPS.length <= n) L = SHIPS.slice();
+    else {
+      if (!cand) {
+        var vp = CAM.vp, pl = [];                                         // 視錐的六個面（列優先的矩陣：第 r 列 ＝ vp[r], vp[4+r], vp[8+r], vp[12+r]）
+        [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]].forEach(function (q) {
+          var a = [0, 1, 2, 3].map(function (c) { return vp[c * 4 + 3] + q[1] * vp[c * 4 + q[0]]; }), l = Math.hypot(a[0], a[1], a[2]) || 1;
+          pl.push(a.map(function (v) { return v / l; }));
+        });
+        cand = SHIPS.map(function (s) {
+          var B = s.T.base, R = s.T.shR || (s.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c = M4.pt(s.M, B.sx / 2, B.sy / 2, B.sz / 2);
+          return { s: s, vis: s.sink <= 40 && pl.every(function (p) { return p[0] * c[0] + p[1] * c[1] + p[2] * c[2] + p[3] > -R; }), d: Math.hypot(c[0] - CAM.eye[0], c[1] - CAM.eye[1], c[2] - CAM.eye[2]) };
+        });
+      }
+      L = cand.filter(function (o) { return o.vis; }).map(function (o) { return { s: o.s, d: o.d * (prev.indexOf(o.s) >= 0 ? 0.9 : 1) }; })
+        .sort(function (a, b) { return a.d - b.d || a.s.i - b.s.i; }).slice(0, n).map(function (o) { return o.s; }).sort(function (a, b) { return a.i - b.i; });
+    }
+    L.rest = SHIPS.filter(function (s) { return L.indexOf(s) < 0; });
+    return L;
+  }
+  SSLOTS = pick(GFX.shships, SSLOTS); MSLOTS = pick(Math.min(GFX.masks, MASK_NEAR), MSLOTS);
 }
 function ortho(r, n, f) { return new Float32Array([1 / r, 0, 0, 0, 0, 1 / r, 0, 0, 0, 0, -2 / (f - n), 0, 0, 0, -(f + n) / (f - n), 1]); }
 /** 帆與繩的緩衝：一格做一次（之後陰影、反射、場景都用同一份）。 */
@@ -5835,23 +5948,57 @@ function drawSails(prog, near) {
     gl.bindVertexArray(ow.sb.vao); gl.drawElements(gl.TRIANGLES, ow.sb.n, gl.UNSIGNED_INT, 0);
   });
 }
-/** 陰影圖：每艘船一張，罩住它的外接球（船型的格子外框對角線的一半）。不在了 ⇒ 那張的矩陣把所有點丟到範圍外。 */
+/** 陰影圖：GPU 的每一格（gpuSlots）一層，罩住那艘的外接球（船型的格子外框對角線的一半）。那一格沒有船 ⇒ 矩陣把所有點丟到範圍外。
+ *  有船排不進去（SSLOTS.rest）⇒ 下一層 ＝ 全局：一張罩住那幾艘全部的外接球（格子大、解析度低；近的那幾艘不畫進去 ⇒ 不會粗的疊在細的上面）。 */
 function shadowPass() {
   gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1.5, 3);
   gl.viewport(0, 0, SHM.n, SHM.n);
-  SHM.maps.forEach(function (M, i) {
-    var sh = SHIPS[i];
-    if (!sh || sh.sink > 40) { M.m = FAR_M; return; }
-    var B = sh.T.base, R = sh.T.shR || (sh.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c = M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), D = R + 30;
+  function one(M, R, c, near) {
+    var D = R + 30;
     M.m = M4.mul(ortho(R, D - R - 10, D + R + 10), M4.lookAt([c[0] + SUN[0] * D, c[1] + SUN[1] * D, c[2] + SUN[2] * D], c, [0, 1, 0]));
-    SHM.off = 1.5 * 2 * R / SHM.n;
-    var near = function (o) { if (o === sh) return true; if (o.crew) return false; var p = o.c || (o.M ? [o.M[12], o.M[13], o.M[14]] : c); return Math.hypot(p[0] - c[0], p[2] - c[2]) < R * 1.3; };
     gl.bindFramebuffer(gl.FRAMEBUFFER, M.F.fb); gl.clear(gl.DEPTH_BUFFER_BIT);
     PASS.vp = M.m;
     gl.useProgram(P.dvox.prog); setCommon(P.dvox); drawHulls(P.dvox, near);
     gl.useProgram(P.dtri.prog); setCommon(P.dtri); drawModels(P.dtri, near); drawSails(P.dtri, near);
-  });
+  }
+  function ball(sh) { var B = sh.T.base; return { R: sh.T.shR || (sh.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2) }; }
+  for (var i = 0; i < SSLOTS.length; i++) (function (M, sh) {
+    if (!sh || sh.sink > 40) { M.m = FAR_M; return; }
+    var b = ball(sh), R = b.R, c = b.c;
+    SHM.off = 1.5 * 2 * R / SHM.n;
+    one(M, R, c, function (o) { if (o === sh) return true; if (o.crew) return false; var p = o.c || (o.M ? [o.M[12], o.M[13], o.M[14]] : c); return Math.hypot(p[0] - c[0], p[2] - c[2]) < R * 1.3; });
+  })(SHM.maps[i], SSLOTS[i]);
+  var rest = SSLOTS.rest.filter(function (s) { return s.sink <= 40; }), MG = SHM.maps[SSLOTS.length];
+  SHM.glob = rest.length > 0 && !!MG;
+  if (SHM.glob) {                                                          // 全局：罩住排不進去的那幾艘（xz 的外框中心、半徑 ＝ 最遠那艘的距離＋它的外接球）
+    var bs = rest.map(ball), x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y = 0;
+    bs.forEach(function (b) { x0 = Math.min(x0, b.c[0]); x1 = Math.max(x1, b.c[0]); z0 = Math.min(z0, b.c[2]); z1 = Math.max(z1, b.c[2]); y += b.c[1] / bs.length; });
+    var C = [(x0 + x1) / 2, y, (z0 + z1) / 2], RG = 0;
+    bs.forEach(function (b) { RG = Math.max(RG, Math.hypot(b.c[0] - C[0], b.c[1] - C[1], b.c[2] - C[2]) + b.R); });
+    SHM.offG = 1.5 * 2 * RG / SHM.n;
+    one(MG, RG, C, function (o) { if (o.crew) return rest.indexOf(o) >= 0; var p = o.c || (o.M ? [o.M[12], o.M[13], o.M[14]] : C); return bs.some(function (b) { return Math.hypot(p[0] - b.c[0], p[2] - b.c[2]) < b.R * 1.3; }); });
+  } else if (MG) MG.m = FAR_M;
   PASS.vp = null; gl.disable(gl.POLYGON_OFFSET_FILL);
+}
+/** 著色器的 uShM（每一層的矩陣串起來；沒有那一層 ⇒ FAR_M）。 */
+function shadowMats() {
+  for (var k = 0; k < MAX_SHIPS; k++) SHM.mats.set(k < SSLOTS.length && SHM.maps[k] ? SHM.maps[k].m : FAR_M, k * 16);
+  var MG = SHM.maps[SSLOTS.length]; SHM.mats.set(SHM.glob && MG ? MG.m : FAR_M, MAX_SHIPS * 16);
+}
+/** 船艙遮罩的貼圖陣列（uHullA，第 1 號）：載好的每一型一層（T.hullLayer），寬高取最大的那一型；載了新的船型 ⇒ 重建。 */
+var HULLA = { tex: null, key: '' };
+function hullArr() {
+  var Ts = Object.keys(HULLT).map(function (id) { return HULLT[id]; }).filter(function (T) { return T.hullHB; }), key = Ts.map(function (T) { return T.id; }).join(',');
+  if (HULLA.tex && HULLA.key === key) return;
+  if (HULLA.tex) gl.deleteTexture(HULLA.tex);
+  var W = 1, H = 1; Ts.forEach(function (T) { W = Math.max(W, T.hullTW); H = Math.max(H, T.hullTH); });
+  var t = HULLA.tex = gl.createTexture(); HULLA.key = key;
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, t); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.R8, W, H, Math.max(1, Ts.length), 0, gl.RED, gl.UNSIGNED_BYTE, null);
+  Ts.forEach(function (T, k) { T.hullLayer = k; gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, k, T.hullTW, T.hullTH, 1, gl.RED, gl.UNSIGNED_BYTE, T.hullHB); });
+  [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.NEAREST); });
+  [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach(function (p) { gl.texParameteri(gl.TEXTURE_2D_ARRAY, p, gl.CLAMP_TO_EDGE); });
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
 }
 /** 反射：鏡像的鏡頭把船畫進 RT.R（水面以下丟掉）。低 ＝ 船身；高 ＝ 再加砲、模型與帆。 */
 function reflPass() {
@@ -5868,16 +6015,19 @@ function reflPass() {
 }
 /** 船艙遮罩的 uniform（海與白沫共用，01_gl.js HULL_GLSL）。開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了） */
 var MASK_OFF = -1;                                                        // ?debug=1 的 __game.mask(k)：第 k 艘的遮罩關掉（量 4 艘時每一格遮罩都有作用：關掉那艘 ⇒ 它的船艙裡才看得到海）
+var HU = { inv: new Float32Array(MASK_NEAR * 16), hide: new Float32Array(MASK_NEAR), k: new Float32Array(MASK_NEAR * 4), xb: new Float32Array(MASK_NEAR * 4) };
 function hullUniforms(prog) {
   var u = prog.u;
-  for (var i = 0; i < MAX_SHIPS; i++) {                                   // 每艘照自己船型的遮罩（各型可以不一樣）；格數照 MAX_SHIPS（TASK-0537）
-    var s = SHIPS[i], T = s && s.T;
-    gl.uniform1f(u['uHide' + i], s && !s.sinkingFinal && !s.sunk && T.hullTex && i !== MASK_OFF ? 1 : 0);
-    gl.activeTexture(gl.TEXTURE0 + hullUnit(i));
-    if (!T || !T.hullTex) { if (i >= 2) { gl.bindTexture(gl.TEXTURE_2D, DUMMY); gl.uniform1i(u['uHull' + i], hullUnit(i)); } continue; }   // 沒有那艘：指到 1×1 的空貼圖（uHide 0 ⇒ 不取樣）；前兩格照以前不動
-    gl.uniformMatrix4fv(u['uInv' + i], false, s.inv);
-    gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(u['uHull' + i], hullUnit(i)); gl.uniform3f(u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
+  hullArr(); HU.hide.fill(0);
+  for (var i = 0; i < MASK_NEAR; i++) {                                   // 遮罩的每一格（gpuSlots MSLOTS）照那艘船型的那一層；排不進去的船 ⇒ 沒有遮罩
+    var s = MSLOTS[i], T = s && s.T;
+    if (s) HU.inv.set(s.inv, i * 16);                                     // 透視（nearShip）也用
+    if (!T || !T.hullHB || T.hullLayer === undefined) continue;
+    HU.hide[i] = !s.sinkingFinal && !s.sunk && s.i !== MASK_OFF ? 1 : 0;
+    HU.k[i * 4] = T.hullTW; HU.k[i * 4 + 1] = T.hullTH; HU.k[i * 4 + 2] = T.cy; HU.k[i * 4 + 3] = T.hullLayer;
   }
+  gl.uniform1fv(u.uHide, HU.hide); gl.uniformMatrix4fv(u.uInv, false, HU.inv); gl.uniform4fv(u.uHullK, HU.k);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D_ARRAY, HULLA.tex); gl.uniform1i(u.uHullA, 1);
   gl.activeTexture(gl.TEXTURE0);
 }
 function render() {
@@ -5886,11 +6036,13 @@ function render() {
   var bolt = wxBolt(SIMT), sky0 = SKY, hor0 = HORIZON;
   if (bolt && bolt.f > 0) { SKY = lerp3(SKY, [0.82, 0.86, 0.98], bolt.f * 0.7); HORIZON = lerp3(HORIZON, [0.76, 0.79, 0.88], bolt.f * 0.6); }
   if (bolt && bolt.n !== LAST_BOLT) { LAST_BOLT = bolt.n; if (RUNNING && !STILL) setTimeout(function () { sfx('thunder', null, 1 / (1 + bolt.d / 1500)); }, bolt.d / 340 * 1000); }
-  targets(w, h); shadowMaps(); shadowGrow();
+  targets(w, h); shadowMaps(); gpuSlots(); shadowGrow();             // gpuSlots：這一格 GPU 的格給哪幾艘（視野裡最近的幾艘：畫質設定）
   if (!DUMMY) { DUMMY = mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, false); }
   prepRig();
-  if (GFX.shadow && !cutOn()) shadowPass(); else SHM.maps.forEach(function (m) { m.m = FAR_M; });   // 剖面、隱藏甲板開著 ⇒ 不算陰影（拿掉的甲板不擋光；74_cutaway.js）
-  SHM.maps.forEach(function (M, k) { gl.activeTexture(gl.TEXTURE0 + shUnit(k)); gl.bindTexture(gl.TEXTURE_2D, M.F.dep); });
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, null); gl.activeTexture(gl.TEXTURE0);   // 畫陰影圖時不綁著它（⛔ 綁著 ⇒ 讀寫同一張）
+  if (GFX.shadow && !cutOn()) shadowPass(); else { SHM.maps.forEach(function (m) { m.m = FAR_M; }); SHM.glob = false; }   // 剖面、隱藏甲板開著 ⇒ 不算陰影（拿掉的甲板不擋光；74_cutaway.js）
+  shadowMats();
+  gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, SHM.tex);   // 陰影圖陣列：固定第 4 號（01_gl.js SHADOW_GLSL）
   gl.activeTexture(gl.TEXTURE0);
   if (RT.R) reflPass();
   gl.bindFramebuffer(gl.FRAMEBUFFER, RT.A.fb); gl.viewport(0, 0, w, h);
@@ -5944,10 +6096,11 @@ function render() {
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, RT.B.dep); gl.uniform1i(P.water.u.uSceneD, 3);
   hullUniforms(P.water);
   gl.uniform1f(P.water.u.uXr, FLX3 || CUTV.half ? 1 : 0);              // 停格的「🔍 透視」、剖面：船附近的海面不畫（72_floodui.js、74_cutaway.js；只拿掉甲板 ⇒ 船殼裡本來就不畫海，船邊照畫）
-  for (var xi = 0; xi < MAX_SHIPS; xi++) (function (i) {
-    var s = SHIPS[i], b = s ? xrBox(s.T) : null, e = s && CUTV.half ? cutSide(s) * XR_CUT : 0;   // 剖面：往鏡頭那一側多拿掉 XR_CUT 格（⛔ 只拿船邊 6 m ⇒ 從側面看，鏡頭到船之間的海面把水線下整片擋住）
-    gl.uniform4f(P.water.u['uXb' + i], b ? b[0] : 0, b ? b[1] + e / 2 : 0, b ? b[2] : -1e9, b ? b[3] + Math.abs(e) / 2 : -1e9);
+  for (var xi = 0; xi < MASK_NEAR; xi++) (function (i) {              // 遮罩的格（gpuSlots MSLOTS）：排不進去的船沒有透視
+    var s = MSLOTS[i], b = s ? xrBox(s.T) : null, e = s && CUTV.half ? cutSide(s) * XR_CUT : 0;   // 剖面：往鏡頭那一側多拿掉 XR_CUT 格（⛔ 只拿船邊 6 m ⇒ 從側面看，鏡頭到船之間的海面把水線下整片擋住）
+    HU.xb[i * 4] = b ? b[0] : 0; HU.xb[i * 4 + 1] = b ? b[1] + e / 2 : 0; HU.xb[i * 4 + 2] = b ? b[2] : -1e9; HU.xb[i * 4 + 3] = b ? b[3] + Math.abs(e) / 2 : -1e9;
   })(xi);
+  gl.uniform4fv(P.water.u.uXb, HU.xb);
   gl.bindVertexArray(SEAG.vao); gl.drawElements(gl.TRIANGLES, SEAG.n, gl.UNSIGNED_INT, 0);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   if (!FLX3 && !CUTV.half) wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
@@ -6276,7 +6429,7 @@ function checkEnd() {
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'hands', 'drown', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -6304,7 +6457,7 @@ function prefsSnap() {
   var gd = GFX_PRESET[GFX_DEFAULT]; if (GFX_ITEMS.some(function (it) { return GFX[it.k] !== gd[it.k]; })) { o.gfx = {}; GFX_ITEMS.forEach(function (it) { o.gfx[it.k] = GFX[it.k]; }); }   // 畫質（07_gfx.js）：跟預設不一樣 ⇒ 整組存
   put('fps', GFX_FPS, false); put('slow', SLOW.on, true); put('slowcam', SLOW.cam, true);   // 殉爆的慢動作與特寫（73_slowmo.js）
   var xd = PHX_PRESET[PHX_DEFAULT]; if (PHX_ITEMS.some(function (it) { return PHX[it.k] !== xd[it.k]; })) { o.phx = {}; PHX_ITEMS.forEach(function (it) { o.phx[it.k] = PHX[it.k]; }); }   // 物理效果（09_phx.js）：跟預設不一樣 ⇒ 整組存
-  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
+  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, LIM_DIST[2]);
   if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
   return o;
 }
@@ -6364,7 +6517,7 @@ function prefsApply(p) {
   if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
   if (p.mode === 'pve' || p.mode === 'eve' || p.mode === 'sandbox') MODE = p.mode;
   if (typeof p.auto === 'boolean') { AUTOFIRE = p.auto; LAST_MODE = MODE; }   // 存了自動開砲 ⇒ 開局不再照模式套預設（70_flow.js reset）
-  if ([].some.call(document.querySelectorAll('#dists button'), function (b) { return +b.dataset.d === p.dist; })) DIST = p.dist;
+  if (!Q.has('dist') && typeof p.dist === 'number' && isFinite(p.dist)) DIST = clamp(Math.round(p.dist), LIM_DIST[0], LIM_DIST[1]);   // 舊存檔的 90／140／220 照樣是合法的值
 }
 function prefsSave() {
   if (!PREFS.write) return;
@@ -6391,7 +6544,7 @@ function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
   PREFS.last = JSON.stringify(prefsSnap());              // 套用後的樣子 ⇒ 玩家動了才寫（看不懂的存檔不會因為打開一次就被蓋掉）
   // 主選單按鈕的亮燈照套用後的值（航行與帆的物理由 71_input.js 照變數點）
   [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.className = b.dataset.m === MODE ? 'on' : ''; });
-  [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.className = +b.dataset.d === DIST ? 'on' : ''; });
+  if (typeof distShow === 'function') distShow();
   $('autoF').classList.toggle('on', AUTOFIRE);
   if (!PREFS.write) return;
   setInterval(prefsSave, 1000);
@@ -6807,7 +6960,9 @@ function pickShip(s, j, id) {
 }
 sliders(); setPlay(PLAY); setWeather(WX_ID);
 [].forEach.call(document.querySelectorAll('#wxs button'), function (b) { b.onclick = function () { setWeather(b.dataset.w); if (SLIDERS_SHOW) SLIDERS_SHOW(); }; });   // 主選單：天氣（08_weather.js）
-[].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
+/** 主選單：開局距離（滑桿，04_state.js LIM_DIST）。開局才用 ⇒ 改了下一場生效。 */
+function distShow() { var d = $('dist'); d.value = DIST; $('distV').textContent = DIST + ' m（船頭到船頭）'; }
+(function () { var d = $('dist'); d.min = LIM_DIST[0]; d.max = LIM_DIST[1]; d.oninput = function () { DIST = Math.round(+d.value); distShow(); }; distShow(); })();
 [].forEach.call(document.querySelectorAll('#sails button'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
 setSailMode(SAIL); setCamTrack(true); $('physT').classList.toggle('on', PHYS);
 $('go').onclick = start;
@@ -7105,8 +7260,9 @@ if (DEBUG) window.__game = {
     return SHIPS.map(function (s) { return { i: s.i, team: s.team, hull: s.T.id, px: s.px, pz: s.pz, foe: s.foe ? s.foe.i : null }; });
   },
   loadHull: function (id) { return loadHull(id).then(function (T) { return T.id; }); },
-  foes: function () { return SHIPS.map(function (s) { return { i: s.i, team: s.team, foe: s.foe ? s.foe.i : null, aimOn: s.aimOn ? s.aimOn.i : null, ff: s.ff || 0, ffOut: s.ffOut || 0, ffHold: s.ffHold || 0, avoid: s.avoidN || 0, hits: s.hits, sunk: s.sunk, struck: s.struck, x: +s.px.toFixed(1), z: +s.pz.toFixed(1) }; }); },
+  foes: function () { return SHIPS.map(function (s) { return { i: s.i, team: s.team, foe: s.foe ? s.foe.i : null, aimOn: s.aimOn ? s.aimOn.i : null, ff: s.ff || 0, ffOut: s.ffOut || 0, ffHold: s.ffHold || 0, avoid: s.avoidN || 0, salvo: s.salvo, salvo2: s.salvo2 || 0, hits: s.hits, sunk: s.sunk, struck: s.struck, x: +s.px.toFixed(1), z: +s.pz.toFixed(1) }; }); },
   mask: function (k) { MASK_OFF = k === undefined ? -1 : k; render(); return MASK_OFF; },   // 船艙遮罩（60_render.js）：關掉第 k 艘的、畫一格
+  gpu: function () { render(); function ix(L) { return L.map(function (s) { return s.i; }); } return { max: MAX_SHIPS, shships: GFX.shships, masks: GFX.masks, shadow: ix(SSLOTS), global: ix(SSLOTS.rest), mask: ix(MSLOTS), noMask: ix(MSLOTS.rest), glob: SHM.glob, layers: SHM.layers, shadowN: SHM.n, offG: +SHM.offG.toFixed(3), hullLayers: HULLA.key, err: gl.getError() }; },   // GPU 的格（60_render.js gpuSlots）
   cut: function (o) { if (o) for (var k in o) CUTV[k] = o[k]; render(); return CUTV; },     // 剖面與隱藏甲板（74_cutaway.js）：{ half, deck }
   menuFleet: function (F) { if (F) { FLEET_SET = fleetTrim(F.map(function (L) { return L.slice(); })); fleetUI(); pickShip(); } return { set: FLEET_SET, spec: fleetSpec(), html: [$('fleet0').innerHTML.length, $('fleet1').innerHTML.length] }; },
   run: function (sec) { var n = Math.round(sec / DT); for (var i = 0; i < n; i++) { step(); if (i % 30 === 29) remesh(Infinity); } remesh(Infinity); camUpdate(1); render(); hud(1); PF.cur = {}; return this.stats(); },   // PF.cur：快轉的不算進下一格畫面

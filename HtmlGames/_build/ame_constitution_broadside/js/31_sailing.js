@@ -35,6 +35,8 @@ function waterline(T) {
   for (y = 0; y < G.sy; y++) if (G.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
   T.bowHalf = hi >= lo ? (hi - lo) / 2 + 3 : 20;
 }
+/** 電腦想保持的交戰距離（m）：開局距離夾在 90～220 m（以前距離只有 90／140／220 三檔、開局就在這個距離）。 */
+function aiRange() { return clamp(DIST, 90, 220); }
 function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 −y（左舷 P）那一側轉 ＝ 畫面上的左轉
 function sideName(side) { return side === 'S' ? '右舷' : '左舷'; }        // 模型的 S（格 +y）＝ 右舷（shipBaseMatrix 照雕刻引擎的手性）
 var SAILSETS = ['全收', '收帆', '戰鬥帆', '滿帆'];
@@ -102,7 +104,8 @@ function sail(sh, dt) {
       // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦
       var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? 1 : -1;   // sg：敵艦要在畫面左邊（左舷 P）⇒ +1
       var dx = foe.px - sh.px, dz = foe.pz - sh.pz, d = Math.hypot(dx, dz) || 1;
-      tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - DIST) / DIST * 1.5, -0.4, 0.4);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
+      var R = aiRange();                                                 // 想保持的交戰距離：遠了往敵艦切（遠很多 ⇒ 最多切 1.2 rad，幾乎船頭對著開過去）、近了往外拉（最多 0.4）
+      tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - R) / R * 1.5, -0.4, 1.2);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }
     if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av !== null) tY = av; }   // 讓友船（52_fleet.js；沒有友船 ⇒ null）
     var e = Math.atan2(Math.sin(tY - sh.yaw), Math.cos(tY - sh.yaw));

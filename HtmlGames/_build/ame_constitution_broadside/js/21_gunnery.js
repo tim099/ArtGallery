@@ -41,6 +41,21 @@ function broadside(sh, ammo, careful) {                            // careful：
   if (k) { sh.salvo++; sh.salvoT = SIMT; }
   return k;
 }
+/** 暫時把瞄準點換成 (aim, on) 跑 f（瞄準、前置量、gunTarget 都讀 sh.aim／aimShip）——另一舷的那一輪齊射用（50_sim.js aiSecond），跑完換回來。 */
+function withAim(sh, aim, on, f) { var a = sh.aim, o = sh.aimOn; sh.aim = aim; sh.aimOn = on; try { return f(); } finally { sh.aim = a; sh.aimOn = o; } }
+/** 另一舷的齊射（Tim 2026-10-13：兩側都有敵人時兩舷都開）：瞄 on 那艘的 aim（格座標），只排 guns 這幾門；瞄準點記在每一發上（e.on、e.aim），
+ *  開火那一刻照它算 ⇒ 主要那一輪換了瞄準點也不會把這一輪拉過去。 */
+function broadsideAt(sh, ammo, on, aim, guns) {
+  if (sh.struck) return 0;
+  var k = 0, mid = 0;
+  guns.forEach(function (g) { mid += g.muz[0]; }); mid /= guns.length || 1;
+  guns.forEach(function (g) {
+    var off = (g.muz[0] - mid) * S * (ammo === 2 ? 0.15 : 1);
+    EVENTS.push({ t: SIMT + k * 0.075 + rr(0, 0.03), sh: sh.i, g: g, ammo: ammo, off: off, on: on, aim: aim }); k++;
+  });
+  if (k) { sh.salvo++; sh.salvoT = SIMT; sh.salvo2 = (sh.salvo2 || 0) + 1; }
+  return k;
+}
 function fireOne(sh, ammo) {
   if (sh.struck) return;
   var tgt = aimPoint(sh), best = null, bd = 1e9;
