@@ -2,11 +2,11 @@
 // 一個人 ＝ 一張面向鏡頭、但永遠直立的貼圖。位置存格座標（腳底那一格的上緣），畫的時候用船的矩陣換到世界。
 // 砲要有人操作：人數 < 最少人數就不能開；裝填速度 ∝ (人數／滿編)^0.85。死傷的人不再操作；
 // 人不夠時，倖存者集中到還開得動的砲 ⇒ 其餘的砲沒人操作（HUD ○）。調度見 reassign。
-var ROLE = { GUN: 0, POWDER: 1, OFFICER: 2, MARINE: 3, TOP: 4, HELM: 5 }, NROLE = 6;
+var ROLE = { GUN: 0, POWDER: 1, OFFICER: 2, MARINE: 3, TOP: 4, HELM: 5, HAND: 6 }, NROLE = 6;   // NROLE：貼圖照職位的列數（HAND 預備水手沒有自己那一列，畫成砲手；42_hands.js）
 var FR = { IDLE: 0, WORK_A: 1, WORK_B: 2, FIRE: 3, RUN_A: 4, RUN_B: 5, WOUNDED: 6, DEAD: 7 }, NFR = 8;
 // 砲班：滿編／最少照砲種表（GUNS 的 crew／min，10_ship.js）—— 兩舷各一班；24 磅長砲一班 12 人＋送藥童 ⇒ 一個人物約兩人
 // Tim 2026-10-12：砲班減一人（長砲 6 → 5、追擊砲 4 → 3），多出來的去搬火藥與彈藥（送藥手，23_powder.js）；射速照舊（裝填 ∝ 在崗／滿編）
-var ROLE_NAME = ['砲手', '送藥手', '軍官', '陸戰隊', '桅頂水手', '舵手'];
+var ROLE_NAME = ['砲手', '送藥手', '軍官', '陸戰隊', '桅頂水手', '舵手', '水手'];
 var ART_CAPTAIN = 6, NART = 7;                    // 貼圖的列：0–5 照職位，6 船長（每艘船第一個軍官；職位照舊是軍官）
 function standZ(g, x, y, z0, z1, head) {          // (x, y) 這一柱裡，z0..z1 之間可以站的高度（腳下實心、頭上 head 格空）；沒有 ⇒ -1
   for (var z = z1; z >= z0; z--) {
@@ -90,6 +90,7 @@ function makeCrew(sh) {
       return;
     }
   });
+  makeHands(sh, crew, add);                                          // 預備水手：最後才生（數量 0 ⇒ 跟以前一樣，rnd() 一個都不多抽）
   return crew;
 }
 function able(c) { return c.st === 0; }
@@ -195,6 +196,7 @@ function fall(sh, c, v) {
   c.st = 4; c.fw = w; c.fv = add(v || [gauss(), rr(0, 2), gauss()], sh.vel); c.t = 0; c.walk = null; c.cart = false; c.moving = false;
 }
 function stepCrew(sh, dt) {
+  sh.navN = HAND_PATHS;                                 // 預備水手這一步還能找幾次路（42_hands.js）
   sh.crew.forEach(function (c) {
     c.t += dt; if (c.hitT > 0) c.hitT -= dt;            // hitT：被打中但沒倒下的閃紅
     if (c.st === 4) {                                   // 落體
@@ -204,6 +206,7 @@ function stepCrew(sh, dt) {
     }
     if (c.st === 1 && c.t > 12) { c.st = 3; return; }    // 傷者被抬下去
     if (c.st !== 0) return;
+    if (c.role === ROLE.HAND) { stepHand(sh, c, dt); return; }   // 預備水手：走路、爬梯子、補位（42_hands.js）
     if (c.walk) {
       var d = sub(c.walk.to, c.pos), l = Math.hypot(d[0], d[1]);
       if (l < 0.6) { c.pos = c.walk.to.slice(); c.home = c.pos.slice(); c.walk = null; }
@@ -218,7 +221,7 @@ function stepCrew(sh, dt) {
 /** 火槍：打對方露天的人（spar deck、桅頂），距離越遠越難中。 */
 function musket(sh, c) {
   var foe = SHIPS[1 - sh.i], w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2] + 14);
-  var cand = foe.crew.filter(function (o) { return o.st === 0 && o.role !== ROLE.GUN && o.role !== ROLE.POWDER || (o.st === 0 && o.deck === foe.weatherDeck); });   // 露天的人（最上面那層砲甲板的砲班也算）
+  var cand = foe.crew.filter(function (o) { return o.st === 0 && (o.role !== ROLE.GUN && o.role !== ROLE.POWDER && o.role !== ROLE.HAND || o.deck === foe.weatherDeck); });   // 露天的人（最上面那層砲甲板的砲班、走到那一層的預備水手也算）
   c.fireT = 0.4;
   spawnPt(w, [WIND[0] * 0.3, 0.4, WIND[2] * 0.3], rr(1.5, 2.5), [0.85, 0.85, 0.85], 0.35, 0.3, 1.4, -0.03, 0.8);
   if (!cand.length) return;

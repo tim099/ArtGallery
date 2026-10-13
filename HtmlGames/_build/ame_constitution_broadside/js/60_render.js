@@ -139,18 +139,21 @@ function remesh(budget) {
   PIECES.concat(SHIPS).forEach(function (o) { if (left > 0 && o.rs.dirty.size) left -= rsFlushSome(o.rs, left); });
 }
 function drawHulls(prog, near) {                                       // near(c)：只畫靠近 c 的（陰影圖用；沒給 ⇒ 全畫）
-  SHIPS.forEach(function (sh) { if (sh.sink > 40 || (near && !near(sh))) return; gl.uniformMatrix4fv(prog.u.uModel, false, sh.M); sh.rs.draw(); });
+  SHIPS.forEach(function (sh) { if (sh.sink > 40 || (near && !near(sh))) return; cutSet(prog, sh); gl.uniformMatrix4fv(prog.u.uModel, false, sh.M); sh.rs.draw(); });   // cutSet：剖面與隱藏甲板（74_cutaway.js）
+  cutSet(prog, null);
   PIECES.forEach(function (pc) { if (near && !near(pc)) return; gl.uniformMatrix4fv(prog.u.uModel, false, pc.M); pc.rs.draw(); });
 }
 function drawModels(prog, near) {
   SHIPS.forEach(function (sh) {
     if (sh.sink > 40 || (near && !near(sh))) return;
+    cutSet(prog, sh);
     sh.models.forEach(function (m) {
       var me = sh.T.meshes[m.mesh]; if (!m.alive || !me) return;
       gl.uniformMatrix4fv(prog.u.uModel, false, M4.mul(sh.M, modelLocal(m)));
       gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
     });
   });
+  cutSet(prog, null);
   PIECES.forEach(function (pc) { if (near && !near(pc)) return; (pc.mods || []).forEach(function (m) {      // 跟著斷開的那一團走的模型
     var me = pc.T.meshes[m.mesh]; if (!me) return;
     gl.uniformMatrix4fv(prog.u.uModel, false, M4.mul(pc.M, m.L));
@@ -161,7 +164,7 @@ function drawModels(prog, near) {
 function drawSails(prog, near) {
   SHIPS.concat(PIECES).forEach(function (ow) {
     if (ow.sink > 40 || !ow.sb || !ow.sb.n || (near && !near(ow))) return;
-    gl.uniformMatrix4fv(prog.u.uModel, false, ow.M);
+    cutSet(prog, ow); gl.uniformMatrix4fv(prog.u.uModel, false, ow.M);
     gl.bindVertexArray(ow.sb.vao); gl.drawElements(gl.TRIANGLES, ow.sb.n, gl.UNSIGNED_INT, 0);
   });
 }
@@ -217,7 +220,7 @@ function render() {
   targets(w, h); shadowMaps();
   if (!DUMMY) { DUMMY = mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, false); }
   prepRig();
-  if (GFX.shadow) shadowPass(); else SHM.maps.forEach(function (m) { m.m = FAR_M; });
+  if (GFX.shadow && !cutOn()) shadowPass(); else SHM.maps.forEach(function (m) { m.m = FAR_M; });   // 剖面、隱藏甲板開著 ⇒ 不算陰影（拿掉的甲板不擋光；74_cutaway.js）
   gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, SHM.maps[0].F.dep); gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, SHM.maps[1].F.dep);
   gl.activeTexture(gl.TEXTURE0);
   if (RT.R) reflPass();
@@ -249,7 +252,7 @@ function render() {
   gl.uniform1f(P.tri.u.uLit, 0); gl.vertexAttrib3f(1, 0, 1, 0);
   SHIPS.concat(PIECES).forEach(function (ow) {
     if (ow.sink > 40) return;
-    gl.uniformMatrix4fv(P.tri.u.uModel, false, ow.M);
+    cutSet(P.tri, ow); gl.uniformMatrix4fv(P.tri.u.uModel, false, ow.M);
     if (ow.lines && ow.lines.n) { gl.bindVertexArray(ow.lines.vao); gl.drawArrays(gl.LINES, 0, ow.lines.n); }
     if (PHYS && ow.ll && ow.ll.n) { gl.bindVertexArray(ow.ll.vao); gl.drawArrays(gl.LINES, 0, ow.ll.n); }
   });
@@ -270,11 +273,14 @@ function render() {
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, RT.B.col); gl.uniform1i(P.water.u.uScene, 7);
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, RT.B.dep); gl.uniform1i(P.water.u.uSceneD, 3);
   hullUniforms(P.water);
-  gl.uniform1f(P.water.u.uXr, FLX3 ? 1 : 0);                             // 停格的「🔍 透視」：船附近的海面不畫（72_floodui.js）
-  [0, 1].forEach(function (i) { var s = SHIPS[i], b = s ? xrBox(s.T) : null; gl.uniform4f(P.water.u['uXb' + i], b ? b[0] : 0, b ? b[1] : 0, b ? b[2] : -1e9, b ? b[3] : -1e9); });
+  gl.uniform1f(P.water.u.uXr, FLX3 || CUTV.half ? 1 : 0);              // 停格的「🔍 透視」、剖面：船附近的海面不畫（72_floodui.js、74_cutaway.js；只拿掉甲板 ⇒ 船殼裡本來就不畫海，船邊照畫）
+  [0, 1].forEach(function (i) {
+    var s = SHIPS[i], b = s ? xrBox(s.T) : null, e = s && CUTV.half ? cutSide(s) * XR_CUT : 0;   // 剖面：往鏡頭那一側多拿掉 XR_CUT 格（⛔ 只拿船邊 6 m ⇒ 從側面看，鏡頭到船之間的海面把水線下整片擋住）
+    gl.uniform4f(P.water.u['uXb' + i], b ? b[0] : 0, b ? b[1] + e / 2 : 0, b ? b[2] : -1e9, b ? b[3] + Math.abs(e) / 2 : -1e9);
+  });
   gl.bindVertexArray(SEAG.vao); gl.drawElements(gl.TRIANGLES, SEAG.n, gl.UNSIGNED_INT, 0);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  if (!FLX3) wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
+  if (!FLX3 && !CUTV.half) wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
   flDraw();                                                              // 艙內的水面（33_flood.js，粒子模式）
   // 粒子＋砲彈＋瞄準點
   var m = 0;

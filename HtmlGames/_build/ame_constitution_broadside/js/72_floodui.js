@@ -11,8 +11,9 @@ var FLX = false, FLX3 = false;
 function frzShow() {
   var on = RUNNING && PAUSED && !GSET.open && !HELP.open;
   $('frz').classList.toggle('on', on); $('msg').style.visibility = on ? 'hidden' : '';   // 停格條跟上方廣播同一個位置（⛔ 不藏 ⇒ 廣播的字透過半透明的條）
-  if (!on) { if (FLX) floodClose(); FLX3 = false; }
+  if (!on) { if (FLX) floodClose(); FLX3 = false; CUTV.half = false; CUTV.deck = 0; }   // 剖面、隱藏甲板也跟著收（74_cutaway.js）
   $('frzFlood').classList.toggle('on', FLX); $('frzX').classList.toggle('on', FLX3);
+  $('frzCut').classList.toggle('on', CUTV.half); $('frzDeck').classList.toggle('on', CUTV.deck > 0); $('frzDeck').textContent = deckLabel();
 }
 /** 船型 T 在格座標的 [中心 x, 中線 y, 半長, 半寬]（設計水線那一層；透視時拿掉附近海面用，01_gl.js nearShip）。 */
 function xrBox(T) {

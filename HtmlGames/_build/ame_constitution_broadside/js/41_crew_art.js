@@ -232,10 +232,11 @@ function drawCrew() {
     if (sh.sink > 40) return;
     var team = sh.i, faceW = M4.dir(sh.M, 0, 1, 0);
     sh.crew.forEach(function (c) {
-      if (c.st === 3 || n >= BBMAX) return;
+      if (c.st === 3 || n >= BBMAX || cutHides(sh, c)) return;             // cutHides：剖面、隱藏甲板拿掉的那一邊（74_cutaway.js）
       var art = c.art !== undefined && c.art < CREW_ROWS ? c.art : c.role;   // 船長那一列沒有 ⇒ 用職位那一列
       var w = c.st === 4 ? c.fw : M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]), f = crewFrame(sh, c), row = art * 2 + team;
-      var fd = c.walk ? M4.dir(sh.M, c.walk.to[0] - c.pos[0], c.walk.to[1] - c.pos[1], 0) : mul(faceW, c.face), flip = dot(fd, right) < 0;
+      var wt = c.walk ? c.walk.to : c.hand && c.moving ? c.hand.to : null;   // 要去的那一點（預備水手：照路走、爬梯子，42_hands.js）
+      var fd = wt ? M4.dir(sh.M, wt[0] - c.pos[0], wt[1] - c.pos[1], 0) : mul(faceW, c.face), flip = dot(fd, right) < 0;
       var col = frames ? f : 0, u0 = col / CREW_COLS, u1 = (col + 1) / CREW_COLS, v0 = row / (CREW_ROWS * 2), v1 = (row + 1) / (CREW_ROWS * 2), k = n * BBS, h = CREW_H;
       var ps = crewPose(sh, c, f), amp = frames ? 0.35 : 1;                            // 8 欄逐格：姿勢在圖裡，程式只疊輕的一層（不再躺、不再跪）
       if (frames && (f === FR.DEAD || f === FR.WOUNDED) && c.st !== 4) ps = { lean: 0, bob: 0, sx: 1, sy: 1 };
@@ -253,7 +254,7 @@ function drawCrew() {
       n++;
       var it = c.st === 0 && ni < ITMAX ? heldItem(sh, c, f) : null;
       if (it) {                                                                       // 手持物：在「朝右」的座標裡算（往前 x、往上 y、逆時針為正），朝左再鏡射
-        var d = ITEM_DEF[it.id], uv = ITEM_UV[it.id], fh = h * FIG_K * (c.role === ROLE.POWDER ? 0.75 : 1), iw = d.w / ITEM_PPM, ih = d.h / ITEM_PPM;
+        var d = ITEM_DEF[it.id], uv = ITEM_UV[it.id], fh = h * FIG_K * (art === ROLE.POWDER ? 0.75 : 1), iw = d.w / ITEM_PPM, ih = d.h / ITEM_PPM;
         var pqx = (d.pv[0] + 0.5) / ITEM_PPM - iw / 2, pqy = ih - (d.pv[1] + 0.5) / ITEM_PPM;   // 握的地方在貼圖裡的位置（貼圖的轉軸是底邊中間）
         var be = -lean, cb = Math.cos(be), sb = Math.sin(be), hx = it.hx * fh * sx, hy = it.hy * fh * sy;   // 人往前傾 lean ⇒ 朝右時順時針
         var Hx = cb * hx - sb * hy, Hy = sb * hx + cb * hy + ps.bob * amp, al = it.a + be, ca = Math.cos(al), sa = Math.sin(al);

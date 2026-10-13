@@ -99,7 +99,7 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
   if (!sh.broken && !sh.sinkingFinal && !sh.sunk) sh.liftT = liftFor(sh.T, sh.T.disp - sh.mass0 + massLost(sh)) || 0;   // 斷了、開始沉 ⇒ 不再往上浮
   if (!sh.liftSet) { sh.lift = sh.liftT; sh.liftSet = true; }                    // 開戰那一刻直接放在浮的位置（不從設計水線慢慢浮過去）
   if (sh.fl) sh.flBase = sh.T.disp - sh.mass0 + massLost(sh);                     // 粒子模式：浮力表上水以外的部分（33_flood.js floodSinkT）
-  chooseSide(sh); reassign(sh); manning(sh);
+  chooseSide(sh); reassign(sh); manning(sh); callHands(sh);   // callHands：預備水手補位（42_hands.js）
   sh.able = sh.crew.filter(able).length;
   sh.gunsManned = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0; }).length;
   strikeCheck(sh);

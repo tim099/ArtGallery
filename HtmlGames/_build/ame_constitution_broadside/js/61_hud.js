@@ -83,7 +83,7 @@ function panel(sh, title) {
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
     ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
     capText(sh) + '<br>' +
-    '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）　' + supplyText(sh) + '<br>' +
+    '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）' + handsText(sh) + '　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
 }
 /** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
@@ -198,6 +198,7 @@ function checkEnd() {
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
   function fate(sh) { return sh.sunk ? '沉沒' : sh.fate; }
   if (foe.sunk || foe.struck) txt = '勝利！敵艦' + fate(foe);
+  else if (me.selfD) txt = '自爆！我艦引爆了彈藥庫';                      // 自爆（23_powder.js selfDestruct）：第一間炸的那一刻就結算（文字不等最後那間）
   else if (me.sunk || me.struck) txt = '敗北……我艦' + fate(me);
   if (!txt) return;
   OVER = true;

@@ -16,6 +16,8 @@ var BOOMS = [], KEG_R = 9, KEG_REACH = 30, KEG_DMG = 300, MAG_R = 95, MAG_LB = 1
 //   ⚠ 殉爆之後的戰局跟以前（一步挖完）不一樣；但跟慢動作、特寫開不開無關 ⇒ 開或關同一局。
 var BLASTS = [], BLAST_STEP = 40000;
 function blastK() { return Math.pow(BLAST_K, 1 / 3); }
+/** 這一次爆炸的威力（能量倍率）：1 ± BLAST_V 之間（細節設定的「威力浮動」；0 ⇒ 每次一樣、不抽亂數）。半徑照立方根、傷害照原值乘。 */
+function blastRoll() { return BLAST_V > 0 ? rr(1 - BLAST_V, 1 + BLAST_V) : 1; }
 /** 這艘船的彈藥庫：關聯 meta kind=magazine ＋ 名字在它底下的火藥桶模型。 */
 function makeMags(sh) {
   return (sh.T.h.parts || []).filter(function (p) { return p.meta && p.meta.kind === 'magazine'; }).map(function (p) {
@@ -41,20 +43,38 @@ function ignite(sh, m, delay) {
 }
 function stepPowder() {
   for (var i = 0; i < BOOMS.length; i++) { var e = BOOMS[i]; if (e.t > SIMT) continue; BOOMS.splice(i--, 1); kegBoom(e.sh, e.m); }
+  for (i = 0; i < SELFB.length; i++) { e = SELFB[i]; if (e.t > SIMT) continue; SELFB.splice(i--, 1); selfBoom(e.sh, e.mag); }
+}
+// 自爆（遊戲內設定的按鈕；Tim 2026-10-13：相當於重開，但先看煙花）：我艦還在的彈藥庫由小到大一間一間引爆（間隔 SELF_GAP 之間隨機，最大那間最後 ⇒ 通常船斷開；
+//   每間的威力照細節設定的「威力浮動」，每次都不一樣），
+//   照殉爆走（慢動作與特寫照設定）；炸不斷（殉爆威力調小）也一定開始沉（進水倍率 0 ⇒ 不沉，跟斷船一樣）。結算寫「自爆」，之後照常重新開始。
+var SELF_GAP = [0.6, 1.8], SELFB = [];
+function canSelfDestruct() { var sh = SHIPS[PLAYER_I]; return !!(RUNNING && sh && !sh.sunk && !sh.selfD && sh.mags.some(function (m) { return !m.gone; })); }
+function selfDestruct() {
+  if (!canSelfDestruct()) return false;
+  var sh = SHIPS[PLAYER_I]; sh.selfD = true;
+  var t = SIMT;
+  sh.mags.filter(function (m) { return !m.gone; }).sort(function (a, b) { return a.lb - b.lb; }).forEach(function (m, k) { if (k) t += rr(SELF_GAP[0], SELF_GAP[1]); SELFB.push({ t: t, sh: sh, mag: m }); });
+  note(sh, '<b style="color:#ff9a7a">自爆！</b>', true);
+  return true;
+}
+function selfBoom(sh, mag) {
+  magBoom(sh, mag);
+  sh.struck = true; sh.sinkingFinal = true; sh.fate = '自爆' + (sh.broken ? '（船斷成兩截）' : '');
 }
 /** 一桶炸了：小爆炸＋連鎖。 */
 function kegBoom(sh, m) {
   if (!m.alive || sh.sink > 40) return;
   m.alive = false;
-  var k = blastK(), w = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]), r = shatter(sh, m.c, [0, 0, 1], KEG_R * k, [0, 6, 0], 220, 1);
+  var f = blastRoll(), k = blastK() * Math.cbrt(f), w = M4.pt(sh.M, m.c[0], m.c[1], m.c[2]), r = shatter(sh, m.c, [0, 0, 1], KEG_R * k, [0, 6, 0], 220, 1);
   explode(w, sh, r.n);
-  hurt(sh, m.c, KEG_REACH * 0.4 * k, KEG_REACH * k, null, '殉爆', 300 * BLAST_K);
+  hurt(sh, m.c, KEG_REACH * 0.4 * k, KEG_REACH * k, null, '殉爆', 300 * BLAST_K * f);
   var reach = KEG_REACH * k;
   sh.models.forEach(function (o) {                                    // 旁邊的模型（火藥桶 ⇒ 連鎖；砲 ⇒ 扣血或飛出去）
     if (!o.alive || o === m) return;
     var d = len(sub(o.c, m.c)); if (d > reach) return;
     var cw = M4.pt(sh.M, o.c[0], o.c[1], o.c[2]);
-    damageModel(sh, o, mul(norm(sub(cw, w)), 220 * (1 - d / reach) + 60), KEG_DMG * BLAST_K * (1 - 0.75 * d / reach));
+    damageModel(sh, o, mul(norm(sub(cw, w)), 220 * (1 - d / reach) + 60), KEG_DMG * BLAST_K * f * (1 - 0.75 * d / reach));
   });
   if (m.station) flashCheck(sh, m.c);                                  // 取用點的桶：火光可能順著艙口竄下彈藥庫
   var mag = m.mag;
@@ -66,7 +86,7 @@ function magBoom(sh, mag) {
   mag.gone = true; mag.lit = true;
   mag.kegs.forEach(function (m) { m.alive = false; m.lit = true; });
   BOOMS = BOOMS.filter(function (e) { return e.m.mag !== mag; });
-  var k = blastK(), R = MAG_R * Math.pow(mag.lb / MAG_LB, 1 / 3) * k, c = mag.blast, w = M4.pt(sh.M, c[0], c[1], c[2]);
+  var f = blastRoll(), k = blastK() * Math.cbrt(f), R = MAG_R * Math.pow(mag.lb / MAG_LB, 1 / 3) * k, c = mag.blast, w = M4.pt(sh.M, c[0], c[1], c[2]);
   // 畫面：火球、碎片往外噴、濃煙往上
   flash(w, [0, 1, 0], 200, true);
   for (var i = 0; i < 160; i++) spawnPt(add(w, [gauss() * R * 0.04, rr(0, R * 0.06), gauss() * R * 0.04]), [gauss() * 14, rr(6, 30), gauss() * 14], rr(0.8, 2.2), [1, rr(0.4, 0.75), 0.12], 0.95, rr(3, 7), rr(6, 12), 2, 1.5, 3);
@@ -74,7 +94,7 @@ function magBoom(sh, mag) {
   sfx('blast', w, 2); sfx('creak', w, 1.6);
   if (typeof slowKick === 'function') slowKick(sh, w, R);              // 殉爆的慢動作與特寫（73_slowmo.js；只動畫面的時間與鏡頭）
   // 爆心附近：人、模型
-  hurt(sh, c, R * 0.85, R * 1.4, null, '殉爆', 1500 * BLAST_K);
+  hurt(sh, c, R * 0.85, R * 1.4, null, '殉爆', 1500 * BLAST_K * f);
   sh.models.forEach(function (o) {
     if (!o.alive) return;
     var d = len(sub(o.c, c)); if (d > R * 1.3) return;
@@ -85,7 +105,7 @@ function magBoom(sh, mag) {
   var brk = R >= BREAK_R * Math.pow(sh.cfg.hard / 2, 0.15);
   sh.struck = sh.struck || brk; sh.broken = sh.broken || brk;
   if (brk) { sh.fate = '殉爆（船斷成兩截）'; sh.sinkingFinal = true; }
-  mag.R = R; mag.removed = 0; mag.broke = brk;
+  mag.R = R; mag.f = f; mag.removed = 0; mag.broke = brk;
   var job = crater(sh, c, R); job.w = w; job.mag = mag; BLASTS.push(job);
   blastStep(job);                                                      // 爆心那幾塊這一步就挖（其他的 stepBlasts 接著挖）
 }
@@ -179,7 +199,7 @@ function makeStations(sh) {
       var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
-        var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: POWDER_HP, hpMax: POWDER_HP, mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
+        var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: powderHP(), hpMax: powderHP(), mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
           c: [(bb[0] + bb[3]) / 2, (bb[1] + bb[4]) / 2, (bb[2] + bb[5]) / 2], foot: VK.pack(org[0] + 2, org[1] + 2, org[2] - 1), alive: true };
         sh.models.push(m); st.kegs.push(m);
       });
@@ -279,26 +299,26 @@ function stepMonkey(sh, c, dt) {
 }
 /** 送藥手手上的藥包吃到一下（damageCrew 轉過來）：夠重 ⇒ 著火爆炸。 */
 function cartHit(sh, c, dmg) {
-  if (powderNever() || dmg < POWDER_HP * CART_K) return;
+  if (powderNever() || dmg < powderHP() * CART_K) return;
   var n = c.cart; c.cart = 0; cartBoom(sh, [c.pos[0], c.pos[1], c.pos[2] + 9], n, '送藥手手上的藥包炸了');
 }
 /** 砲旁的藥箱（damageModel 打到砲時轉過來）。 */
 function boxHit(sh, g, dmg) {
-  if (!(g.box > 0) || powderNever() || dmg < POWDER_HP * CART_K) return;
+  if (!(g.box > 0) || powderNever() || dmg < powderHP() * CART_K) return;
   var n = g.box; g.box = 0; cartBoom(sh, g.model.c, n, sideName(g.side) + GUNS[g.type].short + '旁的藥箱炸了');
 }
 /** 藥包爆炸（n 份）：小洞、旁邊的人與模型（取用點的桶 ⇒ 連鎖）、可能竄下艙口。 */
 function cartBoom(sh, L, n, what) {
   if (sh.sink > 40) return;
   sh.cartN = (sh.cartN || 0) + 1;                                       // 讀數：藥包炸了幾次
-  var k = blastK() * Math.cbrt(n), w = M4.pt(sh.M, L[0], L[1], L[2]), r = shatter(sh, L, [0, 0, 1], 3.5 * k, [0, 4, 0], 60, 1), reach = 18 * k;
+  var f = blastRoll(), k = blastK() * Math.cbrt(n * f), w = M4.pt(sh.M, L[0], L[1], L[2]), r = shatter(sh, L, [0, 0, 1], 3.5 * k, [0, 4, 0], 60, 1), reach = 18 * k;
   explode(w, sh, r.n);
-  hurt(sh, L, 8 * k, 22 * k, null, '火藥', 200 * BLAST_K * Math.cbrt(n));
+  hurt(sh, L, 8 * k, 22 * k, null, '火藥', 200 * BLAST_K * f * Math.cbrt(n));
   sh.models.forEach(function (o) {
     if (!o.alive) return;
     var d = len(sub(o.c, L)); if (d > reach) return;
     var cw = M4.pt(sh.M, o.c[0], o.c[1], o.c[2]);
-    damageModel(sh, o, mul(norm(sub(cw, w)), 120 * (1 - d / reach) + 40), 150 * BLAST_K * Math.cbrt(n) * (1 - 0.75 * d / reach));
+    damageModel(sh, o, mul(norm(sub(cw, w)), 120 * (1 - d / reach) + 40), 150 * BLAST_K * f * Math.cbrt(n) * (1 - 0.75 * d / reach));
   });
   if (what) note(sh, '<b style="color:#ffb35a">' + what + '</b>');
   flashCheck(sh, L);
