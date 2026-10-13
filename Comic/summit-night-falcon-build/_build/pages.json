@@ -594,6 +594,54 @@
           }
         ]
       ]
+    },
+    "010_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage8_assembly_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage8_bow_yaw0.png",
+            "fit": "cover",
+            "aspect": 0.8
+          }
+        ]
+      ]
+    },
+    "010_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage8_main_gaff_boom_yaw70.png",
+            "fit": "cover",
+            "aspect": 0.9
+          },
+          {
+            "src": "O/stage8_assembly_yaw90.png",
+            "fit": "cover",
+            "aspect": 1.09
+          }
+        ]
+      ]
+    },
+    "010_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage8_demo_braced_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage8_demo_braced_yaw160.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
     }
   }
 }
