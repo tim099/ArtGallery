@@ -1029,6 +1029,99 @@
           }
         ]
       ]
+    },
+    "021_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet19_ladders_v1.png",
+            "crop": [
+              20,
+              45,
+              410,
+              325
+            ]
+          },
+          {
+            "src": "D/sheet19_ladders_v1.png",
+            "crop": [
+              20,
+              460,
+              410,
+              720
+            ]
+          }
+        ],
+        [
+          {
+            "src": "O/stage19_ladders_yaw135.png",
+            "fit": "cover",
+            "aspect": 2.0
+          }
+        ]
+      ]
+    },
+    "021_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage19_ladders_companion_yaw-60.png",
+            "fit": "cover",
+            "aspect": 1.2
+          },
+          {
+            "src": "O/stage19_ladders_break_yaw35.png",
+            "fit": "cover",
+            "aspect": 1.2
+          }
+        ]
+      ]
+    },
+    "022_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet20_binnacle_v1.png",
+            "crop": [
+              10,
+              40,
+              520,
+              595
+            ]
+          },
+          {
+            "src": "O/stage20_binnacle_yaw-135.png",
+            "fit": "cover",
+            "aspect": 1.1
+          }
+        ]
+      ]
+    },
+    "023_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/final_complete_yaw-120.png",
+            "fit": "contain"
+          }
+        ]
+      ]
+    },
+    "023_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/final_complete_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/final_complete_deck_yaw150.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
     }
   }
 }
