@@ -28,9 +28,13 @@ function playK(k) { return PLAY === 'fun' ? FUN[k] : 1; }
 //   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）。玩法選娛樂 ⇒ 兩個再乘娛樂加成（playK）
 // 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 存檔裡那一型的（同一份船才算，69_prefs.js）⇒ 那一型的 ballast0（船型載好才知道）。
 var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile'], SHIP_CFG = {};
+// 船型自己的預設（沒列的 ＝ LIM 的預設）。Tim 2026-10-13：憲法號要比餘燼號快、靈活 ⇒ 憲法號照舊 1（巡防艦），
+//   餘燼號是兩層砲甲板、90 門砲的重船 ⇒ 航速 0.85、靈活 0.7。網址參數（?speed= …）照舊套到每一型。
+var HULL_CFG0 = { ember: { speed: 0.85, agile: 0.7 } };
+function cfgBase(k, id) { var d = HULL_CFG0[id]; return d && d[k] !== undefined ? d[k] : LIM[k][2]; }
 var PREF_BALLAST = {};                                   // 存檔裡的壓艙物：id → { v: 噸, chk: 存的時候那艘船的 checksum }（船重匯過 ⇒ 不套）
-function cfgDefault(k, T) {
-  if (k !== 'ballast') return qnum(k, LIM[k]);
+function cfgDefault(k, T, id) {
+  if (k !== 'ballast') return Q.has(k) ? qnum(k, LIM[k]) : cfgBase(k, id);
   if (Q.has('ballast')) return Math.round(qnum('ballast', LIM.ballast));
   var pb = T && PREF_BALLAST[T.id];
   if (pb && pb.chk === T.h.checksum) return pb.v;
@@ -39,7 +43,7 @@ function cfgDefault(k, T) {
 /** 那一型的設定（第一次用到才建；壓艙物等船型載好才填）。 */
 function shipCfg(id) {
   var c = SHIP_CFG[id];
-  if (!c) { c = SHIP_CFG[id] = {}; SHIP_KEYS.forEach(function (k) { if (k !== 'ballast') c[k] = cfgDefault(k); }); }
+  if (!c) { c = SHIP_CFG[id] = {}; SHIP_KEYS.forEach(function (k) { if (k !== 'ballast') c[k] = cfgDefault(k, null, id); }); }
   if (c.ballast === undefined && HULLT[id]) c.ballast = cfgDefault('ballast', HULLT[id]);
   return c;
 }

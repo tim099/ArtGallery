@@ -22,7 +22,7 @@ function prefsSnap() {
   if (SHIP_SET.some(function (id) { return id !== 'constitution'; })) o.ship = SHIP_SET.slice();
   Object.keys(SHIP_CFG).forEach(function (id) {
     var c = SHIP_CFG[id], T = HULLT[id], d = {};
-    SHIP_KEYS.forEach(function (k) { if (k !== 'ballast' && c[k] !== LIM[k][2]) d[k] = c[k]; });
+    SHIP_KEYS.forEach(function (k) { if (k !== 'ballast' && c[k] !== cfgBase(k, id)) d[k] = c[k]; });   // 跟那一型的預設比（HULL_CFG0）
     if (T && c.ballast !== undefined) { if (c.ballast !== T.ballast0) { d.ballast = c.ballast; d.chk = T.h.checksum; } }
     else if (PREF_BALLAST[id]) { d.ballast = PREF_BALLAST[id].v; d.chk = PREF_BALLAST[id].chk; }   // 這一場沒載那艘船 ⇒ 存檔裡的照留
     if (Object.keys(d).length) cfg[id] = d;

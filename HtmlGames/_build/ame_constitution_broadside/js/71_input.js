@@ -284,7 +284,7 @@ function sliders() {
   $('phxX').onclick = function () { page(''); };
   gfxUI(); phxUI();
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
-    SHIP_CFG = {}; Object.keys(HULLT).forEach(function (id) { var c = shipCfg(id); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? HULLT[id].ballast0 : LIM[k][2]; }); });   // 每一型回到它的預設（壓艙物 ＝ 剛好在設計水線）
+    SHIP_CFG = {}; Object.keys(HULLT).forEach(function (id) { var c = shipCfg(id); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? HULLT[id].ballast0 : cfgBase(k, id); }); });   // 每一型回到它的預設（壓艙物 ＝ 剛好在設計水線；航速、靈活照 HULL_CFG0）
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; BLAST_V = LIM.blastv[2]; CREW_HP = LIM.crewhp[2];
     DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2]; DROWN_T = LIM.drown[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
