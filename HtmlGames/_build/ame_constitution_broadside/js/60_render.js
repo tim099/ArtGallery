@@ -28,15 +28,19 @@ function geometry() {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0); gl.bindVertexArray(null);
 }
 /** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ R8 貼圖，海的著色器拿來判斷「在不在船艙裡」。 */
-function hullTex(T) {                                  // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠
-  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz), CY = T.cy;
-  var hb = new Uint8Array(TW * TH);
-  T.base.each(function (x, y, z) { if (z >= TH) return; var d = Math.min(255, Math.ceil(Math.abs(y + 0.5 - CY))); if (d > hb[z * TW + x]) hb[z * TW + x] = d; });
+function hullTex(T, hb) {                              // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠；hb ＝ 快取的那張（06_cache.js）
+  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz);
+  T.hullHB = hb = hb || hullMask(T);                   // 留著：存快取、對拍用（__game.hullCheck）
   T.hullTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, TW, TH, 0, gl.RED, gl.UNSIGNED_BYTE, hb);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.bindTexture(gl.TEXTURE_2D, null);
+}
+function hullMask(T) {
+  var TW = T.base.sx, TH = Math.min(256, T.base.sz), CY = T.cy, hb = new Uint8Array(TW * TH);
+  T.base.each(function (x, y, z) { if (z >= TH) return; var d = Math.min(255, Math.ceil(Math.abs(y + 0.5 - CY))); if (d > hb[z * TW + x]) hb[z * TW + x] = d; });
+  return hb;
 }
 function resize() {
   var dpr = Math.min(window.devicePixelRatio || 1, 1.5), w = Math.max(1, cv.clientWidth * dpr | 0), h = Math.max(1, cv.clientHeight * dpr | 0);

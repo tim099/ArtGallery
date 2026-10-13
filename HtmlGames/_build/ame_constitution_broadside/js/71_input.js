@@ -202,7 +202,7 @@ function sliders() {
     DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
-    put(); show();
+    put(); show(); prefsReset();                         // 存檔跟著清（69_prefs.js：只剩主選單的選擇）
   };
   window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
   put(); show(); SLIDERS_SHOW = function () { put(); show(); };

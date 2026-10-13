@@ -871,11 +871,15 @@ function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp
 //   ballast 壓艙物（噸）：不會被打掉的重量；預設 ＝ 那一型「剛好在設計水線」（T.ballast0：憲法號 1,075），越輕浮得越高（減重上浮，32_hull.js）
 //   gunw  砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多
 //   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
-// 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 那一型的 ballast0（船型載好才知道）。
+// 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 存檔裡那一型的（同一份船才算，69_prefs.js）⇒ 那一型的 ballast0（船型載好才知道）。
 var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile'], SHIP_CFG = {};
+var PREF_BALLAST = {};                                   // 存檔裡的壓艙物：id → { v: 噸, chk: 存的時候那艘船的 checksum }（船重匯過 ⇒ 不套）
 function cfgDefault(k, T) {
   if (k !== 'ballast') return qnum(k, LIM[k]);
-  return Q.has('ballast') ? Math.round(qnum('ballast', LIM.ballast)) : T && isFinite(T.ballast0) ? T.ballast0 : LIM.ballast[2];
+  if (Q.has('ballast')) return Math.round(qnum('ballast', LIM.ballast));
+  var pb = T && PREF_BALLAST[T.id];
+  if (pb && pb.chk === T.h.checksum) return pb.v;
+  return T && isFinite(T.ballast0) ? T.ballast0 : LIM.ballast[2];
 }
 /** 那一型的設定（第一次用到才建；壓艙物等船型載好才填）。 */
 function shipCfg(id) {
@@ -942,24 +946,34 @@ function loadHull(id) {
   if (!info) return Promise.reject(new Error('沒有這艘船：' + id));
   var t0 = performance.now();
   hullSay(info.name + '：解碼…');
-  return (HULLS[id] = yieldUI().then(function () { return VK.loadEmbedded(info.el); }).then(function (model) { return buildHull(info, model, t0); }).then(function (T) { return (HULLT[id] = T); }));
+  return (HULLS[id] = yieldUI().then(function () { return Promise.all([VK.loadEmbedded(info.el), cacheGet(info)]); })   // 解碼與讀快取一起跑（06_cache.js）
+    .then(function (r) { return buildHull(info, r[0], t0, r[1]); })
+    .then(function (T) { HULLT[id] = T; cachePut(T, info); return T; }));
 }
 /** 讓出一次（MessageChannel：一個新的工作 ⇒ 瀏覽器可以先畫一格、處理點擊）。⛔ 不用 setTimeout：分頁在背景時會被壓到一秒一次。 */
 function yieldUI() { return new Promise(function (r) { var ch = new MessageChannel(); ch.port1.onmessage = function () { r(); }; ch.port2.postMessage(0); }); }
 var hullSay = function () {};                                            // 90_main.js 換成寫進度的那支
-function buildHull(info, model, t0) {
-  var h = model.header, t1 = performance.now();                            // 到這裡是解碼（loadEmbedded），之後是網格化
+/** C：快取的記錄（06_cache.js；null ⇒ 全部現場算）。現場算的時候，要存的那幾份另外留在 T.keep，給 cachePut 存。 */
+function buildHull(info, model, t0, C) {
+  var h = model.header, t1 = performance.now();                            // 到這裡是解碼（loadEmbedded，跟讀快取一起），之後是網格化
+  if (C && (C.voxels !== h.voxels || C.checksum !== h.checksum)) C = null;  // 雙保險：鍵是 .vxk 原文的雜湊，格數與 checksum 也要一樣
   if (S && Math.abs(h.meters_per_voxel - S) > 1e-9) throw new Error(info.name + ' 是 ' + h.meters_per_voxel + ' 公尺一格，跟已經載入的船（' + S + '）不一樣 —— 模擬只吃同一個比例');
   S = h.meters_per_voxel;
   var T = { id: info.id, name: info.name, model: model, h: h, rig: h.rig || { ropes: [], sails: [] },
     sz: h.size[2], cx: (h.bbox[0] + h.bbox[3]) / 2, cy: h.size[1] / 2, hx0: h.bbox[0], hx1: h.bbox[3], zw: hullZW(h) };   // 外框：含艏斜桅與後桅帆桁
+  T.cached = !!C; T.keep = C ? null : {};
+  T.ms = {};                                                               // 每一段花多久（毫秒；讀數 window.__vxk.ms）
+  function tm(k, f) { var a = performance.now(); f(); T.ms[k] = +(performance.now() - a).toFixed(1); }
   var steps = [
-    ['格子', function () { T.base = VK.Grid.fromModel(model); T.chk = VK.verify(T.base, h); }],
-    ['模型網格', function () { buildMeshes(T); }],
-    ['水線與浮力', function () { waterline(T); hullTex(T); hydrostatics(T); }],
-    ['船體網格', function () { T.pristine = new VK.RegionSet(gl, T.base, QIDX); T.pristine.buildAll(); }],
+    ['格子', function () { tm('grid', function () { T.base = VK.Grid.fromModel(model); }); tm('verify', function () { T.chk = VK.verify(T.base, h); }); }],   // 格子不存快取：照解出來的比 checksum
+    ['模型網格', function () { tm('meshes', function () { buildMeshes(T, C && C.models); }); }],
+    ['水線與浮力', function () {
+      tm('waterline', function () { waterline(T); }); tm('hullTex', function () { hullTex(T, C && C.hb); });
+      tm('hydro', function () { if (C) { T.hyd = C.hyd; T.disp = C.disp; } else hydrostatics(T); });
+    }],
+    ['船體網格', function () { tm('pristine', function () { T.pristine = new VK.RegionSet(gl, T.base, QIDX); if (C) meshesFromCache(T.pristine, C.mesh); else T.pristine.buildAll(); }); }],
     ['桅與帆', function () {
-      findMasts(T); clothSetup(T);
+      tm('masts', function () { findMasts(T); }); tm('cloth', function () { clothSetup(T, C); });
       var mt = 12 * KEG_T; (T.rig.models || []).forEach(function (m) { mt += modelT({ kind: modelKind(m) }, 1); });   // 模型的重量（砲照實、取用點 12 桶）
       T.ballast0 = Math.max(0, Math.round((T.disp - T.base.count * VOX_T - mt) / 25) * 25);   // 剛好浮在設計水線的壓艙物（滑桿一格 25 噸）
     }]
@@ -972,6 +986,89 @@ function buildHull(info, model, t0) {
 function hullZW(h) {
   var p = (h.parts || []).filter(function (q) { return q.meta && q.meta.kind === 'ship'; })[0], m = (p && p.meta) || h.meta || {};
   return isFinite(+m.waterline_z) && +m.waterline_z > 0 ? +m.waterline_z : ZW0;
+}
+// ── js/06_cache.js ──
+// ───────────────────────── 船型快取（IndexedDB；Tim 2026-10-13：緩存船隻解析結果，加速下次啟動） ─────────────────────────
+// 存的是載入時算一次、之後不改的東西：船體網格（每個區塊的四邊形）、模型網格（三角形＋佔用格）、海面遮罩、浮力表、帆的布模板。
+//   格子本身不存：解碼很快（憲法號約 70 ms），而且 checksum 要照解出來的格子比（VK.verify）。
+//   GPU 那一半（上傳、VAO）每次照樣做，只省 CPU 算的那一半。量過（2026-10-13，PC）：船體網格 CPU 240 ms，讀回同一份 6.8 MB 約 19 ms。
+// 一型一筆（鍵 ＝ 船的 id）；兩艘同型共用那一筆。
+// 失效：那筆記錄的 vxk（內嵌 .vxk 原文的雜湊：basecamp 每次重匯都會變，繩／帆／模型改了也會變）、code（頁面裡 JS 原文的雜湊：
+//   產生網格的程式改了也要清）、fmt（快取格式）任何一個對不上 ⇒ 不用、現場解析完蓋掉它。
+// 存不了（畫廊彈窗的 iframe 只開 allow-scripts：不透明來源，一碰 indexedDB 就丟錯；無痕模式；配額滿）⇒ 照常現場解析，不壞。
+// ?cache=0 ⇒ 不讀也不寫（量現場解析的時間用）。
+var CACHE_DB = 'ame_constitution_broadside', CACHE_FMT = 1, CACHE_ON = Q.get('cache') !== '0';
+/** FNV-1a 32 位元（字串照 UTF-16 碼位）。 */
+function fnv(s) { var h = 0x811c9dc5; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+// 程式版本 ＝ 頁面上所有內嵌 JS 的原文（VoxelKit ＋ 遊戲本體）：改了任何一行都會換 ⇒ 寧可多清，不拿舊程式算的網格
+var CODE_VER = fnv([].map.call(document.scripts, function (el) { return !el.type || /javascript/i.test(el.type) ? el.textContent : ''; }).join('\n'));
+var cacheDB = null;
+/** 開資料庫 ⇒ Promise<IDBDatabase|null>（開不了 ⇒ null；1.5 秒沒回也當開不了）。 */
+function cacheOpen() {
+  if (cacheDB) return cacheDB;
+  return (cacheDB = new Promise(function (res) {
+    var done = false; function ok(v) { if (!done) { done = true; res(v); } }
+    setTimeout(function () { ok(null); }, 1500);
+    try {
+      var q = indexedDB.open(CACHE_DB, 1);
+      q.onupgradeneeded = function () { q.result.createObjectStore('hull'); };
+      q.onsuccess = function () { ok(q.result); };
+      q.onerror = q.onblocked = function () { ok(null); };
+    } catch (e) { ok(null); }
+  }));
+}
+/** 那艘船的快取 ⇒ Promise<記錄|null>（從不 reject）。info.cache 留讀數：key、讀了多久、為什麼沒用。 */
+function cacheGet(info) {
+  var el = document.getElementById(info.el), st = info.cache = { vxk: fnv(el ? el.textContent : ''), code: CODE_VER, hit: false, why: '' };
+  if (!CACHE_ON) { st.why = '?cache=0'; return Promise.resolve(null); }
+  var t0 = performance.now();
+  return cacheOpen().then(function (db) {
+    if (!db) { st.why = '存不了（這個頁面不能用 IndexedDB）'; return null; }
+    return new Promise(function (res) {
+      try {
+        var q = db.transaction('hull').objectStore('hull').get(info.id);
+        q.onsuccess = function () {
+          var r = q.result; st.readMs = performance.now() - t0;
+          if (!r) st.why = '還沒有快取';
+          else if (r.fmt !== CACHE_FMT || r.vxk !== st.vxk || r.code !== st.code) st.why = '快取過期（' + [r.fmt !== CACHE_FMT && '格式', r.vxk !== st.vxk && '船', r.code !== st.code && '程式'].filter(Boolean).join('、') + '換了）';
+          else { st.hit = true; res(r); return; }
+          res(null);
+        };
+        q.onerror = function () { st.why = '讀不了'; res(null); };
+      } catch (e) { st.why = '讀不了'; res(null); }
+    });
+  });
+}
+/** 現場解析完的船型 ⇒ 存一筆（蓋掉舊的）。在背景做，失敗只記讀數。 */
+function cachePut(T, info) {
+  var st = info.cache;
+  if (!CACHE_ON || st.hit || !T.keep) return;
+  var g = T.base, ms = T.pristine.meshes, idx = [], n = 0;
+  ms.forEach(function (m, i) { if (m) { idx.push(i, m.length); n += m.length; } });
+  var all = new Uint16Array(n), o = 0;
+  for (var k = 0; k < idx.length; k += 2) { all.set(ms.get(idx[k]), o); o += idx[k + 1]; }
+  var rec = { fmt: CACHE_FMT, vxk: st.vxk, code: st.code, voxels: T.h.voxels, checksum: T.h.checksum, at: Date.now(), nx: g.nx, ny: g.ny,
+    mesh: { all: all, idx: new Int32Array(idx) }, models: T.keep.models, hb: T.hullHB, hyd: T.hyd, disp: T.disp, rbox: T.rbox, cloth: T.cloth };
+  T.keep = null;
+  cacheOpen().then(function (db) {
+    if (!db) return;
+    try {
+      var t0 = performance.now(), tx = db.transaction('hull', 'readwrite');
+      tx.objectStore('hull').put(rec, info.id);
+      tx.oncomplete = function () { st.saved = true; st.saveMs = performance.now() - t0; };
+      tx.onerror = tx.onabort = function () { st.saved = false; st.why = '存不了：' + (tx.error && tx.error.name || '?'); };
+    } catch (e) { st.saved = false; st.why = '存不了：' + (e && e.name || e); }
+  });
+}
+/** 快取的船體網格 ⇒ RegionSet（跟 buildAll 同一份結果：每個區塊的四邊形，之後照樣 flush 上傳）。 */
+function meshesFromCache(rs, M) {
+  var g = rs.grid, o = 0;
+  for (var k = 0; k < M.idx.length; k += 2) {
+    var i = M.idx[k], n = M.idx[k + 1];
+    rs.meshes.set(i, M.all.subarray(o, o + n)); o += n;
+    rs.dirtyRegions.add(rs.rkey(i % g.nx, Math.floor(i / g.nx) % g.ny, Math.floor(i / (g.nx * g.ny))));
+  }
+  rs.flush();
 }
 // ── js/10_ship.js ──
 // ───────────────────────── 船 ─────────────────────────
@@ -1686,19 +1783,24 @@ function stepFly(f, dt) {
   f.M = M4.mul(M4.mul(M4.mul(trans(f.c[0], f.c[1], f.c[2]), f.R), trans(-f.c0[0], -f.c0[1], -f.c0[2])), f.M0);
   return f.t < 25 && f.c[1] > -25;
 }
-function buildMeshes(H) {         // 船型 H 的每份模型網格一個 VAO：三角形展開、平面法線、材質色（P.tri 畫）
-  H.meshes = [];
-  (H.rig.meshes || []).forEach(function (m) {
-    var v = m.verts, T = [];
-    for (var j = 0; j < m.tris.length; j += 3) {
-      var a = m.tris[j] * 3, b = m.tris[j + 1] * 3, d = m.tris[j + 2] * 3, c = m.mats[m.tmat[j / 3]];
-      var n = norm(cross([v[b] - v[a], v[b + 1] - v[a + 1], v[b + 2] - v[a + 2]], [v[d] - v[a], v[d + 1] - v[a + 1], v[d + 2] - v[a + 2]]));
-      T.push(v[a], v[a + 1], v[a + 2], n[0], n[1], n[2], c[0], c[1], c[2], v[b], v[b + 1], v[b + 2], n[0], n[1], n[2], c[0], c[1], c[2],
-             v[d], v[d + 1], v[d + 2], n[0], n[1], n[2], c[0], c[1], c[2]);
-    }
-    var up = upload(null, new Float32Array(T), 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]);
-    up.occ = meshOcc(m); H.meshes.push(up);
+function buildMeshes(H, C) {      // 船型 H 的每份模型網格一個 VAO：三角形展開、平面法線、材質色（P.tri 畫）；C ＝ 快取的 [{ tri, occ }]（06_cache.js）
+  H.meshes = []; var keep = [];
+  (H.rig.meshes || []).forEach(function (m, k) {
+    var d = C ? C[k] : { tri: meshTris(m), occ: meshOcc(m) };
+    var up = upload(null, d.tri, 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]);
+    up.occ = d.occ; H.meshes.push(up); keep.push(d);
   });
+  if (H.keep) H.keep.models = keep;
+}
+function meshTris(m) {
+  var v = m.verts, T = [];
+  for (var j = 0; j < m.tris.length; j += 3) {
+    var a = m.tris[j] * 3, b = m.tris[j + 1] * 3, d = m.tris[j + 2] * 3, c = m.mats[m.tmat[j / 3]];
+    var n = norm(cross([v[b] - v[a], v[b + 1] - v[a + 1], v[b + 2] - v[a + 2]], [v[d] - v[a], v[d + 1] - v[a + 1], v[d + 2] - v[a + 2]]));
+    T.push(v[a], v[a + 1], v[a + 2], n[0], n[1], n[2], c[0], c[1], c[2], v[b], v[b + 1], v[b + 2], n[0], n[1], n[2], c[0], c[1], c[2],
+           v[d], v[d + 1], v[d + 2], n[0], n[1], n[2], c[0], c[1], c[2]);
+  }
+  return new Float32Array(T);
 }
 function ballToDebris(b) { spawnDebris(b.p, mul(b.v, 0.3), 36, 0.15, 20); b.alive = false; }
 function slab(sh, L, dirL, b) {
@@ -2367,9 +2469,9 @@ function coarseOf(n, T) {
   }
   return { kind: kind, idx: idx, tris: ct, mi: mi, mw: mw };
 }
-function clothSetup(H) {                               // 船型 H 的布模板；暫存區（兩艘、各型共用）照目前最大的那一型配
-  H.rbox = H.rig.ropes.map(function (r) { return ropeBox(r.pts); });
-  H.cloth = H.rig.sails.map(function (s) { return clothTemplate(H, s); });
+function clothSetup(H, C) {                            // 船型 H 的布模板；暫存區（兩艘、各型共用）照目前最大的那一型配；C ＝ 快取的記錄（06_cache.js：rbox、cloth）
+  H.rbox = C ? C.rbox : H.rig.ropes.map(function (r) { return ropeBox(r.pts); });
+  H.cloth = C ? C.cloth : H.rig.sails.map(function (s) { return clothTemplate(H, s); });
   var mv = 1, mc = 1, sv = 0, si = 0;
   H.cloth.forEach(function (C) { mv = Math.max(mv, C.n); mc = Math.max(mc, C.sim.n); sv += C.n; si += C.tris.length; });
   if (!CACC || CACC.length < mc * 3) { CACC = new Float32Array(mc * 3); CCNT = new Uint8Array(mc); }
@@ -3442,15 +3544,19 @@ function geometry() {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0); gl.bindVertexArray(null);
 }
 /** 船殼外形（原本的，不管被打掉多少）：每個 (x, z) 最外那一格離中線多遠（格）⇒ R8 貼圖，海的著色器拿來判斷「在不在船艙裡」。 */
-function hullTex(T) {                                  // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠
-  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz), CY = T.cy;
-  var hb = new Uint8Array(TW * TH);
-  T.base.each(function (x, y, z) { if (z >= TH) return; var d = Math.min(255, Math.ceil(Math.abs(y + 0.5 - CY))); if (d > hb[z * TW + x]) hb[z * TW + x] = d; });
+function hullTex(T, hb) {                              // 船型 T 的海面遮罩（T.hullTex）：每個 (x, z) 船殼最外那一格離中線多遠；hb ＝ 快取的那張（06_cache.js）
+  var TW = T.hullTW = T.base.sx, TH = T.hullTH = Math.min(256, T.base.sz);
+  T.hullHB = hb = hb || hullMask(T);                   // 留著：存快取、對拍用（__game.hullCheck）
   T.hullTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, TW, TH, 0, gl.RED, gl.UNSIGNED_BYTE, hb);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.bindTexture(gl.TEXTURE_2D, null);
+}
+function hullMask(T) {
+  var TW = T.base.sx, TH = Math.min(256, T.base.sz), CY = T.cy, hb = new Uint8Array(TW * TH);
+  T.base.each(function (x, y, z) { if (z >= TH) return; var d = Math.min(255, Math.ceil(Math.abs(y + 0.5 - CY))); if (d > hb[z * TW + x]) hb[z * TW + x] = d; });
+  return hb;
 }
 function resize() {
   var dpr = Math.min(window.devicePixelRatio || 1, 1.5), w = Math.max(1, cv.clientWidth * dpr | 0), h = Math.max(1, cv.clientHeight * dpr | 0);
@@ -3739,6 +3845,115 @@ function checkEnd() {
     '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
   END_AT = SIMT + (foe.sunk || me.sunk ? END_SINK : END_OTHER);   // 重開／回選單時歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
 }
+// ── js/69_prefs.js ──
+// ───────────────────────── 設定存檔（localStorage；Tim 2026-10-13：直接開網頁時，設定存在玩家自己的瀏覽器，下次打開自動套用） ─────────────────────────
+// 存：細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗）、船隻設定（SHIP_CFG，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
+//   以及主選單的模式、距離、航行。不存整場戰局。
+// 只存「跟預設不一樣」的那幾項：沒動過的照程式的預設走 ⇒ 之後改了預設值（例：火藥 450 → 675），沒動過的玩家也吃得到新的。
+//   壓艙物的預設跟船走（T.ballast0）⇒ 存的時候記那艘船的 checksum，船重匯過就不套（PREF_BALLAST，04_state.js）。
+// 網址參數優先：網址有的那一項照網址；網址帶了任何設定參數 ⇒ 只讀不寫（照連結開的那一場不蓋掉玩家自己的存檔）。
+// ?demo（縮圖、對拍）⇒ 不讀也不寫：快轉出來的那一格不受存檔影響。?prefs=0 同（量預設用）。
+// 讀寫都包 try/catch：畫廊彈窗的 iframe 只開 allow-scripts（不透明來源），一碰 localStorage 就丟錯 ⇒ 照預設跑。
+// 格式帶版本號（v）；看不懂的版本、壞掉的 JSON ⇒ 整份不套；型別不對、界外的值 ⇒ 那一項不套（界外的夾回範圍）。
+// 什麼時候存：每秒比一次（跟上次存的不一樣才寫）＋ 關頁、切到背景時。全部回到預設 ⇒ 刪掉那一筆。
+var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
+var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
+  'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
+var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
+PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
+/** 現在的設定裡跟預設不一樣的那幾項（＋版本號）。 */
+function prefsSnap() {
+  var o = { v: PREFS_VER }, cfg = {};
+  function put(k, v, d) { if (v !== d) o[k] = v; }
+  if (SHIP_SET.some(function (id) { return id !== 'constitution'; })) o.ship = SHIP_SET.slice();
+  Object.keys(SHIP_CFG).forEach(function (id) {
+    var c = SHIP_CFG[id], T = HULLT[id], d = {};
+    SHIP_KEYS.forEach(function (k) { if (k !== 'ballast' && c[k] !== LIM[k][2]) d[k] = c[k]; });
+    if (T && c.ballast !== undefined) { if (c.ballast !== T.ballast0) { d.ballast = c.ballast; d.chk = T.h.checksum; } }
+    else if (PREF_BALLAST[id]) { d.ballast = PREF_BALLAST[id].v; d.chk = PREF_BALLAST[id].chk; }   // 這一場沒載那艘船 ⇒ 存檔裡的照留
+    if (Object.keys(d).length) cfg[id] = d;
+  });
+  if (Object.keys(cfg).length) o.cfg = cfg;
+  put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
+  put('blast', BLAST_K, LIM.blast[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('wind', WIND_K, LIM.wind[2]);
+  var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
+  if (Object.keys(dm).length) o.dmg = dm;
+  if (AMMO_K.some(function (r, i) { return r.some(function (v, j) { return v !== AMMO_K0[i][j]; }); })) o.ammoK = AMMO_K.map(function (r) { return r.slice(); });
+  if (STRIKE.cas !== LIM.cas[2] || STRIKE.guns || STRIKE.masts || STRIKE.officers) o.strike = { cas: STRIKE.cas, guns: STRIKE.guns, masts: STRIKE.masts, officers: STRIKE.officers };
+  if (CAP_SET.some(function (k) { return k !== 'random'; })) o.cap = CAP_SET.slice();
+  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('phys', PHYS, true); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
+  if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
+  return o;
+}
+/** 存檔 ⇒ 變數。網址有的那一項不套；每一項各自驗（型別、範圍），不對的那一項照預設。 */
+function prefsApply(p) {
+  function num(v, lim, int) { if (typeof v !== 'number' || !isFinite(v)) return undefined; v = clamp(v, lim[0], lim[1]); return int ? Math.round(v) : v; }
+  function set(qk, v, lim, int, f) { if (Q.has(qk)) return; var x = num(v, lim, int); if (x !== undefined) f(x); }
+  if (!Q.has('ship') && Array.isArray(p.ship)) p.ship.forEach(function (w, i) { if (i < 2 && hullInfo(w)) SHIP_SET[i] = w; });
+  if (p.cfg && typeof p.cfg === 'object') Object.keys(p.cfg).forEach(function (id) {
+    var d = p.cfg[id]; if (!hullInfo(id) || !d || typeof d !== 'object') return;
+    var c = shipCfg(id);
+    SHIP_KEYS.forEach(function (k) { if (k !== 'ballast') set(k, d[k], LIM[k], false, function (x) { c[k] = x; }); });
+    var b = num(d.ballast, LIM.ballast, true);
+    if (b !== undefined && typeof d.chk === 'number') PREF_BALLAST[id] = { v: b, chk: d.chk };   // 船型載好、checksum 對得上才套（cfgDefault）
+  });
+  set('gunhp', p.gunhp, LIM.gunhp, true, function (x) { GUN_HP = x; });
+  set('sailhp', p.sailhp, LIM.sailhp, true, function (x) { SAIL_HP = x; });
+  set('crewhp', p.crewhp, LIM.crewhp, true, function (x) { CREW_HP = x; });
+  set('powderhp', p.powderhp, LIM.powderhp, true, function (x) { POWDER_HP = x; });
+  set('blast', p.blast, LIM.blast, false, function (x) { BLAST_K = x; });
+  set('box', p.box, LIM.box, true, function (x) { BOX_N = x; });
+  set('carry', p.carry, LIM.carry, true, function (x) { CARRY_N = x; });
+  set('wind', p.wind, LIM.wind, false, function (x) { WIND_K = x; });
+  if (p.dmg && typeof p.dmg === 'object') Object.keys(DMG_Q).forEach(function (t) { set(DMG_Q[t], p.dmg[t], LIM[DMG_Q[t]], true, function (x) { DMG[t] = x; }); });
+  if (!Q.has('ammo') && Array.isArray(p.ammoK)) p.ammoK.forEach(function (r, i) {
+    if (i < 3 && Array.isArray(r)) r.forEach(function (v, j) { var x = num(v, AMMO_LIM, true); if (j < 3 && x !== undefined) AMMO_K[i][j] = x; });
+  });
+  if (!Q.has('strike') && p.strike && typeof p.strike === 'object') {
+    var cas = num(p.strike.cas, LIM.cas); if (cas !== undefined) STRIKE.cas = cas;
+    ['guns', 'masts', 'officers'].forEach(function (k) { if (typeof p.strike[k] === 'boolean') STRIKE[k] = p.strike[k]; });
+  }
+  if (!Q.has('cap') && Array.isArray(p.cap)) p.cap.forEach(function (w, i) { if (i < 2 && (w === 'random' || Object.prototype.hasOwnProperty.call(CAPTAINS, w))) CAP_SET[i] = w; });
+  var a = num(p.ammo, [0, AMMO.length - 1], true); if (a !== undefined) AMMO_I = a;
+  if (!Q.has('phys') && typeof p.phys === 'boolean') PHYS = p.phys;
+  if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
+  if (p.mode === 'pve' || p.mode === 'eve' || p.mode === 'sandbox') MODE = p.mode;
+  if (typeof p.auto === 'boolean') { AUTOFIRE = p.auto; LAST_MODE = MODE; }   // 存了自動開砲 ⇒ 開局不再照模式套預設（70_flow.js reset）
+  if ([].some.call(document.querySelectorAll('#dists button'), function (b) { return +b.dataset.d === p.dist; })) DIST = p.dist;
+}
+function prefsSave() {
+  if (!PREFS.write) return;
+  var o = prefsSnap(), s = JSON.stringify(o);
+  if (s === PREFS.last) return;
+  try {
+    if (Object.keys(o).length > 1) window.localStorage.setItem(PREFS_KEY, s); else window.localStorage.removeItem(PREFS_KEY);   // 全部是預設 ⇒ 不留一筆
+    PREFS.last = s;
+  } catch (e) { PREFS.write = false; PREFS.state = '存不了（' + (e && e.name || e) + '）'; }
+}
+/** 細節設定的「重設預設值」：那一頁回到預設之後馬上存（只剩主選單的選擇；全部是預設 ⇒ 刪掉那一筆），也忘掉存檔裡別的船的壓艙物。 */
+function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
+(function prefsLoad() {
+  if (!PREFS.read) { PREFS.state = DEMO >= 0 ? '?demo ⇒ 不讀不存' : '?prefs=0 ⇒ 不讀不存'; return; }
+  var s;
+  try { s = window.localStorage.getItem(PREFS_KEY); } catch (e) { PREFS.read = PREFS.write = false; PREFS.state = '存不了（這個頁面不能用 localStorage）⇒ 照預設'; return; }
+  if (s === null) PREFS.state = '沒有存檔（照預設）';
+  else {
+    var p = null; try { p = JSON.parse(s); } catch (e) { p = null; }
+    if (!p || typeof p !== 'object' || p.v !== PREFS_VER) PREFS.state = '存檔看不懂（' + (p && typeof p === 'object' ? '版本 ' + p.v : '壞掉的 JSON') + '）⇒ 照預設';
+    else { prefsApply(p); PREFS.state = '套用了本機存檔（' + (Object.keys(p).length - 1) + ' 項）'; }
+  }
+  if (!PREFS.write) PREFS.state += '；網址帶了設定參數 ⇒ 這一場不存';
+  PREFS.last = JSON.stringify(prefsSnap());              // 套用後的樣子 ⇒ 玩家動了才寫（看不懂的存檔不會因為打開一次就被蓋掉）
+  // 主選單按鈕的亮燈照套用後的值（航行與帆的物理由 71_input.js 照變數點）
+  [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.className = b.dataset.m === MODE ? 'on' : ''; });
+  [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.className = +b.dataset.d === DIST ? 'on' : ''; });
+  $('autoF').classList.toggle('on', AUTOFIRE);
+  if (!PREFS.write) return;
+  setInterval(prefsSave, 1000);
+  window.addEventListener('pagehide', prefsSave);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) prefsSave(); });
+})();
 // ── js/70_flow.js ──
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
@@ -3975,7 +4190,7 @@ function sliders() {
     DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
-    put(); show();
+    put(); show(); prefsReset();                         // 存檔跟著清（69_prefs.js：只剩主選單的選擇）
   };
   window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
   put(); show(); SLIDERS_SHOW = function () { put(); show(); };
@@ -4072,6 +4287,36 @@ if (DEBUG) window.__game = {
     knots: +(s.spd * 1.944).toFixed(2), yaw: +s.yaw.toFixed(3), x: +s.px.toFixed(1), z: +s.pz.toFixed(1), sail: +s.sailFrac.toFixed(3), point: s.pos,
     side: s.side, manual: s.manual, rudder: +s.rudder.toFixed(2), sailSet: SAILSETS[s.sailSet] }; }), over: OVER, end: OVER ? $('endT').textContent : '', pieces: PIECES.map(function (p) { return p.n; }), debris: D.n, pts: PT.n, balls: BALLS.length, masts: SHIPS.length ? SHIPS[0].T.masts : [] }; }
 };
+/** 讀數的一段：這艘船是讀快取還是現場解析（06_cache.js）。 */
+function cacheText(st) { return !st ? '' : st.hit ? '（讀快取 ' + (st.readMs / 1000).toFixed(2) + ' 秒）' : '（現場解析；' + st.why + '）'; }
+if (DEBUG) {
+  /** 快取對拍：船型 id 讀回的那幾份 ＝ 現在這份程式現場算的？逐位元組比（船體網格每個區塊、模型網格的頂點與佔用格、海面遮罩、浮力表、布模板）。 */
+  window.__game.hullCheck = function (id) {
+    var T = HULLT[id || SHIP_SET[0]]; if (!T) return null;
+    function same(a, b) {
+      if (a === b) return true;
+      if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) { if (a.length !== b.length || a.constructor !== b.constructor) return false; for (var i = 0; i < a.length; i++) if (a[i] !== b[i] && !(a[i] !== a[i] && b[i] !== b[i])) return false; return true; }
+      if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return a !== a && b !== b;
+      var ka = Object.keys(a), kb = Object.keys(b); if (ka.length !== kb.length) return false;
+      return ka.every(function (k) { return same(a[k], b[k]); });
+    }
+    var g = T.base, r = { id: T.id, cached: T.cached, chunks: 0, chunkDiff: 0, quads: T.pristine.quads() };
+    for (var cz = 0; cz < g.nz; cz++) for (var cy = 0; cy < g.ny; cy++) for (var cx = 0; cx < g.nx; cx++) {
+      var i = g.ci(cx, cy, cz); if (g.tab[i] === null) continue;
+      var m = VK.meshChunk(g, cx, cy, cz), c = T.pristine.meshes.get(i); r.chunks++;
+      if (!(m ? c && same(m, c) : !c)) r.chunkDiff++;
+    }
+    r.hullMask = same(hullMask(T), T.hullHB);
+    var H = { base: g, zw: T.zw }; hydrostatics(H); r.hyd = same(H.hyd, T.hyd) && H.disp === T.disp;
+    r.models = (T.rig.meshes || []).map(function (m, k) {
+      var tri = meshTris(m), got = new Float32Array(tri.length); gl.bindBuffer(gl.ARRAY_BUFFER, T.meshes[k].vbo); gl.getBufferSubData(gl.ARRAY_BUFFER, 0, got);
+      return same(tri, got) && same(meshOcc(m), T.meshes[k].occ);
+    }).filter(function (ok) { return !ok; }).length + ' 份不同／' + (T.rig.meshes || []).length;
+    r.rbox = same(T.rig.ropes.map(function (rp) { return ropeBox(rp.pts); }), T.rbox);
+    r.cloth = T.rig.sails.map(function (s, k) { return same(clothTemplate(T, s), T.cloth[k]); }).filter(function (ok) { return !ok; }).length + ' 面不同／' + T.rig.sails.length;
+    return r;
+  };
+}
 var t0 = performance.now();
 function say(s) { $('load').textContent = s; }
 say('解碼船體…');
@@ -4085,8 +4330,10 @@ yieldUI().then(function () {                                        // 先讓主
   if (SLIDERS_SHOW) SLIDERS_SHOW();
   var line = '1:1 ' + T.name + ' ' + chk.voxels.toLocaleString() + ' 格 checksum ' + chk.checksum.toString(16) + (chk.ok ? '（＝ 封裝檔 header，逐格相同 ✓）' : '（✗ 跟封裝檔對不上：' + h.voxels + '／' + h.checksum.toString(16) + '）') +
     '\n合併後 ' + T.pristine.quads().toLocaleString() + ' 個四邊形、繩 ' + T.rig.ropes.length + '、帆 ' + T.rig.sails.length + '、桅 ' + T.masts.length +
-    '\n解碼 ' + (T.decodeMs / 1000).toFixed(2) + ' 秒、網格化 ' + (T.meshMs / 1000).toFixed(2) + ' 秒';
-  say(line); window.__vxk = { verify: chk, quads: T.pristine.quads(), masts: T.masts.length };
+    '\n解碼 ' + (T.decodeMs / 1000).toFixed(2) + ' 秒、網格化 ' + (T.meshMs / 1000).toFixed(2) + ' 秒' + cacheText(hullInfo(T.id).cache) +
+    '\n設定：' + PREFS.state;
+  say(line); window.__vxk = { verify: chk, quads: T.pristine.quads(), masts: T.masts.length, decodeMs: +T.decodeMs.toFixed(1), meshMs: +T.meshMs.toFixed(1), ms: T.ms,
+    cache: hullInfo(T.id).cache, prefs: PREFS.state };
   loadArt().then(function (why) { line += '\n素材：' + why; say(line); window.__vxk.art = why; if (HUD_ART) hudArt(); });
   if (!chk.ok) { fail('船體資料跟封裝檔對不上，停下來（不畫半艘船）。\n' + line); return; }
   $('go').disabled = false; $('go').textContent = '開戰';

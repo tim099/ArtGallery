@@ -14,11 +14,15 @@ function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp
 //   ballast 壓艙物（噸）：不會被打掉的重量；預設 ＝ 那一型「剛好在設計水線」（T.ballast0：憲法號 1,075），越輕浮得越高（減重上浮，32_hull.js）
 //   gunw  砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多
 //   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
-// 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 那一型的 ballast0（船型載好才知道）。
+// 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 存檔裡那一型的（同一份船才算，69_prefs.js）⇒ 那一型的 ballast0（船型載好才知道）。
 var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile'], SHIP_CFG = {};
+var PREF_BALLAST = {};                                   // 存檔裡的壓艙物：id → { v: 噸, chk: 存的時候那艘船的 checksum }（船重匯過 ⇒ 不套）
 function cfgDefault(k, T) {
   if (k !== 'ballast') return qnum(k, LIM[k]);
-  return Q.has('ballast') ? Math.round(qnum('ballast', LIM.ballast)) : T && isFinite(T.ballast0) ? T.ballast0 : LIM.ballast[2];
+  if (Q.has('ballast')) return Math.round(qnum('ballast', LIM.ballast));
+  var pb = T && PREF_BALLAST[T.id];
+  if (pb && pb.chk === T.h.checksum) return pb.v;
+  return T && isFinite(T.ballast0) ? T.ballast0 : LIM.ballast[2];
 }
 /** 那一型的設定（第一次用到才建；壓艙物等船型載好才填）。 */
 function shipCfg(id) {

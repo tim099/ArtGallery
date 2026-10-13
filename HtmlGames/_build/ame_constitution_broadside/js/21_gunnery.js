@@ -254,19 +254,24 @@ function stepFly(f, dt) {
   f.M = M4.mul(M4.mul(M4.mul(trans(f.c[0], f.c[1], f.c[2]), f.R), trans(-f.c0[0], -f.c0[1], -f.c0[2])), f.M0);
   return f.t < 25 && f.c[1] > -25;
 }
-function buildMeshes(H) {         // 船型 H 的每份模型網格一個 VAO：三角形展開、平面法線、材質色（P.tri 畫）
-  H.meshes = [];
-  (H.rig.meshes || []).forEach(function (m) {
-    var v = m.verts, T = [];
-    for (var j = 0; j < m.tris.length; j += 3) {
-      var a = m.tris[j] * 3, b = m.tris[j + 1] * 3, d = m.tris[j + 2] * 3, c = m.mats[m.tmat[j / 3]];
-      var n = norm(cross([v[b] - v[a], v[b + 1] - v[a + 1], v[b + 2] - v[a + 2]], [v[d] - v[a], v[d + 1] - v[a + 1], v[d + 2] - v[a + 2]]));
-      T.push(v[a], v[a + 1], v[a + 2], n[0], n[1], n[2], c[0], c[1], c[2], v[b], v[b + 1], v[b + 2], n[0], n[1], n[2], c[0], c[1], c[2],
-             v[d], v[d + 1], v[d + 2], n[0], n[1], n[2], c[0], c[1], c[2]);
-    }
-    var up = upload(null, new Float32Array(T), 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]);
-    up.occ = meshOcc(m); H.meshes.push(up);
+function buildMeshes(H, C) {      // 船型 H 的每份模型網格一個 VAO：三角形展開、平面法線、材質色（P.tri 畫）；C ＝ 快取的 [{ tri, occ }]（06_cache.js）
+  H.meshes = []; var keep = [];
+  (H.rig.meshes || []).forEach(function (m, k) {
+    var d = C ? C[k] : { tri: meshTris(m), occ: meshOcc(m) };
+    var up = upload(null, d.tri, 9, [[0, 3, 0], [1, 3, 3], [2, 3, 6]]);
+    up.occ = d.occ; H.meshes.push(up); keep.push(d);
   });
+  if (H.keep) H.keep.models = keep;
+}
+function meshTris(m) {
+  var v = m.verts, T = [];
+  for (var j = 0; j < m.tris.length; j += 3) {
+    var a = m.tris[j] * 3, b = m.tris[j + 1] * 3, d = m.tris[j + 2] * 3, c = m.mats[m.tmat[j / 3]];
+    var n = norm(cross([v[b] - v[a], v[b + 1] - v[a + 1], v[b + 2] - v[a + 2]], [v[d] - v[a], v[d + 1] - v[a + 1], v[d + 2] - v[a + 2]]));
+    T.push(v[a], v[a + 1], v[a + 2], n[0], n[1], n[2], c[0], c[1], c[2], v[b], v[b + 1], v[b + 2], n[0], n[1], n[2], c[0], c[1], c[2],
+           v[d], v[d + 1], v[d + 2], n[0], n[1], n[2], c[0], c[1], c[2]);
+  }
+  return new Float32Array(T);
 }
 function ballToDebris(b) { spawnDebris(b.p, mul(b.v, 0.3), 36, 0.15, 20); b.alive = false; }
 function slab(sh, L, dirL, b) {

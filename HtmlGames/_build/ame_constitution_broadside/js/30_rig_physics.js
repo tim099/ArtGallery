@@ -208,9 +208,9 @@ function coarseOf(n, T) {
   }
   return { kind: kind, idx: idx, tris: ct, mi: mi, mw: mw };
 }
-function clothSetup(H) {                               // 船型 H 的布模板；暫存區（兩艘、各型共用）照目前最大的那一型配
-  H.rbox = H.rig.ropes.map(function (r) { return ropeBox(r.pts); });
-  H.cloth = H.rig.sails.map(function (s) { return clothTemplate(H, s); });
+function clothSetup(H, C) {                            // 船型 H 的布模板；暫存區（兩艘、各型共用）照目前最大的那一型配；C ＝ 快取的記錄（06_cache.js：rbox、cloth）
+  H.rbox = C ? C.rbox : H.rig.ropes.map(function (r) { return ropeBox(r.pts); });
+  H.cloth = C ? C.cloth : H.rig.sails.map(function (s) { return clothTemplate(H, s); });
   var mv = 1, mc = 1, sv = 0, si = 0;
   H.cloth.forEach(function (C) { mv = Math.max(mv, C.n); mc = Math.max(mc, C.sim.n); sv += C.n; si += C.tris.length; });
   if (!CACC || CACC.length < mc * 3) { CACC = new Float32Array(mc * 3); CCNT = new Uint8Array(mc); }
