@@ -1,10 +1,10 @@
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
   END_AT = 0;
-  rs = SEED; rsD = SEED ^ RSD0; DEB_ACC = PT_ACC = 0; SIMT = 0; stepWind(0);   // 開局的風 ＝ 原本的風（08_weather.js）              // 碎木的亂數、少生的節拍跟著重設（12_effects.js）
+  rs = SEED; rsD = SEED ^ RSD0; rsW = SEED ^ RSW0; WP_STAT.spray = WP_STAT.foam = 0; WP_STAT.src = {}; DEB_ACC = PT_ACC = 0; SIMT = 0; stepWind(0);   // 開局的風 ＝ 原本的風（08_weather.js）              // 碎木與水花的亂數、少生的節拍跟著重設（12_effects.js、13_water.js）
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
-  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
+  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; WS.n = WF.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
   clearMsgs();
   PLAYER_I = 0;
   SHIPS.push(makeShip(0, 'blue', 0, DIST / 2, HULLT[SHIP_SET[0]]));

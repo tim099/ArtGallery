@@ -94,15 +94,16 @@ function sail(sh, dt) {
   F = fwd(sh.yaw);
   sh.vel = mul(F, sh.spd);
   sh.px += sh.vel[0] * dt; sh.pz += sh.vel[2] * dt;
-  // 航跡：船尾留一條白沫、船頭兩側推出的浪（點精靈，不撞任何東西）
+  // 航跡：船尾留一條白沫、船頭兩側推出的浪（點精靈，不撞任何東西）；船邊水花開著 ⇒ 換成 13_water.js 的（這裡照樣抽亂數、不放進去）
   if ((sh.wakeT -= dt) <= 0 && sh.spd > 0.4 && sh.sink < 6) {
-    sh.wakeT = 0.12;
+    sh.wakeT = 0.12; PT_MUTE = PHX.water > 0;
     var T = sh.T, st = M4.pt(sh.M, T.wl0 - 4, T.cy, T.zw);
     spawnPt([st[0] + gauss() * 0.8, seaH(st[0], st[2], SIMT) + 0.06, st[2] + gauss() * 0.8], [0, 0, 0], rr(9, 13), [0.93, 0.96, 1], 0.3 * Math.min(1, sh.spd / 2), rr(1.2, 2), rr(4, 6), 0, 0, 2);
     [1, -1].forEach(function (k) {
       var bw = M4.pt(sh.M, T.wl1 - 25, T.cy + k * T.bowHalf, T.zw), out = M4.dir(sh.M, 0, k, 0); out = norm([out[0], 0, out[2]]);
       spawnPt([bw[0], seaH(bw[0], bw[2], SIMT) + 0.08, bw[2]], mul(out, rr(0.4, 1) * sh.spd * 0.4), rr(1.5, 2.5), [0.95, 0.97, 1], 0.5, rr(0.8, 1.3), rr(2, 3), 0, 0, 2);
     });
+    PT_MUTE = false;
   }
 }
 
@@ -117,6 +118,7 @@ function collide() {
   var n = best > 1e-3 ? [(pa[0] - pb[0]) / best, 0, (pa[2] - pb[2]) / best] : [0, 0, 1], push = (14 - best) / 2;
   A.px += n[0] * push; A.pz += n[2] * push; B.px -= n[0] * push; B.pz -= n[2] * push;
   A.spd *= 0.97; B.spd *= 0.97;
+  wpBump(pa, pb, A, B);                                                // 船邊水花（13_water.js；只給人看）
   if (SIMT - (A.bumpT || -9) > 5) { A.bumpT = SIMT; sfx('crack', pa, 1); note(SHIPS[PLAYER_I], '兩艘擦撞'); }
 }
 /** 敵艦在哪一舷（給自動操舵用；有遲滯，不在正前／正後來回跳）。只影響操舵 —— 開火是每門砲各自看對不對得到。 */

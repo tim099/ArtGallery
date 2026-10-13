@@ -179,6 +179,17 @@ function reflPass() {
   }
   PASS.vp = null; PASS.eye = null; PASS.clip = -1e9; PASS.sh = 1;
 }
+/** 船艙遮罩的 uniform（海與白沫共用，01_gl.js HULL_GLSL）。開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了） */
+function hullUniforms(prog) {
+  var u = prog.u, hide = [0, 1].map(function (i) { var s = SHIPS[i]; return s && !s.sinkingFinal && !s.sunk && s.T.hullTex ? 1 : 0; });   // 每艘照自己船型的遮罩（兩型可以不一樣）
+  gl.uniform2f(u.uHide, hide[0], hide[1]);
+  [0, 1].forEach(function (i) {
+    var s = SHIPS[i], T = s && s.T; if (!T || !T.hullTex) return;
+    gl.uniformMatrix4fv(u['uInv' + i], false, s.inv);
+    gl.activeTexture(gl.TEXTURE1 + i); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(u['uHull' + i], 1 + i); gl.uniform3f(u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
+  });
+  gl.activeTexture(gl.TEXTURE0);
+}
 function render() {
   resize(); var w = CAM.w, h = CAM.h;
   // 閃電（天氣，08_weather.js）：那一格的天空與環境光拉亮、0.3 秒內退掉；雷聲照距離延後（340 m/s）。只在畫面，畫完把天色還回去
@@ -240,21 +251,15 @@ function render() {
   gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, RT.R ? RT.R.col : DUMMY); gl.uniform1i(P.water.u.uRefl, 6);
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, RT.B.col); gl.uniform1i(P.water.u.uScene, 7);
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, RT.B.dep); gl.uniform1i(P.water.u.uSceneD, 3);
-  // 開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了）
-  var hide = [0, 1].map(function (i) { var s = SHIPS[i]; return s && !s.sinkingFinal && !s.sunk && s.T.hullTex ? 1 : 0; });   // 每艘照自己船型的遮罩（兩型可以不一樣）
-  gl.uniform2f(P.water.u.uHide, hide[0], hide[1]);
-  [0, 1].forEach(function (i) {
-    var s = SHIPS[i], T = s && s.T; if (!T || !T.hullTex) return;
-    gl.uniformMatrix4fv(P.water.u['uInv' + i], false, s.inv);
-    gl.activeTexture(gl.TEXTURE1 + i); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(P.water.u['uHull' + i], 1 + i); gl.uniform3f(P.water.u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
-  });
-  gl.activeTexture(gl.TEXTURE0);
+  hullUniforms(P.water);
   gl.bindVertexArray(SEAG.vao); gl.drawElements(gl.TRIANGLES, SEAG.n, gl.UNSIGNED_INT, 0);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
   // 粒子＋砲彈＋瞄準點
   var m = 0;
-  function pushPt(p, s, c, a, ty) { if (m >= PMAX) return; var k = m * 9; PBUF[k] = p[0]; PBUF[k + 1] = p[1]; PBUF[k + 2] = p[2]; PBUF[k + 3] = s; PBUF[k + 4] = c[0]; PBUF[k + 5] = c[1]; PBUF[k + 6] = c[2]; PBUF[k + 7] = a; PBUF[k + 8] = ty === undefined ? -1 : ty; m++; }
+  function pushPt(p, s, c, a, ty) { if (m * 9 >= PBUF.length) return; var k = m * 9; PBUF[k] = p[0]; PBUF[k + 1] = p[1]; PBUF[k + 2] = p[2]; PBUF[k + 3] = s; PBUF[k + 4] = c[0]; PBUF[k + 5] = c[1]; PBUF[k + 6] = c[2]; PBUF[k + 7] = a; PBUF[k + 8] = ty === undefined ? -1 : ty; m++; }
   for (i = 0; i < PT.n; i++) { var f = PT.life[i] / PT.max[i], s = PT.s1[i] + (PT.s0[i] - PT.s1[i]) * f; pushPt([PT.p[i * 3], PT.p[i * 3 + 1], PT.p[i * 3 + 2]], s, [PT.c[i * 3], PT.c[i * 3 + 1], PT.c[i * 3 + 2]], PT.a[i] * Math.min(1, f * 3), PT.ty[i]); }
+  wpPushSpray(pushPt);                                                   // 船邊水花的水滴（13_water.js）
   BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
   var me = SHIPS[PLAYER_I], mWorld = m;                                   // mWorld 之後的是瞄準圈：另一批畫、不做深度測試（被船身擋住也看得到）
   if (me && me.aim && !AUTOFIRE && !STILL) {

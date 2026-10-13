@@ -40,6 +40,8 @@ if (DEBUG) window.__game = {
   predict: function (b) { return ballPredict(b); },
   cam: function (o) { for (var k in o) CAM[k] = o[k]; CAM.snap = true; camUpdate(1); render(); },
   phys: function (on) { if (on !== undefined) setPhys(!!on); return PHYS; },
+  /** 船邊水花（13_water.js）：現在的檔、水滴與白沫各幾顆、開局以來生了幾顆。{ hide: true } ⇒ 照算、不畫（量繪製成本）。 */
+  water: function (o) { if (o && 'hide' in o) WP_HIDE = !!o.hide; return { lv: PHX.water, spray: WS.n, foam: WF.n, emitted: { spray: WP_STAT.spray, foam: WP_STAT.foam }, src: WP_STAT.src }; },
   /** 物理效果（09_phx.js）：給 level（full／high／mid／low）或 { rig: 1, … } 就換；回傳現在的設定。 */
   phx: function (o) { if (typeof o === 'string') phxSet(o); else if (o) for (var k in o) PHX[k] = o[k]; if (o) { if ((PHX.rig > 0) !== PHYS) setPhys(PHX.rig > 0); if ($('phxB')) phxShow(); } return { level: phxLevel(), phx: JSON.parse(JSON.stringify(PHX)), phys: PHYS, rig: rigLv(), debris: DEB_KS[PHX.debris], fx: FX_KS[PHX.fx] }; },
   /** 帆桁追風的讀數：相對風吹去的方向、每根帆桁現在離正橫幾度（作品的角度＋追風轉的）。 */
@@ -112,7 +114,7 @@ if (DEBUG) {
 var t0 = performance.now();
 function say(s) { $('load').textContent = s; }
 say('解碼船體…');
-programs(); geometry(); bbSetup(); QIDX = new VK.QuadIndex(gl);
+programs(); geometry(); wpGL(); bbSetup(); QIDX = new VK.QuadIndex(gl);
 hullSay = function (s) { var go = $('go'); if (go.disabled) go.textContent = '解析' + s; };   // 解析中：開戰鈕寫進度（設定照樣能調）
 requestAnimationFrame(frame);                                       // 解析中也畫（天、海；船載好才有）
 yieldUI().then(function () {                                        // 先讓主選單畫出來，再開始解析

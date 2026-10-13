@@ -139,7 +139,7 @@
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
-    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」</div>
+    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」（帆與繩、碎木、煙與水花、船邊水花）</div>
     <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
     <div><kbd>⚙</kbd> 下方「⚙ 設定」（說明旁邊）或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
@@ -202,11 +202,12 @@
     <!-- 物理設定（從主選單進；TASK-0526）：每一項的檔位在 js/09_phx.js 的 PHX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="phxp" style="display:none">
       <h2>物理設定</h2>
-      <div class="sub">給人看的物理：帆與繩、碎木、煙與水花。改了立刻生效、跟著設定存檔。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx=（第幾檔，從 0 起）</div>
+      <div class="sub">給人看的物理：帆與繩、碎木、煙與水花、船邊水花。改了立刻生效、跟著設定存檔。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water=（第幾檔，從 0 起）</div>
       <div class="row" id="phxPre">預設 <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button>　<span id="phxLv" class="note"></span></div>
       <div id="phxItems"></div>
       <div class="row note">帆與繩：高 ＝ 布與繩各迭代 4 次、帆 30 Hz、垂下來的繩最多 500 條；中 3 次、30 Hz、300 條；低 2 次、15 Hz、150 條；關 ＝ 帆停在雕刻作品那一刻（B 鍵、下方「物理」按鈕也是開關這一項）。<br>
-        碎木、煙與水花少生幾顆不改戰局；帆與繩關掉時帆桁不追風，打中帆桁的那幾下會不一樣（跟以前關掉物理一樣）。浪的大小會改戰局，在「細節設定」。之後的天氣、船周圍的水、進水粒子做好時加在這裡。</div>
+        碎木、煙與水花少生幾顆不改戰局；帆與繩關掉時帆桁不追風，打中帆桁的那幾下會不一樣（跟以前關掉物理一樣）。浪的大小會改戰局，在「細節設定」。<br>
+        船邊水花：船頭推開的浪、船尾翻的白沫、浪拍船身、擦撞與落水的水滴，落回海面變成貼著浪的白沫；只給人看（不改戰局）。高 ＝ 水滴最多 8,000、白沫 4,000；中 4,500／2,200；低 2,000／1,000（白沫散得快一點）；關 ＝ 原本的點。</div>
       <div class="row"><button id="phxX">返回</button></div>
     </div>
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
@@ -311,6 +312,7 @@
 <script src="js/10_ship.js" data-bundle="game"></script>
 <script src="js/11_rig_gpu.js" data-bundle="game"></script>
 <script src="js/12_effects.js" data-bundle="game"></script>
+<script src="js/13_water.js" data-bundle="game"></script>
 <script src="js/20_shatter.js" data-bundle="game"></script>
 <script src="js/21_gunnery.js" data-bundle="game"></script>
 <script src="js/22_pieces.js" data-bundle="game"></script>

@@ -139,7 +139,7 @@
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
-    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」</div>
+    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」（帆與繩、碎木、煙與水花、船邊水花）</div>
     <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
     <div><kbd>⚙</kbd> 下方「⚙ 設定」（說明旁邊）或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
@@ -202,11 +202,12 @@
     <!-- 物理設定（從主選單進；TASK-0526）：每一項的檔位在 js/09_phx.js 的 PHX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="phxp" style="display:none">
       <h2>物理設定</h2>
-      <div class="sub">給人看的物理：帆與繩、碎木、煙與水花。改了立刻生效、跟著設定存檔。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx=（第幾檔，從 0 起）</div>
+      <div class="sub">給人看的物理：帆與繩、碎木、煙與水花、船邊水花。改了立刻生效、跟著設定存檔。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water=（第幾檔，從 0 起）</div>
       <div class="row" id="phxPre">預設 <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button>　<span id="phxLv" class="note"></span></div>
       <div id="phxItems"></div>
       <div class="row note">帆與繩：高 ＝ 布與繩各迭代 4 次、帆 30 Hz、垂下來的繩最多 500 條；中 3 次、30 Hz、300 條；低 2 次、15 Hz、150 條；關 ＝ 帆停在雕刻作品那一刻（B 鍵、下方「物理」按鈕也是開關這一項）。<br>
-        碎木、煙與水花少生幾顆不改戰局；帆與繩關掉時帆桁不追風，打中帆桁的那幾下會不一樣（跟以前關掉物理一樣）。浪的大小會改戰局，在「細節設定」。之後的天氣、船周圍的水、進水粒子做好時加在這裡。</div>
+        碎木、煙與水花少生幾顆不改戰局；帆與繩關掉時帆桁不追風，打中帆桁的那幾下會不一樣（跟以前關掉物理一樣）。浪的大小會改戰局，在「細節設定」。<br>
+        船邊水花：船頭推開的浪、船尾翻的白沫、浪拍船身、擦撞與落水的水滴，落回海面變成貼著浪的白沫；只給人看（不改戰局）。高 ＝ 水滴最多 8,000、白沫 4,000；中 4,500／2,200；低 2,000／1,000（白沫散得快一點）；關 ＝ 原本的點。</div>
       <div class="row"><button id="phxX">返回</button></div>
     </div>
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
@@ -794,6 +795,10 @@ var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0,
   '  if(uShOn<1.5) return texture(S,q);\n' +
   '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
   'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0)*uSunK; }\n';
+// 船艙遮罩（海、船邊水花的白沫共用；要有 in vec3 vW）：那一點換到船的格座標，落在原本船殼的外形裡（uHull0／1：那艘船型每個 (x, z) 船殼的半寬）⇒ 呼叫端丟掉。
+//   uHide ＝ 那艘還沒開始沉（60_render.js hullUniforms）
+var HULL_GLSL = 'uniform mat4 uInv0,uInv1; uniform vec2 uHide; uniform sampler2D uHull0,uHull1; uniform vec3 uHullK0,uHullK1;\n' +
+  'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n';
 function programs() {
   P.vox = VK.compile(gl, VK.VOXEL_VS, voxFS());
   P.deb = VK.compile(gl,
@@ -839,9 +844,8 @@ function programs() {
     // 反射（uReflOn）：RT.R 是鏡像過來的船，照螢幕座標＋法線擾動讀，沒畫到的地方（a ＝ 0）照舊是天空。
     // 折射（uRefr）：0 不透明、1 半透明（底下的照舊混進來）、2 讀 RT.B（畫海之前的場景）：照法線擾動、照水的厚度（兩個深度相減）吸收成海的顏色。
     'float linZ(float d){ float z=d*2.0-1.0; return 5000.0/(5000.5-z*4999.5); }\n' +
-    // 船艙裡不畫海：海面那一點換到船的格座標，落在原本船殼的外形裡（uHull0／1：那艘船型每個 (x, z) 船殼的半寬）⇒ 丟掉。uHide ＝ 那艘還沒開始沉（見 render）
-    'uniform mat4 uInv0,uInv1; uniform vec2 uHide; uniform sampler2D uHull0,uHull1; uniform vec3 uHullK0,uHullK1;\n' +
-    'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n' +
+    // 船艙裡不畫海（HULL_GLSL）：海面那一點落在原本船殼的外形裡 ⇒ 丟掉
+    HULL_GLSL +
     // 細浪（只在畫面）：uDet 道，波長從 7 m 往下每道 ×0.8 再亂一點、方向在風向 ±70° 亂撒、相位亂撒（雜湊，不抽亂數）⇒ 不成整數比、不會一格一格重複；
     // 每道照像素寬 fp 淡掉（遠處自動變平滑，不疊紋）；再乘一層慢慢飄的雜訊 ⇒ 海面一塊皺、一塊平（陣風吹過的樣子）。
     'float hs1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +
@@ -1443,19 +1447,21 @@ function fract(x) { return x - Math.floor(x); }
 // ── js/09_phx.js ──
 // ───────────────────────── 物理效果分級（TASK-0526） ─────────────────────────
 // 主選單：全開／高／中／低（PHX_PRESET）；「物理設定…」頁一項一項調，跟四檔都對不上 ⇒ 主選單顯示「自訂」。
-// 管的是「給人看的物理」：帆與繩（30_rig_physics.js）、碎木（12_effects.js 的碎片）、煙與水花（粒子）。
-//   ⛔ 浪不在這裡：浪的大小改戰局（砲彈打到浪頭、船的姿態），在細節設定。之後的天氣、船周圍的水、進水粒子做好時各自加一項。
+// 管的是「給人看的物理」：帆與繩（30_rig_physics.js）、碎木（12_effects.js 的碎片）、煙與水花（粒子）、船邊水花（13_water.js：船頭浪、船尾白沫、拍浪、擦撞與落水的水滴與白沫）。
+//   ⛔ 浪不在這裡：浪的大小改戰局（砲彈打到浪頭、船的姿態），在細節設定。之後的進水粒子做好時再加一項。
 // 戰局：
+//   · 船邊水花：自己的亂數（rndW）、不回寫模擬；開著時原本的航跡與水花照樣抽亂數、只是不放（PT_MUTE）⇒ 開關不改戰局。
 //   · 碎木、煙與水花少生幾顆不改戰局：照固定的節拍跳過（不抽亂數）。煙與水花的參數照樣由呼叫端抽完亂數（只是不放進去）；
 //     碎木自己的亂數（轉軸、落水、落地）走另一條（rndD，12_effects.js）。⛔ 碎木以前跟戰局共用 rnd() ⇒ 少一顆碎木，後面的亂數全部錯位、整局都變。
 //   · 帆與繩：低／中／高只差布與繩的細緻度（迭代次數、帆幾步走一次、垂繩上限），不碰 rnd()、不改命中；
 //     關 ⇒ 帆停在雕刻作品那一刻、帆桁不追風 —— 帆桁的角度會改到打中帆桁的那幾下（30_rig_physics.js），跟以前「關掉物理」一樣。
-// 網址：?phx=full|high|mid|low，單項 ?p_rig= ?p_debris= ?p_fx=（第幾檔，從 0 起）；舊的 ?phys=0 ＝ 帆與繩關。
+// 網址：?phx=full|high|mid|low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water=（第幾檔，從 0 起）；舊的 ?phys=0 ＝ 帆與繩關。
 var PHX_ITEMS = [
   { k: 'rig', name: '帆與繩', opt: ['關（靜態）', '低', '中', '高'] },
   { k: 'debris', name: '碎木', opt: ['20%', '45%', '70%', '100%'] },
-  { k: 'fx', name: '煙與水花', opt: ['40%', '65%', '85%', '100%'] }];
-var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3 }, high: { rig: 2, debris: 2, fx: 2 }, mid: { rig: 1, debris: 1, fx: 1 }, low: { rig: 0, debris: 0, fx: 0 } };
+  { k: 'fx', name: '煙與水花', opt: ['40%', '65%', '85%', '100%'] },
+  { k: 'water', name: '船邊水花', opt: ['關（原本的）', '低', '中', '高'] }];
+var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3, water: 3 }, high: { rig: 2, debris: 2, fx: 2, water: 2 }, mid: { rig: 1, debris: 1, fx: 1, water: 1 }, low: { rig: 0, debris: 0, fx: 0, water: 0 } };
 var PHX_NAME = { full: '全開', high: '高', mid: '中', low: '低', custom: '自訂' }, PHX_DEFAULT = 'full';
 // 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條。高 ＝ 原本的。
 var RIG_LV = [null, { it: 2, every: 4, loose: 150 }, { it: 3, every: 2, loose: 300 }, { it: 4, every: 2, loose: 500 }];
@@ -1825,6 +1831,7 @@ function stepDebris(dt) {
       if (D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {                                    // 落水：慢慢沉
         D.st[i] = 3; D.v[o] *= 0.1; D.v[o + 1] = -0.25; D.v[o + 2] *= 0.1; D.life[i] = Math.min(D.life[i], 4);
         if (rndD() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
+        wpDrop(D.p[o], D.p[o + 2]);                                     // 船邊水花（13_water.js）：幾滴、偶爾一小片白沫
         continue;
       }
       if (D.v[o + 1] < 0) for (var s = 0; s < SHIPS.length; s++) {       // 掉到甲板上 ⇒ 停住
@@ -1852,6 +1859,7 @@ var PMAX = 12000, PT = { n: 0, p: new Float32Array(PMAX * 3), v: new Float32Arra
   s0: new Float32Array(PMAX), s1: new Float32Array(PMAX), c: new Float32Array(PMAX * 3), a: new Float32Array(PMAX), grav: new Float32Array(PMAX), drag: new Float32Array(PMAX), ty: new Float32Array(PMAX) };
 var PBUF = new Float32Array(PMAX * 9);
 function spawnPt(p, v, life, col, a, s0, s1, grav, drag, ty) {
+  if (PT_MUTE) return;                               // 船邊水花開著：原本的航跡與水花不放（呼叫端的亂數照樣抽完，13_water.js）
   var k = FX_KS[PHX.fx]; if (k < 1) { PT_ACC += k; if (PT_ACC < 1) return; PT_ACC -= 1; }   // 物理分級：少生幾顆（參數的亂數呼叫端已經抽完）
   if (PT.n >= PMAX) return;
   var i = PT.n++;
@@ -1886,10 +1894,241 @@ function flash(p, dir, n, big) {
   for (var i = 0; i < n; i++) spawnPt(p, add(mul(dir, rr(5, 30)), [gauss() * 3, gauss() * 3, gauss() * 3]), rr(0.08, 0.22), [1, rr(0.6, 0.85), 0.3], 1, rr(1, 2.5) * (big ? 2 : 1), 0.3, 0, 4, 1);
 }
 function splash(p, big) {
+  PT_MUTE = PHX.water > 0;                         // 船邊水花開著（13_water.js）：下面這些照樣抽亂數、不放進去，換成 wpSplash
   var n = big ? 60 : 26;
   for (var i = 0; i < n; i++) spawnPt([p[0] + gauss() * 0.6, 0.1, p[2] + gauss() * 0.6], [gauss() * 1.6, rr(4, big ? 14 : 10), gauss() * 1.6], rr(0.8, 1.8), [0.92, 0.96, 1], 0.75, rr(0.4, 1.0), rr(0.8, 1.6), G, 0.3, 2);
   for (i = 0; i < 10; i++) spawnPt([p[0] + gauss() * 1.5, 0.15, p[2] + gauss() * 1.5], [gauss() * 0.4, 0.2, gauss() * 0.4], rr(1.5, 3), [0.95, 0.97, 1], 0.35, 1.5, 4, 0, 0.5, 2);
+  PT_MUTE = false; wpSplash(p, big);
   sfx('splash', p, big ? 1.2 : 0.7);
+}
+// ── js/13_water.js ──
+// ───────────────────────── 船周圍的水（TASK-0524） ─────────────────────────
+// 水滴（WS）從船身、砲彈落點、擦撞處飛出去，照重力落回海面 ⇒ 變成白沫（WF）；白沫是貼著浪的一片（60_render.js 畫，頂點照 seaHs 跟浪起伏），漂開、變大、散成細條、消失。
+// 從哪裡來：
+//   · 船身的水線（船型設計水線那一層、船殼最外那一格，兩舷各 48 點；wpRing）——每一步拿這一步與上一步的船矩陣算同一個船上的點的速度：
+//     往外推水（水平速度在外法線上的分量 vn）⇒ 船頭浪；船殼對水面往下壓（船的垂直速度 − 水面的垂直速度，vz < 0）⇒ 拍浪（浪頭打上來、船頭栽進浪、沉船也算）。
+//     推與拍都留白沫 ⇒ 船頭兩道往外散的白沫線。
+//   · 船尾：照航速翻白沫（會轉的一片）、冒一點水滴。
+//   · 擦撞（31_sailing.js collide）、砲彈與碎片與落水的人（12_effects.js splash）、碎木落水（stepDebris）。
+// ⛔ 只給人看：自己的亂數 rndW（開局跟 rs 一起重設，70_flow.js）、不回寫任何模擬狀態 ⇒ 開與關同一個種子戰局逐字相同。
+//   開著的時候，原本的航跡與水花（spawnPt）照樣由呼叫端抽完 rnd()、只是不放進去（PT_MUTE）⇒ 戰局的亂數順序不變。
+// 關（09_phx.js「船邊水花」第 0 檔）⇒ 原本的樣子：航跡與水花照舊是 spawnPt 的點。
+// 分級：ws／wf 水滴與白沫的上限、k 生的量、pts 每舷幾點、life 白沫活多久的倍率。
+var WP_LV = [null, { ws: 2000, wf: 1000, k: 0.45, pts: 16, life: 0.55 }, { ws: 4500, wf: 2200, k: 0.75, pts: 24, life: 0.8 }, { ws: 8000, wf: 4000, k: 1, pts: 48, life: 1 }];
+var WS_MAX = 8000, WF_MAX = 4000, WP_RING = 48;
+var WS = { n: 0, p: new Float32Array(WS_MAX * 3), v: new Float32Array(WS_MAX * 3), life: new Float32Array(WS_MAX), max: new Float32Array(WS_MAX), s: new Float32Array(WS_MAX), a: new Float32Array(WS_MAX) };
+var WF = { n: 0, p: new Float32Array(WF_MAX * 2), v: new Float32Array(WF_MAX * 2), life: new Float32Array(WF_MAX), max: new Float32Array(WF_MAX), s0: new Float32Array(WF_MAX), s1: new Float32Array(WF_MAX),
+  a: new Float32Array(WF_MAX), rot: new Float32Array(WF_MAX), w: new Float32Array(WF_MAX), seed: new Float32Array(WF_MAX) };
+var WP_HIDE = false, WFBUF = new Float32Array(WF_MAX * 8), WP_STAT = { spray: 0, foam: 0, src: {} }, FOAMG = null;
+PBUF = new Float32Array((PMAX + WS_MAX + 64) * 9);          // 點精靈的緩衝多留水滴的份（12_effects.js；60_render.js 一起畫）
+var WP_SRC = '', RSW0 = 0x1B873593, rsW = SEED ^ RSW0, PT_MUTE = false;   // PT_MUTE：spawnPt 收到也不放（亂數呼叫端已經抽完）
+function rndW() { rsW |= 0; rsW = rsW + 0x6D2B79F5 | 0; var t = Math.imul(rsW ^ rsW >>> 15, 1 | rsW); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+function rgW(a, b) { return a + (b - a) * rndW(); }
+function gsW() { var u = rndW() || 1e-9, v = rndW(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2831853 * v); }
+function wpLv() { return WP_LV[PHX.water] || null; }
+function wsAdd(x, y, z, vx, vy, vz, life, s, a) {
+  var L = wpLv(); if (!L || WS.n >= L.ws) return;
+  WP_STAT.src[WP_SRC] = (WP_STAT.src[WP_SRC] || 0) + 1;
+  var i = WS.n++, o = i * 3;
+  WS.p[o] = x; WS.p[o + 1] = y; WS.p[o + 2] = z; WS.v[o] = vx; WS.v[o + 1] = vy; WS.v[o + 2] = vz;
+  WS.life[i] = WS.max[i] = life; WS.s[i] = s; WS.a[i] = a; WP_STAT.spray++;
+}
+function wfAdd(x, z, vx, vz, life, s0, s1, a, w) {
+  var L = wpLv(); if (!L) return;
+  var i = WF.n < L.wf ? WF.n++ : (rndW() * WF.n) | 0;        // 滿了 ⇒ 隨便頂掉一片（⛔ 不收新的 ⇒ 船尾的舊白沫佔滿，船頭生不出來）
+  WF.p[i * 2] = x; WF.p[i * 2 + 1] = z; WF.v[i * 2] = vx; WF.v[i * 2 + 1] = vz;
+  WF.life[i] = WF.max[i] = life * L.life; WF.s0[i] = s0; WF.s1[i] = s1; WF.a[i] = a; WF.rot[i] = rndW() * 6.2832; WF.w[i] = w || 0; WF.seed[i] = rndW() * 64; WP_STAT.foam++;
+}
+/** 船型 T 的水線一圈（設計水線那一層、船殼最外那一格）：兩舷各 WP_RING 點 [x, y, 外法線 nx, ny]（格座標）。第一次用到時算。 */
+function wpRing(T) {
+  var G = T.base, ZW = T.zw, x0 = T.wl0, x1 = T.wl1, R = new Float32Array(WP_RING * 2 * 4), side, i, y;
+  for (side = 0; side < 2; side++) {
+    var k = side ? -1 : 1, ys = new Float32Array(WP_RING), xs = new Float32Array(WP_RING);
+    for (i = 0; i < WP_RING; i++) {
+      var x = Math.round(x0 + (x1 - x0) * (i + 0.5) / WP_RING), yo = T.cy;
+      if (k > 0) { for (y = G.sy - 1; y > T.cy; y--) if (G.get(x, y, ZW)) { yo = y + 1; break; } }
+      else { for (y = 0; y < T.cy; y++) if (G.get(x, y, ZW)) { yo = y; break; } }
+      xs[i] = x + 0.5; ys[i] = yo;
+    }
+    for (i = 0; i < WP_RING; i++) {
+      var a = Math.max(0, i - 1), b = Math.min(WP_RING - 1, i + 1), sl = (ys[b] - ys[a]) / ((xs[b] - xs[a]) || 1), l = Math.hypot(sl, 1), q = (side * WP_RING + i) * 4;
+      R[q] = xs[i]; R[q + 1] = ys[i]; R[q + 2] = -k * sl / l; R[q + 3] = k / l;
+    }
+  }
+  return R;
+}
+/** 每一步（50_sim.js，碎片與粒子之後）：船身與船尾生水花與白沫、水滴落海、白沫漂。關 ⇒ 清空。 */
+function stepWater(dt) {
+  var L = wpLv();
+  if (!L) { WS.n = WF.n = 0; return; }
+  SHIPS.forEach(function (sh) { wpShip(sh, dt, L); });
+  var hmax = 1.2 * SEA_K * WX.sea + 0.1, i, o, wx = WIND[0] * WX.wind * 0.12 * dt, wz = WIND[2] * WX.wind * 0.12 * dt, kd = 1 - 0.35 * dt;
+  for (i = 0; i < WS.n; i++) {
+    o = i * 3; WS.life[i] -= dt;
+    var dead = WS.life[i] <= 0;
+    if (!dead) {
+      WS.v[o] = WS.v[o] * kd + wx; WS.v[o + 1] = WS.v[o + 1] * kd - G * dt; WS.v[o + 2] = WS.v[o + 2] * kd + wz;
+      WS.p[o] += WS.v[o] * dt; WS.p[o + 1] += WS.v[o + 1] * dt; WS.p[o + 2] += WS.v[o + 2] * dt;
+      if (WS.v[o + 1] < 0 && WS.p[o + 1] < hmax && WS.p[o + 1] < seaH(WS.p[o], WS.p[o + 2], SIMT)) {   // 落回海面 ⇒ 有的變成一小片白沫
+        dead = true;
+        if (WS.s[i] > 0.25 && rndW() < 0.05) wfAdd(WS.p[o], WS.p[o + 2], WS.v[o] * 0.15, WS.v[o + 2] * 0.15, rgW(4, 8), 0.3 + WS.s[i], 1.0 + 3 * WS.s[i], 0.55, 0);
+      }
+    }
+    if (dead) {
+      var j = --WS.n;
+      if (i !== j) { WS.p.copyWithin(o, j * 3, j * 3 + 3); WS.v.copyWithin(o, j * 3, j * 3 + 3); WS.life[i] = WS.life[j]; WS.max[i] = WS.max[j]; WS.s[i] = WS.s[j]; WS.a[i] = WS.a[j]; }
+      i--;
+    }
+  }
+  var kf = 1 - 0.3 * dt;
+  for (i = 0; i < WF.n; i++) {
+    WF.life[i] -= dt;
+    if (WF.life[i] <= 0) {
+      var m = --WF.n;
+      if (i !== m) { WF.p.copyWithin(i * 2, m * 2, m * 2 + 2); WF.v.copyWithin(i * 2, m * 2, m * 2 + 2); WF.life[i] = WF.life[m]; WF.max[i] = WF.max[m]; WF.s0[i] = WF.s0[m]; WF.s1[i] = WF.s1[m]; WF.a[i] = WF.a[m]; WF.rot[i] = WF.rot[m]; WF.w[i] = WF.w[m]; WF.seed[i] = WF.seed[m]; }
+      i--; continue;
+    }
+    WF.p[i * 2] += WF.v[i * 2] * dt; WF.p[i * 2 + 1] += WF.v[i * 2 + 1] * dt; WF.v[i * 2] *= kf; WF.v[i * 2 + 1] *= kf; WF.rot[i] += WF.w[i] * dt; WF.w[i] *= kf;
+  }
+}
+/** 一艘船：水線一圈的推與拍、船尾翻白沫、沉的時候冒氣。 */
+function wpShip(sh, dt, L) {
+  var T = sh.T, M = sh.M, Mp = sh.wpM; sh.wpM = M;
+  if (!Mp || sh.sink > 30 || !(dt > 0)) return;
+  var R = T.wpR || (T.wpR = wpRing(T)), st = WP_RING / L.pts | 0, ds = (T.wl1 - T.wl0) * S / WP_RING * st, zc = clamp(T.zw + (sh.sink - sh.lift - sh.bob) / S, 1, T.sz - 2);
+  var acc = sh.wpAcc || (sh.wpAcc = new Float32Array(WP_RING * 4 + 4)), t0 = SIMT - dt;
+  for (var q = 0; q < WP_RING * 2; q += st) {
+    var r = q * 4, P = M4.pt(M, R[r], R[r + 1], zc), P0 = M4.pt(Mp, R[r], R[r + 1], zc), h = seaH(P[0], P[2], SIMT);
+    if (P[1] - h > 0.6) continue;                                                 // 這一刻那一點離開水面（浪谷）⇒ 沒碰到水
+    var nw = M4.dir(M, R[r + 2], R[r + 3], 0), nl = Math.hypot(nw[0], nw[2]) || 1, nx = nw[0] / nl, nz = nw[2] / nl;
+    var vx = (P[0] - P0[0]) / dt, vy = (P[1] - P0[1]) / dt, vz = (P[2] - P0[2]) / dt, vs = (h - seaH(P[0], P[2], t0)) / dt;
+    var vn = vx * nx + vz * nz, push = Math.max(0, vn - 0.35), slam = Math.max(0, vs - vy - 0.3), bw = vn > 0.2 ? 0.3 + 1.2 * (vn - 0.2) : 0;
+    if (!(push > 0 || slam > 0 || bw > 0)) continue;
+    acc[q] += (push * push * 2.5 + slam * slam * 25) * L.k * ds * dt; WP_SRC = push * push * 2.5 > slam * slam * 25 ? 'push' : 'slam';
+    while (acc[q] >= 1) {                                                         // 水滴：往外、往上，帶一點船的速度
+      acc[q] -= 1;
+      var up = rgW(0.4, 1.1) * (push * 1.3 + slam * 1.7) + 0.3, out = rgW(0.3, 0.9) * vn + rgW(0, 0.6) * slam, cv = rgW(0.3, 0.7);
+      var so = rgW(0.8, 1.5);                                                   // 生在船殼外飄的外面（⛔ 貼著水線 ⇒ 從上面看被船頭外飄的船殼蓋住）
+      wsAdd(P[0] + nx * so + gsW() * 0.3, h + 0.05, P[2] + nz * so + gsW() * 0.3, nx * out + vx * cv + gsW() * 0.3, up, nz * out + vz * cv + gsW() * 0.3,
+        rgW(0.9, 1.6), rgW(0.18, 0.4) * (1 + 0.4 * push), 0.6);
+    }
+    acc[q + WP_RING * 2] += (bw + slam * 2.0) * L.k * ds * dt;
+    while (acc[q + WP_RING * 2] >= 1) {                                           // 白沫：船頭兩道往外散的線
+      acc[q + WP_RING * 2] -= 1;
+      var fo = rgW(0.8, 2.2);
+      wfAdd(P[0] + nx * fo, P[2] + nz * fo, nx * Math.max(vn, 0) * 0.6 + vx * 0.15 + gsW() * 0.12, nz * Math.max(vn, 0) * 0.6 + vz * 0.15 + gsW() * 0.12, rgW(10, 18), rgW(0.5, 0.9), rgW(1.6, 2.8), rgW(0.65, 0.9), 0);
+    }
+  }
+  // 船尾：照航速翻白沫（一片一片會轉）、冒一點水滴
+  var sp = Math.abs(sh.spd), k2 = WP_RING * 4; WP_SRC = 'stern';
+  if (sp > 0.3 && !sh.sunk) {
+    acc[k2] += sp * 2.0 * L.k * dt;
+    while (acc[k2] >= 1) {
+      acc[k2] -= 1;
+      var sx = T.wl0 + rgW(2, 14), sy = T.cy + gsW() * T.bowHalf * 0.3, S0 = M4.pt(M, sx, sy, zc);
+      wfAdd(S0[0], S0[2], gsW() * 0.35, gsW() * 0.35, rgW(18, 30), rgW(0.9, 1.6), rgW(2.6, 4.4), rgW(0.5, 0.75), gsW() * 0.6);
+    }
+    acc[k2 + 1] += sp * 3 * L.k * dt;
+    while (acc[k2 + 1] >= 1) {
+      acc[k2 + 1] -= 1;
+      var B = M4.pt(M, T.wl0 + rgW(1, 8), T.cy + gsW() * T.bowHalf * 0.25, zc), hb = seaH(B[0], B[2], SIMT);
+      wsAdd(B[0], hb + 0.05, B[2], gsW() * 0.4, rgW(0.5, 1.6), gsW() * 0.4, rgW(0.8, 1.4), rgW(0.2, 0.35), 0.5);
+    }
+  }
+  // 沉的時候：船殼一圈冒氣、翻大片白沫（往下壓的拍浪由上面那一圈照垂直速度算）
+  if (sh.sinkingFinal && sh.sink < 30) {
+    WP_SRC = 'sink';
+    acc[k2 + 2] += (2 + sh.sinkV * 6) * L.k * dt;
+    while (acc[k2 + 2] >= 1) {
+      acc[k2 + 2] -= 1;
+      var g = (rndW() * WP_RING * 2) | 0, gr = g * 4, C = M4.pt(M, R[gr] - R[gr + 2] * rgW(2, 40), R[gr + 1] - R[gr + 3] * rgW(2, 40), zc), hc = seaH(C[0], C[2], SIMT);
+      for (var b = 0; b < 14 * L.k; b++) wsAdd(C[0] + gsW() * 0.6, hc + 0.05, C[2] + gsW() * 0.6, gsW() * 0.8, rgW(1.5, 5), gsW() * 0.8, rgW(0.8, 1.8), rgW(0.25, 0.5), 0.6);
+      wfAdd(C[0], C[2], gsW() * 0.4, gsW() * 0.4, rgW(14, 24), rgW(1.5, 2.5), rgW(4, 7), 0.75, gsW() * 0.4);
+    }
+  }
+}
+/** 砲彈、碎片、落水的人（12_effects.js splash）：一圈冠狀的水滴、大的再一柱往上衝、落點一圈白沫。 */
+function wpSplash(p, big) {
+  var L = wpLv(); if (!L) return;
+  var h = seaH(p[0], p[2], SIMT), n = (big ? 70 : 28) * L.k, i, a, r, u; WP_SRC = 'splash';
+  for (i = 0; i < n; i++) {
+    a = rndW() * 6.2832; r = rgW(0.2, 0.6) * (big ? 1.6 : 1); u = rgW(1.2, 3.5) * (big ? 1.4 : 1);
+    wsAdd(p[0] + Math.cos(a) * r, h + 0.05, p[2] + Math.sin(a) * r, Math.cos(a) * u, rgW(3, big ? 11 : 7), Math.sin(a) * u, rgW(1.0, 2.4), rgW(0.15, 0.32) * (big ? 1.4 : 1), 0.75);
+  }
+  if (big) for (i = 0; i < 30 * L.k; i++) wsAdd(p[0] + gsW() * 0.25, h + 0.1, p[2] + gsW() * 0.25, gsW() * 0.6, rgW(7, 17), gsW() * 0.6, rgW(2, 3.5), rgW(0.3, 0.6), 0.8);
+  for (i = 0; i < (big ? 14 : 6) * L.k; i++) { a = rndW() * 6.2832; u = rgW(0.6, 1.8); wfAdd(p[0] + Math.cos(a) * 0.5, p[2] + Math.sin(a) * 0.5, Math.cos(a) * u, Math.sin(a) * u, rgW(8, 14), rgW(0.8, 1.4), rgW(2.2, 3.4), 0.75, 0); }
+}
+/** 碎木落水（12_effects.js stepDebris）：幾滴、偶爾一小片白沫。 */
+function wpDrop(x, z) {
+  var L = wpLv(); if (!L || rndW() > 0.35 * L.k) return;
+  var h = seaH(x, z, SIMT); WP_SRC = 'drop';
+  for (var i = 0; i < 3; i++) wsAdd(x, h + 0.03, z, gsW() * 0.5, rgW(1, 3), gsW() * 0.5, rgW(0.5, 0.9), rgW(0.08, 0.15), 0.6);
+  if (rndW() < 0.3) wfAdd(x, z, 0, 0, rgW(3, 5), 0.3, 0.8, 0.5, 0);
+}
+/** 擦撞（31_sailing.js collide，貼著的每一步）：兩艘之間往上、往兩舷噴，量照相對速度。 */
+function wpBump(pa, pb, A, B) {
+  var L = wpLv(); if (!L) return;
+  var rel = Math.hypot(A.vel[0] - B.vel[0], A.vel[2] - B.vel[2]), tx = pb[2] - pa[2], tz = pa[0] - pb[0], tl = Math.hypot(tx, tz) || 1, mx = (pa[0] + pb[0]) / 2, mz = (pa[2] + pb[2]) / 2;
+  tx /= tl; tz /= tl; WP_SRC = 'bump';
+  A.wpBumpAcc = (A.wpBumpAcc || 0) + (40 + 60 * rel) * L.k * DT;
+  while (A.wpBumpAcc >= 1) {
+    A.wpBumpAcc -= 1;
+    var s = gsW() * 4, x = mx + tx * s, z = mz + tz * s, h = seaH(x, z, SIMT), side = rndW() < 0.5 ? -1 : 1, o = rgW(1, 3) * (0.5 + rel);
+    wsAdd(x, h + 0.05, z, (pa[0] - pb[0]) / 14 * side * o + gsW() * 0.5, rgW(2, 6) * (0.6 + 0.5 * rel), (pa[2] - pb[2]) / 14 * side * o + gsW() * 0.5, rgW(1.2, 2.2), rgW(0.2, 0.4), 0.7);
+    if (rndW() < 0.2) wfAdd(x, z, gsW() * 0.4, gsW() * 0.4, rgW(10, 16), 1.0, 3.0, 0.7, gsW() * 0.5);
+  }
+}
+
+// ── 畫：白沫是貼著浪的一片（5×5 頂點、每個頂點照 seaHs 起伏，跟海面網格同一個間距）；水滴跟粒子一起畫（點精靈，60_render.js） ──
+function wpGL() {
+  var N = 4, V = [], I = [], i, j;
+  for (j = 0; j <= N; j++) for (i = 0; i <= N; i++) V.push(i / N * 2 - 1, j / N * 2 - 1);
+  for (j = 0; j < N; j++) for (i = 0; i < N; i++) { var a = j * (N + 1) + i; I.push(a, a + 1, a + N + 2, a, a + N + 2, a + N + 1); }
+  FOAMG = { vao: gl.createVertexArray(), ib: null, inst: gl.createBuffer(), n: I.length };
+  gl.bindVertexArray(FOAMG.vao);
+  var vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(V), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+  FOAMG.ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, FOAMG.ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(I), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, FOAMG.inst); gl.bufferData(gl.ARRAY_BUFFER, WFBUF.byteLength, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 32, 0); gl.vertexAttribDivisor(1, 1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 32, 16); gl.vertexAttribDivisor(2, 1);
+  gl.bindVertexArray(null);
+  // 片段：兩層雜訊 × 圓的邊 ⇒ 一塊一塊的白沫；越舊門檻越高 ⇒ 散成細條。亮度照陽光與陰影（暴風雨暗），霧照距離。船艙裡的丟掉（跟海同一份遮罩）
+  P.foam = VK.compile(gl,
+    '#version 300 es\nlayout(location=0) in vec2 aQ; layout(location=1) in vec4 iA; layout(location=2) in vec4 iB; uniform mat4 uVP; uniform vec2 uC, uSG;\n' + SEA_GLSL +
+    'out vec2 vQ; out vec3 vW; out float vA; out float vS;\n' +
+    'void main(){ float c=cos(iA.w), s=sin(iA.w); vec2 p=iA.xy+vec2(c*aQ.x-s*aQ.y, s*aQ.x+c*aQ.y)*iA.z; float r=length(p-uC);\n' +
+    ' float h=seaHs(p,max(uSG.x,r*uSG.y))*(1.0-smoothstep(900.0,1600.0,r)); vW=vec3(p.x,h+0.06,p.y); vQ=aQ; vA=iB.x; vS=iB.y; gl_Position=uVP*vec4(vW,1.0); }\n',
+    '#version 300 es\nprecision highp float; in vec2 vQ; in vec3 vW; in float vA; in float vS; uniform vec3 uEye,uFog; uniform float uFogD; out vec4 o;\n' + SHADOW_GLSL + HULL_GLSL +
+    'float hs1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +
+    'float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); float a=hs1(dot(i,vec2(1.0,57.0))), b=hs1(dot(i+vec2(1.0,0.0),vec2(1.0,57.0))), c=hs1(dot(i+vec2(0.0,1.0),vec2(1.0,57.0))), d=hs1(dot(i+vec2(1.0,1.0),vec2(1.0,57.0))); return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }\n' +
+    'void main(){ if((uHide.x>0.5&&inHull(uInv0,uHull0,uHullK0))||(uHide.y>0.5&&inHull(uInv1,uHull1,uHullK1))) discard;\n' +
+    ' float m=(vn(vQ*1.7+vS)*0.65+vn(vQ*4.3+vS*1.7+3.1)*0.35)*(1.0-smoothstep(0.45,1.0,length(vQ))); float th=mix(0.62,0.22,vA);\n' +
+    ' float a=smoothstep(th,th+0.12,m)*(0.35+0.65*vA); if(a<0.01) discard;\n' +
+    ' vec3 col=vec3(0.84,0.88,0.9)*(0.55+0.45*shadowK(vW,vec3(0.0,1.0,0.0))); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),a*0.9); }\n');
+}
+/** 畫白沫（海之後、粒子之前；不寫深度、往鏡頭拉一點免得跟海面打架）。hullU：船艙遮罩的 uniform（60_render.js，跟海同一份）。 */
+function wpDrawFoam(hullU) {
+  if (!WF.n || !P.foam || WP_HIDE) return;                               // WP_HIDE：量繪製成本用（__game.water({ hide: true })）
+  var n = 0;
+  for (var i = 0; i < WF.n; i++) {
+    var f = WF.life[i] / WF.max[i], k = n * 8;
+    WFBUF[k] = WF.p[i * 2]; WFBUF[k + 1] = WF.p[i * 2 + 1]; WFBUF[k + 2] = WF.s1[i] + (WF.s0[i] - WF.s1[i]) * f; WFBUF[k + 3] = WF.rot[i];
+    WFBUF[k + 4] = WF.a[i] * Math.min(1, f * 2.5) * Math.min(1, (1 - f) * 12 + 0.3); WFBUF[k + 5] = WF.seed[i]; n++;
+  }
+  gl.useProgram(P.foam.prog); setCommon(P.foam); hullU(P.foam);
+  var Lv = SEA_LV[GFX.sea];
+  gl.uniform2f(P.foam.u.uC, Math.round(CAM.eye[0] / SEAG.snap) * SEAG.snap, Math.round(CAM.eye[2] / SEAG.snap) * SEAG.snap); gl.uniform2f(P.foam.u.uSG, Lv.min, 2 * Math.PI / Lv.seg);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(-2, -8); gl.disable(gl.CULL_FACE);
+  gl.bindVertexArray(FOAMG.vao); gl.bindBuffer(gl.ARRAY_BUFFER, FOAMG.inst); gl.bufferSubData(gl.ARRAY_BUFFER, 0, WFBUF, 0, n * 8);
+  gl.drawElementsInstanced(gl.TRIANGLES, FOAMG.n, gl.UNSIGNED_SHORT, 0, n);
+  gl.disable(gl.POLYGON_OFFSET_FILL); gl.depthMask(true);
+}
+/** 水滴放進點精靈的緩衝（60_render.js 的 pushPt）：天暗的時候跟著暗。 */
+function wpPushSpray(pushPt) {
+  if (!WS.n || WP_HIDE) return;
+  var b = 0.55 + 0.45 * WX.sun, c = [0.9 * b, 0.94 * b, 0.98 * b];
+  for (var i = 0; i < WS.n; i++) { var f = WS.life[i] / WS.max[i]; pushPt([WS.p[i * 3], WS.p[i * 3 + 1], WS.p[i * 3 + 2]], WS.s[i] * (1.3 - 0.3 * f), c, WS.a[i] * Math.min(1, f * 3), -1); }
 }
 // ── js/20_shatter.js ──
 // ───────────────────────── 拆格：砲彈打碎船殼 ─────────────────────────
@@ -3180,15 +3419,16 @@ function sail(sh, dt) {
   F = fwd(sh.yaw);
   sh.vel = mul(F, sh.spd);
   sh.px += sh.vel[0] * dt; sh.pz += sh.vel[2] * dt;
-  // 航跡：船尾留一條白沫、船頭兩側推出的浪（點精靈，不撞任何東西）
+  // 航跡：船尾留一條白沫、船頭兩側推出的浪（點精靈，不撞任何東西）；船邊水花開著 ⇒ 換成 13_water.js 的（這裡照樣抽亂數、不放進去）
   if ((sh.wakeT -= dt) <= 0 && sh.spd > 0.4 && sh.sink < 6) {
-    sh.wakeT = 0.12;
+    sh.wakeT = 0.12; PT_MUTE = PHX.water > 0;
     var T = sh.T, st = M4.pt(sh.M, T.wl0 - 4, T.cy, T.zw);
     spawnPt([st[0] + gauss() * 0.8, seaH(st[0], st[2], SIMT) + 0.06, st[2] + gauss() * 0.8], [0, 0, 0], rr(9, 13), [0.93, 0.96, 1], 0.3 * Math.min(1, sh.spd / 2), rr(1.2, 2), rr(4, 6), 0, 0, 2);
     [1, -1].forEach(function (k) {
       var bw = M4.pt(sh.M, T.wl1 - 25, T.cy + k * T.bowHalf, T.zw), out = M4.dir(sh.M, 0, k, 0); out = norm([out[0], 0, out[2]]);
       spawnPt([bw[0], seaH(bw[0], bw[2], SIMT) + 0.08, bw[2]], mul(out, rr(0.4, 1) * sh.spd * 0.4), rr(1.5, 2.5), [0.95, 0.97, 1], 0.5, rr(0.8, 1.3), rr(2, 3), 0, 0, 2);
     });
+    PT_MUTE = false;
   }
 }
 
@@ -3203,6 +3443,7 @@ function collide() {
   var n = best > 1e-3 ? [(pa[0] - pb[0]) / best, 0, (pa[2] - pb[2]) / best] : [0, 0, 1], push = (14 - best) / 2;
   A.px += n[0] * push; A.pz += n[2] * push; B.px -= n[0] * push; B.pz -= n[2] * push;
   A.spd *= 0.97; B.spd *= 0.97;
+  wpBump(pa, pb, A, B);                                                // 船邊水花（13_water.js；只給人看）
   if (SIMT - (A.bumpT || -9) > 5) { A.bumpT = SIMT; sfx('crack', pa, 1); note(SHIPS[PLAYER_I], '兩艘擦撞'); }
 }
 /** 敵艦在哪一舷（給自動操舵用；有遲滯，不在正前／正後來回跳）。只影響操舵 —— 開火是每門砲各自看對不對得到。 */
@@ -3889,7 +4130,7 @@ function step() {
   SHIPS.forEach(function (sh) { integrity(sh); sh.impulse = [0, 0, 0]; });
   for (i = 0; i < PIECES.length; i++) if (!stepPiece(PIECES[i], DT)) { PIECES[i].rs.dispose(); PIECES.splice(i--, 1); }
   for (i = 0; i < FLY.length; i++) if (!stepFly(FLY[i], DT)) FLY.splice(i--, 1);
-  stepDebris(DT); stepPts(DT);
+  stepDebris(DT); stepPts(DT); stepWater(DT);                       // 船邊水花（13_water.js；只給人看、自己的亂數）
   if (PHYS) { var pt0 = performance.now(); SHIPS.forEach(function (sh) { if (sh.sink < 40) physStep(sh); }); PHYS_MS = PHYS_MS * 0.98 + (performance.now() - pt0) * 0.02; }   // 讀數只看、不回寫模擬
   stepPowder();                                                    // 殉爆排程（23_powder.js）
   if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
@@ -4159,6 +4400,17 @@ function reflPass() {
   }
   PASS.vp = null; PASS.eye = null; PASS.clip = -1e9; PASS.sh = 1;
 }
+/** 船艙遮罩的 uniform（海與白沫共用，01_gl.js HULL_GLSL）。開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了） */
+function hullUniforms(prog) {
+  var u = prog.u, hide = [0, 1].map(function (i) { var s = SHIPS[i]; return s && !s.sinkingFinal && !s.sunk && s.T.hullTex ? 1 : 0; });   // 每艘照自己船型的遮罩（兩型可以不一樣）
+  gl.uniform2f(u.uHide, hide[0], hide[1]);
+  [0, 1].forEach(function (i) {
+    var s = SHIPS[i], T = s && s.T; if (!T || !T.hullTex) return;
+    gl.uniformMatrix4fv(u['uInv' + i], false, s.inv);
+    gl.activeTexture(gl.TEXTURE1 + i); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(u['uHull' + i], 1 + i); gl.uniform3f(u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
+  });
+  gl.activeTexture(gl.TEXTURE0);
+}
 function render() {
   resize(); var w = CAM.w, h = CAM.h;
   // 閃電（天氣，08_weather.js）：那一格的天空與環境光拉亮、0.3 秒內退掉；雷聲照距離延後（340 m/s）。只在畫面，畫完把天色還回去
@@ -4220,21 +4472,15 @@ function render() {
   gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, RT.R ? RT.R.col : DUMMY); gl.uniform1i(P.water.u.uRefl, 6);
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, RT.B.col); gl.uniform1i(P.water.u.uScene, 7);
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, RT.B.dep); gl.uniform1i(P.water.u.uSceneD, 3);
-  // 開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了）
-  var hide = [0, 1].map(function (i) { var s = SHIPS[i]; return s && !s.sinkingFinal && !s.sunk && s.T.hullTex ? 1 : 0; });   // 每艘照自己船型的遮罩（兩型可以不一樣）
-  gl.uniform2f(P.water.u.uHide, hide[0], hide[1]);
-  [0, 1].forEach(function (i) {
-    var s = SHIPS[i], T = s && s.T; if (!T || !T.hullTex) return;
-    gl.uniformMatrix4fv(P.water.u['uInv' + i], false, s.inv);
-    gl.activeTexture(gl.TEXTURE1 + i); gl.bindTexture(gl.TEXTURE_2D, T.hullTex); gl.uniform1i(P.water.u['uHull' + i], 1 + i); gl.uniform3f(P.water.u['uHullK' + i], T.hullTW, T.hullTH, T.cy);
-  });
-  gl.activeTexture(gl.TEXTURE0);
+  hullUniforms(P.water);
   gl.bindVertexArray(SEAG.vao); gl.drawElements(gl.TRIANGLES, SEAG.n, gl.UNSIGNED_INT, 0);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  wpDrawFoam(hullUniforms);                                              // 船邊水花的白沫（13_water.js）：貼著浪、不寫深度
   // 粒子＋砲彈＋瞄準點
   var m = 0;
-  function pushPt(p, s, c, a, ty) { if (m >= PMAX) return; var k = m * 9; PBUF[k] = p[0]; PBUF[k + 1] = p[1]; PBUF[k + 2] = p[2]; PBUF[k + 3] = s; PBUF[k + 4] = c[0]; PBUF[k + 5] = c[1]; PBUF[k + 6] = c[2]; PBUF[k + 7] = a; PBUF[k + 8] = ty === undefined ? -1 : ty; m++; }
+  function pushPt(p, s, c, a, ty) { if (m * 9 >= PBUF.length) return; var k = m * 9; PBUF[k] = p[0]; PBUF[k + 1] = p[1]; PBUF[k + 2] = p[2]; PBUF[k + 3] = s; PBUF[k + 4] = c[0]; PBUF[k + 5] = c[1]; PBUF[k + 6] = c[2]; PBUF[k + 7] = a; PBUF[k + 8] = ty === undefined ? -1 : ty; m++; }
   for (i = 0; i < PT.n; i++) { var f = PT.life[i] / PT.max[i], s = PT.s1[i] + (PT.s0[i] - PT.s1[i]) * f; pushPt([PT.p[i * 3], PT.p[i * 3 + 1], PT.p[i * 3 + 2]], s, [PT.c[i * 3], PT.c[i * 3 + 1], PT.c[i * 3 + 2]], PT.a[i] * Math.min(1, f * 3), PT.ty[i]); }
+  wpPushSpray(pushPt);                                                   // 船邊水花的水滴（13_water.js）
   BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
   var me = SHIPS[PLAYER_I], mWorld = m;                                   // mWorld 之後的是瞄準圈：另一批畫、不做深度測試（被船身擋住也看得到）
   if (me && me.aim && !AUTOFIRE && !STILL) {
@@ -4583,10 +4829,10 @@ function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
   END_AT = 0;
-  rs = SEED; rsD = SEED ^ RSD0; DEB_ACC = PT_ACC = 0; SIMT = 0; stepWind(0);   // 開局的風 ＝ 原本的風（08_weather.js）              // 碎木的亂數、少生的節拍跟著重設（12_effects.js）
+  rs = SEED; rsD = SEED ^ RSD0; rsW = SEED ^ RSW0; WP_STAT.spray = WP_STAT.foam = 0; WP_STAT.src = {}; DEB_ACC = PT_ACC = 0; SIMT = 0; stepWind(0);   // 開局的風 ＝ 原本的風（08_weather.js）              // 碎木與水花的亂數、少生的節拍跟著重設（12_effects.js、13_water.js）
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
-  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
+  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; WS.n = WF.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
   clearMsgs();
   PLAYER_I = 0;
   SHIPS.push(makeShip(0, 'blue', 0, DIST / 2, HULLT[SHIP_SET[0]]));
@@ -4974,6 +5220,8 @@ if (DEBUG) window.__game = {
   predict: function (b) { return ballPredict(b); },
   cam: function (o) { for (var k in o) CAM[k] = o[k]; CAM.snap = true; camUpdate(1); render(); },
   phys: function (on) { if (on !== undefined) setPhys(!!on); return PHYS; },
+  /** 船邊水花（13_water.js）：現在的檔、水滴與白沫各幾顆、開局以來生了幾顆。{ hide: true } ⇒ 照算、不畫（量繪製成本）。 */
+  water: function (o) { if (o && 'hide' in o) WP_HIDE = !!o.hide; return { lv: PHX.water, spray: WS.n, foam: WF.n, emitted: { spray: WP_STAT.spray, foam: WP_STAT.foam }, src: WP_STAT.src }; },
   /** 物理效果（09_phx.js）：給 level（full／high／mid／low）或 { rig: 1, … } 就換；回傳現在的設定。 */
   phx: function (o) { if (typeof o === 'string') phxSet(o); else if (o) for (var k in o) PHX[k] = o[k]; if (o) { if ((PHX.rig > 0) !== PHYS) setPhys(PHX.rig > 0); if ($('phxB')) phxShow(); } return { level: phxLevel(), phx: JSON.parse(JSON.stringify(PHX)), phys: PHYS, rig: rigLv(), debris: DEB_KS[PHX.debris], fx: FX_KS[PHX.fx] }; },
   /** 帆桁追風的讀數：相對風吹去的方向、每根帆桁現在離正橫幾度（作品的角度＋追風轉的）。 */
@@ -5046,7 +5294,7 @@ if (DEBUG) {
 var t0 = performance.now();
 function say(s) { $('load').textContent = s; }
 say('解碼船體…');
-programs(); geometry(); bbSetup(); QIDX = new VK.QuadIndex(gl);
+programs(); geometry(); wpGL(); bbSetup(); QIDX = new VK.QuadIndex(gl);
 hullSay = function (s) { var go = $('go'); if (go.disabled) go.textContent = '解析' + s; };   // 解析中：開戰鈕寫進度（設定照樣能調）
 requestAnimationFrame(frame);                                       // 解析中也畫（天、海；船載好才有）
 yieldUI().then(function () {                                        // 先讓主選單畫出來，再開始解析

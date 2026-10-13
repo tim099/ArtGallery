@@ -41,6 +41,7 @@ function stepDebris(dt) {
       if (D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {                                    // 落水：慢慢沉
         D.st[i] = 3; D.v[o] *= 0.1; D.v[o + 1] = -0.25; D.v[o + 2] *= 0.1; D.life[i] = Math.min(D.life[i], 4);
         if (rndD() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
+        wpDrop(D.p[o], D.p[o + 2]);                                     // 船邊水花（13_water.js）：幾滴、偶爾一小片白沫
         continue;
       }
       if (D.v[o + 1] < 0) for (var s = 0; s < SHIPS.length; s++) {       // 掉到甲板上 ⇒ 停住
@@ -68,6 +69,7 @@ var PMAX = 12000, PT = { n: 0, p: new Float32Array(PMAX * 3), v: new Float32Arra
   s0: new Float32Array(PMAX), s1: new Float32Array(PMAX), c: new Float32Array(PMAX * 3), a: new Float32Array(PMAX), grav: new Float32Array(PMAX), drag: new Float32Array(PMAX), ty: new Float32Array(PMAX) };
 var PBUF = new Float32Array(PMAX * 9);
 function spawnPt(p, v, life, col, a, s0, s1, grav, drag, ty) {
+  if (PT_MUTE) return;                               // 船邊水花開著：原本的航跡與水花不放（呼叫端的亂數照樣抽完，13_water.js）
   var k = FX_KS[PHX.fx]; if (k < 1) { PT_ACC += k; if (PT_ACC < 1) return; PT_ACC -= 1; }   // 物理分級：少生幾顆（參數的亂數呼叫端已經抽完）
   if (PT.n >= PMAX) return;
   var i = PT.n++;
@@ -102,9 +104,11 @@ function flash(p, dir, n, big) {
   for (var i = 0; i < n; i++) spawnPt(p, add(mul(dir, rr(5, 30)), [gauss() * 3, gauss() * 3, gauss() * 3]), rr(0.08, 0.22), [1, rr(0.6, 0.85), 0.3], 1, rr(1, 2.5) * (big ? 2 : 1), 0.3, 0, 4, 1);
 }
 function splash(p, big) {
+  PT_MUTE = PHX.water > 0;                         // 船邊水花開著（13_water.js）：下面這些照樣抽亂數、不放進去，換成 wpSplash
   var n = big ? 60 : 26;
   for (var i = 0; i < n; i++) spawnPt([p[0] + gauss() * 0.6, 0.1, p[2] + gauss() * 0.6], [gauss() * 1.6, rr(4, big ? 14 : 10), gauss() * 1.6], rr(0.8, 1.8), [0.92, 0.96, 1], 0.75, rr(0.4, 1.0), rr(0.8, 1.6), G, 0.3, 2);
   for (i = 0; i < 10; i++) spawnPt([p[0] + gauss() * 1.5, 0.15, p[2] + gauss() * 1.5], [gauss() * 0.4, 0.2, gauss() * 0.4], rr(1.5, 3), [0.95, 0.97, 1], 0.35, 1.5, 4, 0, 0.5, 2);
+  PT_MUTE = false; wpSplash(p, big);
   sfx('splash', p, big ? 1.2 : 0.7);
 }
 

@@ -15,6 +15,10 @@ var SHADOW_GLSL = 'uniform highp sampler2DShadow uSh0, uSh1; uniform mat4 uShM0,
   '  if(uShOn<1.5) return texture(S,q);\n' +
   '  float e=uShPx*0.9; return 0.25*(texture(S,q+vec3(-e,-e,0.0))+texture(S,q+vec3(e,-e,0.0))+texture(S,q+vec3(-e,e,0.0))+texture(S,q+vec3(e,e,0.0))); }\n' +
   'float shadowK(vec3 w, vec3 n){ if(uShOn<0.5) return uSunK; vec3 p=w+n*uShOff; return min(min(shOne(uSh0,uShM0,p),shOne(uSh1,uShM1,p)),1.0)*uSunK; }\n';
+// 船艙遮罩（海、船邊水花的白沫共用；要有 in vec3 vW）：那一點換到船的格座標，落在原本船殼的外形裡（uHull0／1：那艘船型每個 (x, z) 船殼的半寬）⇒ 呼叫端丟掉。
+//   uHide ＝ 那艘還沒開始沉（60_render.js hullUniforms）
+var HULL_GLSL = 'uniform mat4 uInv0,uInv1; uniform vec2 uHide; uniform sampler2D uHull0,uHull1; uniform vec3 uHullK0,uHullK1;\n' +
+  'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n';
 function programs() {
   P.vox = VK.compile(gl, VK.VOXEL_VS, voxFS());
   P.deb = VK.compile(gl,
@@ -60,9 +64,8 @@ function programs() {
     // 反射（uReflOn）：RT.R 是鏡像過來的船，照螢幕座標＋法線擾動讀，沒畫到的地方（a ＝ 0）照舊是天空。
     // 折射（uRefr）：0 不透明、1 半透明（底下的照舊混進來）、2 讀 RT.B（畫海之前的場景）：照法線擾動、照水的厚度（兩個深度相減）吸收成海的顏色。
     'float linZ(float d){ float z=d*2.0-1.0; return 5000.0/(5000.5-z*4999.5); }\n' +
-    // 船艙裡不畫海：海面那一點換到船的格座標，落在原本船殼的外形裡（uHull0／1：那艘船型每個 (x, z) 船殼的半寬）⇒ 丟掉。uHide ＝ 那艘還沒開始沉（見 render）
-    'uniform mat4 uInv0,uInv1; uniform vec2 uHide; uniform sampler2D uHull0,uHull1; uniform vec3 uHullK0,uHullK1;\n' +
-    'bool inHull(mat4 inv,sampler2D H,vec3 K){ vec4 l=inv*vec4(vW,1.0); if(l.x<0.0||l.z<0.0||l.x>=K.x||l.z>=K.y) return false; float hb=texelFetch(H,ivec2(int(l.x),int(l.z)),0).r*255.0; return hb>0.0 && abs(l.y-K.z)<hb; }\n' +
+    // 船艙裡不畫海（HULL_GLSL）：海面那一點落在原本船殼的外形裡 ⇒ 丟掉
+    HULL_GLSL +
     // 細浪（只在畫面）：uDet 道，波長從 7 m 往下每道 ×0.8 再亂一點、方向在風向 ±70° 亂撒、相位亂撒（雜湊，不抽亂數）⇒ 不成整數比、不會一格一格重複；
     // 每道照像素寬 fp 淡掉（遠處自動變平滑，不疊紋）；再乘一層慢慢飄的雜訊 ⇒ 海面一塊皺、一塊平（陣風吹過的樣子）。
     'float hs1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +

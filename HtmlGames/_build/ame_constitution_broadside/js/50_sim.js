@@ -35,7 +35,7 @@ function step() {
   SHIPS.forEach(function (sh) { integrity(sh); sh.impulse = [0, 0, 0]; });
   for (i = 0; i < PIECES.length; i++) if (!stepPiece(PIECES[i], DT)) { PIECES[i].rs.dispose(); PIECES.splice(i--, 1); }
   for (i = 0; i < FLY.length; i++) if (!stepFly(FLY[i], DT)) FLY.splice(i--, 1);
-  stepDebris(DT); stepPts(DT);
+  stepDebris(DT); stepPts(DT); stepWater(DT);                       // 船邊水花（13_water.js；只給人看、自己的亂數）
   if (PHYS) { var pt0 = performance.now(); SHIPS.forEach(function (sh) { if (sh.sink < 40) physStep(sh); }); PHYS_MS = PHYS_MS * 0.98 + (performance.now() - pt0) * 0.02; }   // 讀數只看、不回寫模擬
   stepPowder();                                                    // 殉爆排程（23_powder.js）
   if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
