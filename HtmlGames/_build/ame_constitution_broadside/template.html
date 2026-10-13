@@ -61,7 +61,7 @@
     #nav{ transform:scale(.6); transform-origin:left bottom; bottom:12px; } #ctl{ transform:translateX(-50%) scale(.82); transform-origin:center bottom; } #tip{ display:none; } }
   #cover{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; background:radial-gradient(ellipse at 50% 40%, rgba(20,30,44,.80), rgba(5,8,12,.94)); }
   #cover .card{ max-width:680px; margin:auto; padding:22px 30px; text-align:center; }   /* margin:auto ⇒ 放得下就置中、放不下就從頂端開始捲（⛔ align-items:center 放不下會切掉上半） */
-  #cover h1{ margin:0 0 4px; font-size:30px; letter-spacing:2px; }
+  #cover h1{ margin:0 0 4px; font-size:24px; letter-spacing:2px; }   /* Tim 2026-10-13：標題小一點（30 → 24；手機 24 → 19） */
   #cover .sub{ color:var(--dim); margin-bottom:14px; font-size:13px; }
   #cover select{ font:inherit; font-size:13px; max-width:100%; padding:3px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:#1a212b; color:var(--ink); }
   #cover select option{ background:#1a212b; color:var(--ink); }
@@ -87,7 +87,7 @@
   .hp{ position:relative; } .hp::after{ content:''; position:absolute; left:0; bottom:-1px; height:2px; width:var(--hp); background:#e0574a; }   /* 砲列：受損的砲底下一條血條 */
   .ico.hp::after{ bottom:-4px; }   /* 圖示版：人手狀態的底線在圖示裡面，血條放到它下面 */
   @media (max-width:520px){ #cover .card{ padding:14px 12px; } #cover .slide input{ width:130px; } #cover .slide span{ width:9em; }
-    #cover h1{ font-size:24px; } #cover .row{ margin:5px 0; } #cover button{ font-size:13px; padding:5px 9px; margin:2px; } #cover button.go{ font-size:17px; padding:8px 30px; } }   /* 手機：按鈕小一號 ⇒ 每一列不折行、開戰鈕不被擠出畫面（Tim 2026-10-13） */
+    #cover h1{ font-size:19px; letter-spacing:1px; } #cover .row{ margin:5px 0; } #cover button{ font-size:13px; padding:5px 9px; margin:2px; } #cover button.go{ font-size:17px; padding:8px 30px; } }   /* 手機：按鈕小一號 ⇒ 每一列不折行、開戰鈕不被擠出畫面（Tim 2026-10-13） */
   #load{ color:var(--dim); font-size:12px; min-height:18px; font-family:Consolas,monospace; white-space:pre-line; }
   #help{ position:absolute; right:12px; bottom:12px; max-width:330px; font-size:12px; display:none; pointer-events:none; max-height:calc(100% - 24px); overflow-y:auto; }
   #help.on{ display:block; pointer-events:auto; }
