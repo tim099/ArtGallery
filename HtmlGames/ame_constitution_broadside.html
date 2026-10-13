@@ -142,6 +142,7 @@
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
     <div><kbd>天</kbd> 天氣在主選單：晴／暴風雨（浪 ×2.5、風強、天暗下雨打雷；船晃得越兇砲越散、舵難使、順風快一點）。雨的濃淡在畫質設定</div>
+    <div><kbd>風</kbd> 風向、風速會慢慢變（暴風雨變得快、風大）：羅盤的藍箭頭與文字跟著變；轉了 20° 以上或風勢變了三成，上方廣播。航速跟著風速變</div>
     <div><kbd>畫</kbd> 畫質在主選單（低／中／高；「畫質設定…」可以一項一項調：陰影、海面反射、海水折射、海面細緻度、解析度、反鋸齒），只改畫面、不改戰局；浪的大小在「細節設定」</div>
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
@@ -1370,7 +1371,37 @@ var WEATHERS = {
   clear: { name: '晴', sea: 1, wind: 1, speed: 1, agile: 1, aim: 0, sky: SKY, horizon: HORIZON, ground: GROUND, fog: 0.0016, sun: 1, lum: 1, foam: 0, rain: 0, bolt: 0 },
   storm: { name: '暴風雨', sea: 2.5, wind: 2.2, speed: 1.15, agile: 0.8, aim: 1,
     sky: [0.25, 0.28, 0.32], horizon: [0.34, 0.36, 0.38], ground: [0.13, 0.13, 0.12], fog: 0.0042, sun: 0.3, lum: 0.62, foam: 1, rain: 1, bolt: 1 } };
+// 風會變（Tim 2026-10-13：風速、風向在遊戲中變動，照天氣；暴風雨變得快、風速高）：
+//   風向 ＝ 開局的風向 ＋ dir ×（三道正弦，權重 0.6／0.3／0.1、週期 per）；風速倍率 WIND_SPD ＝ 1 ＋ spd ×（另外三道，週期再 ×0.73）。
+//   每道都寫成 sin(ωt＋φ) − sin φ ⇒ 開局那一刻 ＝ 原本的風；相位照種子的雜湊（不抽亂數）⇒ 同一個種子同一陣風。
+//   晴：週期 233／97／41 秒，風向最多偏約 23°、風速 ±30%；暴風雨：71／29／11 秒，風向最多約 70°、風速 0.4–1.6 倍（再乘 wind 2.2）。
+//   WIND（00_core.js）每一步就地改：方向給航行（風向係數、頂風失速）、帆、羅盤；長度 ＝ 開局的長度 × WIND_SPD（煙飄的速度）。
+//   航速 ∝ √WIND_SPD（31_sailing.js）、帆上的風 × WIND_SPD（30_rig_physics.js）。浪的方向不跟：湧浪是開局那陣風吹出來的（08_sea.js 建一次）。
+WEATHERS.clear.gusts = { dir: 0.2, spd: 0.15, per: [233, 97, 41] };
+WEATHERS.storm.gusts = { dir: 0.6, spd: 0.3, per: [71, 29, 11] };
+var WIND0 = WIND.slice(), WIND_A0 = Math.atan2(WIND0[2], WIND0[0]), WIND_L0 = Math.hypot(WIND0[0], WIND0[2]), WIND_SPD = 1, WIND_LOG = { a: WIND_A0, s: 1, t: 0 };
 var WX_ID = WEATHERS[Q.get('weather')] ? Q.get('weather') : 'clear', WX = WEATHERS[WX_ID];
+function seedHash(k) { var x = Math.sin((SEED % 99991) * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); }
+/** 每一步（50_sim.js step 開頭、70_flow.js 開局）：照模擬時間算現在的風，改 WIND 與 WIND_SPD；風向轉了 20° 以上、風速變了三成以上 ⇒ 上方廣播（15 秒內不重複）。 */
+function stepWind(t) {
+  var g = WX.gusts, wt = [0.6, 0.3, 0.1], da = 0, ds = 0;
+  for (var i = 0; i < 3; i++) {
+    var om = 2 * Math.PI / g.per[i], p1 = seedHash(i) * 6.2832, p2 = seedHash(i + 7) * 6.2832;
+    da += wt[i] * (Math.sin(om * t + p1) - Math.sin(p1)); ds += wt[i] * (Math.sin(om * 1.37 * t + p2) - Math.sin(p2));
+  }
+  var a = WIND_A0 + g.dir * da; WIND_SPD = Math.max(0.4, 1 + g.spd * ds);
+  WIND[0] = Math.cos(a) * WIND_L0 * WIND_SPD; WIND[1] = 0; WIND[2] = Math.sin(a) * WIND_L0 * WIND_SPD;
+  if (t <= 0) { WIND_LOG = { a: a, s: WIND_SPD, t: 0 }; return; }
+  if (t - WIND_LOG.t < 15 || !SHIPS[PLAYER_I]) return;
+  var turn = Math.atan2(Math.sin(a - WIND_LOG.a), Math.cos(a - WIND_LOG.a)) * 57.3, ds2 = WIND_SPD / WIND_LOG.s;
+  if (Math.abs(turn) >= 20 || ds2 > 1.3 || ds2 < 0.77) {
+    var msg = Math.abs(turn) >= 20 ? '風向轉了 ' + Math.round(Math.abs(turn)) + '°（現在從 ' + compassName(bearing(-WIND[0], -WIND[2])) + ' 吹來）' : '';
+    if (ds2 > 1.3 || ds2 < 0.77) msg += (msg ? '，' : '') + (ds2 > 1 ? '風勢增強' : '風勢減弱') + '（約 ' + windKnots().toFixed(0) + ' 節）';
+    note(SHIPS[PLAYER_I], msg); WIND_LOG = { a: a, s: WIND_SPD, t: t };
+  }
+}
+/** 帆上的風速（節）：給 HUD 與廣播看。 */
+function windKnots() { return WIND_SAIL * WIND_K * WX.wind * WIND_SPD * 1.944; }
 /** 換天氣：天色跟著換（00_core.js 的 SKY／HORIZON／GROUND；晴天 ＝ 原本那三個陣列本身）。 */
 function setWeather(id) {
   WX_ID = WEATHERS[id] ? id : 'clear'; WX = WEATHERS[WX_ID];
@@ -2990,7 +3021,7 @@ function ropeStep(sh, o, wl, gv) {
 function underWater(sh, p, i) { var w = M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]); return w[1] < seaH(w[0], w[2], SIMT) - 0.5; }
 /** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
 function physStep(sh) {
-  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2)) * WX.wind;   // 陣風（不用亂數）；天氣：暴風雨 ×2.2
+  var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2)) * WX.wind * WIND_SPD;   // 陣風（不用亂數）；天氣：暴風雨 ×2.2；風速會變（08_weather.js）
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
   var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
@@ -3099,7 +3130,7 @@ function sail(sh, dt) {
   var SPK = sh.cfg.speed * playK('speed') * WX.speed;                 // 航速倍率（船隻設定 × 玩法的加成 × 天氣：暴風雨風大 ×1.15）
   var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - deg)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
   sh.irons = nogo;
-  var target = sh.sunk || stop ? 0 : VMAX * SPK * sh.sailFrac * polar(deg) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
+  var target = sh.sunk || stop ? 0 : VMAX * SPK * Math.sqrt(WIND_SPD) * sh.sailFrac * polar(deg) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
@@ -3826,6 +3857,7 @@ function ai(sh, dt) {
 // ───────────────────────── 一步 ─────────────────────────
 function step() {
   SIMT += DT;
+  stepWind(SIMT);                                                  // 風會變（08_weather.js）
   for (var i = 0; i < EVENTS.length; i++) {
     var e = EVENTS[i]; if (e.t > SIMT) continue;
     EVENTS.splice(i--, 1);
@@ -4367,7 +4399,7 @@ function drawNav(sh) {
   var hull = sh.grid.count / sh.orig * 100, fl = clamp(sh.sink / 9, 0, 1) * 100;
   $('navt').innerHTML =
     '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
-    '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
+    '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
     '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<br>' +
     '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
     SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
@@ -4534,7 +4566,7 @@ function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
   END_AT = 0;
-  rs = SEED; rsD = SEED ^ RSD0; DEB_ACC = PT_ACC = 0;              // 碎木的亂數、少生的節拍跟著重設（12_effects.js）
+  rs = SEED; rsD = SEED ^ RSD0; DEB_ACC = PT_ACC = 0; SIMT = 0; stepWind(0);   // 開局的風 ＝ 原本的風（08_weather.js）              // 碎木的亂數、少生的節拍跟著重設（12_effects.js）
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
   SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
@@ -4895,7 +4927,7 @@ if (DEBUG) window.__game = {
   /** 畫質（07_gfx.js）：給 level（low／mid／high）或 { shadow: 2, … } 就換；回傳現在的設定與管線的讀數。 */
   gfx: function (o) { if (typeof o === 'string') gfxSet(o); else if (o) for (var k in o) GFX[k] = o[k]; if (o && typeof gfxShow === 'function' && $('gfxB')) gfxShow(); return { level: gfxLevel(), gfx: JSON.parse(JSON.stringify(GFX)), w: CAM.w, h: CAM.h, msaa: RT ? RT.s : null, shadow: SHM ? SHM.n : null, refl: RT && RT.R ? [RT.R.w, RT.R.h] : null, sea: SEAG ? { lv: SEAG.lv, verts: SEAG.verts, tris: SEAG.n / 3 } : null }; },
   /** 天氣（08_weather.js）：給 id（clear／storm）就換；回傳現在的天氣。 */
-  weather: function (id) { if (id) setWeather(id); return { id: WX_ID, wx: WX }; },
+  weather: function (id) { if (id) setWeather(id); return { id: WX_ID, wx: WX, wind: WIND.slice(), from: +bearing(-WIND[0], -WIND[2]).toFixed(1), spd: +WIND_SPD.toFixed(3), knots: +windKnots().toFixed(1) }; },
   /** 浪（08_sea.js）：(x, z) 的水面高度（t 不給 ＝ 現在）；sea() ＝ 浪的設定。 */
   sea: function (x, z, t) { return x === undefined ? { k: SEA_K, waves: WAVES } : seaH(x, z, t === undefined ? SIMT : t); },
   camFollow: function (dt) { camFollow(dt); return CAM.follow; },

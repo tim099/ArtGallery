@@ -10,7 +10,37 @@ var WEATHERS = {
   clear: { name: '晴', sea: 1, wind: 1, speed: 1, agile: 1, aim: 0, sky: SKY, horizon: HORIZON, ground: GROUND, fog: 0.0016, sun: 1, lum: 1, foam: 0, rain: 0, bolt: 0 },
   storm: { name: '暴風雨', sea: 2.5, wind: 2.2, speed: 1.15, agile: 0.8, aim: 1,
     sky: [0.25, 0.28, 0.32], horizon: [0.34, 0.36, 0.38], ground: [0.13, 0.13, 0.12], fog: 0.0042, sun: 0.3, lum: 0.62, foam: 1, rain: 1, bolt: 1 } };
+// 風會變（Tim 2026-10-13：風速、風向在遊戲中變動，照天氣；暴風雨變得快、風速高）：
+//   風向 ＝ 開局的風向 ＋ dir ×（三道正弦，權重 0.6／0.3／0.1、週期 per）；風速倍率 WIND_SPD ＝ 1 ＋ spd ×（另外三道，週期再 ×0.73）。
+//   每道都寫成 sin(ωt＋φ) − sin φ ⇒ 開局那一刻 ＝ 原本的風；相位照種子的雜湊（不抽亂數）⇒ 同一個種子同一陣風。
+//   晴：週期 233／97／41 秒，風向最多偏約 23°、風速 ±30%；暴風雨：71／29／11 秒，風向最多約 70°、風速 0.4–1.6 倍（再乘 wind 2.2）。
+//   WIND（00_core.js）每一步就地改：方向給航行（風向係數、頂風失速）、帆、羅盤；長度 ＝ 開局的長度 × WIND_SPD（煙飄的速度）。
+//   航速 ∝ √WIND_SPD（31_sailing.js）、帆上的風 × WIND_SPD（30_rig_physics.js）。浪的方向不跟：湧浪是開局那陣風吹出來的（08_sea.js 建一次）。
+WEATHERS.clear.gusts = { dir: 0.2, spd: 0.15, per: [233, 97, 41] };
+WEATHERS.storm.gusts = { dir: 0.6, spd: 0.3, per: [71, 29, 11] };
+var WIND0 = WIND.slice(), WIND_A0 = Math.atan2(WIND0[2], WIND0[0]), WIND_L0 = Math.hypot(WIND0[0], WIND0[2]), WIND_SPD = 1, WIND_LOG = { a: WIND_A0, s: 1, t: 0 };
 var WX_ID = WEATHERS[Q.get('weather')] ? Q.get('weather') : 'clear', WX = WEATHERS[WX_ID];
+function seedHash(k) { var x = Math.sin((SEED % 99991) * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); }
+/** 每一步（50_sim.js step 開頭、70_flow.js 開局）：照模擬時間算現在的風，改 WIND 與 WIND_SPD；風向轉了 20° 以上、風速變了三成以上 ⇒ 上方廣播（15 秒內不重複）。 */
+function stepWind(t) {
+  var g = WX.gusts, wt = [0.6, 0.3, 0.1], da = 0, ds = 0;
+  for (var i = 0; i < 3; i++) {
+    var om = 2 * Math.PI / g.per[i], p1 = seedHash(i) * 6.2832, p2 = seedHash(i + 7) * 6.2832;
+    da += wt[i] * (Math.sin(om * t + p1) - Math.sin(p1)); ds += wt[i] * (Math.sin(om * 1.37 * t + p2) - Math.sin(p2));
+  }
+  var a = WIND_A0 + g.dir * da; WIND_SPD = Math.max(0.4, 1 + g.spd * ds);
+  WIND[0] = Math.cos(a) * WIND_L0 * WIND_SPD; WIND[1] = 0; WIND[2] = Math.sin(a) * WIND_L0 * WIND_SPD;
+  if (t <= 0) { WIND_LOG = { a: a, s: WIND_SPD, t: 0 }; return; }
+  if (t - WIND_LOG.t < 15 || !SHIPS[PLAYER_I]) return;
+  var turn = Math.atan2(Math.sin(a - WIND_LOG.a), Math.cos(a - WIND_LOG.a)) * 57.3, ds2 = WIND_SPD / WIND_LOG.s;
+  if (Math.abs(turn) >= 20 || ds2 > 1.3 || ds2 < 0.77) {
+    var msg = Math.abs(turn) >= 20 ? '風向轉了 ' + Math.round(Math.abs(turn)) + '°（現在從 ' + compassName(bearing(-WIND[0], -WIND[2])) + ' 吹來）' : '';
+    if (ds2 > 1.3 || ds2 < 0.77) msg += (msg ? '，' : '') + (ds2 > 1 ? '風勢增強' : '風勢減弱') + '（約 ' + windKnots().toFixed(0) + ' 節）';
+    note(SHIPS[PLAYER_I], msg); WIND_LOG = { a: a, s: WIND_SPD, t: t };
+  }
+}
+/** 帆上的風速（節）：給 HUD 與廣播看。 */
+function windKnots() { return WIND_SAIL * WIND_K * WX.wind * WIND_SPD * 1.944; }
 /** 換天氣：天色跟著換（00_core.js 的 SKY／HORIZON／GROUND；晴天 ＝ 原本那三個陣列本身）。 */
 function setWeather(id) {
   WX_ID = WEATHERS[id] ? id : 'clear'; WX = WEATHERS[WX_ID];

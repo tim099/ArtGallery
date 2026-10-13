@@ -20,6 +20,7 @@ function ai(sh, dt) {
 // ───────────────────────── 一步 ─────────────────────────
 function step() {
   SIMT += DT;
+  stepWind(SIMT);                                                  // 風會變（08_weather.js）
   for (var i = 0; i < EVENTS.length; i++) {
     var e = EVENTS[i]; if (e.t > SIMT) continue;
     EVENTS.splice(i--, 1);
