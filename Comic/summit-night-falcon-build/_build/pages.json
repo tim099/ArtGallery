@@ -690,6 +690,54 @@
           }
         ]
       ]
+    },
+    "012_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage10_assembly_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage10_main_fife_yaw60.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "012_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage10_fore_yards_yaw30.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage10_demo_course_braced_yaw35.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "012_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage10_quarterdeck_yaw120.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage10_assembly_yaw90.png",
+            "fit": "cover",
+            "aspect": 1.09
+          }
+        ]
+      ]
     }
   }
 }
