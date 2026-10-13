@@ -391,6 +391,21 @@
   ]},
   "049_p02": {"rows": [
     [{"src": "P/24422_wheel.png"}, {"src": "P/24474_bow_bumpkin.png"}]
+  ]},
+  "050_p01": {"rows": [
+    [{"src": "P/24423_gundeck_capstan_hatches.png", "crop": [150, 380, 1300, 760]}],
+    [{"src": "P/29621_gundeck_capstan_elevation.png", "crop": [180, 0, 1340, 1300]}, {"src": "O/stage39_gun_capstan.png"}]
+  ]},
+  "050_p02": {"rows": [
+    [{"src": "P/19274_spar_main_hatch_grating_plan.png"}, {"src": "P/19274_main_hatch_elevation.png"}],
+    [{"src": "O/stage40_grating_spar.png"}, {"src": "O/stage40_grating_gun.png"}]
+  ]},
+  "051_p01": {"rows": [
+    [{"src": "P/24422_quarter_main_brace_bumpkin_plan.png"}, {"src": "P/24474_quarter_bumpkin.png"}],
+    [{"src": "O/stage41_main_brace_close.png"}]
+  ]},
+  "051_p02": {"rows": [
+    [{"src": "P/24422_bow_foretack_bumpkin_plan.png"}, {"src": "O/stage41_foretack.png"}]
   ]}
  }
 }
