@@ -38,7 +38,7 @@ function powderHit(sh, m, dmg) {
 function ignite(sh, m, delay) {
   if (m.lit || !m.alive) return;
   m.lit = true; BOOMS.push({ t: SIMT + delay, sh: sh, m: m });
-  if (m.mag && !m.mag.lit) { m.mag.lit = true; note(sh, '<b style="color:#ffb35a">' + (m.mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫起火！</b>', true); }
+  if (m.mag && !m.mag.lit) { m.mag.lit = true; note(sh, '<b style="color:#ffb35a">' + magTag(m.mag) + '彈藥庫起火！</b>', true); }
   if (m.station && !m.station.lit) { m.station.lit = true; note(sh, '<b style="color:#ffb35a">' + m.station.name + '的火藥桶起火！</b>', true); }
 }
 function stepPowder() {
@@ -134,7 +134,7 @@ function blastStep(J) {
   if (J.k < J.ch.length) return false;
   J.done = true;
   if (J.mag.broke) breakShip(sh, c[0]);                                   // 彈坑挖完才切（下一步的連通判定把短的那半截變成斷開的一團）
-  note(sh, '<b style="color:#ffb35a">' + (J.mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫殉爆！</b>（' + J.mag.lb.toLocaleString() + ' 磅、半徑 ' + (R * S).toFixed(1) + ' m、打掉 ' + J.n.toLocaleString() + ' 格）' + (J.mag.broke ? '　船斷成兩截' : ''), true);
+  note(sh, '<b style="color:#ffb35a">' + magTag(J.mag) + '彈藥庫殉爆！</b>（' + J.mag.lb.toLocaleString() + ' 磅、半徑 ' + (R * S).toFixed(1) + ' m、打掉 ' + J.n.toLocaleString() + ' 格）' + (J.mag.broke ? '　船斷成兩截' : ''), true);
   return true;
 }
 /** 彈坑（邊緣參差：0.85～1.15 倍半徑）的工作：只走有東西、而且碰得到球的區塊（⛔ 照 shatter 的三重迴圈：9.5 m 的球要走兩千八百萬格），
@@ -176,6 +176,8 @@ function breakShip(sh, xb) {
 // 危險（火藥血量拉滿 ＝ 全都不會爆；預設 675 ⇒ 藥包 203（一般命中要擲到偏高）、火光一次 300，要三次）：藥包（送藥手手上、砲旁藥箱）的血量 ＝ 火藥桶的 30%，吃到一下夠重的就著火爆炸；
 //   取用點的桶被打到照火藥桶算；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口：彈藥庫裡靠門最近的 6 桶各扣 300 × 威力 ⇒ 可能整間殉爆。
 var CART_K = 0.3, MONKEY_SP = 26, FILL_T = 0.8, FLASH_R = 30, FLASH_DMG = 300, FLASH_CD = 3;
+/** 彈藥庫是前／中／後哪一間（照關聯名字：彈藥庫-前／-中／-後；餘燼號只有一間中央的）。 */
+function magTag(mag) { return mag.name.indexOf('前') >= 0 ? '前' : mag.name.indexOf('中') >= 0 ? '中' : '後'; }
 /** 取用點：每層砲甲板（sh.decks，照砲的高度分，10_ship.js gunDecks）× 每間彈藥庫一個，放在彈藥庫正上方、中線旁一塊平的空地（9×9 格、頭上 8 格空、不碰砲）。 */
 function makeStations(sh) {
   var T = sh.T, BASE = T.base, CY = T.cy;
@@ -195,8 +197,14 @@ function makeStations(sh) {
         var x = x0 + dx, y = s > 0 ? CY + 6 + (r - Math.abs(dx)) : CY - 15 - (r - Math.abs(dx)), z = standZ(BASE, x + 4, y + 4, zr[0], zr[1], 8);
         if (z >= 0 && clear(x, y, z)) spot = [x, y, z];
       }
+      // 正上方沒有甲板（餘燼號的中央彈藥庫在船腰，上甲板那一段是開的）⇒ 沿那一層往船頭、船尾找最近的一塊空地
+      // ⛔ 不找 ⇒ 那一層沒有取用點，送藥手只拿自己那一層的（stationFor）⇒ 上甲板 18 門 carronade 打完藥箱的兩發就永遠停了
+      for (var ex = 32; ex <= 400 && !spot; ex += 4) for (var e2 = -1; e2 <= 1 && !spot; e2 += 2) for (var oy = 0; oy < 4 && !spot; oy++) {
+        var x2 = x0 + e2 * ex, y2 = [CY + 6, CY - 15, CY + 16, CY - 25][oy], z2 = standZ(BASE, x2 + 4, y2 + 4, zr[0], zr[1], 8);
+        if (z2 >= 0 && clear(x2, y2, z2)) spot = [x2, y2, z2];
+      }
       if (!spot) return;
-      var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : mag.name.indexOf('中') >= 0 ? '中' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
+      var st = { deck: deck, mag: mag, name: D.name + magTag(mag) + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
         var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: powderHP(), hpMax: powderHP(), mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
@@ -331,7 +339,7 @@ function flashCheck(sh, L) {
     var door = (st.mag.pts && st.mag.pts.door) || st.mag.blast;
     var near = st.mag.kegs.filter(function (m) { return m.alive && !m.lit; }).sort(function (a, b) { return len(sub(a.c, door)) - len(sub(b.c, door)); }).slice(0, 6);
     if (!near.length) return;
-    note(sh, '<b style="color:#ff9a7a">火光竄下' + (st.mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫的艙口！</b>', true);
+    note(sh, '<b style="color:#ff9a7a">火光竄下' + magTag(st.mag) + '彈藥庫的艙口！</b>', true);
     near.forEach(function (m) { powderHit(sh, m, FLASH_DMG * BLAST_K); });
   });
 }
