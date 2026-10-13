@@ -119,8 +119,8 @@ $('physT').onclick = function () { setPhys(!PHYS); };
 $('restartB').onclick = function () { if (RUNNING) { gsetClose(); start(); } };
 // 遊戲內的設定面板（⚙ 設定、Esc）：打開 ⇒ 暫停（關掉回到打開之前的暫停狀態）；畫質、物理效果的檔位跟主選單是同一份（07_gfx.js／09_phx.js）
 var GSET = { open: false, paused: false };
-function gsetOpen() { if (!RUNNING || GSET.open) return; GSET.open = true; GSET.paused = PAUSED; PAUSED = true; $('gset').classList.add('on'); $('help').classList.remove('on'); gsetShow(); }
-function gsetClose() { if (!GSET.open) return; GSET.open = false; PAUSED = GSET.paused; $('gset').classList.remove('on'); }
+function gsetOpen() { if (!RUNNING || GSET.open) return; GSET.open = true; GSET.paused = PAUSED; PAUSED = true; $('gset').classList.add('on'); $('gsetBg').classList.add('on'); $('help').classList.remove('on'); gsetShow(); }
+function gsetClose() { if (!GSET.open) return; GSET.open = false; PAUSED = GSET.paused; $('gset').classList.remove('on'); $('gsetBg').classList.remove('on'); }
 function gsetToggle() { if (GSET.open) gsetClose(); else gsetOpen(); }
 function gsetShow() {
   var gl = gfxLevel(), xl = phxLevel();
@@ -129,7 +129,8 @@ function gsetShow() {
   $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
   $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
 }
-$('setB').onclick = gsetOpen;
+$('setB').onclick = gsetToggle;
+$('gsetBg').onclick = gsetClose;                                    // 面板外點一下 ⇒ 關（不會順便瞄準、開砲：底下的東西被這一層蓋住）
 $('gsGo').onclick = gsetClose;
 $('menuB').onclick = function () { doKey('r'); };
 $('muteT').onclick = function () { muted = !muted; gsetShow(); };
