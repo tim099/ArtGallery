@@ -6,14 +6,15 @@ function ai(sh, dt) {
   captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
-  var ready = 0, alive = 0;
-  sh.guns.forEach(function (g) { if (g.alive && gunRate(g) > 0 && gunTarget(sh, g, foe.center)) { alive++; if (g.reload <= 0) ready++; } });
+  var ready = 0, alive = 0, held = 0, FK = friendKeels(sh);         // 隔著友船的那幾門不算（52_fleet.js；沒有友船 ⇒ 空的）
+  sh.guns.forEach(function (g) { if (g.alive && gunRate(g) > 0 && gunTarget(sh, g, foe.center)) { if (FK.length && friendInLine(FK, M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), foe.center)) { held++; return; } alive++; if (g.reload <= 0) ready++; } });
+  if (!ready && held) { sh.ffHold = (sh.ffHold || 0) + held; sh.aiWait = 0.3; return; }   // 對得到的都隔著友船 ⇒ 忍住、等一下再看（不每一步重算）
   if (!ready || ready < Math.ceil(alive * 0.65)) return;
   var a = modeAim(foe, sh.aimMode || 'hull', true), t = a.t, ammo = a.ammo;   // 砲長選的模式裡亂挑一點（⛔ 以前固定 45% 船殼／27% 砲甲板／28% 桅，船殼瞄的是設計水線 ⇒ 敵艦浮高了還打在水面上）
   var err = Math.max(0.6, 4.5 - sh.salvo * 0.55) / S;
   setAim(sh, [t[0] + gauss() * err * 1.6, t[1], t[2] + gauss() * err * 0.5], foe);
   sh.aiSpread = 0.006;
-  broadside(sh, ammo);
+  broadside(sh, ammo, true);
   sh.aiWait = rr(1.0, 3.5);
 }
 

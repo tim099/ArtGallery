@@ -104,6 +104,7 @@ function sail(sh, dt) {
       var dx = foe.px - sh.px, dz = foe.pz - sh.pz, d = Math.hypot(dx, dz) || 1;
       tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - DIST) / DIST * 1.5, -0.4, 0.4);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }
+    if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av !== null) tY = av; }   // 讓友船（52_fleet.js；沒有友船 ⇒ null）
     var e = Math.atan2(Math.sin(tY - sh.yaw), Math.cos(tY - sh.yaw));
     rate = clamp(e * 0.5, -rmax, rmax); sh.rudder = rmax > 0 ? rate / rmax : 0;
   }

@@ -76,6 +76,8 @@
   #cover select{ font:inherit; font-size:13px; max-width:100%; padding:3px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:#1a212b; color:var(--ink); }
   #cover select option{ background:#1a212b; color:var(--ink); }
   #cover .row{ margin:7px 0; }
+  #shipsel .fl{ display:inline-flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:2px 4px; vertical-align:middle; }   /* 艦隊編成（TASK-0537）：一邊一列，每艘一個選單 */
+  #shipsel .fs{ white-space:nowrap; } #cover #shipsel button.fx, #cover #shipsel button.fa{ padding:1px 7px; margin:0 0 0 2px; font-size:13px; } #fleetN{ color:var(--dim); font-size:12px; }
   #cover button{ font:inherit; font-size:15px; margin:4px; padding:7px 16px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.06); color:var(--ink); cursor:pointer; }
   #cover button.on{ background:var(--gold); color:#111; border-color:var(--gold); }
   #cover button.go{ font-size:18px; padding:9px 30px; background:#b8452e; border-color:#e06a4f; }
@@ -207,7 +209,7 @@
       <div class="row" id="plays">玩法
         <button data-p="fun" class="on">娛樂</button><button data-p="real">寫實</button>
       </div>
-      <div class="row" id="shipsel">我艦 <select id="ship0" aria-label="我艦的船"></select>　敵艦 <select id="ship1" aria-label="敵艦的船"></select></div>
+      <div id="shipsel"><div class="row">我方 <span class="fl" id="fleet0"></span></div><div class="row">敵方 <span class="fl" id="fleet1"></span></div><div id="fleetN"></div></div>
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
       </div>
@@ -257,7 +259,7 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?ship=我艦,敵艦 ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile= ?upwind=（這七個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?dmg4= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike= ?play=fun／real ?stall= ?funspeed= ?funagile= ?funstall= ?funpowder= ?sea=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?blue=我艦,友艦… ?red=敵艦,…（或 ?ship=我艦,敵艦） ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile= ?upwind=（這七個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?dmg4= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike= ?play=fun／real ?stall= ?funspeed= ?funagile= ?funstall= ?funpowder= ?sea=</div>
       <h3>船隻設定</h3>
       <div class="row slide"><label for="cfgShip">編輯</label><select id="cfgShip" aria-label="編輯哪一艘船的設定"></select></div>
       <div class="row note">照船型套：同一型的兩艘共用這一組，不同船各自一組（壓艙物的預設 ＝ 那艘剛好浮在設計水線）。</div>
@@ -317,7 +319,7 @@
         預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血（同一間 3 秒只算一次）⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>砲長</h3>
       <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
-      <div class="row slide"><label for="cap1">敵艦</label><select id="cap1"></select></div>
+      <div class="row slide"><label for="cap1">敵方</label><select id="cap1"></select></div>
       <div class="row note">砲長決定電腦瞄哪裡（水線／砲甲板／帆具／甲板人員／彈藥庫）、用什麼彈：照局勢與自己的偏好打分，打久了會換；敵艦浮高就改瞄水線。我艦的砲長在自動開砲時接手。</div>
       <h3>降旗</h3>
       <div class="row slide"><label for="cas">死傷降旗</label><input type="range" id="cas" step="5"><span id="casV"></span></div>

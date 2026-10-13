@@ -9,7 +9,7 @@
 // 格式帶版本號（v）；看不懂的版本、壞掉的 JSON ⇒ 整份不套；型別不對、界外的值 ⇒ 那一項不套（界外的夾回範圍）。
 // 什麼時候存：每秒比一次（跟上次存的不一樣才寫）＋ 關頁、切到背景時。全部回到預設 ⇒ 刪掉那一筆。
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
-var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
+var PREF_Q = ['ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'hands', 'drown', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
   'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4' };
@@ -19,7 +19,7 @@ PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
 function prefsSnap() {
   var o = { v: PREFS_VER }, cfg = {};
   function put(k, v, d) { if (v !== d) o[k] = v; }
-  if (SHIP_SET.some(function (id) { return id !== 'constitution'; })) o.ship = SHIP_SET.slice();
+  if (FLEET_SET.some(function (L) { return L.length !== 1 || L[0] !== 'constitution'; })) o.fleet = FLEET_SET.map(function (L) { return L.slice(); });   // 艦隊編成（TASK-0537；舊存檔的 ship ＝ 一邊一艘，讀的時候照樣認）
   Object.keys(SHIP_CFG).forEach(function (id) {
     var c = SHIP_CFG[id], T = HULLT[id], d = {};
     SHIP_KEYS.forEach(function (k) { if (k !== 'ballast' && c[k] !== cfgBase(k, id)) d[k] = c[k]; });   // 跟那一型的預設比（HULL_CFG0）
@@ -47,7 +47,11 @@ function prefsSnap() {
 function prefsApply(p) {
   function num(v, lim, int) { if (typeof v !== 'number' || !isFinite(v)) return undefined; v = clamp(v, lim[0], lim[1]); return int ? Math.round(v) : v; }
   function set(qk, v, lim, int, f) { if (Q.has(qk)) return; var x = num(v, lim, int); if (x !== undefined) f(x); }
-  if (!Q.has('ship') && Array.isArray(p.ship)) p.ship.forEach(function (w, i) { if (i < 2 && hullInfo(w)) SHIP_SET[i] = w; });
+  if (!Q.has('ship') && !Q.has('blue') && !Q.has('red')) {               // 編成：網址給了任何一個 ⇒ 整組照網址
+    if (Array.isArray(p.ship)) p.ship.forEach(function (w, i) { if (i < 2 && hullInfo(w)) FLEET_SET[i] = [w]; });   // 舊存檔（一邊一艘）
+    if (Array.isArray(p.fleet)) p.fleet.forEach(function (L, i) { if (i < 2 && Array.isArray(L)) { L = L.filter(function (w) { return typeof w === 'string' && hullInfo(w); }); if (L.length) FLEET_SET[i] = L; } });
+    fleetTrim(FLEET_SET);
+  }
   if (p.cfg && typeof p.cfg === 'object') Object.keys(p.cfg).forEach(function (id) {
     var d = p.cfg[id]; if (!hullInfo(id) || !d || typeof d !== 'object') return;
     var c = shipCfg(id);

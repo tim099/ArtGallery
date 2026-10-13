@@ -32,7 +32,10 @@ if (DEBUG) window.__game = {
     return SHIPS.map(function (s) { return { i: s.i, team: s.team, hull: s.T.id, px: s.px, pz: s.pz, foe: s.foe ? s.foe.i : null }; });
   },
   loadHull: function (id) { return loadHull(id).then(function (T) { return T.id; }); },
-  foes: function () { return SHIPS.map(function (s) { return { i: s.i, team: s.team, foe: s.foe ? s.foe.i : null, aimOn: s.aimOn ? s.aimOn.i : null, ff: s.ff || 0, ffOut: s.ffOut || 0, hits: s.hits, sunk: s.sunk, struck: s.struck }; }); },
+  foes: function () { return SHIPS.map(function (s) { return { i: s.i, team: s.team, foe: s.foe ? s.foe.i : null, aimOn: s.aimOn ? s.aimOn.i : null, ff: s.ff || 0, ffOut: s.ffOut || 0, ffHold: s.ffHold || 0, avoid: s.avoidN || 0, hits: s.hits, sunk: s.sunk, struck: s.struck, x: +s.px.toFixed(1), z: +s.pz.toFixed(1) }; }); },
+  mask: function (k) { MASK_OFF = k === undefined ? -1 : k; render(); return MASK_OFF; },   // 船艙遮罩（60_render.js）：關掉第 k 艘的、畫一格
+  cut: function (o) { if (o) for (var k in o) CUTV[k] = o[k]; render(); return CUTV; },     // 剖面與隱藏甲板（74_cutaway.js）：{ half, deck }
+  menuFleet: function (F) { if (F) { FLEET_SET = fleetTrim(F.map(function (L) { return L.slice(); })); fleetUI(); pickShip(); } return { set: FLEET_SET, spec: fleetSpec(), html: [$('fleet0').innerHTML.length, $('fleet1').innerHTML.length] }; },
   run: function (sec) { var n = Math.round(sec / DT); for (var i = 0; i < n; i++) { step(); if (i % 30 === 29) remesh(Infinity); } remesh(Infinity); camUpdate(1); render(); hud(1); PF.cur = {}; return this.stats(); },   // PF.cur：快轉的不算進下一格畫面
   fire: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) setAim(me, aim); return broadside(me, ammo || 0); },
   one: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) setAim(me, aim); fireOne(me, ammo || 0); return BALLS.length; },
@@ -165,7 +168,7 @@ function cacheText(st) { return !st ? '' : st.hit ? '（讀快取 ' + (st.readMs
 if (DEBUG) {
   /** 快取對拍：船型 id 讀回的那幾份 ＝ 現在這份程式現場算的？逐位元組比（船體網格每個區塊、模型網格的頂點與佔用格、海面遮罩、浮力表、布模板）。 */
   window.__game.hullCheck = function (id) {
-    var T = HULLT[id || SHIP_SET[0]]; if (!T) return null;
+    var T = HULLT[id || myHull()]; if (!T) return null;
     function same(a, b) {
       if (a === b) return true;
       if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) { if (a.length !== b.length || a.constructor !== b.constructor) return false; for (var i = 0; i < a.length; i++) if (a[i] !== b[i] && !(a[i] !== a[i] && b[i] !== b[i])) return false; return true; }
@@ -197,9 +200,9 @@ programs(); geometry(); wpGL(); flGL(); rdGL(); bbSetup(); QIDX = new VK.QuadInd
 hullSay = function (s) { var go = $('go'); if (go.disabled) go.textContent = '解析' + s; };   // 解析中：開戰鈕寫進度（設定照樣能調）
 requestAnimationFrame(frame);                                       // 解析中也畫（天、海；船載好才有）
 yieldUI().then(function () {                                        // 先讓主選單畫出來，再開始解析
-  return Promise.all(SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(loadHull));   // 只載選到的船（預設兩艘都是憲法號 ⇒ 一份）
+  return Promise.all(fleetHulls().map(loadHull));                   // 只載編成裡的船（預設兩艘都是憲法號 ⇒ 一份）
 }).then(function () {
-  var T = HULLT[SHIP_SET[0]], h = T.h, chk = T.chk;
+  var T = HULLT[myHull()], h = T.h, chk = T.chk;
   if (SLIDERS_SHOW) SLIDERS_SHOW();
   var line = '1:1 ' + T.name + ' ' + chk.voxels.toLocaleString() + ' 格 checksum ' + chk.checksum.toString(16) + (chk.ok ? '（＝ 封裝檔 header，逐格相同 ✓）' : '（✗ 跟封裝檔對不上：' + h.voxels + '／' + h.checksum.toString(16) + '）') +
     '\n合併後 ' + T.pristine.quads().toLocaleString() + ' 個四邊形、繩 ' + T.rig.ropes.length + '、帆 ' + T.rig.sails.length + '、桅 ' + T.masts.length +

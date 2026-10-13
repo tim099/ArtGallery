@@ -220,11 +220,12 @@ function reflPass() {
   PASS.vp = null; PASS.eye = null; PASS.clip = -1e9; PASS.sh = 1;
 }
 /** 船艙遮罩的 uniform（海與白沫共用，01_gl.js HULL_GLSL）。開始沉（sinkingFinal）之前，船艙裡不畫海水（Tim 2026-10-12：船身下沉一點點，海面就從破洞、甲板開口看進去像淹了） */
+var MASK_OFF = -1;                                                        // ?debug=1 的 __game.mask(k)：第 k 艘的遮罩關掉（量 4 艘時每一格遮罩都有作用：關掉那艘 ⇒ 它的船艙裡才看得到海）
 function hullUniforms(prog) {
   var u = prog.u;
   for (var i = 0; i < MAX_SHIPS; i++) {                                   // 每艘照自己船型的遮罩（各型可以不一樣）；格數照 MAX_SHIPS（TASK-0537）
     var s = SHIPS[i], T = s && s.T;
-    gl.uniform1f(u['uHide' + i], s && !s.sinkingFinal && !s.sunk && T.hullTex ? 1 : 0);
+    gl.uniform1f(u['uHide' + i], s && !s.sinkingFinal && !s.sunk && T.hullTex && i !== MASK_OFF ? 1 : 0);
     gl.activeTexture(gl.TEXTURE0 + hullUnit(i));
     if (!T || !T.hullTex) { if (i >= 2) { gl.bindTexture(gl.TEXTURE_2D, DUMMY); gl.uniform1i(u['uHull' + i], hullUnit(i)); } continue; }   // 沒有那艘：指到 1×1 的空貼圖（uHide 0 ⇒ 不取樣）；前兩格照以前不動
     gl.uniformMatrix4fv(u['uInv' + i], false, s.inv);

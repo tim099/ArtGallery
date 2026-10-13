@@ -27,13 +27,14 @@ function fireGun(sh, g, target, ammo) {
   return true;
 }
 /** 齊射：各砲平行開火 —— 瞄準點跟著那門砲在船上的前後位置平移，整排落在對方船身上（⛔ 不是 14 發擠進同一個洞）。 */
-function broadside(sh, ammo) {
+function broadside(sh, ammo, careful) {                            // careful：電腦開的 ⇒ 隔著友船的那門不開（52_fleet.js；玩家自己按的照開）
   if (sh.struck) return 0;
   var k = 0, mid = 0, n = 0;
   sh.guns.forEach(function (g) { mid += g.muz[0]; n++; }); mid /= n || 1;
-  var tgt = aimPoint(sh);
+  var tgt = aimPoint(sh), FK = careful ? friendKeels(sh) : [];
   sh.guns.forEach(function (g) {
     if (!g.alive || g.reload > 0 || gunRate(g) <= 0 || !gunTarget(sh, g, tgt)) return;   // 兩舷都看：每一門自己判定，有機會打中敵艦的才排進齊射
+    if (FK.length && friendInLine(FK, M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), tgt)) { sh.ffHold = (sh.ffHold || 0) + 1; return; }
     var off = (g.muz[0] - mid) * S * (ammo === 2 ? 0.15 : 1);      // 鏈彈是對著桅杆打的 ⇒ 往瞄準點收攏
     EVENTS.push({ t: SIMT + k * 0.075 + rr(0, 0.03), sh: sh.i, g: g, ammo: ammo, off: off }); k++;   // 瞄準點在開火那一刻才算（兩艘都在動）
   });
