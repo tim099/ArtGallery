@@ -197,6 +197,94 @@
           }
         ]
       ]
+    },
+    "004_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/compare01_concept_v2.png",
+            "crop": [
+              10,
+              40,
+              1220,
+              600
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet01_lines_v2.png",
+            "crop": [
+              20,
+              40,
+              1680,
+              350
+            ]
+          }
+        ]
+      ]
+    },
+    "004_p02": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet02_frames_v1.png",
+            "crop": [
+              20,
+              50,
+              1680,
+              360
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet02_frames_v1.png",
+            "crop": [
+              990,
+              700,
+              1500,
+              1060
+            ]
+          },
+          {
+            "src": "O/stage2_frames_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.3
+          }
+        ]
+      ]
+    },
+    "004_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage2_work_vs_lines_before_fix.png",
+            "crop": [
+              960,
+              290,
+              1180,
+              390
+            ]
+          },
+          {
+            "src": "O/stage2_work_vs_lines.png",
+            "crop": [
+              960,
+              290,
+              1180,
+              390
+            ]
+          }
+        ],
+        [
+          {
+            "src": "O/stage2_frames_yaw-135.png",
+            "fit": "cover",
+            "aspect": 2.0
+          }
+        ]
+      ]
     }
   }
 }
