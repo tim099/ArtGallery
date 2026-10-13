@@ -150,9 +150,11 @@ function drawModels(prog, near) {
     sh.models.forEach(function (m) {
       var me = sh.T.meshes[m.mesh]; if (!m.alive || !me) return;
       gl.uniformMatrix4fv(prog.u.uModel, false, M4.mul(sh.M, modelLocal(m)));
+      if (prog.u.uGlow) gl.uniform1f(prog.u.uGlow, m.meta && m.meta.kind === 'lantern' ? lanternK(m) : 0);   // 取用點的火藥桶是後加的模型，沒有 meta
       gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
     });
   });
+  if (prog.u.uGlow) gl.uniform1f(prog.u.uGlow, 0);                     // 斷開的那一團、飛出去的模型：燈熄了
   cutSet(prog, null);
   PIECES.forEach(function (pc) { if (near && !near(pc)) return; (pc.mods || []).forEach(function (m) {      // 跟著斷開的那一團走的模型
     var me = pc.T.meshes[m.mesh]; if (!me) return;
@@ -160,6 +162,18 @@ function drawModels(prog, near) {
     gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
   }); });
   FLY.forEach(function (f) { var me = f.T.meshes[f.mesh]; if (!me || !f.M) return; gl.uniformMatrix4fv(prog.u.uModel, false, f.M); gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n); });
+}
+/** 燈籠（餘燼號船尾三盞，meta kind=lantern）：亮度 0.8–1 慢慢晃，照模擬時間與燈的編號（⛔ 不抽 rnd()：只給人看）；打飛了就熄。 */
+function lanternK(m) { var t = SIMT * 1.7 + m.k * 2.39; return 0.8 + 0.1 * Math.sin(t) + 0.1 * Math.sin(t * 2.71 + 1.3); }
+function lanternHalo(push) {
+  SHIPS.forEach(function (sh) {
+    if (sh.sink > 40) return;
+    sh.models.forEach(function (m) {
+      if (!m.alive || !m.meta || m.meta.kind !== 'lantern') return;
+      var k = lanternK(m), sz = Math.max(m.bb[3] - m.bb[0], m.bb[5] - m.bb[2]) * S;   // 燈籠多大（公尺）
+      push(M4.pt(sh.M, m.c[0], m.c[1], m.c[2]), sz * (2.4 + 0.4 * k), [1, 0.6, 0.2], 0.18 + 0.2 * k * (1.6 - WX.lum));   // 天越暗越亮（暴風雨的 lum 比晴天低）
+    });
+  });
 }
 function drawSails(prog, near) {
   SHIPS.concat(PIECES).forEach(function (ow) {
@@ -289,6 +303,7 @@ function render() {
   wpPushSpray(pushPt);                                                   // 船邊水花的水滴（13_water.js）
   flPushJets(pushPt);                                                    // 從破口噴進來的水（33_flood.js）
   rdPushSplash(pushPt);                                                  // 雨滴打在海面與船上的水花（14_rain.js）
+  lanternHalo(pushPt);                                                   // 燈籠的光暈
   BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
   var me = SHIPS[PLAYER_I], mWorld = m;                                   // mWorld 之後的是瞄準圈：另一批畫、不做深度測試（被船身擋住也看得到）
   if (me && me.aim && !AUTOFIRE && !STILL) {

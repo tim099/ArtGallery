@@ -46,7 +46,10 @@ function setHas(name, k) {
   if (/topsail$/.test(name) || name === 'jib') return true;
   return k >= 2 && (/topgallant$/.test(name) || name === 'spanker' || name === 'fore-topmast-staysail');
 }
-function applySailSet(sh) { sh.sails.forEach(function (s) { s.furled = !setHas(s.name, sh.sailSet); }); sh.rigDirty = true; }
+/** 旗（餘燼號階段十九：船尾旗 ensign、主桅長旗 pennant；繩帆格式裡也是「帆」，沒有 meta ⇒ 照名字）：不收、不算推力；降旗時船尾旗降下來（strikeColors）。 */
+function isFlag(name) { return /^(ensign|pennant|flag)/.test(name); }
+function strikeColors(sh) { sh.sails.forEach(function (s) { if (s.name === 'ensign') { s.furled = true; s.struck = true; } }); sh.rigDirty = true; }
+function applySailSet(sh) { sh.sails.forEach(function (s) { s.furled = s.flag ? !!s.struck : !setHas(s.name, sh.sailSet); }); sh.rigDirty = true; }
 function setSails(sh, k) {
   k = clamp(k, 0, SAILSETS.length - 1); if (k === sh.sailSet) return;
   sh.sailSet = k; applySailSet(sh); note(sh, '帆裝：' + SAILSETS[k]);

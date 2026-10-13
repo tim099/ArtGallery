@@ -118,7 +118,7 @@ function strikeCheck(sh) {
   else if (STRIKE.masts && sh.mastsUp === 0 && cas >= 0.33) why = '降旗（桅全倒、' + pc + '）';
   else if (STRIKE.officers && cas >= 0.25 && !sh.crew.some(function (c) { return c.role === ROLE.OFFICER && able(c); })) why = '降旗（軍官全倒、' + pc + '）';
   if (!why) return;
-  sh.struck = true; sh.fate = why; note(sh, why, true);
+  sh.struck = true; sh.fate = why; note(sh, why, true); strikeColors(sh);
 }
 /** 選單與結算畫面用的一句話：現在的降旗規則。 */
 function strikeText() {
