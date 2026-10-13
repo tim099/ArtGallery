@@ -10,7 +10,7 @@ function frame(ts) {
   }
   camFollow(dt);                                                      // 追砲彈（03_camera.js）
   SHIPS.forEach(function (sh) { sh.rs.flush(); });
-  camUpdate(dt); render(); hud(dt);
+  camUpdate(dt); render(); hud(dt); frzShow();                        // 停格條（72_floodui.js）
   if (GFX_FPS && (fpsT -= dt) <= 0) { fpsT = 0.5; $('fps').textContent = 'FPS ' + Math.round(FPS) + '　畫質 ' + GFX_NAME[gfxLevel()] + '　' + CAM.w + '×' + CAM.h + (RT && RT.s ? '　MSAA ' + RT.s + '×' : ''); }   // 畫質設定頁的「顯示 FPS」
   requestAnimationFrame(frame);
 }

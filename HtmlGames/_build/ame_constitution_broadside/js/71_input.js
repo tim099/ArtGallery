@@ -51,7 +51,7 @@ function pick(cx, cy) {
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
   var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' ';
-  if (k === 'escape') { e.preventDefault(); gsetToggle(); return; }   // 遊戲內的設定面板
+  if (k === 'escape') { e.preventDefault(); if (HELP.open) helpClose(); else if (FLX) floodClose(); else gsetToggle(); return; }   // 遊戲內的設定面板
   if (k === ' ' || k === 'tab' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
   doKey(k, e.repeat);
 });
@@ -64,10 +64,11 @@ function doKey(k, repeat) {
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
   else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
-  else if (k === 'p') PAUSED = !PAUSED;
+  else if (k === 'p') PAUSED = !PAUSED;                               // 停格（72_floodui.js：停格時上方一條、進水細節頁）
+  else if (k === 'i') { if (PAUSED) floodToggle(); }
   else if (k === 'm') { muted = !muted; gsetShow(); }
-  else if (k === 'h' || k === '?') $('help').classList.toggle('on');
-  else if (k === 'r') { gsetClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; $('help').classList.remove('on'); }
+  else if (k === 'h' || k === '?') helpToggle();
+  else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     var order = ['auto', 'manual', 'off'];
     setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
@@ -78,7 +79,7 @@ function doKey(k, repeat) {
   else if (k === 'v') setCamTrack(!CAM.track);
   else if (k === 'g') setAutoFire(!AUTOFIRE);
   else if (k === 'b') setPhys(!PHYS);
-  else if (k === 'n') { gsetClose(); start(); }                                        // 重新開始：同樣的模式、距離、滑桿，不用打完
+  else if (k === 'n') { gsetClose(); helpClose(); start(); }                                        // 重新開始：同樣的模式、距離、滑桿，不用打完
   else if (k === 'w' || k === 's' || k === 'arrowup' || k === 'arrowdown') {     // 帆裝
     if (!repeat) setSails(me, me.sailSet + (k === 'w' || k === 'arrowup' ? 1 : -1));
   }
@@ -116,10 +117,10 @@ function setAutoFire(on) {
 $('autoF').onclick = function () { setAutoFire(!AUTOFIRE); };
 $('camT').onclick = function () { setCamTrack(!CAM.track); };
 $('physT').onclick = function () { setPhys(!PHYS); };
-$('restartB').onclick = function () { if (RUNNING) { gsetClose(); start(); } };
+$('restartB').onclick = function () { if (RUNNING) { gsetClose(); helpClose(); start(); } };
 // 遊戲內的設定面板（⚙ 設定、Esc）：打開 ⇒ 暫停（關掉回到打開之前的暫停狀態）；畫質、物理效果的檔位跟主選單是同一份（07_gfx.js／09_phx.js）
 var GSET = { open: false, paused: false };
-function gsetOpen() { if (!RUNNING || GSET.open) return; GSET.open = true; GSET.paused = PAUSED; PAUSED = true; $('gset').classList.add('on'); $('gsetBg').classList.add('on'); $('help').classList.remove('on'); gsetShow(); }
+function gsetOpen() { if (!RUNNING || GSET.open) return; helpClose(); GSET.open = true; GSET.paused = PAUSED; PAUSED = true; $('gset').classList.add('on'); $('gsetBg').classList.add('on'); gsetShow(); }
 function gsetClose() { if (!GSET.open) return; GSET.open = false; PAUSED = GSET.paused; $('gset').classList.remove('on'); $('gsetBg').classList.remove('on'); }
 function gsetToggle() { if (GSET.open) gsetClose(); else gsetOpen(); }
 function gsetShow() {
@@ -130,6 +131,12 @@ function gsetShow() {
   $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
 }
 $('setB').onclick = gsetToggle;
+// 說明（設定裡的「H 說明」、H、?）：打開 ⇒ 暫停（關掉回到打開之前的暫停狀態，跟設定一樣）；外面蓋一層 #helpBg，點外面、✕、H、Esc 都關（Tim 2026-10-13：手機上不好關說明）
+var HELP = { open: false, paused: false };
+function helpOpen() { if (!RUNNING || HELP.open) return; gsetClose(); HELP.open = true; HELP.paused = PAUSED; PAUSED = true; $('help').classList.add('on'); $('helpBg').classList.add('on'); }
+function helpClose() { if (!HELP.open) return; HELP.open = false; PAUSED = HELP.paused; $('help').classList.remove('on'); $('helpBg').classList.remove('on'); }
+function helpToggle() { if (HELP.open) helpClose(); else helpOpen(); }
+$('helpBg').onclick = helpClose; $('helpX').onclick = helpClose; $('helpB').onclick = helpOpen;
 $('gsetBg').onclick = gsetClose;                                    // 面板外點一下 ⇒ 關（不會順便瞄準、開砲：底下的東西被這一層蓋住）
 $('gsGo').onclick = gsetClose;
 $('menuB').onclick = function () { doKey('r'); };

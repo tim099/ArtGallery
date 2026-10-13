@@ -230,11 +230,12 @@ function floodTilt(sh, fl) {
 function flGL() {
   P.pool = VK.compile(gl,
     '#version 300 es\nlayout(location=0) in vec4 aP; uniform mat4 uModel,uVP; out vec3 vW; out float vF; void main(){ vec4 w=uModel*vec4(aP.xyz,1.0); vW=w.xyz; vF=aP.w; gl_Position=uVP*w; }\n',
-    '#version 300 es\nprecision highp float; in vec3 vW; in float vF; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uSeaT; out vec4 o;\n' + SHADOW_GLSL +
+    '#version 300 es\nprecision highp float; in vec3 vW; in float vF; uniform vec3 uEye,uSun,uFog,uSky; uniform float uFogD,uSeaT,uX; out vec4 o;\n' + SHADOW_GLSL +
     'void main(){ vec2 r=vec2(sin(vW.x*3.1+uSeaT*2.3)+sin(vW.z*4.3-uSeaT*1.7),cos(vW.z*2.7-uSeaT*1.9)+cos(vW.x*3.7+uSeaT*2.1))*0.03; vec3 n=normalize(vec3(r.x,1.0,r.y));\n' +
     ' vec3 v=normalize(uEye-vW); float fr=0.04+0.96*pow(1.0-max(dot(n,v),0.0),5.0), sk=shadowK(vW,n);\n' +
     ' vec3 c=mix(vec3(0.08,0.27,0.3)*(0.45+0.55*sk),uSky*0.75,clamp(fr*0.8+0.08,0.0,1.0))+vec3(1.0,0.92,0.75)*pow(max(dot(reflect(-v,n),uSun),0.0),90.0)*(0.25+sk);\n' +
-    ' float fd=length(vW-uEye); o=vec4(mix(c,uFog,1.0-exp(-fd*uFogD)),0.78); }\n');
+    ' if(uX>0.5) c=mix(c,vec3(0.2,0.6,0.95),0.45);\n' +
+    ' float fd=length(vW-uEye); o=vec4(mix(c,uFog,1.0-exp(-fd*uFogD)),uX>0.5?0.62:0.78); }\n');
 }
 /** 艙內水面的網格（格座標，每個頂點帶「裝了幾成」）：水格有算過才重做。 */
 function flMesh(sh, fl) {
@@ -283,10 +284,10 @@ function flDraw() {
   SHIPS.forEach(function (sh) {
     var fl = sh.fl; if (!fl || !fl.actN || sh.broken || sh.sinkingFinal || sh.sunk) return;
     var me = flMesh(sh, fl); if (!me.n) return;
-    if (!any) { any = true; gl.useProgram(P.pool.prog); setCommon(P.pool); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.disable(gl.CULL_FACE); }
+    if (!any) { any = true; gl.useProgram(P.pool.prog); setCommon(P.pool); gl.uniform1f(P.pool.u.uX, FLX ? 1 : 0); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.disable(gl.CULL_FACE); if (FLX) gl.disable(gl.DEPTH_TEST); }   // 進水細節頁開著 ⇒ 透視（72_floodui.js）
     gl.uniformMatrix4fv(P.pool.u.uModel, false, sh.M); gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
   });
-  if (any) gl.depthMask(true);
+  if (any) { gl.depthMask(true); gl.enable(gl.DEPTH_TEST); }
 }
 /** 噴進來的粒子放進點精靈的緩衝（60_render.js 的 pushPt）。 */
 function flPushJets(pushPt) {
