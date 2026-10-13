@@ -6,14 +6,22 @@ var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], g
   // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶預設 675（很難殉爆但有機率；Tim 2026-10-12：450 還是很容易炸 ⇒ 1.5 倍），拉滿 1000 ＝ 不會爆
   gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 1000, 675], blast: [0.25, 4, 1],
   dmg24: [10, 300, 100], dmg32l: [10, 300, 130], dmg32: [10, 300, 120], dmg18: [10, 300, 70],   // dmg32l：32 磅長砲（餘燼號）
-  box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1] };                                   // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
+  box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1],                                     // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
+  stall: [0, 1, 1],                                                                           // 頂風失速（31_sailing.js）：0 ＝ 頂風只是慢、1 ＝ 寫實
+  funspeed: [1, 3, 1.4], funagile: [1, 3, 1.5], funstall: [0, 1, 0.4] };                     // 娛樂加成：玩法選「娛樂」時再乘的倍率（寫實 ＝ 都是 1）
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
+// 玩法（Tim 2026-10-13：配置分成寫實與娛樂兩組，主選單切換，預設娛樂）：細節設定的滑桿 ＝ 寫實的基準，
+//   娛樂 ＝ 在那之上再乘娛樂加成（航速、靈活性、頂風失速）。⇒ 兩組共用同一份滑桿，切換不會把調好的數字蓋掉。網址 ?play=real／fun
+var PLAY = Q.get('play') === 'real' ? 'real' : 'fun';
+var STALL_K = qnum('stall', LIM.stall);
+var FUN = { speed: qnum('funspeed', LIM.funspeed), agile: qnum('funagile', LIM.funagile), stall: qnum('funstall', LIM.funstall) };
+function playK(k) { return PLAY === 'fun' ? FUN[k] : 1; }
 // 船隻設定（照船型套；Tim 2026-10-12：不同船套用不同設定）：每一型一組，開戰時複製到每艘船（sh.cfg）。
 //   hard  船殼硬度倍率（越硬越難打穿、洞越小；被打的那艘照自己的）：預設 3（Tim：原本 2 ⇒ 1.5 倍）
 //   flood 進水速度倍率（0 ＝ 不會沉）
 //   ballast 壓艙物（噸）：不會被打掉的重量；預設 ＝ 那一型「剛好在設計水線」（T.ballast0：憲法號 1,075），越輕浮得越高（減重上浮，32_hull.js）
 //   gunw  砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多
-//   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
+//   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）。玩法選娛樂 ⇒ 兩個再乘娛樂加成（playK）
 // 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 存檔裡那一型的（同一份船才算，69_prefs.js）⇒ 那一型的 ballast0（船型載好才知道）。
 var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile'], SHIP_CFG = {};
 var PREF_BALLAST = {};                                   // 存檔裡的壓艙物：id → { v: 噸, chk: 存的時候那艘船的 checksum }（船重匯過 ⇒ 不套）

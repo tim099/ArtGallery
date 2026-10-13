@@ -6,8 +6,13 @@
 // 轉向率跟航速成正比（舵要有水流過）；舵輪被打飛 ⇒ 改用舵柄滑車，只剩 35%。
 // 帆裝三段（W／S）：收帆（三面上桅帆＋jib）／戰鬥帆（再加上桅頂帆、後桅縱帆、前支索帆）／滿帆（全部，預設）；
 // 收起來的帆不畫、鏈彈打不到、不算航速；帆收得越多瞄得越穩。
-// ⛔ 沒做搶風／順風換舷：頂風那一段只是慢下來（係數 0.25，靠慣性帶過去），不會停死。
+// 頂風失速（只管手動操舵；電腦操舵照舊 —— 它不會搶風，失速會卡死）：風從船頭兩側 60° 以內吹來 ⇒ 帆被吹回來，
+//   推力 ×(1 − 失速)；船頭被風推開（往原本那一舷倒，航速一半以下推得動、越慢越大）⇒ 帶著速度才轉得過去（搶風 tack），
+//   太慢就卡住、被推回原本那一舷；往下風轉一圈（順風換舷 wear）永遠轉得過去。45° 以內全失速、45–60° 漸變。
+//   量過（2026-10-13，滿帆、舵打滿往風裡轉）：寫實 ⇒ 從近迎風（風從船頭 65°）卡住、從橫風帶 6.5 節 71 秒搶過；娛樂 ⇒ 從近迎風 48 秒搶過。
+//   失速 ＝ 細節設定的「頂風失速」（0 ＝ 頂風只是慢，係數 0.25 靠慣性帶過去）× 玩法的加成（娛樂 0.4）。
 var VMAX = 3.6;                                                    // m/s（約 7 節）：滿帆、側順風
+var NOGO_DEG = 60, NOGO_FULL = 45, IRONS_PUSH = 0.02;              // 頂風失速：開始、全失速的角度（風從船頭偏幾度）、船頭被推開的轉向率（rad/s，船停住時）
 var POLAR = [[0, 0.72], [45, 1], [90, 0.92], [112, 0.6], [125, 0.32], [180, 0.25]];   // 船頭跟「風吹去的方向」的夾角（度）→ 係數
 function polar(deg) {
   for (var i = 1; i < POLAR.length; i++) if (deg <= POLAR[i][0]) { var a = POLAR[i - 1], b = POLAR[i]; return a[1] + (b[1] - a[1]) * (deg - a[0]) / (b[0] - a[0]); }
@@ -53,18 +58,27 @@ function sail(sh, dt) {
   sh.pos = pointName(deg);
   var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
   sh.manual = manual;
-  var target = sh.sunk || stop ? 0 : VMAX * sh.cfg.speed * sh.sailFrac * polar(deg) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
+  var SPK = sh.cfg.speed * playK('speed');                             // 航速倍率（船隻設定 × 玩法的加成）
+  var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - deg)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
+  sh.irons = nogo;
+  var target = sh.sunk || stop ? 0 : VMAX * SPK * sh.sailFrac * polar(deg) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
   var foe = SHIPS[1 - sh.i], tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
-  var rmax = (0.012 + 0.016 * sh.spd / sh.cfg.speed) * (wheel ? 1 : 0.35) * sh.cfg.agile;   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
+  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * sh.cfg.agile * playK('agile');   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
   if (stop) { sh.rudder = 0; rate = 0; }
   else if (manual && !sh.struck && !sh.sunk) {
     var want = (KEYS.l ? 1 : 0) - (KEYS.r ? 1 : 0);                    // 舵角正 ＝ yaw 變大 ＝ 畫面上左轉
     sh.rudder += clamp(want - sh.rudder, -1.5 * dt, 1.5 * dt);
     rate = sh.rudder * rmax;
+    if (nogo > 0) {                                                     // 船頭被風推開：往讓船頭離開風的那一側（正頂風 ⇒ 照上次那一側）
+      var off = -Math.sin(sh.yaw) * W[0] - Math.cos(sh.yaw) * W[2];     // d(船頭·風吹去的方向)/d(yaw)：正 ＝ yaw 變大會離開風
+      if (Math.abs(off) > 0.02) sh.ironSide = off > 0 ? 1 : -1;
+      rate += (sh.ironSide || 1) * nogo * IRONS_PUSH * clamp(1 - sh.spd / (VMAX * SPK * 0.5), 0, 1);
+      if (nogo > 0.5 && !(SIMT - (sh.ironsT || -99) < 20)) { sh.ironsT = SIMT; note(sh, '頂風失速：帆被吹回來了 —— 帶著速度轉過去，或往下風轉一圈'); }
+    }
   } else {
     if (!sh.struck && !sh.sunk && foe) {
       // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦

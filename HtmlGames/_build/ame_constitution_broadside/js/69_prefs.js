@@ -1,5 +1,5 @@
 // ───────────────────────── 設定存檔（localStorage；Tim 2026-10-13：直接開網頁時，設定存在玩家自己的瀏覽器，下次打開自動套用） ─────────────────────────
-// 存：細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗）、船隻設定（SHIP_CFG，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
+// 存：玩法（娛樂／寫實）、細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗、頂風失速、娛樂加成）、船隻設定（SHIP_CFG，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
 //   以及主選單的模式、距離、航行。不存整場戰局。
 // 只存「跟預設不一樣」的那幾項：沒動過的照程式的預設走 ⇒ 之後改了預設值（例：火藥 450 → 675），沒動過的玩家也吃得到新的。
 //   壓艙物的預設跟船走（T.ballast0）⇒ 存的時候記那艘船的 checksum，船重匯過就不套（PREF_BALLAST，04_state.js）。
@@ -10,7 +10,7 @@
 // 什麼時候存：每秒比一次（跟上次存的不一樣才寫）＋ 關頁、切到背景時。全部回到預設 ⇒ 刪掉那一筆。
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
-  'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -29,6 +29,7 @@ function prefsSnap() {
   if (Object.keys(cfg).length) o.cfg = cfg;
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
   put('blast', BLAST_K, LIM.blast[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('wind', WIND_K, LIM.wind[2]);
+  put('play', PLAY, 'fun'); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]);
   var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
   if (Object.keys(dm).length) o.dmg = dm;
   if (AMMO_K.some(function (r, i) { return r.some(function (v, j) { return v !== AMMO_K0[i][j]; }); })) o.ammoK = AMMO_K.map(function (r) { return r.slice(); });
@@ -58,6 +59,11 @@ function prefsApply(p) {
   set('box', p.box, LIM.box, true, function (x) { BOX_N = x; });
   set('carry', p.carry, LIM.carry, true, function (x) { CARRY_N = x; });
   set('wind', p.wind, LIM.wind, false, function (x) { WIND_K = x; });
+  if (!Q.has('play') && (p.play === 'fun' || p.play === 'real')) PLAY = p.play;
+  set('stall', p.stall, LIM.stall, false, function (x) { STALL_K = x; });
+  set('funspeed', p.funspeed, LIM.funspeed, false, function (x) { FUN.speed = x; });
+  set('funagile', p.funagile, LIM.funagile, false, function (x) { FUN.agile = x; });
+  set('funstall', p.funstall, LIM.funstall, false, function (x) { FUN.stall = x; });
   if (p.dmg && typeof p.dmg === 'object') Object.keys(DMG_Q).forEach(function (t) { set(DMG_Q[t], p.dmg[t], LIM[DMG_Q[t]], true, function (x) { DMG[t] = x; }); });
   if (!Q.has('ammo') && Array.isArray(p.ammoK)) p.ammoK.forEach(function (r, i) {
     if (i < 3 && Array.isArray(r)) r.forEach(function (v, j) { var x = num(v, AMMO_LIM, true); if (j < 3 && x !== undefined) AMMO_K[i][j] = x; });

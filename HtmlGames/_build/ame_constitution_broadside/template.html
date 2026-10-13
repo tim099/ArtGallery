@@ -141,6 +141,9 @@
       <div class="row" id="modes">
         <button data-m="pve" class="on">對戰電腦</button><button data-m="eve">觀戰（自動開砲）</button><button data-m="sandbox">沙盒（敵艦不還手）</button>
       </div>
+      <div class="row" id="plays">玩法
+        <button data-p="fun" class="on">娛樂</button><button data-p="real">寫實</button>
+      </div>
       <div class="row" id="shipsel">我艦 <select id="ship0" aria-label="我艦的船"></select>　敵艦 <select id="ship1" aria-label="敵艦的船"></select></div>
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
@@ -157,7 +160,7 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?ship=我艦,敵艦 ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile=（這六個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?ship=我艦,敵艦 ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile=（這六個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike= ?play=fun／real ?stall= ?funspeed= ?funagile= ?funstall=</div>
       <h3>船隻設定</h3>
       <div class="row slide"><label for="cfgShip">編輯</label><select id="cfgShip" aria-label="編輯哪一艘船的設定"></select></div>
       <div class="row note">照船型套：同一型的兩艘共用這一組，不同船各自一組（壓艙物的預設 ＝ 那艘剛好浮在設計水線）。</div>
@@ -168,6 +171,14 @@
       <div class="row slide"><label for="gunw">砲的重量</label><input type="range" id="gunw" step="0.25" aria-label="砲的重量倍率"><span id="gunwV"></span></div>
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
+      <h3>航行</h3>
+      <div class="row slide"><label for="stall">頂風失速</label><input type="range" id="stall" step="0.05" aria-label="頂風失速"><span id="stallV"></span></div>
+      <div class="row note">只管手動操舵（電腦照舊）：風從船頭兩側 60° 以內吹來 ⇒ 帆被吹回來、船慢下來，太慢舵就不靈、船頭被風推回原本那一舷。帶著速度才搶得過風；往下風轉一圈永遠轉得過去。0 ＝ 不會失速（頂風只是慢）、100% ＝ 寫實。</div>
+      <h3>娛樂加成</h3>
+      <div class="row slide"><label for="funspeed">航速</label><input type="range" id="funspeed" step="0.05" aria-label="娛樂加成：航速"><span id="funspeedV"></span></div>
+      <div class="row slide"><label for="funagile">靈活性</label><input type="range" id="funagile" step="0.05" aria-label="娛樂加成：靈活性"><span id="funagileV"></span></div>
+      <div class="row slide"><label for="funstall">頂風失速</label><input type="range" id="funstall" step="0.05" aria-label="娛樂加成：頂風失速"><span id="funstallV"></span></div>
+      <div class="row note">主選單的玩法選「娛樂」時，在上面的設定之外再乘這幾個（寫實 ＝ 都乘 1）。兩艘都套。</div>
       <h3>砲</h3>
       <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
       <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>

@@ -141,6 +141,9 @@
       <div class="row" id="modes">
         <button data-m="pve" class="on">對戰電腦</button><button data-m="eve">觀戰（自動開砲）</button><button data-m="sandbox">沙盒（敵艦不還手）</button>
       </div>
+      <div class="row" id="plays">玩法
+        <button data-p="fun" class="on">娛樂</button><button data-p="real">寫實</button>
+      </div>
       <div class="row" id="shipsel">我艦 <select id="ship0" aria-label="我艦的船"></select>　敵艦 <select id="ship1" aria-label="敵艦的船"></select></div>
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
@@ -157,7 +160,7 @@
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?ship=我艦,敵艦 ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile=（這六個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike=</div>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?ship=我艦,敵艦 ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile=（這六個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike= ?play=fun／real ?stall= ?funspeed= ?funagile= ?funstall=</div>
       <h3>船隻設定</h3>
       <div class="row slide"><label for="cfgShip">編輯</label><select id="cfgShip" aria-label="編輯哪一艘船的設定"></select></div>
       <div class="row note">照船型套：同一型的兩艘共用這一組，不同船各自一組（壓艙物的預設 ＝ 那艘剛好浮在設計水線）。</div>
@@ -168,6 +171,14 @@
       <div class="row slide"><label for="gunw">砲的重量</label><input type="range" id="gunw" step="0.25" aria-label="砲的重量倍率"><span id="gunwV"></span></div>
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
+      <h3>航行</h3>
+      <div class="row slide"><label for="stall">頂風失速</label><input type="range" id="stall" step="0.05" aria-label="頂風失速"><span id="stallV"></span></div>
+      <div class="row note">只管手動操舵（電腦照舊）：風從船頭兩側 60° 以內吹來 ⇒ 帆被吹回來、船慢下來，太慢舵就不靈、船頭被風推回原本那一舷。帶著速度才搶得過風；往下風轉一圈永遠轉得過去。0 ＝ 不會失速（頂風只是慢）、100% ＝ 寫實。</div>
+      <h3>娛樂加成</h3>
+      <div class="row slide"><label for="funspeed">航速</label><input type="range" id="funspeed" step="0.05" aria-label="娛樂加成：航速"><span id="funspeedV"></span></div>
+      <div class="row slide"><label for="funagile">靈活性</label><input type="range" id="funagile" step="0.05" aria-label="娛樂加成：靈活性"><span id="funagileV"></span></div>
+      <div class="row slide"><label for="funstall">頂風失速</label><input type="range" id="funstall" step="0.05" aria-label="娛樂加成：頂風失速"><span id="funstallV"></span></div>
+      <div class="row note">主選單的玩法選「娛樂」時，在上面的設定之外再乘這幾個（寫實 ＝ 都乘 1）。兩艘都套。</div>
       <h3>砲</h3>
       <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
       <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>
@@ -863,14 +874,22 @@ var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], g
   // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶預設 675（很難殉爆但有機率；Tim 2026-10-12：450 還是很容易炸 ⇒ 1.5 倍），拉滿 1000 ＝ 不會爆
   gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 1000, 675], blast: [0.25, 4, 1],
   dmg24: [10, 300, 100], dmg32l: [10, 300, 130], dmg32: [10, 300, 120], dmg18: [10, 300, 70],   // dmg32l：32 磅長砲（餘燼號）
-  box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1] };                                   // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
+  box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1],                                     // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
+  stall: [0, 1, 1],                                                                           // 頂風失速（31_sailing.js）：0 ＝ 頂風只是慢、1 ＝ 寫實
+  funspeed: [1, 3, 1.4], funagile: [1, 3, 1.5], funstall: [0, 1, 0.4] };                     // 娛樂加成：玩法選「娛樂」時再乘的倍率（寫實 ＝ 都是 1）
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
+// 玩法（Tim 2026-10-13：配置分成寫實與娛樂兩組，主選單切換，預設娛樂）：細節設定的滑桿 ＝ 寫實的基準，
+//   娛樂 ＝ 在那之上再乘娛樂加成（航速、靈活性、頂風失速）。⇒ 兩組共用同一份滑桿，切換不會把調好的數字蓋掉。網址 ?play=real／fun
+var PLAY = Q.get('play') === 'real' ? 'real' : 'fun';
+var STALL_K = qnum('stall', LIM.stall);
+var FUN = { speed: qnum('funspeed', LIM.funspeed), agile: qnum('funagile', LIM.funagile), stall: qnum('funstall', LIM.funstall) };
+function playK(k) { return PLAY === 'fun' ? FUN[k] : 1; }
 // 船隻設定（照船型套；Tim 2026-10-12：不同船套用不同設定）：每一型一組，開戰時複製到每艘船（sh.cfg）。
 //   hard  船殼硬度倍率（越硬越難打穿、洞越小；被打的那艘照自己的）：預設 3（Tim：原本 2 ⇒ 1.5 倍）
 //   flood 進水速度倍率（0 ＝ 不會沉）
 //   ballast 壓艙物（噸）：不會被打掉的重量；預設 ＝ 那一型「剛好在設計水線」（T.ballast0：憲法號 1,075），越輕浮得越高（減重上浮，32_hull.js）
 //   gunw  砲的重量倍率（照實 ＝ 1：長砲 2.5 噸、carronade 0.9、追擊砲 2.1）：越重 ⇒ 吃水越深、砲被打飛浮得越多
-//   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）
+//   speed 航速倍率（乘在 VMAX 上）；agile 靈活性倍率（乘在最大轉向率上；跟航速倍率分開 —— 轉向率用的是除掉倍率的航速）。玩法選娛樂 ⇒ 兩個再乘娛樂加成（playK）
 // 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 存檔裡那一型的（同一份船才算，69_prefs.js）⇒ 那一型的 ballast0（船型載好才知道）。
 var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile'], SHIP_CFG = {};
 var PREF_BALLAST = {};                                   // 存檔裡的壓艙物：id → { v: 噸, chk: 存的時候那艘船的 checksum }（船重匯過 ⇒ 不套）
@@ -2657,8 +2676,13 @@ function setPhys(on) {
 // 轉向率跟航速成正比（舵要有水流過）；舵輪被打飛 ⇒ 改用舵柄滑車，只剩 35%。
 // 帆裝三段（W／S）：收帆（三面上桅帆＋jib）／戰鬥帆（再加上桅頂帆、後桅縱帆、前支索帆）／滿帆（全部，預設）；
 // 收起來的帆不畫、鏈彈打不到、不算航速；帆收得越多瞄得越穩。
-// ⛔ 沒做搶風／順風換舷：頂風那一段只是慢下來（係數 0.25，靠慣性帶過去），不會停死。
+// 頂風失速（只管手動操舵；電腦操舵照舊 —— 它不會搶風，失速會卡死）：風從船頭兩側 60° 以內吹來 ⇒ 帆被吹回來，
+//   推力 ×(1 − 失速)；船頭被風推開（往原本那一舷倒，航速一半以下推得動、越慢越大）⇒ 帶著速度才轉得過去（搶風 tack），
+//   太慢就卡住、被推回原本那一舷；往下風轉一圈（順風換舷 wear）永遠轉得過去。45° 以內全失速、45–60° 漸變。
+//   量過（2026-10-13，滿帆、舵打滿往風裡轉）：寫實 ⇒ 從近迎風（風從船頭 65°）卡住、從橫風帶 6.5 節 71 秒搶過；娛樂 ⇒ 從近迎風 48 秒搶過。
+//   失速 ＝ 細節設定的「頂風失速」（0 ＝ 頂風只是慢，係數 0.25 靠慣性帶過去）× 玩法的加成（娛樂 0.4）。
 var VMAX = 3.6;                                                    // m/s（約 7 節）：滿帆、側順風
+var NOGO_DEG = 60, NOGO_FULL = 45, IRONS_PUSH = 0.02;              // 頂風失速：開始、全失速的角度（風從船頭偏幾度）、船頭被推開的轉向率（rad/s，船停住時）
 var POLAR = [[0, 0.72], [45, 1], [90, 0.92], [112, 0.6], [125, 0.32], [180, 0.25]];   // 船頭跟「風吹去的方向」的夾角（度）→ 係數
 function polar(deg) {
   for (var i = 1; i < POLAR.length; i++) if (deg <= POLAR[i][0]) { var a = POLAR[i - 1], b = POLAR[i]; return a[1] + (b[1] - a[1]) * (deg - a[0]) / (b[0] - a[0]); }
@@ -2704,18 +2728,27 @@ function sail(sh, dt) {
   sh.pos = pointName(deg);
   var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
   sh.manual = manual;
-  var target = sh.sunk || stop ? 0 : VMAX * sh.cfg.speed * sh.sailFrac * polar(deg) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
+  var SPK = sh.cfg.speed * playK('speed');                             // 航速倍率（船隻設定 × 玩法的加成）
+  var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - deg)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
+  sh.irons = nogo;
+  var target = sh.sunk || stop ? 0 : VMAX * SPK * sh.sailFrac * polar(deg) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
   var foe = SHIPS[1 - sh.i], tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
-  var rmax = (0.012 + 0.016 * sh.spd / sh.cfg.speed) * (wheel ? 1 : 0.35) * sh.cfg.agile;   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
+  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * sh.cfg.agile * playK('agile');   // ⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
   if (stop) { sh.rudder = 0; rate = 0; }
   else if (manual && !sh.struck && !sh.sunk) {
     var want = (KEYS.l ? 1 : 0) - (KEYS.r ? 1 : 0);                    // 舵角正 ＝ yaw 變大 ＝ 畫面上左轉
     sh.rudder += clamp(want - sh.rudder, -1.5 * dt, 1.5 * dt);
     rate = sh.rudder * rmax;
+    if (nogo > 0) {                                                     // 船頭被風推開：往讓船頭離開風的那一側（正頂風 ⇒ 照上次那一側）
+      var off = -Math.sin(sh.yaw) * W[0] - Math.cos(sh.yaw) * W[2];     // d(船頭·風吹去的方向)/d(yaw)：正 ＝ yaw 變大會離開風
+      if (Math.abs(off) > 0.02) sh.ironSide = off > 0 ? 1 : -1;
+      rate += (sh.ironSide || 1) * nogo * IRONS_PUSH * clamp(1 - sh.spd / (VMAX * SPK * 0.5), 0, 1);
+      if (nogo > 0.5 && !(SIMT - (sh.ironsT || -99) < 20)) { sh.ironsT = SIMT; note(sh, '頂風失速：帆被吹回來了 —— 帶著速度轉過去，或往下風轉一圈'); }
+    }
   } else {
     if (!sh.struck && !sh.sunk && foe) {
       // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦
@@ -3823,7 +3856,7 @@ function drawNav(sh) {
   var hull = sh.grid.count / sh.orig * 100, fl = clamp(sh.sink / 9, 0, 1) * 100;
   $('navt').innerHTML =
     '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
-    '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）</span>　' + sh.pos + '<br>' +
+    '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
     '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<br>' +
     '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
     SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
@@ -3862,7 +3895,7 @@ function checkEnd() {
 }
 // ── js/69_prefs.js ──
 // ───────────────────────── 設定存檔（localStorage；Tim 2026-10-13：直接開網頁時，設定存在玩家自己的瀏覽器，下次打開自動套用） ─────────────────────────
-// 存：細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗）、船隻設定（SHIP_CFG，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
+// 存：玩法（娛樂／寫實）、細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗、頂風失速、娛樂加成）、船隻設定（SHIP_CFG，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
 //   以及主選單的模式、距離、航行。不存整場戰局。
 // 只存「跟預設不一樣」的那幾項：沒動過的照程式的預設走 ⇒ 之後改了預設值（例：火藥 450 → 675），沒動過的玩家也吃得到新的。
 //   壓艙物的預設跟船走（T.ballast0）⇒ 存的時候記那艘船的 checksum，船重匯過就不套（PREF_BALLAST，04_state.js）。
@@ -3873,7 +3906,7 @@ function checkEnd() {
 // 什麼時候存：每秒比一次（跟上次存的不一樣才寫）＋ 關頁、切到背景時。全部回到預設 ⇒ 刪掉那一筆。
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
-  'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -3892,6 +3925,7 @@ function prefsSnap() {
   if (Object.keys(cfg).length) o.cfg = cfg;
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
   put('blast', BLAST_K, LIM.blast[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('wind', WIND_K, LIM.wind[2]);
+  put('play', PLAY, 'fun'); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]);
   var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
   if (Object.keys(dm).length) o.dmg = dm;
   if (AMMO_K.some(function (r, i) { return r.some(function (v, j) { return v !== AMMO_K0[i][j]; }); })) o.ammoK = AMMO_K.map(function (r) { return r.slice(); });
@@ -3921,6 +3955,11 @@ function prefsApply(p) {
   set('box', p.box, LIM.box, true, function (x) { BOX_N = x; });
   set('carry', p.carry, LIM.carry, true, function (x) { CARRY_N = x; });
   set('wind', p.wind, LIM.wind, false, function (x) { WIND_K = x; });
+  if (!Q.has('play') && (p.play === 'fun' || p.play === 'real')) PLAY = p.play;
+  set('stall', p.stall, LIM.stall, false, function (x) { STALL_K = x; });
+  set('funspeed', p.funspeed, LIM.funspeed, false, function (x) { FUN.speed = x; });
+  set('funagile', p.funagile, LIM.funagile, false, function (x) { FUN.agile = x; });
+  set('funstall', p.funstall, LIM.funstall, false, function (x) { FUN.stall = x; });
   if (p.dmg && typeof p.dmg === 'object') Object.keys(DMG_Q).forEach(function (t) { set(DMG_Q[t], p.dmg[t], LIM[DMG_Q[t]], true, function (x) { DMG[t] = x; }); });
   if (!Q.has('ammo') && Array.isArray(p.ammoK)) p.ammoK.forEach(function (r, i) {
     if (i < 3 && Array.isArray(r)) r.forEach(function (v, j) { var x = num(v, AMMO_LIM, true); if (j < 3 && x !== undefined) AMMO_K[i][j] = x; });
@@ -4121,6 +4160,8 @@ var SLIDERS_SHOW = null;                               // 載入完（HYD 算好
 function sliders() {
   var lf = $('ballast'), f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), gw = $('gunw'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), ch = $('crewhp');
   var dm = { long: $('dmg24'), long32: $('dmg32l'), carr: $('dmg32'), chase: $('dmg18') }, DLIM = { long: LIM.dmg24, long32: LIM.dmg32l, carr: LIM.dmg32, chase: LIM.dmg18 }, bx = $('box'), cy = $('carry'), wk = $('wind');
+  var st = $('stall'), fs = $('funspeed'), fa = $('funagile'), fl = $('funstall');   // 頂風失速、娛樂加成
+  [[st, 'stall'], [fs, 'funspeed'], [fa, 'funagile'], [fl, 'funstall']].forEach(function (e) { e[0].min = LIM[e[1]][0]; e[0].max = LIM[e[1]][1]; });
   bx.min = LIM.box[0]; bx.max = LIM.box[1]; cy.min = LIM.carry[0]; cy.max = LIM.carry[1]; wk.min = LIM.wind[0]; wk.max = LIM.wind[1];
   // 硬度跨 40 倍 ⇒ 對數刻度：滑桿 0..1 ↔ 硬度 LIM 下限 × (上限／下限)^v
   var hk = Math.log(LIM.hard[1] / LIM.hard[0]);
@@ -4138,14 +4179,19 @@ function sliders() {
     gh.value = GUN_HP; gw.value = k.gunw; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; ch.value = CREW_HP;
     for (var t in dm) dm[t].value = DMG[t];
     bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K;
+    st.value = STALL_K; fs.value = FUN.speed; fa.value = FUN.agile; fl.value = FUN.stall;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
     ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
     [0, 1].forEach(function (i) { $('cap' + i).value = CAP_SET[i]; });
   }
   function show() {
     var K = C(), SPEEDK = K.speed, AGILK = K.agile, FLOOD = K.flood, HARDK = K.hard, GUNW_K = K.gunw, BALLAST_T = K.ballast !== undefined ? K.ballast : LIM.ballast[2];   // 正在編輯的那一型
-    $('speedV').textContent = SPEEDK.toFixed(2) + '×（最快約 ' + (VMAX * SPEEDK * 1.944).toFixed(0) + ' 節）';
-    $('agileV').textContent = AGILK.toFixed(2) + '×（滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGILK * 57.3).toFixed(1) + '°/秒）';
+    var fun = PLAY === 'fun' ? '（娛樂：' : '（', SPE = SPEEDK * playK('speed'), AGE = AGILK * playK('agile');   // 娛樂 ⇒ 括號裡寫乘過加成的實際值
+    $('speedV').textContent = SPEEDK.toFixed(2) + '×' + fun + '最快約 ' + (VMAX * SPE * 1.944).toFixed(0) + ' 節）';
+    $('agileV').textContent = AGILK.toFixed(2) + '×' + fun + '滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGE * 57.3).toFixed(1) + '°/秒）';
+    var SK = STALL_K * playK('stall');
+    $('stallV').textContent = Math.round(STALL_K * 100) + '%' + (PLAY === 'fun' ? '（娛樂：實際 ' + Math.round(SK * 100) + '%）' : '') + (SK <= 0 ? '（不會失速）' : SK >= 0.95 ? '（寫實）' : '');
+    $('funspeedV').textContent = FUN.speed.toFixed(2) + '×'; $('funagileV').textContent = FUN.agile.toFixed(2) + '×'; $('funstallV').textContent = FUN.stall.toFixed(2) + '×';
     $('floodV').textContent = FLOOD === 0 ? '0×（不會沉）' : FLOOD.toFixed(2) + '×' + (FLOOD < 0.5 ? '（慢）' : FLOOD < 1.2 ? '' : '（快）');
     var HT = HULLT[CFG_ID], m0 = (HT ? HT.base.count * VOX_T : 0) + modelMassT(HT, GUNW_K) + BALLAST_T, l0 = liftFor(HT, HT ? HT.disp - m0 : 0), lx = liftFor(HT, HT ? HT.disp - m0 + 70 : 0);   // 照我艦的船型   // 開戰時浮在哪；例子：再打掉 10 萬格（70 噸）
     var gm = 0, kinds = {}; if (HT) (HT.rig.models || []).forEach(function (m) { var k = modelKind(m); if (GUNS[k]) { gm += GUNS[k].mass * GUNW_K; kinds[k] = 1; } });
@@ -4165,7 +4211,7 @@ function sliders() {
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
     $('strikeV').textContent = strikeText();
     var amDef = AMMO_K.every(function (r, i) { return r.every(function (v, j) { return v === AMMO_K0[i][j]; }); });
-    $('detV').textContent = SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×'; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
+    $('detV').textContent = '玩法 ' + (PLAY === 'fun' ? '娛樂（航速 ×' + FUN.speed.toFixed(2) + '、靈活 ×' + FUN.agile.toFixed(2) + '、頂風失速 ' + Math.round(SK * 100) + '%）' : '寫實（頂風失速 ' + Math.round(SK * 100) + '%）') + '・' + SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×'; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
       '・傷害 ' + DMG.long + '／' + DMG.long32 + '／' + DMG.carr + '／' + DMG.chase + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N +
       '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + POWDER_HP + '、殉爆 ' + BLAST_K.toFixed(2) + '×') + '・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
   }
@@ -4183,6 +4229,8 @@ function sliders() {
   ch.oninput = function () { CREW_HP = Math.round(+ch.value); show(); };
   bx.oninput = function () { BOX_N = Math.round(+bx.value); show(); };
   cy.oninput = function () { CARRY_N = Math.round(+cy.value); show(); };
+  st.oninput = function () { STALL_K = +st.value; show(); };
+  fs.oninput = function () { FUN.speed = +fs.value; show(); }; fa.oninput = function () { FUN.agile = +fa.value; show(); }; fl.oninput = function () { FUN.stall = +fl.value; show(); };
   wk.oninput = function () { WIND_K = +wk.value; show(); };          // 物理是每一步讀 ⇒ 遊戲中也能調（只管畫面）
   Object.keys(dm).forEach(function (t) { dm[t].oninput = function () { DMG[t] = Math.round(+dm[t].value); show(); }; });
   for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) (function (r, k) {
@@ -4197,6 +4245,7 @@ function sliders() {
   [0, 1].forEach(function (i) { var s = $('ship' + i); hullOptions(s, SHIP_SET[i]); s.onchange = function () { pickShip(i, s.value); }; });   // 主選單選船
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
   function page(det) { $('detail').style.display = det ? '' : 'none'; document.querySelector('#cover .card:not(#detail)').style.display = det ? 'none' : ''; $('cover').scrollTop = 0; }
+  [].forEach.call(document.querySelectorAll('#plays button'), function (b) { b.onclick = function () { setPlay(b.dataset.p); show(); }; });   // 主選單：玩法
   $('detB').onclick = function () { page(true); };
   $('detX').onclick = function () { page(false); };
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
@@ -4204,12 +4253,15 @@ function sliders() {
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
     DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
+    STALL_K = LIM.stall[2]; FUN.speed = LIM.funspeed[2]; FUN.agile = LIM.funagile[2]; FUN.stall = LIM.funstall[2];
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
     put(); show(); prefsReset();                         // 存檔跟著清（69_prefs.js：只剩主選單的選擇）
   };
   window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && $('detail').style.display !== 'none') page(false); });
   put(); show(); SLIDERS_SHOW = function () { put(); show(); };
 }
+/** 玩法：娛樂／寫實（04_state.js 的 PLAY）＋主選單按鈕的亮燈。航行每一步都讀（playK）；按鈕在主選單，沒開戰時才按得到。 */
+function setPlay(p) { PLAY = p === 'real' ? 'real' : 'fun'; [].forEach.call(document.querySelectorAll('#plays button'), function (x) { x.className = x.dataset.p === PLAY ? 'on' : ''; }); }
 /** 選單列船：HULL_LIST 的每一艘。 */
 function hullOptions(sel, v) { sel.innerHTML = HULL_LIST.map(function (h) { return '<option value="' + h.id + '">' + h.name + '</option>'; }).join(''); sel.value = v; }
 /** 主選單換船：還沒載的先載（開戰鈕暫時停用），載好就把背景的兩艘換掉；細節設定跟著編輯我艦那一型。 */
@@ -4223,7 +4275,7 @@ function pickShip(i, id) {
     if (SLIDERS_SHOW) SLIDERS_SHOW();
   }).catch(function (e) { go.textContent = '載不了：' + (e && e.message || e); console.error(e); });
 }
-sliders();
+sliders(); setPlay(PLAY);
 [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
 [].forEach.call(document.querySelectorAll('#sails button'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
 setSailMode(SAIL); setCamTrack(true); $('physT').classList.toggle('on', PHYS); $('phys').checked = PHYS;
