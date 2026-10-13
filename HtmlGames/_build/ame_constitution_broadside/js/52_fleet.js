@@ -16,6 +16,8 @@ function pickFoes() {
   SHIPS.forEach(function (sh) {
     var c = SHIPS.filter(function (o) { return isFoe(sh, o); }); if (!c.length) { sh.foe = null; return; }
     if (sh.i === PLAYER_I && sh.aimOn && c.indexOf(sh.aimOn) >= 0 && !sh.aimOn.sunk) { sh.foe = sh.aimOn; return; }   // 玩家點過的那艘
+    var od = ORDERS[sh.i], ot = od && od.target !== null && od.target !== undefined ? SHIPS[od.target] : null;   // 指揮官的命令（TASK-0551；53_commander.js）
+    if (ot && c.indexOf(ot) >= 0 && !isOut(ot)) { sh.foe = ot; return; }
     var live = c.filter(function (o) { return !o.sunk; }); if (live.length) c = live;
     var best = null, bd = 1e18;
     c.forEach(function (o) { var d = (o.px - sh.px) * (o.px - sh.px) + (o.pz - sh.pz) * (o.pz - sh.pz); if (d < bd) { bd = d; best = o; } });
@@ -23,6 +25,23 @@ function pickFoes() {
   });
 }
 function foeOf(sh) { if (sh.foe === undefined) pickFoes(); return sh.foe; }
+// ───────────────────────── 指揮官（TASK-0551；策略在 53_commander.js，這裡是遊戲那一側的轉接） ─────────────────────────
+// 每一方一個指揮官（細節設定「艦隊指揮官」我方／敵方，?cmd=我方,敵方，存檔 cmd；預設兩方都是一對一配對）。每 CMD_EVERY 步想一次（3 秒；開局、候補進場也想一次），不抽亂數。
+// 命令 ORDERS[船的序號]：目標進 pickFoes（命令的目標還在打、是敵艦才用，不然照舊挑最近的）、戰列跟隨的舵進 31_sailing.js（cmdHelmLine）。
+// 收命令的：電腦開的船（觀戰時玩家那艘也是）；對戰電腦／沙盒裡玩家自己那艘不收（Tim 2026-10-14：玩家對友艦下令之後再說），但算在配對與戰列裡（可以當排頭）。
+// 一對一：配對 ⇒ 目標就是唯一那艘敵艦 ＝ 本來就挑到的那艘 ⇒ 一位元都不差。
+var CMD_SIDE = { blue: 'pair', red: 'pair' }, CMD_MEM = { blue: {}, red: {} }, ORDERS = {}, CMD_EVERY = 180;
+if (Q.has('cmd')) Q.get('cmd').split(',').forEach(function (w, i) { if (i < 2 && CMD_NAMES[w]) CMD_SIDE[i ? 'red' : 'blue'] = w; });
+/** 遊戲的船 ⇒ 指揮官看的局勢（53_commander.js 開頭的格式）。 */
+function cmdView(side) {
+  var W = norm(WIND);
+  return { t: SIMT, side: side, wind: [W[0], W[2]], ships: SHIPS.map(function (s) {
+    return { id: s.i, team: s.team, x: s.px, z: s.pz, yaw: s.yaw, spd: s.spd, hp: 1 - clamp(s.sink / 4.2, 0, 1), guns: s.guns.length ? (s.gunsAlive === undefined ? s.guns.length : s.gunsAlive) / s.guns.length : 0,
+      crew: s.crew0 ? s.crew.filter(able).length / s.crew0 : 0, mass: s.mass0 || shipT(s), len: (s.T.wl1 - s.T.wl0) * S, out: isOut(s), cmd: !(s.i === PLAYER_I && MODE !== 'eve'), tgt: s.foe ? s.foe.i : null };
+  }) };
+}
+function cmdTick() { ORDERS = {}; ['blue', 'red'].forEach(function (side) { var o = cmdThink(cmdView(side), CMD_SIDE[side], CMD_MEM[side]); for (var k in o) ORDERS[k] = o[k]; }); }
+function cmdReset() { CMD_MEM = { blue: {}, red: {} }; ORDERS = {}; }
 /** 瞄準點落在哪艘船（設瞄準點那一刻的那艘；沒有 ⇒ 現在的目標）。 */
 function aimShip(sh) { return sh.aim && sh.aimOn ? sh.aimOn : foeOf(sh); }
 function setAim(sh, aim, on) { sh.aim = aim; sh.aimOn = aim ? on || foeOf(sh) : null; }
@@ -130,7 +149,7 @@ function spawnReserve(team) {
   if (!P) P = [E[0] + dx * (R + 150), E[1] + dz * (R + 150)];
   var hx = E[0] - P[0], hz = E[1] - P[1], yaw = Math.atan2(-hz, hx);       // 船頭對著敵方中心（fwd(yaw) ＝ [cos, 0, −sin]）
   var sh = makeShip(SHIPS.length, team, yaw, P[1], T, P[0]);
-  SHIPS.push(sh); stepShip(sh, 0); survey(sh); pickCaptain(sh); pickFoes();
+  SHIPS.push(sh); stepShip(sh, 0); survey(sh); pickCaptain(sh); cmdTick(); pickFoes();   // cmdTick：指揮官馬上把它排進去
   note(sh, '援軍進場：' + T.name + teamTag(sh) + (RESERVE[team].length ? '（候補還有 ' + RESERVE[team].length + ' 艘）' : '（候補用完）'), true);
   return sh;
 }

@@ -316,6 +316,12 @@
       <div class="row slide"><label for="blastv">威力浮動</label><input type="range" id="blastv" step="5" aria-label="每次爆炸的威力浮動（%）"><span id="blastvV"></span></div>
       <div class="row note">彈藥庫在艙底、水線下，砲彈打不到（每桶 100 磅）：憲法號前後兩間（後 22 桶、前 116 桶），餘燼號船中段一間（230 桶），夜隼號艙房底下一間（8 桶）。每層砲甲板在每間彈藥庫上方各有一個取用點（3 桶火藥＋彈藥；正上方沒有甲板就往前後找；只有一間彈藥庫的船每層前後各一個），送藥手從離要送的那門砲最近的取用點搬到砲旁的藥箱。<br>
         預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血（同一間 3 秒只算一次）⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+      <h3>艦隊指揮官</h3>
+      <div class="row cmds" id="cmdB" data-side="blue">我方 <button data-c="free">各自為戰</button><button data-c="pair">一對一配對</button><button data-c="focus">集火</button><button data-c="line">戰列</button></div>
+      <div class="row cmds" id="cmdR" data-side="red">敵方 <button data-c="free">各自為戰</button><button data-c="pair">一對一配對</button><button data-c="focus">集火</button><button data-c="line">戰列</button></div>
+      <div class="row note">每一方一個指揮官，每 3 秒看一次局勢、替自己那一方的電腦船下命令（打哪艘、怎麼開）；你自己開的那艘不聽（觀戰時連我艦也聽）。一邊只有一艘時四種都一樣。<br>
+        <b>各自為戰</b>：每艘打最近的敵艦（以前的電腦）。<b>一對一配對</b>（預設）：把敵我配成對，每艘敵艦最多分到「我方艘數 ÷ 敵方艘數」艘 ⇒ 不會三艘圍一艘、另一艘沒人管。
+        <b>集火</b>：全隊打同一艘（又弱又近的），打到它出局才換。<b>戰列</b>：旗艦帶頭交戰，其他的排成縱隊跟著前一艘的船尾（隔 90 m），全隊用同一舷。網址 ?cmd=我方,敵方（free｜pair｜focus｜line）</div>
       <h3>候補</h3>
       <div class="row" id="reinfs">候補補位 <button data-r="prop">比例</button><button data-r="own">誰沉誰補</button><button data-r="alt">輪流</button></div>
       <div class="row note">編成比主選單的「同時在場」多 ⇒ 多的照編成順序排進候補；場上的船沉了、在沉或降旗 ⇒ 空出一個名額，候補從自己那一方的後面進場（船頭對著敵方）。開局每一方至少 1 艘、其他名額照比例分。<br>
@@ -378,6 +384,7 @@
 <script src="js/50_sim.js" data-bundle="game"></script>
 <script src="js/51_captain.js" data-bundle="game"></script>
 <script src="js/52_fleet.js" data-bundle="game"></script>
+<script src="js/53_commander.js" data-bundle="game"></script>
 <script src="js/60_render.js" data-bundle="game"></script>
 <script src="js/61_hud.js" data-bundle="game"></script>
 <script src="js/69_prefs.js" data-bundle="game"></script>

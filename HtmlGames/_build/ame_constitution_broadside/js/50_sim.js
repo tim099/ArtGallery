@@ -56,6 +56,7 @@ function aiSecond(sh, foe, dt) {
 function step() {
   if (PF) PF.t = performance.now();                                 // 逐幀分段計時（?debug=1，00_core.js）
   SIMT += DT;
+  if ((Math.round(SIMT / DT) % CMD_EVERY) === 0) cmdTick();        // 指揮官每 3 秒想一次（52_fleet.js；不抽亂數）
   pickFoes();                                                      // 每艘的目標（52_fleet.js）：這一步之內都用同一個
   stepWind(SIMT);                                                  // 風會變（08_weather.js）
   for (var i = 0; i < EVENTS.length; i++) {

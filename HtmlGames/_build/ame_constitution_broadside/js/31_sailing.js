@@ -84,6 +84,7 @@ function sail(sh, dt) {
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop || sh.throttle < 1 ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
+  sh.throttle = 1;                                                      // 油門每一步重設（戰列跟隨、讓開砲線要放慢才改；下一步的目標航速才用到）
   var foe = foeOf(sh), tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
   var rud = sh.models.filter(function (m) { return m.kind === 'rudder'; }), rudK = rud.length && !rud.some(function (m) { return m.alive; }) ? 0.12 : 1;   // 舵是模型（夜隼號）而且被打掉了 ⇒ 只剩調帆轉向
@@ -107,7 +108,10 @@ function sail(sh, dt) {
       var R = aiRange();                                                 // 想保持的交戰距離：遠了往敵艦切（遠很多 ⇒ 最多切 1.2 rad，幾乎船頭對著開過去）、近了往外拉（最多 0.4）
       tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - R) / R * 1.5, -0.4, 1.2);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }
-    sh.throttle = 1; if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av === null) av = lineClear(sh); if (av !== null) tY = av; }   // throttle 每一步重設（lineClear 要放慢才改）   // 讓友船 ＞ 讓開友艦的砲線（52_fleet.js；沒有友船 ⇒ null）
+    var od = ORDERS[sh.i], ld = od && od.mode === 'line' ? SHIPS[od.leader] : null;   // 戰列跟隨（指揮官，53_commander.js cmdHelmLine）：跟著前一艘的船尾
+    if (ld && !ld.sunk && !sh.struck && !sh.sunk) { var hl = cmdHelmLine({ x: sh.px, z: sh.pz, yaw: sh.yaw }, { x: ld.px, z: ld.pz, yaw: ld.yaw }); tY = hl.yaw; sh.throttle = hl.throttle; sh.station = hl.station; } else sh.station = null;
+    if (od && od.throttle !== undefined && !ld) sh.throttle = od.throttle;   // 指揮官給的油門（戰列的排頭等後面的跟上）
+    if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av === null) av = lineClear(sh); if (av !== null) tY = av; }   // throttle 每一步重設（lineClear 要放慢才改）   // 讓友船 ＞ 讓開友艦的砲線（52_fleet.js；沒有友船 ⇒ null）
     var e = Math.atan2(Math.sin(tY - sh.yaw), Math.cos(tY - sh.yaw));
     rate = clamp(e * 0.5, -rmax, rmax); sh.rudder = rmax > 0 ? rate / rmax : 0;
   }
