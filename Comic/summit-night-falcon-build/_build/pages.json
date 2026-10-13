@@ -786,6 +786,49 @@
           }
         ]
       ]
+    },
+    "014_p01": {
+      "rows": [
+        [
+          {
+            "src": "F/flag_v3_x16.png",
+            "fit": "contain",
+            "aspect": 1.2
+          },
+          {
+            "src": "O/stage12_flag_close_yaw90.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "014_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage12_ship_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage12_flag_close_yaw-90.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "014_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage12_ship_yaw120.png",
+            "fit": "cover",
+            "aspect": 1.6
+          }
+        ]
+      ]
     }
   }
 }
