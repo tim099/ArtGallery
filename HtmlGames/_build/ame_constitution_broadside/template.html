@@ -33,7 +33,7 @@
   .chip.on{ color:#111; background:#9fc7ff; border-color:#9fc7ff; }
   #guns{ margin-top:4px; font-size:12px; }
   .gr{ font-family:Consolas,monospace; font-size:12px; letter-spacing:1px; white-space:nowrap; }
-  .g-full{ color:#8fe388; } .g-short{ color:#f2c14e; } .g-none{ color:#7d838c; } .g-dead{ color:#e0574a; }
+  .g-full{ color:#8fe388; } .g-short{ color:#f2c14e; } .g-none{ color:#7d838c; } .g-dead{ color:#e0574a; } .g-wet{ color:#7fc8ff; }
   .ico.g-full{ box-shadow:inset 0 -2px 0 #8fe388; } .ico.g-short{ box-shadow:inset 0 -2px 0 #f2c14e; } .ico.g-none{ box-shadow:inset 0 -2px 0 #7d838c; } .ico.g-dead{ box-shadow:inset 0 -2px 0 #e0574a; }
   #msg{ left:50%; top:12px; transform:translateX(-50%); font-size:14px; font-weight:700; text-align:center; width:max(280px, min(720px, calc(100vw - 520px))); line-height:1.45; }   /* 廣播：兩邊面板中間那一欄，一則一行、最多 5 行、各自淡掉（⛔ 寬到蓋住兩邊面板） */
   #msg div{ margin:1px 0 3px; transition:opacity .4s; } #msg div:last-child{ font-size:16px; }
@@ -162,6 +162,7 @@
     <div><kbd data-k="c">C</kbd> 鏡頭：我艦→敵艦（預設：我艦在中間、看向敵艦）／自由／追砲彈／看敵艦／看我艦</div>
     <div><kbd>人</kbd> 砲要有人操作：人少裝填慢，少於最少人數就開不了；人不夠時會集中到幾門砲上</div>
     <div><kbd>補</kbd> 預備水手平常在水線下的住艙甲板待命，也會爬梯子上別層甲板走走；砲班、送藥手、舵手倒下時，最近的水手爬梯子上去補位（交戰那一舷先補）。人數在「細節設定」，0 ＝ 沒有</div>
+    <div><kbd>水</kbd> 落水求生：船沉進水裡的那一段，砲口泡水的砲不能裝填開砲（砲列 ≈）；被水淹過頭或掉進海裡的人會浮上水面、往自己的船游，游到船邊（船夠慢）就爬上來當預備水手；自己的船在沉就往敵艦游，被撈上去就變成敵方船員；撐太久會溺水（「溺水時間」在細節設定，0 ＝ 落水當場算陣亡）</div>
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
@@ -170,7 +171,7 @@
     <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、自爆（我艦的彈藥庫由小到大一間一間引爆、船斷開沉下去 —— 相當於重開，先看煙花）、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS、全螢幕（手機用；電腦直接按 F11 也行，Esc 退出）、彈藥庫殉爆時的慢動作與特寫鏡頭（各自開關）</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
-    <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
+    <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀 <span class="g-wet">≈ 砲口泡在水裡（不能裝填、不能開）</span>；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
@@ -298,6 +299,7 @@
       <h3>船員</h3>
       <div class="row slide"><label for="crewhp">血量</label><input type="range" id="crewhp" step="10" aria-label="船員的血量"><span id="crewhpV"></span></div>
       <div class="row slide"><label for="hands">預備水手</label><input type="range" id="hands" step="5" aria-label="每艘的預備水手人數"><span id="handsV"></span></div>
+      <div class="row slide"><label for="drown">溺水時間</label><input type="range" id="drown" step="5" aria-label="落水的人撐多久會溺水（秒）"><span id="drownV"></span></div>
       <div class="row note">歸零陣亡；掉到一半以下受傷倒下；一半以上照常作戰（只閃紅）。火槍一發 40～125。</div>
       <h3>補給（火藥與彈藥）</h3>
       <div class="row slide"><label for="box">砲旁藥箱</label><input type="range" id="box" step="1" aria-label="砲旁藥箱放幾份"><span id="boxV"></span></div>
@@ -360,6 +362,7 @@
 <script src="js/40_crew.js" data-bundle="game"></script>
 <script src="js/41_crew_art.js" data-bundle="game"></script>
 <script src="js/42_hands.js" data-bundle="game"></script>
+<script src="js/43_swim.js" data-bundle="game"></script>
 <script src="js/50_sim.js" data-bundle="game"></script>
 <script src="js/51_captain.js" data-bundle="game"></script>
 <script src="js/60_render.js" data-bundle="game"></script>

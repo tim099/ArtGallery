@@ -33,7 +33,7 @@
   .chip.on{ color:#111; background:#9fc7ff; border-color:#9fc7ff; }
   #guns{ margin-top:4px; font-size:12px; }
   .gr{ font-family:Consolas,monospace; font-size:12px; letter-spacing:1px; white-space:nowrap; }
-  .g-full{ color:#8fe388; } .g-short{ color:#f2c14e; } .g-none{ color:#7d838c; } .g-dead{ color:#e0574a; }
+  .g-full{ color:#8fe388; } .g-short{ color:#f2c14e; } .g-none{ color:#7d838c; } .g-dead{ color:#e0574a; } .g-wet{ color:#7fc8ff; }
   .ico.g-full{ box-shadow:inset 0 -2px 0 #8fe388; } .ico.g-short{ box-shadow:inset 0 -2px 0 #f2c14e; } .ico.g-none{ box-shadow:inset 0 -2px 0 #7d838c; } .ico.g-dead{ box-shadow:inset 0 -2px 0 #e0574a; }
   #msg{ left:50%; top:12px; transform:translateX(-50%); font-size:14px; font-weight:700; text-align:center; width:max(280px, min(720px, calc(100vw - 520px))); line-height:1.45; }   /* 廣播：兩邊面板中間那一欄，一則一行、最多 5 行、各自淡掉（⛔ 寬到蓋住兩邊面板） */
   #msg div{ margin:1px 0 3px; transition:opacity .4s; } #msg div:last-child{ font-size:16px; }
@@ -162,6 +162,7 @@
     <div><kbd data-k="c">C</kbd> 鏡頭：我艦→敵艦（預設：我艦在中間、看向敵艦）／自由／追砲彈／看敵艦／看我艦</div>
     <div><kbd>人</kbd> 砲要有人操作：人少裝填慢，少於最少人數就開不了；人不夠時會集中到幾門砲上</div>
     <div><kbd>補</kbd> 預備水手平常在水線下的住艙甲板待命，也會爬梯子上別層甲板走走；砲班、送藥手、舵手倒下時，最近的水手爬梯子上去補位（交戰那一舷先補）。人數在「細節設定」，0 ＝ 沒有</div>
+    <div><kbd>水</kbd> 落水求生：船沉進水裡的那一段，砲口泡水的砲不能裝填開砲（砲列 ≈）；被水淹過頭或掉進海裡的人會浮上水面、往自己的船游，游到船邊（船夠慢）就爬上來當預備水手；自己的船在沉就往敵艦游，被撈上去就變成敵方船員；撐太久會溺水（「溺水時間」在細節設定，0 ＝ 落水當場算陣亡）</div>
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
@@ -170,7 +171,7 @@
     <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、自爆（我艦的彈藥庫由小到大一間一間引爆、船斷開沉下去 —— 相當於重開，先看煙花）、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS、全螢幕（手機用；電腦直接按 F11 也行，Esc 退出）、彈藥庫殉爆時的慢動作與特寫鏡頭（各自開關）</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
-    <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
+    <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀 <span class="g-wet">≈ 砲口泡在水裡（不能裝填、不能開）</span>；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
     <div><kbd>舷</kbd> 兩舷各有砲班、各自開火：齊射時對得到瞄準點的砲才開（砲門 ±26°）；▶ ＝ 那一舷對得到</div>
     <div><kbd>旗</kbd> 降旗規則在選單的「細節設定」（預設不降旗：打到沉或全員倒下）；降旗的船不再開砲</div>
     <div><kbd>血</kbd> 砲、帆、船員、火藥桶的血量，各砲種的傷害、彈種倍率與船殼硬度在「細節設定」；砲列底下的紅線 ＝ 那門砲剩下的血量</div>
@@ -298,6 +299,7 @@
       <h3>船員</h3>
       <div class="row slide"><label for="crewhp">血量</label><input type="range" id="crewhp" step="10" aria-label="船員的血量"><span id="crewhpV"></span></div>
       <div class="row slide"><label for="hands">預備水手</label><input type="range" id="hands" step="5" aria-label="每艘的預備水手人數"><span id="handsV"></span></div>
+      <div class="row slide"><label for="drown">溺水時間</label><input type="range" id="drown" step="5" aria-label="落水的人撐多久會溺水（秒）"><span id="drownV"></span></div>
       <div class="row note">歸零陣亡；掉到一半以下受傷倒下；一半以上照常作戰（只閃紅）。火槍一發 40～125。</div>
       <h3>補給（火藥與彈藥）</h3>
       <div class="row slide"><label for="box">砲旁藥箱</label><input type="range" id="box" step="1" aria-label="砲旁藥箱放幾份"><span id="boxV"></span></div>
@@ -1115,6 +1117,7 @@ var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], g
   dmg24: [10, 300, 100], dmg32l: [10, 300, 130], dmg32: [10, 300, 120], dmg18: [10, 300, 70],   // dmg32l：32 磅長砲（餘燼號）
   box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1],                                     // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
   hands: [0, 120, 40],                                                                        // 預備水手（每艘幾個人物；0 ＝ 沒有，42_hands.js）
+  drown: [0, 120, 45],                                                                        // 溺水時間（秒；落水、被水淹過頭的人撐多久，43_swim.js；0 ＝ 照以前：落水當場算陣亡）
   sea: [0, 3, 1],                                                                             // 浪的大小（08_sea.js）：0 ＝ 平靜、1 ＝ 中浪（浪高約 1–2 m）、3 ＝ 大浪
   stall: [0, 1, 1],                                                                           // 頂風失速（31_sailing.js）：0 ＝ 頂風只是慢、1 ＝ 寫實
   funspeed: [1, 3, 1.4], funagile: [1, 3, 1.5], funstall: [0, 1, 0.4],                       // 娛樂加成：玩法選「娛樂」時再乘的倍率（寫實 ＝ 都是 1）
@@ -1158,6 +1161,7 @@ var BLAST_K = qnum('blast', LIM.blast);                             // 殉爆威
 var BLAST_V = qnum('blastv', LIM.blastv);                           // 每一次爆炸（火藥桶、彈藥庫、藥包）的威力再乘 1 ± 這個數之間的亂數（23_powder.js blastRoll）
 var BOX_N = Math.round(qnum('box', LIM.box)), CARRY_N = Math.round(qnum('carry', LIM.carry));   // 砲旁藥箱容量、送藥手一次搬幾份（火藥與彈藥一份 ＝ 裝填一次）
 var HANDS = Math.round(qnum('hands', LIM.hands));                  // 預備水手：缺人手時補位（42_hands.js）
+var DROWN_T = Math.round(qnum('drown', LIM.drown));                // 落水求生：浮上水面、往自己的船游，撐這麼久（× 0.6～1.2）就溺水（43_swim.js）
 var SEA_K = qnum('sea', LIM.sea);                                   // 浪的大小（08_sea.js；物理與畫面共用）
 var WIND_K = qnum('wind', LIM.wind);                                // 帆的風壓倍率（只管物理開著時帆被吹成什麼樣子；不改航速）
 function powderNever() { return POWDER_HP >= LIM.powderhp[1]; }      // 拉滿 ＝ 不會爆：兩種玩法都是（娛樂的倍率不管它）
@@ -3815,6 +3819,7 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
   if (!sh.broken && !sh.sinkingFinal && !sh.sunk) sh.liftT = liftFor(sh.T, sh.T.disp - sh.mass0 + massLost(sh)) || 0;   // 斷了、開始沉 ⇒ 不再往上浮
   if (!sh.liftSet) { sh.lift = sh.liftT; sh.liftSet = true; }                    // 開戰那一刻直接放在浮的位置（不從設計水線慢慢浮過去）
   if (sh.fl) sh.flBase = sh.T.disp - sh.mass0 + massLost(sh);                     // 粒子模式：浮力表上水以外的部分（33_flood.js floodSinkT）
+  drownCheck(sh);                                                     // 船殼通海了 ⇒ 被水淹過頭的人浮上來（43_swim.js）
   chooseSide(sh); reassign(sh); manning(sh); callHands(sh);   // callHands：預備水手補位（42_hands.js）
   sh.able = sh.crew.filter(able).length;
   sh.gunsManned = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0; }).length;
@@ -4340,11 +4345,11 @@ function manning(sh) {
  *  ③ 借不夠的砲人放出來；空閒的人夠一整門才去開空砲，剩下的補滿留下的砲（都挑最近的）。
  *  只有換砲的人才走路。每層砲甲板（照砲的高度分，sh.decks）各自調度：憲法號 ＝ 砲甲板（長砲＋追擊砲）／上甲板（carronade）。 */
 function reassign(sh) {
-  sh.crew.forEach(function (c) { if (c.gun && (!able(c) || !c.gun.alive)) leaveGun(c); });
+  sh.crew.forEach(function (c) { if (c.gun && (!able(c) || !c.gun.alive || c.gun.wet)) leaveGun(c); });   // wet：砲口泡在水裡（43_swim.js）
   var ds2 = []; sh.decks.forEach(function (D) { ds2.push([D.key, 'S'], [D.key, 'P']); });
   ds2.forEach(function (ds) {                                          // 每層甲板、每一舷各自調度
     var deck = ds[0], side = ds[1];
-    var gs = sh.guns.filter(function (g) { return g.alive && g.side === side && gunDeck(g) === deck; });
+    var gs = sh.guns.filter(function (g) { return g.alive && !g.wet && g.side === side && gunDeck(g) === deck; });
     var men = sh.crew.filter(function (c) { return able(c) && c.role === ROLE.GUN && c.deck === deck && c.side === side; });
     var cur = new Map(); gs.forEach(function (g) { cur.set(g, 0); });
     men.forEach(function (c) { if (c.gun) cur.set(c.gun, cur.get(c.gun) + 1); });
@@ -4427,7 +4432,8 @@ function killCrew(sh, c, cause) {
 function fall(sh, c, v) {
   if (c.st >= 2 && c.st !== 2) return;
   var w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]);
-  if (c.st < 2) { if (c.st === 1) sh.wounded--; sh.dead++; sh.kills++; sh.causes['落水'] = (sh.causes['落水'] || 0) + 1; newsCrew(sh, c, true, '落水'); }
+  if (c.st < 2 && DROWN_T > 0) { if (c.st === 1) { sh.wounded--; c.hurtSwim = true; } c.fellAlive = true; }   // 落水求生（43_swim.js）：先不算陣亡，落到水裡變成在游
+  else if (c.st < 2) { if (c.st === 1) sh.wounded--; sh.dead++; sh.kills++; sh.causes['落水'] = (sh.causes['落水'] || 0) + 1; newsCrew(sh, c, true, '落水'); }
   c.st = 4; c.fw = w; c.fv = add(v || [gauss(), rr(0, 2), gauss()], sh.vel); c.t = 0; c.walk = null; c.cart = false; c.moving = false;
 }
 function stepCrew(sh, dt) {
@@ -4436,9 +4442,10 @@ function stepCrew(sh, dt) {
     c.t += dt; if (c.hitT > 0) c.hitT -= dt;            // hitT：被打中但沒倒下的閃紅
     if (c.st === 4) {                                   // 落體
       c.fv[1] -= G * dt; c.fw = add(c.fw, mul(c.fv, dt));
-      if (c.fw[1] < seaH(c.fw[0], c.fw[2], SIMT)) { if (!c.splashed) { c.splashed = true; splash(c.fw, false); } c.st = 3; }
+      if (c.fw[1] < seaH(c.fw[0], c.fw[2], SIMT)) { if (!c.splashed) { c.splashed = true; splash(c.fw, false); } if (c.fellAlive) { c.fellAlive = false; toSwim(sh, c, [c.fw[0], c.fw[1] - 1.2, c.fw[2]]); } else c.st = 3; }
       return;
     }
+    if (c.st === 5) { stepSwim(sh, c, dt); return; }      // 在水裡（43_swim.js）
     if (c.st === 1 && c.t > 12) { c.st = 3; return; }    // 傷者被抬下去
     if (c.st !== 0) return;
     if (c.role === ROLE.HAND) { stepHand(sh, c, dt); return; }   // 預備水手：走路、爬梯子、補位（42_hands.js）
@@ -4452,6 +4459,7 @@ function stepCrew(sh, dt) {
       if (c.shotT <= 0) { c.shotT = rr(4, 8); musket(sh, c); }
     }
   });
+  if (sh.xfer) swimXfer(sh);                            // 游到敵艦的人換名單（43_swim.js；跑完 forEach 才換）
 }
 /** 火槍：打對方露天的人（spar deck、桅頂），距離越遠越難中。 */
 function musket(sh, c) {
@@ -4464,7 +4472,7 @@ function musket(sh, c) {
   if (rnd() < clamp(0.05 * 100 / dist, 0.01, 0.12)) damageCrew(foe, o, rr(40, 125), '火槍');   // 血量 100 時約三成一槍斃命（跟以前的 0.3 對齊）
 }
 /** 一門砲：在崗的人數決定能不能開、裝填多快。 */
-function gunRate(g) { return g.manned >= g.crewMin ? Math.pow(Math.min(1, g.manned / g.crewFull), 0.85) : 0; }
+function gunRate(g) { return g.wet ? 0 : g.manned >= g.crewMin ? Math.pow(Math.min(1, g.manned / g.crewFull), 0.85) : 0; }
 // ── js/41_crew_art.js ──
 // ───────────────────────── 船員貼圖：替代品（程式畫）／美術（#art-crew） ─────────────────────────
 // 格子：每格 CELL_W × CELL_H（寬:高 ＝ 1:2）；列 ＝ 角色×隊伍（role*2 + team，0 藍 1 紅）；人一律朝右畫，腳底在格子底邊中間。
@@ -4647,6 +4655,7 @@ function heldItem(sh, c, f) {
 }
 /** 這個人現在在做什麼（FR）：單圖時決定程式動作，8 欄時也是選哪一格。 */
 function crewFrame(sh, c) {
+  if (c.st === 5) return c.swim && c.swim.dead ? FR.DEAD : Math.floor(c.t * 1.6) & 1 ? FR.RUN_A : FR.RUN_B;   // 在水裡：划水（43_swim.js）
   if (c.st === 2 || c.st === 4) return c.st === 4 ? FR.RUN_A : FR.DEAD;
   if (c.st === 1) return FR.WOUNDED;
   var ph = Math.floor(c.t * 2.5) & 1;
@@ -4668,6 +4677,7 @@ function crewFrame(sh, c) {
 function crewPose(sh, c, f) {
   var t = c.t, P2 = 6.2832, k = { lean: 0, bob: 0, sx: 1, sy: 1 };
   if (c.st === 4) { k.lean = t * 7; return k; }                                       // 墜落：翻滾
+  if (c.st === 5) { k.lean = c.swim && c.swim.dead ? -0.9 : 0.22 + 0.06 * Math.sin(t * 5); return k; }   // 在水裡：往前趴著划；溺水往後仰
   if (f === FR.DEAD) {                                                                // 往後倒、躺平（抬一點 ⇒ 身體不陷進甲板）
     var d = Math.min(1, t / 0.35), d2 = d * d;
     if (c.fromW) { k.lean = -0.18 + (-1.5708 + 0.18) * d2; k.sy = 0.7 + 0.3 * d; k.sx = 1.06 - 0.06 * d; k.bob = 0.18 * d; return k; }   // 受傷跪著的人：從跪姿倒下
@@ -4697,14 +4707,15 @@ var CREW_H = 2.1;                                  // 人物高（公尺）：1.
 function drawCrew() {
   var n = 0, ni = 0, fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), right = [-fw[2], 0, fw[0]], frames = CREW_COLS > 1;
   SHIPS.forEach(function (sh) {
-    if (sh.sink > 40) return;
+    var gone = sh.sink > 40;                           // 沉了：船上的不畫，在水裡的照畫（43_swim.js）
+    if (gone && !sh.swims) return;
     var team = sh.i, faceW = M4.dir(sh.M, 0, 1, 0);
     sh.crew.forEach(function (c) {
-      if (c.st === 3 || n >= BBMAX || cutHides(sh, c)) return;             // cutHides：剖面、隱藏甲板拿掉的那一邊（74_cutaway.js）
+      if (c.st === 3 || n >= BBMAX || (gone && c.st !== 5) || cutHides(sh, c)) return;             // cutHides：剖面、隱藏甲板拿掉的那一邊（74_cutaway.js）
       var art = c.art !== undefined && c.art < CREW_ROWS ? c.art : c.role;   // 船長那一列沒有 ⇒ 用職位那一列
-      var w = c.st === 4 ? c.fw : M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]), f = crewFrame(sh, c), row = art * 2 + team;
+      var w = c.st === 4 || c.st === 5 ? c.fw : M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]), f = crewFrame(sh, c), row = art * 2 + team;
       var wt = c.walk ? c.walk.to : c.hand && c.moving ? c.hand.to : null;   // 要去的那一點（預備水手：照路走、爬梯子，42_hands.js）
-      var fd = wt ? M4.dir(sh.M, wt[0] - c.pos[0], wt[1] - c.pos[1], 0) : mul(faceW, c.face), flip = dot(fd, right) < 0;
+      var fd = c.st === 5 && (c.fv[0] || c.fv[2]) ? [c.fv[0], 0, c.fv[2]] : wt ? M4.dir(sh.M, wt[0] - c.pos[0], wt[1] - c.pos[1], 0) : mul(faceW, c.face), flip = dot(fd, right) < 0;   // 在水裡：面向游的方向（世界座標）
       var col = frames ? f : 0, u0 = col / CREW_COLS, u1 = (col + 1) / CREW_COLS, v0 = row / (CREW_ROWS * 2), v1 = (row + 1) / (CREW_ROWS * 2), k = n * BBS, h = CREW_H;
       var ps = crewPose(sh, c, f), amp = frames ? 0.35 : 1;                            // 8 欄逐格：姿勢在圖裡，程式只疊輕的一層（不再躺、不再跪）
       if (frames && (f === FR.DEAD || f === FR.WOUNDED) && c.st !== 4) ps = { lean: 0, bob: 0, sx: 1, sy: 1 };
@@ -4906,7 +4917,7 @@ function handRoute(sh, from, to, x, tx) {
 /** 開戰時：建走路格、接梯子、記各職位開戰時的人數（補到這個數），在待命那一層生 HANDS 個預備水手（彼此隔 3 點以上）。 */
 function makeHands(sh, crew, add) {
   sh.nav = null;
-  if (HANDS <= 0) return;
+  if (HANDS <= 0 && DROWN_T <= 0) return;                               // 落水的人爬回船上也要走路格（43_swim.js board）
   var t0 = performance.now(), lads = shipLadders(sh.T), Ls = navLevels(sh, lads), LD = [];
   Ls.forEach(function (L) { L.N = navBuild(sh, L); });
   lads.forEach(function (l) {
@@ -4947,7 +4958,13 @@ function stepHand(sh, c, dt) {
   if (H.climb) {                                                         // 爬：沿 foot → lo → hi → head 一段一段走（三維）
     var P = H.climb.pts, to = P[H.climb.k], d = sub(to, c.pos), l = len(d), s = CLIMB_SP[fast] * dt;
     c.moving = true; H.to = to;
-    if (l <= s) { c.pos = to.slice(); if (++H.climb.k >= P.length) { H.lv = H.climb.lv; c.deck = NV.levels[H.lv].key; H.climb = null; c.moving = false; } }
+    if (l <= s) {
+      c.pos = to.slice();
+      if (++H.climb.k >= P.length) {
+        H.lv = H.climb.lv; c.deck = NV.levels[H.lv].key; H.climb = null; c.moving = false;
+        if (c.backRole !== undefined) { c.role = c.backRole; c.backRole = undefined; c.hand = null; c.home = c.pos.slice(); }   // 爬回船上的軍官、陸戰隊（43_swim.js board）：回原職
+      }
+    }
     else c.pos = add(c.pos, mul(d, s / l));
     return;
   }
@@ -5002,7 +5019,7 @@ function callHands(sh) {
   sh.decks.forEach(function (D) {
     var lv = lvOf(NV.levels, D.zr[0]); if (NV.reach.indexOf(lv) < 0) return;
     ['S', 'P'].forEach(function (side) {
-      var gs = sh.guns.filter(function (g) { return g.alive && g.deck === D.key && g.side === side; }); if (!gs.length) return;
+      var gs = sh.guns.filter(function (g) { return g.alive && !g.wet && g.deck === D.key && g.side === side; }); if (!gs.length) return;
       var want = Math.min(NV.gun0[D.key + side] || 0, gs.reduce(function (a, g) { return a + g.crewFull; }, 0));
       var have = sh.crew.filter(function (c) { return c.role === ROLE.GUN && able(c) && c.deck === D.key && c.side === side; }).length;
       var n = want - have - (going['gun' + D.key + side] || 0), wx = 0, ww = 0;
@@ -5048,6 +5065,134 @@ function handsText(sh) {
   if (!sh.nav) return '';
   var h = sh.crew.filter(function (c) { return c.role === ROLE.HAND && able(c); }), go = h.filter(function (c) { return c.hand.job; }).length;
   return '　預備 ' + (h.length - go) + (go ? '（補位中 ' + go + '）' : '');
+}
+// ── js/43_swim.js ──
+// ───────────────────────── 落水求生（水淹過頭 ⇒ 浮上水面、往自己的船游、太久溺水） ─────────────────────────
+// Tim 2026-10-13：水完全淹沒水手時讓他漂浮到水面上，然後可以嘗試游回船上，太久會溺水。
+// Tim（TASK-0536）：主要是要處理「船沉到水中的那一段，船員還能裝填、開砲」。
+// 什麼時候算「淹過頭」（drownCheck，每半秒 survey）：頭頂（腳底往上 1.7 m）低於當地的海面，而且那一層通海 ——
+//   砲甲板以上（有砲門）一律通；住艙以下（封閉）⇒ 船開始沉、沉了或斷了才算 —— 之前艙內那一格的水滿了九成（粒子模式）⇒ 預備水手往上一層躲（evacuate），
+//   待命的那一層也搬上去（⛔ 也當成落水 ⇒ 艙內的人穿過船殼浮到海面、再游回船邊爬上來）；
+//   每 2 秒查一次（Tim：效能為主，只是避免太離譜 —— 每四次 survey 一次）、連兩次都在水下才算（⛔ 一次就算 ⇒ 暴風雨的浪頭掃過就有人平白落水）；
+//   從高處掉下去（fall：桅倒、甲板被打穿、斷開的那一團）落到海裡也一樣 —— 細節設定「溺水時間」0 ⇒ 照以前（落水當場算陣亡、淹到的跟著船沉）。
+//   ⚠ 船殼完好、只是艙內進水淹到人：還沒做（艙內的水面在甲板之間，往上浮會撞到上一層甲板）。
+// 在水裡（c.st 5，世界座標 c.fw，跟墜落一樣不跟著船走）：先浮上來（SWIM_UP），到水面露出頭肩（腳在水面下 SWIM_SUB）、跟著浪起伏，
+//   往自己的船游（SWIM_SP）：船舷水線那一點（同一個 x、靠自己這一舷）；到了 SWIM_REACH 內、船速低於 SWIM_GRAB ⇒ 沿船舷爬上最上面那層甲板（42_hands.js 的爬法），
+//   軍官、陸戰隊回原職，其他人當預備水手（之後照常被派去補位）。船開得比人游得快 ⇒ 追不上。
+//   自己的船在沉、沉了或斷了 ⇒ 往敵艦游（TASK-0536，Tim：可以到敵艦上變成敵方船員）：爬上去 ⇒ 從原本那艘的船員名單移到敵艦的（隊色、調度都換），
+//   當敵艦的預備水手；兩艘都上不去 ⇒ 只能踩水。換邊在那一艘的每一步跑完才做（swimXfer；⛔ 邊跑 forEach 邊改陣列 ⇒ 下一個人被跳過）。
+//   撐的時間 ＝ 溺水時間 × 0.6～1.2（受傷的再減半）；到了 ⇒ 溺水（算陣亡，原因「溺水」），沉下去。
+// 在水裡的不算「還能動的」（降旗的死傷 % 照算）、打不到也不會被打（hurt／火槍只看甲板上的）。
+var SWIM_UP = 1.2, SWIM_SP = 1.1, SWIM_SUB = 1.5, SWIM_REACH = 1.6, SWIM_HEAD = 17, SWIM_GRAB = 3;   // SWIM_GRAB：船速（m/s）超過這個抓不住船殼（⛔ 不限 ⇒ 7.7 節開著走，推下去 6 個爬回 5 個）
+/** 變成在水裡（w ＝ 腳的世界座標）：離開砲與藥包；受傷的不再算在「傷」裡（在水裡另算）。 */
+function toSwim(sh, c, w) {
+  if (c.st === 1) { sh.wounded--; c.hurtSwim = true; }
+  c.walk = null; c.moving = false; c.cart = false; leaveGun(c);
+  sh.guns.forEach(function (g) { if (g.pm === c) g.pm = null; });     // 送藥手：那幾門砲改由同一層別的送藥手送（⛔ 留著 ⇒ 人換到敵艦後照樣「能動」，這幾門砲沒人送）
+  c.swim = { t: 0, life: DROWN_T * rr(0.6, 1.2) * (c.hurtSwim ? 0.5 : 1), dead: false, role: c.role, no: [] };
+  c.st = 5; c.fw = w.slice(); c.fv = [0, 0, 0];
+  sh.swims = (sh.swims || 0) + 1;
+}
+/** 每 2 秒（survey 每四次一次）：頭頂連兩次在海面下、而且那一層通海的人變成在水裡；砲口連兩次在海面下的砲浸水（gunWet）。 */
+function drownCheck(sh) {
+  if (DROWN_T <= 0 || (sh.dkN = (sh.dkN || 0) + 1) % 4) return;           // 每 2 秒一次
+  gunWet(sh);
+  var open = sh.sinkingFinal || sh.sunk || sh.broken, low = sh.decks.length ? sh.decks[0].zr[0] : -1e9, fl = sh.fl;
+  sh.crew.forEach(function (c) {
+    if (c.st > 1) return;
+    var h = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2] + SWIM_HEAD);
+    if (h[1] >= seaH(h[0], h[2], SIMT)) { c.wetN = 0; return; }
+    if (open || c.pos[2] >= low) { if ((c.wetN = (c.wetN || 0) + 1) >= 2) toSwim(sh, c, M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2])); return; }   // 砲甲板以上有砲門 ⇒ 通海
+    var i = fl ? flCell(fl.F, c.pos[0], c.pos[1], c.pos[2] + SWIM_HEAD) : -1;   // 住艙以下：艙內那一格的水滿了九成（公式模式看不到艙內的水 ⇒ 不管）
+    if (!(i >= 0 && fl.cap[i] > 0.02 && fl.A[i] >= 0.9 * fl.cap[i] * Math.pow(fl.F.c * S, 3))) { c.wetN = 0; return; }
+    if ((c.wetN = (c.wetN || 0) + 1) < 2) return;
+    if (c.role === ROLE.HAND && sh.nav) evacuate(sh, c); else toSwim(sh, c, M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]));
+  });
+}
+/** 艙內淹過頭的預備水手：往上一層（梯子）躲；淹了的那一層不再去（走得到的層拿掉它），待命的是那一層 ⇒ 改成上一層。在爬、在去補位的照走（補位一定往上）。 */
+function evacuate(sh, c) {
+  var NV = sh.nav, H = c.hand, lv = H.lv, up = -1;
+  NV.reach.forEach(function (i) { if (NV.levels[i].zr[0] > NV.levels[lv].zr[1] && (up < 0 || i < up)) up = i; });
+  if (up < 0) { toSwim(sh, c, M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2])); return; }
+  if (NV.reach.indexOf(lv) >= 0) { NV.reach = NV.reach.filter(function (i) { return i !== lv; }); NV.flooded = (NV.flooded || []).concat([lv]); }
+  if (NV.home === lv) NV.home = up;
+  c.wetN = 0;
+  if (H.climb || H.job || (H.legs.length && H.legs[H.legs.length - 1].w !== lv)) return;   // 已經在往上走
+  var legs = handRoute(sh, lv, up, c.pos[0], c.pos[0]);
+  H.wp = null; c.moving = false; H.legs = legs || []; H.wait = rr(2, 5);
+}
+/** 砲浸水（TASK-0536）：砲口連兩次在海面下 ⇒ 浸水（g.wet：不能裝填、不能開，砲班離開；藥箱的火藥濕了、裝好的要重裝）；連兩次在海面上 ⇒ 乾了（等送藥手送火藥再裝）。 */
+function gunWet(sh) {
+  sh.guns.forEach(function (g) {
+    if (!g.alive) return;
+    var w = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), under = w[1] < seaH(w[0], w[2], SIMT);
+    g.wetN = under ? Math.min(2, (g.wetN || 0) + 1) : Math.max(0, (g.wetN || 0) - 1);
+    if (!g.wet && g.wetN >= 2) { g.wet = true; g.box = 0; g.needCart = true; if (!(g.reload > 0)) g.reload = sh.reloadT * GUNS[g.type].reload; sh.wetGuns = (sh.wetGuns || 0) + 1; }
+    else if (g.wet && g.wetN === 0) g.wet = false;
+  });
+}
+/** 往哪裡游：自己的船還浮著 ⇒ 船舷水線上、同一個 x（夾在船身裡）、靠自己這一舷那一點（世界座標）；在沉、沉了、斷了 ⇒ null。 */
+function boardPoint(sh, w) {
+  if (sh.sinkingFinal || sh.sunk || sh.broken) return null;
+  var T = sh.T, l = toLocal(sh, w), x = clamp(Math.round(l[0]), T.wl0 + 30, T.wl1 - 30), hb = T.hullHB[T.zw * T.hullTW + x] || 20, s = l[1] >= T.cy ? 1 : -1;
+  return M4.pt(sh.M, x, T.cy + s * (hb + 2), T.zw);
+}
+/** 每一步：浮上來 → 踩水、往船游 → 到了爬上去；撐不住 ⇒ 溺水、沉下去。 */
+function stepSwim(sh, c, dt) {
+  var S2 = c.swim, w = c.fw, top = seaH(w[0], w[2], SIMT) - SWIM_SUB;
+  S2.t += dt;
+  if (S2.dead) { w[1] -= 0.8 * dt; if (S2.t > S2.life + 4) c.st = 3; return; }
+  if (S2.t > S2.life) { drown(sh, c); return; }
+  if (w[1] < top - 0.05) { w[1] = Math.min(top, w[1] + SWIM_UP * dt); c.fv = [0, 1, 0]; return; }
+  w[1] = top + 0.06 * Math.sin(c.t * 2.4);
+  var foe = SHIPS[1 - sh.i], dst = S2.no.indexOf(sh) < 0 && boardPoint(sh, w) ? sh : foe && S2.no.indexOf(foe) < 0 && boardPoint(foe, w) ? foe : null;   // 自己的船優先，上不去才往敵艦
+  if (!dst) { c.fv = [0, 0, 0]; return; }
+  var p = boardPoint(dst, w), dx = p[0] - w[0], dz = p[2] - w[2], d = Math.hypot(dx, dz);
+  if (d < SWIM_REACH && Math.abs(dst.spd) < SWIM_GRAB) {                 // 船太快 ⇒ 抓不住，跟在旁邊游（船慢下來才爬得上去）
+    if (dst === sh) { if (board(sh, c, true)) { sh.saved = (sh.saved || 0) + 1; note(sh, '一個落水的水手爬回船上了'); } else S2.no.push(sh); }
+    else if (!S2.xfer) { S2.xfer = true; (sh.xfer = sh.xfer || []).push(c); }   // 敵艦：這一步跑完再換名單（swimXfer）
+    return;
+  }
+  var s = Math.min(d, SWIM_SP * dt); w[0] += dx / d * s; w[2] += dz / d * s; c.fv = [dx / d, 0, dz / d];
+}
+/** 溺水：算陣亡（原因「溺水」），之後沉下去 4 秒才不畫。 */
+function drown(sh, c) {
+  c.swim.dead = true; c.swim.t = c.swim.life; c.fv = [0, -1, 0];
+  sh.dead++; sh.kills++; sh.causes['溺水'] = (sh.causes['溺水'] || 0) + 1; newsCrew(sh, c, true, '溺水');
+}
+/** 爬上船 sh：沿船舷往上爬到最上面那層甲板、跨進來站到走路格上那一點（42_hands.js stepHand 的爬法，船的格座標 ⇒ 跟著船走）。
+ *  own（自己的船）⇒ 軍官、陸戰隊爬完回原職；其他人、還有被敵艦撈起的都當預備水手。走路格接不上（舷邊 3 m 內沒有站得住的點）⇒ 回 false、不爬。 */
+function board(sh, c, own) {
+  var NV = sh.nav, l = toLocal(sh, c.fw), lv = NV && sh.weatherDeck ? lvOf(NV.levels, sh.deckZ[sh.weatherDeck][0]) : -1;
+  if (lv < 0) return false;
+  var T = sh.T, N = NV.levels[lv].N, zr = NV.levels[lv].zr, s = l[1] >= T.cy ? 1 : -1, hb = T.hullHB[T.zw * T.hullTW + clamp(Math.round(l[0]), 0, T.hullTW - 1)] || 20;
+  var ci = navSnap(N, [l[0], T.cy + s * Math.max(4, hb - 10), zr[0] + 3], 16);
+  if (ci < 0) return false;
+  var dest = navPos(N, ci), r = c.swim.role;
+  if (c.art === undefined) c.art = r;                                   // 貼圖照原本的職位那一列（換成 HAND 之後 c.role 是 6 ＝ 船長那一列）；隊色照畫它的那艘
+  c.backRole = own && (r === ROLE.OFFICER || r === ROLE.MARINE) ? r : undefined;
+  c.role = ROLE.HAND; c.gun = null; c.st = 0; c.swim = null; c.hurtSwim = false; c.hp = Math.max(c.hp, CREW_HP * 0.5);   // 救上來的照常能動（傷的撐在一半）
+  c.pos = [l[0], l[1], l[2]]; c.deck = NV.levels[lv].key;
+  var sy = T.cy + s * (hb + 1);                                         // 先貼到船殼（水線那一層的外緣），再沿船殼往上爬、跨進來（⛔ 從游到的那一點直直往上 ⇒ 離船殼 1.8 m 的半空中爬）
+  c.hand = { lv: lv, wait: rr(1, 3), legs: [], wp: null, k: 0, climb: { pts: [c.pos.slice(), [l[0], sy, l[2]], [l[0], sy, dest[2] + 3], dest], k: 0, lv: lv }, job: null, to: null };
+  return true;
+}
+/** 那一艘的每一步跑完（stepCrew）：游到敵艦舷邊的人爬上敵艦、從這艘的名單移到敵艦的（爬不上去 ⇒ 留在水裡、不再往敵艦游）。 */
+function swimXfer(sh) {
+  var foe = SHIPS[1 - sh.i], L = sh.xfer; sh.xfer = null;
+  L.forEach(function (c) {
+    var i = sh.crew.indexOf(c); if (i < 0 || c.st !== 5) return;
+    c.swim.xfer = false;
+    if (!foe || !board(foe, c, false)) { c.swim.no.push(foe); return; }
+    sh.crew.splice(i, 1); foe.crew.push(c);
+    sh.lostTo = (sh.lostTo || 0) + 1; foe.gained = (foe.gained || 0) + 1;
+    note(sh, '一個落水的水手被敵艦撈走了'); note(foe, '撈起一個敵艦的落水水手（加入我方）');
+  });
+}
+/** HUD 一段：現在在水裡的（還沒溺水的）。 */
+function swimText(sh) {
+  var n = sh.swims ? sh.crew.filter(function (c) { return c.st === 5 && !c.swim.dead; }).length : 0;
+  return n ? '　<span style="color:#7fc8ff">落水 ' + n + '</span>' : '';
 }
 // ── js/50_sim.js ──
 // ───────────────────────── 電腦 ─────────────────────────
@@ -5545,7 +5690,7 @@ var NEWS_WIN = 5;                                  // 傷亡廣播的時間區�
 /** 普通水手（砲手）以外的人倒下：船長、軍官、舵手 ⇒ 當下各報一則（船長 ＝ 重要）；陸戰隊、桅頂水手、送藥手 ⇒ 記著，併進 5 秒那一行（人多，一個一個報會洗版）。 */
 function newsCrew(sh, c, dead, cause) {
   if (c.role === ROLE.GUN) return;
-  var cap = c.art === ART_CAPTAIN, how = dead ? (cause === '落水' ? '落水' : '陣亡') : '受傷倒下', why = cause && cause !== '落水' ? '（' + cause + '）' : '';
+  var cap = c.art === ART_CAPTAIN, how = dead ? (cause === '落水' || cause === '溺水' ? cause : '陣亡') : '受傷倒下', why = cause && cause !== '落水' && cause !== '溺水' ? '（' + cause + '）' : '';
   if (cap) { note(sh, '<b style="color:var(--gold)">船長' + how + '！</b>' + why, true); return; }
   if (c.role === ROLE.OFFICER || c.role === ROLE.HELM) {
     var left = sh.crew.filter(function (o) { return o.role === c.role && able(o); }).length, nm = ROLE_NAME[c.role];
@@ -5603,7 +5748,7 @@ function panel(sh, title) {
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
     ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
     capText(sh) + '<br>' +
-    '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）' + handsText(sh) + '　' + supplyText(sh) + '<br>' +
+    '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）' + handsText(sh) + swimText(sh) + '　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
 }
 /** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
@@ -5611,12 +5756,12 @@ function panel(sh, title) {
  *  面板兩舷都列 ⇒ 觀戰也看得到、沒在用的那一舷壞了幾門也看得到。 */
 function gunRow(sh, side) {
   function cell(g) {
-    var st = !g.alive ? 'dead' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
-    var k = !g.alive ? 3 : gunRate(g) <= 0 ? 2 : g.needCart && !(g.box > 0) ? 4 : g.reload > 0 ? 1 : 0;   // 4 ＝ 等火藥與彈藥（藥箱空了）
+    var st = !g.alive ? 'dead' : g.wet ? 'wet' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
+    var k = !g.alive ? 3 : g.wet ? 5 : gunRate(g) <= 0 ? 2 : g.needCart && !(g.box > 0) ? 4 : g.reload > 0 ? 1 : 0;   // 4 ＝ 等火藥與彈藥（藥箱空了）
     var hp = !g.alive ? 0 : Math.max(0, g.model.hp / g.model.hpMax), hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的血量）
     var cls = 'g-' + st + (hurt ? ' hp' : ''), sty = hurt ? '--hp:' + Math.round(hp * 100) + '%;' : '';
-    if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
-    return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△'[k] + '</span>';
+    if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k === 5 ? 2 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
+    return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
   }
   var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); });   // 每層砲甲板一段（由下往上）
   var foe = SHIPS[1 - sh.i], w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
@@ -5743,7 +5888,7 @@ function checkEnd() {
 // 什麼時候存：每秒比一次（跟上次存的不一樣才寫）＋ 關頁、切到背景時。全部回到預設 ⇒ 刪掉那一筆。
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
-  'box', 'carry', 'hands', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
+  'box', 'carry', 'hands', 'drown', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
   'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
@@ -5762,7 +5907,7 @@ function prefsSnap() {
   });
   if (Object.keys(cfg).length) o.cfg = cfg;
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
-  put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('wind', WIND_K, LIM.wind[2]);
+  put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('wind', WIND_K, LIM.wind[2]);
   put('weather', WX_ID, 'clear'); put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, 'fun'); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]); put('funpowder', FUN.powder, LIM.funpowder[2]);
   var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
   if (Object.keys(dm).length) o.dmg = dm;
@@ -5797,6 +5942,7 @@ function prefsApply(p) {
   set('box', p.box, LIM.box, true, function (x) { BOX_N = x; });
   set('carry', p.carry, LIM.carry, true, function (x) { CARRY_N = x; });
   set('hands', p.hands, LIM.hands, true, function (x) { HANDS = x; });
+  set('drown', p.drown, LIM.drown, true, function (x) { DROWN_T = x; });
   set('wind', p.wind, LIM.wind, false, function (x) { WIND_K = x; });
   if (!Q.has('play') && (p.play === 'fun' || p.play === 'real')) PLAY = p.play;
   set('stall', p.stall, LIM.stall, false, function (x) { STALL_K = x; });
@@ -6075,10 +6221,10 @@ var CFG_ID = SHIP_SET[0];                              // 細節設定的「船�
 var SLIDERS_SHOW = null;                               // 載入完（HYD 算好）再顯示一次 ⇒ 減重上浮的例子有數字
 function sliders() {
   var lf = $('ballast'), f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), gh = $('gunhp'), gw = $('gunw'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), bv = $('blastv'), ch = $('crewhp');
-  var dm = { long: $('dmg24'), long32: $('dmg32l'), carr: $('dmg32'), chase: $('dmg18') }, DLIM = { long: LIM.dmg24, long32: LIM.dmg32l, carr: LIM.dmg32, chase: LIM.dmg18 }, bx = $('box'), cy = $('carry'), wk = $('wind'), hd = $('hands');
+  var dm = { long: $('dmg24'), long32: $('dmg32l'), carr: $('dmg32'), chase: $('dmg18') }, DLIM = { long: LIM.dmg24, long32: LIM.dmg32l, carr: LIM.dmg32, chase: LIM.dmg18 }, bx = $('box'), cy = $('carry'), wk = $('wind'), hd = $('hands'), dr = $('drown');
   var st = $('stall'), fs = $('funspeed'), fa = $('funagile'), fl = $('funstall'), fp = $('funpowder'), se = $('sea');   // 頂風失速、娛樂加成、浪
   [[se, 'sea'], [st, 'stall'], [fs, 'funspeed'], [fa, 'funagile'], [fl, 'funstall'], [fp, 'funpowder']].forEach(function (e) { e[0].min = LIM[e[1]][0]; e[0].max = LIM[e[1]][1]; });
-  hd.min = LIM.hands[0]; hd.max = LIM.hands[1];
+  hd.min = LIM.hands[0]; hd.max = LIM.hands[1]; dr.min = LIM.drown[0]; dr.max = LIM.drown[1];
   bx.min = LIM.box[0]; bx.max = LIM.box[1]; cy.min = LIM.carry[0]; cy.max = LIM.carry[1]; wk.min = LIM.wind[0]; wk.max = LIM.wind[1];
   // 硬度跨 40 倍 ⇒ 對數刻度：滑桿 0..1 ↔ 硬度 LIM 下限 × (上限／下限)^v
   var hk = Math.log(LIM.hard[1] / LIM.hard[0]);
@@ -6095,7 +6241,7 @@ function sliders() {
     lf.value = k.ballast !== undefined ? k.ballast : LIM.ballast[2]; f.value = k.flood; h.value = Math.log(k.hard / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = k.speed; ag.value = k.agile;
     gh.value = GUN_HP; gw.value = k.gunw; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; bv.value = Math.round(BLAST_V * 100); ch.value = CREW_HP;
     for (var t in dm) dm[t].value = DMG[t];
-    bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K; hd.value = HANDS;
+    bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K; hd.value = HANDS; dr.value = DROWN_T;
     se.value = SEA_K; st.value = STALL_K; fs.value = FUN.speed; fa.value = FUN.agile; fl.value = FUN.stall; fp.value = FUN.powder;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
     ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
@@ -6126,6 +6272,7 @@ function sliders() {
     var r0 = MAG_R * Math.pow(BLAST_K * (1 - BLAST_V), 1 / 3) * (S || 0.1), r1 = MAG_R * Math.pow(BLAST_K * (1 + BLAST_V), 1 / 3) * (S || 0.1);
     $('blastvV').textContent = BLAST_V <= 0 ? '0（每次一樣）' : '±' + Math.round(BLAST_V * 100) + '%（前彈藥庫半徑 ' + r0.toFixed(1) + '～' + r1.toFixed(1) + ' m）';
     $('boxV').textContent = BOX_N + ' 份（開戰時裝滿）';
+    $('drownV').textContent = DROWN_T ? '約 ' + DROWN_T + ' 秒（浮上水面、往自己的船游，爬回來當預備水手；受傷的減半）' : '0（關：落水當場算陣亡、淹到的跟著船沉）';
     $('handsV').textContent = HANDS ? '每艘 ' + HANDS + ' 人（在住艙甲板待命，缺人手時補位）' : '0（沒有：倒下的位子不補）';
     $('windV').textContent = WIND_K.toFixed(2) + '×（帆上的風約 ' + (WIND_SAIL * WIND_K).toFixed(0) + ' m/s，陣風 ±' + Math.round(GUST[0] * 100) + '%）';
     $('carryV').textContent = CARRY_N + ' 份' + (CARRY_N > BOX_N ? '（比藥箱多 ⇒ 一趟送好幾門）' : '');
@@ -6134,7 +6281,7 @@ function sliders() {
     $('strikeV').textContent = strikeText();
     var amDef = AMMO_K.every(function (r, i) { return r.every(function (v, j) { return v === AMMO_K0[i][j]; }); });
     $('detV').textContent = '玩法 ' + (PLAY === 'fun' ? '娛樂（航速 ×' + FUN.speed.toFixed(2) + '、靈活 ×' + FUN.agile.toFixed(2) + '、頂風失速 ' + Math.round(SK * 100) + '%）' : '寫實（頂風失速 ' + Math.round(SK * 100) + '%）') + '・天氣 ' + WX.name + '・浪 ' + (SEA_K > 0 ? SEA_K.toFixed(2) + '×' : '平靜') + '・' + SHIP_SET.filter(function (id, i, a) { return a.indexOf(id) === i; }).map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×'; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
-      '・傷害 ' + DMG.long + '／' + DMG.long32 + '／' + DMG.carr + '／' + DMG.chase + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N + '・預備水手 ' + HANDS +
+      '・傷害 ' + DMG.long + '／' + DMG.long32 + '／' + DMG.carr + '／' + DMG.chase + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N + '・預備水手 ' + HANDS + '・溺水 ' + (DROWN_T ? DROWN_T + ' 秒' : '關') +
       '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + powderHP() + '、殉爆 ' + BLAST_K.toFixed(2) + '×' + (BLAST_V > 0 ? ' ±' + Math.round(BLAST_V * 100) + '%' : '')) + '・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
   }
   lf.oninput = function () { C().ballast = Math.round(+lf.value); show(); };
@@ -6153,6 +6300,7 @@ function sliders() {
   bx.oninput = function () { BOX_N = Math.round(+bx.value); show(); };
   cy.oninput = function () { CARRY_N = Math.round(+cy.value); show(); };
   hd.oninput = function () { HANDS = Math.round(+hd.value); show(); };
+  dr.oninput = function () { DROWN_T = Math.round(+dr.value); show(); };
   st.oninput = function () { STALL_K = +st.value; show(); };
   se.oninput = function () { SEA_K = +se.value; show(); };
   fs.oninput = function () { FUN.speed = +fs.value; show(); }; fa.oninput = function () { FUN.agile = +fa.value; show(); }; fl.oninput = function () { FUN.stall = +fl.value; show(); }; fp.oninput = function () { FUN.powder = +fp.value; show(); };
@@ -6181,7 +6329,7 @@ function sliders() {
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
     SHIP_CFG = {}; Object.keys(HULLT).forEach(function (id) { var c = shipCfg(id); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? HULLT[id].ballast0 : LIM[k][2]; }); });   // 每一型回到它的預設（壓艙物 ＝ 剛好在設計水線）
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; BLAST_V = LIM.blastv[2]; CREW_HP = LIM.crewhp[2];
-    DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2];
+    DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2]; DROWN_T = LIM.drown[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     SEA_K = LIM.sea[2]; STALL_K = LIM.stall[2]; FUN.speed = LIM.funspeed[2]; FUN.agile = LIM.funagile[2]; FUN.stall = LIM.funstall[2]; FUN.powder = LIM.funpowder[2];
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
@@ -6489,7 +6637,7 @@ function cutSet(prog, ow) {
 }
 /** 這個人在拿掉的那一邊？（drawCrew；墜落中的不管） */
 function cutHides(sh, c) {
-  if (!cutOn() || c.st === 4) return false;
+  if (!cutOn() || c.st === 4 || c.st === 5) return false;
   var p = c.pos;
   if (CUTV.half && cutSide(sh) * (p[1] - sh.T.cy) > 0) return true;
   if (CUTV.deck > 0) { var D = deckCut(sh); if (D.n && p[2] >= D.rows[Math.min(CUTV.deck, D.n) - 1][clamp(Math.floor(p[0]), 0, D.W - 1)]) return true; }
@@ -6630,6 +6778,19 @@ if (DEBUG) window.__game = {
     return { n: hs.length, states: st, on: on, called: H.called, joined: H.joined, ms: +H.ms.toFixed(1), home: H.levels[H.home].key, reach: H.reach.map(function (j) { return H.levels[j].key; }), gun0: H.gun0, pm0: H.pm0, helm0: H.helm0,
       levels: H.levels.map(function (L) { return { key: L.key, name: L.name, zr: L.zr, cells: L.N.cells.length, parts: L.N.parts }; }),
       ladders: H.ladders.map(function (L) { return { name: L.name, from: H.levels[L.lo].key, to: H.levels[L.hi].key, x: Math.round(L.x), used: L.n }; }) };
+  },
+  /** 落水求生的讀數（43_swim.js）：現在在水裡幾個（浮上來中／在游／在踩水／溺水沉下去中）、累計落水、救上來、溺水、被敵艦撈走／撈起敵艦的、名單上幾個人。 */
+  swim: function (i) {
+    var sh = SHIPS[i || 0], st = {};
+    sh.crew.forEach(function (c) { if (c.st !== 5) return; var k = c.swim.dead ? 'sinking' : c.fv[1] > 0 ? 'rising' : c.fv[0] || c.fv[2] ? 'swimming' : 'treading'; st[k] = (st[k] || 0) + 1; });
+    return { now: st, total: sh.swims || 0, saved: sh.saved || 0, drowned: sh.causes['溺水'] || 0, lostTo: sh.lostTo || 0, gained: sh.gained || 0, crew: sh.crew.length, drownT: DROWN_T };
+  },
+  /** 量落水用：第 i 艘最上面那層甲板上還能動的人，挑最靠舷邊的 n 個推下海（往舷外 3 m/s）。 */
+  overboard: function (i, n) {
+    var sh = SHIPS[i || 0], cy = sh.T.cy, out = sh.crew.filter(function (c) { return c.st === 0 && c.pos[2] >= sh.deckZ[sh.weatherDeck][0]; })
+      .sort(function (a, b) { return Math.abs(b.pos[1] - cy) - Math.abs(a.pos[1] - cy); }).slice(0, n || 1);
+    out.forEach(function (c) { var s = c.pos[1] >= cy ? 1 : -1; fall(sh, c, add(mul(norm(M4.dir(sh.M, 0, s, 0)), 3), [0, 2, 0])); });
+    return out.length;
   },
   /** 補給的讀數：送藥手各自在做什麼、每門砲的藥箱。 */
   supply: function (i) { var sh = SHIPS[i]; var pm = sh.crew.filter(function (c) { return c.role === ROLE.POWDER; });

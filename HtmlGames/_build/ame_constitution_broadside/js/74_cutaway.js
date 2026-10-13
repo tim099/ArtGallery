@@ -75,7 +75,7 @@ function cutSet(prog, ow) {
 }
 /** 這個人在拿掉的那一邊？（drawCrew；墜落中的不管） */
 function cutHides(sh, c) {
-  if (!cutOn() || c.st === 4) return false;
+  if (!cutOn() || c.st === 4 || c.st === 5) return false;
   var p = c.pos;
   if (CUTV.half && cutSide(sh) * (p[1] - sh.T.cy) > 0) return true;
   if (CUTV.deck > 0) { var D = deckCut(sh); if (D.n && p[2] >= D.rows[Math.min(CUTV.deck, D.n) - 1][clamp(Math.floor(p[0]), 0, D.W - 1)]) return true; }

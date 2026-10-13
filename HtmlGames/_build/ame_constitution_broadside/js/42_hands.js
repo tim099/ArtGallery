@@ -157,7 +157,7 @@ function handRoute(sh, from, to, x, tx) {
 /** 開戰時：建走路格、接梯子、記各職位開戰時的人數（補到這個數），在待命那一層生 HANDS 個預備水手（彼此隔 3 點以上）。 */
 function makeHands(sh, crew, add) {
   sh.nav = null;
-  if (HANDS <= 0) return;
+  if (HANDS <= 0 && DROWN_T <= 0) return;                               // 落水的人爬回船上也要走路格（43_swim.js board）
   var t0 = performance.now(), lads = shipLadders(sh.T), Ls = navLevels(sh, lads), LD = [];
   Ls.forEach(function (L) { L.N = navBuild(sh, L); });
   lads.forEach(function (l) {
@@ -198,7 +198,13 @@ function stepHand(sh, c, dt) {
   if (H.climb) {                                                         // 爬：沿 foot → lo → hi → head 一段一段走（三維）
     var P = H.climb.pts, to = P[H.climb.k], d = sub(to, c.pos), l = len(d), s = CLIMB_SP[fast] * dt;
     c.moving = true; H.to = to;
-    if (l <= s) { c.pos = to.slice(); if (++H.climb.k >= P.length) { H.lv = H.climb.lv; c.deck = NV.levels[H.lv].key; H.climb = null; c.moving = false; } }
+    if (l <= s) {
+      c.pos = to.slice();
+      if (++H.climb.k >= P.length) {
+        H.lv = H.climb.lv; c.deck = NV.levels[H.lv].key; H.climb = null; c.moving = false;
+        if (c.backRole !== undefined) { c.role = c.backRole; c.backRole = undefined; c.hand = null; c.home = c.pos.slice(); }   // 爬回船上的軍官、陸戰隊（43_swim.js board）：回原職
+      }
+    }
     else c.pos = add(c.pos, mul(d, s / l));
     return;
   }
@@ -253,7 +259,7 @@ function callHands(sh) {
   sh.decks.forEach(function (D) {
     var lv = lvOf(NV.levels, D.zr[0]); if (NV.reach.indexOf(lv) < 0) return;
     ['S', 'P'].forEach(function (side) {
-      var gs = sh.guns.filter(function (g) { return g.alive && g.deck === D.key && g.side === side; }); if (!gs.length) return;
+      var gs = sh.guns.filter(function (g) { return g.alive && !g.wet && g.deck === D.key && g.side === side; }); if (!gs.length) return;
       var want = Math.min(NV.gun0[D.key + side] || 0, gs.reduce(function (a, g) { return a + g.crewFull; }, 0));
       var have = sh.crew.filter(function (c) { return c.role === ROLE.GUN && able(c) && c.deck === D.key && c.side === side; }).length;
       var n = want - have - (going['gun' + D.key + side] || 0), wx = 0, ww = 0;

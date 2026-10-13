@@ -105,11 +105,11 @@ function manning(sh) {
  *  ③ 借不夠的砲人放出來；空閒的人夠一整門才去開空砲，剩下的補滿留下的砲（都挑最近的）。
  *  只有換砲的人才走路。每層砲甲板（照砲的高度分，sh.decks）各自調度：憲法號 ＝ 砲甲板（長砲＋追擊砲）／上甲板（carronade）。 */
 function reassign(sh) {
-  sh.crew.forEach(function (c) { if (c.gun && (!able(c) || !c.gun.alive)) leaveGun(c); });
+  sh.crew.forEach(function (c) { if (c.gun && (!able(c) || !c.gun.alive || c.gun.wet)) leaveGun(c); });   // wet：砲口泡在水裡（43_swim.js）
   var ds2 = []; sh.decks.forEach(function (D) { ds2.push([D.key, 'S'], [D.key, 'P']); });
   ds2.forEach(function (ds) {                                          // 每層甲板、每一舷各自調度
     var deck = ds[0], side = ds[1];
-    var gs = sh.guns.filter(function (g) { return g.alive && g.side === side && gunDeck(g) === deck; });
+    var gs = sh.guns.filter(function (g) { return g.alive && !g.wet && g.side === side && gunDeck(g) === deck; });
     var men = sh.crew.filter(function (c) { return able(c) && c.role === ROLE.GUN && c.deck === deck && c.side === side; });
     var cur = new Map(); gs.forEach(function (g) { cur.set(g, 0); });
     men.forEach(function (c) { if (c.gun) cur.set(c.gun, cur.get(c.gun) + 1); });
@@ -192,7 +192,8 @@ function killCrew(sh, c, cause) {
 function fall(sh, c, v) {
   if (c.st >= 2 && c.st !== 2) return;
   var w = M4.pt(sh.M, c.pos[0], c.pos[1], c.pos[2]);
-  if (c.st < 2) { if (c.st === 1) sh.wounded--; sh.dead++; sh.kills++; sh.causes['落水'] = (sh.causes['落水'] || 0) + 1; newsCrew(sh, c, true, '落水'); }
+  if (c.st < 2 && DROWN_T > 0) { if (c.st === 1) { sh.wounded--; c.hurtSwim = true; } c.fellAlive = true; }   // 落水求生（43_swim.js）：先不算陣亡，落到水裡變成在游
+  else if (c.st < 2) { if (c.st === 1) sh.wounded--; sh.dead++; sh.kills++; sh.causes['落水'] = (sh.causes['落水'] || 0) + 1; newsCrew(sh, c, true, '落水'); }
   c.st = 4; c.fw = w; c.fv = add(v || [gauss(), rr(0, 2), gauss()], sh.vel); c.t = 0; c.walk = null; c.cart = false; c.moving = false;
 }
 function stepCrew(sh, dt) {
@@ -201,9 +202,10 @@ function stepCrew(sh, dt) {
     c.t += dt; if (c.hitT > 0) c.hitT -= dt;            // hitT：被打中但沒倒下的閃紅
     if (c.st === 4) {                                   // 落體
       c.fv[1] -= G * dt; c.fw = add(c.fw, mul(c.fv, dt));
-      if (c.fw[1] < seaH(c.fw[0], c.fw[2], SIMT)) { if (!c.splashed) { c.splashed = true; splash(c.fw, false); } c.st = 3; }
+      if (c.fw[1] < seaH(c.fw[0], c.fw[2], SIMT)) { if (!c.splashed) { c.splashed = true; splash(c.fw, false); } if (c.fellAlive) { c.fellAlive = false; toSwim(sh, c, [c.fw[0], c.fw[1] - 1.2, c.fw[2]]); } else c.st = 3; }
       return;
     }
+    if (c.st === 5) { stepSwim(sh, c, dt); return; }      // 在水裡（43_swim.js）
     if (c.st === 1 && c.t > 12) { c.st = 3; return; }    // 傷者被抬下去
     if (c.st !== 0) return;
     if (c.role === ROLE.HAND) { stepHand(sh, c, dt); return; }   // 預備水手：走路、爬梯子、補位（42_hands.js）
@@ -217,6 +219,7 @@ function stepCrew(sh, dt) {
       if (c.shotT <= 0) { c.shotT = rr(4, 8); musket(sh, c); }
     }
   });
+  if (sh.xfer) swimXfer(sh);                            // 游到敵艦的人換名單（43_swim.js；跑完 forEach 才換）
 }
 /** 火槍：打對方露天的人（spar deck、桅頂），距離越遠越難中。 */
 function musket(sh, c) {
@@ -229,5 +232,5 @@ function musket(sh, c) {
   if (rnd() < clamp(0.05 * 100 / dist, 0.01, 0.12)) damageCrew(foe, o, rr(40, 125), '火槍');   // 血量 100 時約三成一槍斃命（跟以前的 0.3 對齊）
 }
 /** 一門砲：在崗的人數決定能不能開、裝填多快。 */
-function gunRate(g) { return g.manned >= g.crewMin ? Math.pow(Math.min(1, g.manned / g.crewFull), 0.85) : 0; }
+function gunRate(g) { return g.wet ? 0 : g.manned >= g.crewMin ? Math.pow(Math.min(1, g.manned / g.crewFull), 0.85) : 0; }
 
