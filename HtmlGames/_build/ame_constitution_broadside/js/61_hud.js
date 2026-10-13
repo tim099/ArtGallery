@@ -143,6 +143,7 @@ function gunArcs(sh, foe) {
   }
   return { all: runs(A), on: runs(O) };
 }
+var TURN_T = 10, TURN_COL = '#7ef0c8';                 // 羅盤外圈的轉向弧：預測幾秒後的船頭、顏色（跟射界的金、風的藍、敵艦的紅分開）
 function drawNav(sh) {
   if (!CAM.look) return;
   var c2 = $('navc'), g = c2.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = 150;
@@ -189,6 +190,19 @@ function drawNav(sh) {
     var S2 = norm([F[2], 0, -F[0]]), tip0 = P(F, 0.42), l = P(add(mul(F, -0.32), mul(S2, 0.12)), 1), r2 = P(add(mul(F, -0.32), mul(S2, -0.12)), 1);
     g.fillStyle = tc; g.beginPath(); g.moveTo(tip0[0], tip0[1]); g.lineTo(l[0], l[1]); g.lineTo(r2[0], r2[1]); g.closePath(); g.fill();
   }
+  // 轉向（Tim 2026-10-13：用圖示表現轉彎的方向與快慢，沿外圈畫）：從船頭的方向沿外圈畫到「照現在的轉向率，TURN_T 秒後船頭會在哪」，
+  //   箭頭 ＝ 轉的方向，弧越長轉得越快（最多 120°）；幾乎直走（< 0.2°/秒）只畫船頭那一點。跟船頭在羅盤上用同一支 P(fwd(yaw)) ⇒ 弧的起點就是船頭指的方向。
+  var yr = sh.yawRate || 0, span = clamp(yr * TURN_T, -2.094, 2.094), hp = P(F, 1.07);
+  g.fillStyle = TURN_COL; g.beginPath(); g.arc(hp[0], hp[1], 2.5, 0, 6.2832); g.fill();
+  if (Math.abs(yr) > 0.0035) {
+    var nT = Math.max(2, Math.ceil(Math.abs(span) / 0.05)), pt = [];
+    for (var iT = 0; iT <= nT; iT++) pt.push(P(fwd(sh.yaw + span * iT / nT), 1.07));
+    g.strokeStyle = TURN_COL; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(pt[0][0], pt[0][1]);
+    for (iT = 1; iT <= nT; iT++) g.lineTo(pt[iT][0], pt[iT][1]);
+    g.stroke();
+    var e1 = pt[nT], e0 = pt[nT - 1], tl = Math.hypot(e1[0] - e0[0], e1[1] - e0[1]) || 1, tx = (e1[0] - e0[0]) / tl, ty = (e1[1] - e0[1]) / tl;   // 箭頭：沿弧的切線
+    g.beginPath(); g.moveTo(e1[0] + tx * 6, e1[1] + ty * 6); g.lineTo(e1[0] - ty * 4.5, e1[1] + tx * 4.5); g.lineTo(e1[0] + ty * 4.5, e1[1] - tx * 4.5); g.closePath(); g.fill();
+  }
   // 文字
   var hb = bearing(F[0], F[2]), wb = bearing(from[0], from[2]), roll = (sh.rollA + (sh.rollW || 0)) * 57.2958, pitch = (sh.pitchA + (sh.pitchW || 0)) * 57.2958;
   var hull = sh.grid.count / sh.orig * 100, fl = floodPct(sh) * 100;
@@ -197,7 +211,8 @@ function drawNav(sh) {
     '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
     '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<br>' +
     '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
-    SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正');
+    SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') +
+    (Math.abs(yr) > 0.0035 ? '　<span style="color:' + TURN_COL + '">' + (yr > 0 ? '左' : '右') + '轉 ' + (Math.abs(yr) * 57.2958).toFixed(1) + '°/秒</span>' : '');   // yawRate 正 ＝ 畫面上左轉（31_sailing.js fwd）
 }
 function hud(dt) {
   stepMsgs(dt);
