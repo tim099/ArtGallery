@@ -22,7 +22,7 @@ function fireGun(sh, g, target, ammo) {
   BALLS.push(b); g.reload = sh.reloadT * GS.reload * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
   g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
-  sh.rollV += g.side === 'P' ? -0.0012 : 0.0012;                      // 後座：船往反方向晃一下
+  sh.rollV += g.side === 'P' ? 0.0012 : -0.0012;                      // 後座：船往反方向晃一下（開火那一舷抬起；roll 正 ＝ 右舷 S 那邊往下）
   sfx('boom', mw, sh.i === PLAYER_I ? 1 : 0.8);
   return true;
 }

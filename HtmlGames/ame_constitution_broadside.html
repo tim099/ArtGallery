@@ -1434,7 +1434,7 @@ var SEA_GLSL = (function () {
 var WV_K = { h: [6.25, 3.0], p: [6.25, 3.0], r: [1.44, 0.84] };
 /** 每步：船底的水面擬合平面 ⇒ 船的起伏、縱搖、橫搖（彈簧阻尼跟過去）。開戰第一步直接放在目標上（不從平的海晃過去）。 */
 function stepWaves(sh, dt) {
-  var T = sh.T, Lh = (T.hx1 - T.hx0) * S, c = sh.center || [sh.px, 0, sh.pz], F = fwd(sh.yaw), Z = [Math.sin(sh.yaw), 0, Math.cos(sh.yaw)];   // Z：船體 +Z（格 −y）在世界的方向
+  var T = sh.T, Lh = (T.hx1 - T.hx0) * S, c = sh.center || [sh.px, 0, sh.pz], F = fwd(sh.yaw), Z = [Math.sin(sh.yaw), 0, Math.cos(sh.yaw)];   // Z：船體 +Z（格 +y、右舷）在世界的方向
   var n = 0, hm = 0, su = 0, uu = 0, sw = 0, ww = 0;
   for (var a = -2; a <= 2; a++) for (var b = -1; b <= 1; b += 2) {
     var u = a * 0.2 * Lh, w = b * 0.1 * Lh, h = seaH(c[0] + F[0] * u + Z[0] * w, c[2] + F[2] * u + Z[2] * w, SIMT);
@@ -1554,8 +1554,12 @@ if (Q.get('phys') === '0' && !Q.has('p_rig')) PHX.rig = 0;
 PHYS = PHX.rig > 0;                             // 帆與繩開不開（04_state.js 的 PHYS）跟著這一項走
 // ── js/10_ship.js ──
 // ───────────────────────── 船 ─────────────────────────
-function shipBaseMatrix(T) {  // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x−cx), S(z−zw), −S(y−cy))
-  return new Float32Array([S, 0, 0, 0, 0, 0, -S, 0, 0, S, 0, 0, -S * T.cx, -S * T.zw, S * T.cy, 1]);
+// 格 → 船體（公尺）：(x, y, z) ⇒ (S(x−cx), S(z−zw), S(y−cy))。船體 ＝ 世界的軸（+X 船頭、+Y 上、+Z ＝ 右舷）。
+// 雕刻引擎的格是另一個手性（面向船頭 +x、上 +z，+y 在右手邊 ＝ 右舷 S：basecamp 的命名、船尾名牌 EMBER 在雕刻引擎的 view 裡讀起來是正的）
+// ⇒ 這是一個鏡射（行列式 −1）：船殼的繞序反過來（畫船時 frontFace CW，見 60_render.js shipFace）。
+// ⛔ 2026-10-13 以前是 −S(y−cy)（旋轉、不是鏡射）⇒ 整艘船畫成作品的鏡像：EMBER 反著寫、右舷 S 出現在畫面左邊。
+function shipBaseMatrix(T) {
+  return new Float32Array([S, 0, 0, 0, 0, 0, S, 0, 0, S, 0, 0, -S * T.cx, -S * T.zw, -S * T.cy, 1]);
 }
 function shipMatrix(sh) {
   var m = trans(sh.px, -sh.sink + sh.lift + (sh.wl || 0) + sh.bob, sh.pz);   // wl：船底的平均水面、bob：船身相對它的起伏（08_sea.js）
@@ -1595,8 +1599,7 @@ function makeShip(i, team, yaw, pz, T) {                              // T：船
   sh.yards = sh.models.filter(function (m) { return m.kind === 'yard' && m.piv; });
   // 砲：長砲（24 磅，兩舷各 14）、carronade（32 磅，兩舷各 12）、追擊砲（18 磅，船頭兩舷各 1）都是模型。
   // 砲軸 ＝ 固定點 muzzle − breech（格座標、水平）；砲口 ＝ muzzle 再往外 1.5 格（muzzle 在砲口內膛那一格）。
-  // ⚠ 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致），但 S（格 +y）在右手座標裡是船的左手邊（面向船頭 +x、上 +z ⇒ 右手是 −y）
-  //   ⇒ 畫面上是左舷。給人看的一律照畫面（sideName）；A／D 也照畫面的左右。
+  // 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致）＝ 右舷／左舷（shipBaseMatrix 照雕刻引擎的手性鏡射過來）。給人看的走 sideName；A／D 照畫面的左右。
   sh.models.forEach(function (m) {
     if (!GUNS[m.kind]) return;
     var mz = m.pts.muzzle, br = m.pts.breech, ax;
@@ -2380,7 +2383,7 @@ function fireGun(sh, g, target, ammo) {
   BALLS.push(b); g.reload = sh.reloadT * GS.reload * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
   g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
-  sh.rollV += g.side === 'P' ? -0.0012 : 0.0012;                      // 後座：船往反方向晃一下
+  sh.rollV += g.side === 'P' ? 0.0012 : -0.0012;                      // 後座：船往反方向晃一下（開火那一舷抬起；roll 正 ＝ 右舷 S 那邊往下）
   sfx('boom', mw, sh.i === PLAYER_I ? 1 : 0.8);
   return true;
 }
@@ -3052,7 +3055,7 @@ function makeStations(sh) {
         if (z >= 0 && clear(x, y, z)) spot = [x, y, z];
       }
       if (!spot) return;
-      var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
+      var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : mag.name.indexOf('中') >= 0 ? '中' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
         var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: powderHP(), hpMax: powderHP(), mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
@@ -3626,8 +3629,8 @@ function waterline(T) {
   for (y = 0; y < G.sy; y++) if (G.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
   T.bowHalf = hi >= lo ? (hi - lo) / 2 + 3 : 20;
 }
-function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 +y 那一側轉 ＝ 畫面上的左轉
-function sideName(side) { return side === 'S' ? '左舷' : '右舷'; }        // 模型的 S（格 +y）在畫面上是左舷（見 makeShip）
+function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 −y（左舷 P）那一側轉 ＝ 畫面上的左轉
+function sideName(side) { return side === 'S' ? '右舷' : '左舷'; }        // 模型的 S（格 +y）＝ 右舷（shipBaseMatrix 照雕刻引擎的手性）
 var SAILSETS = ['全收', '收帆', '戰鬥帆', '滿帆'];
 /** 帆裝 k 張不張這面帆：0 全收（一面都不張）／1 收帆（三面上桅帆＋jib）／2 戰鬥帆（再加上桅頂帆、後桅縱帆、前支索帆）／3 滿帆。
  *  收起來的帆不畫、不算航速、鏈彈打不到、依靠的格或繩斷了也不掉 —— 只有桅斷了（依靠跟著斷開的那一團走）才跟著走。 */
@@ -3676,7 +3679,7 @@ function sail(sh, dt) {
   } else {
     if (!sh.struck && !sh.sunk && foe) {
       // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦
-      var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? -1 : 1;
+      var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? 1 : -1;   // sg：敵艦要在畫面左邊（左舷 P）⇒ +1
       var dx = foe.px - sh.px, dz = foe.pz - sh.pz, d = Math.hypot(dx, dz) || 1;
       tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - DIST) / DIST * 1.5, -0.4, 0.4);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }
@@ -3781,9 +3784,9 @@ function stepShip(sh, dt) {
     if (sh.sinkingFinal) { sh.sinkV += 0.06 * fk * dt; sh.sink += sh.sinkV * dt; }
     if (sh.sink > 9) { sh.sunk = true; note(sh, '沉沒', true); }
   } else { sh.sinkV = Math.min(sh.sinkV + 0.05 * dt, 1.2); sh.sink += sh.sinkV * dt; }
-  // 傾斜：破洞那一舷往下（格座標 +y ＝ 船體 −Z；繞 +X 轉負角時 −Z 那邊下沉）；粒子模式照水的重心（33_flood.js floodTilt）
+  // 傾斜：破洞那一舷往下（格座標 +y ＝ 船體 +Z（右舷）；繞 +X 轉正角時 +Z 那邊下沉）；粒子模式照水的重心（33_flood.js floodTilt）
   var tl = fl ? floodTilt(sh, fl) : null;
-  var rollT = tl ? tl[0] : -clamp(Dsp / (N + 900), -1, 1) * (sh.sinkingFinal ? 0.55 : 0.21);
+  var rollT = tl ? tl[0] : clamp(Dsp / (N + 900), -1, 1) * (sh.sinkingFinal ? 0.55 : 0.21);
   var pitchT = tl ? tl[1] : -clamp(Dbs / (N + 1500), -1, 1) * 0.07;
   sh.rollV += ((rollT - sh.rollA) * 0.9 - sh.rollV * 0.8) * dt;
   sh.rollA += sh.rollV * dt;
@@ -4082,10 +4085,10 @@ function floodSinkT(sh, fl) {
   var W = fl.vol * RHO_W, a = liftFor(sh.T, sh.flBase), b = liftFor(sh.T, sh.flBase - W);
   return fl.sinkT = a === null || b === null ? 0 : Math.max(0, a - b);
 }
-/** 水的重心 ⇒ 橫傾、縱傾的目標（rad；正負跟公式一樣：水在格 +y 那一舷 ⇒ 負 ⇒ 那一舷往下；水在船頭 ⇒ 負 ⇒ 船頭往下）。 */
+/** 水的重心 ⇒ 橫傾、縱傾的目標（rad；正負跟公式一樣：水在格 +y 那一舷 ⇒ 正 ⇒ 那一舷（右舷）往下；水在船頭 ⇒ 負 ⇒ 船頭往下）。 */
 function floodTilt(sh, fl) {
   var W = fl.vol * RHO_W, D = (sh.mass0 || shipT(sh)) + W, lim = sh.sinkingFinal ? 0.55 : 0.21;
-  return [-clamp(Math.atan(W * fl.comY / (D * FL_GM)), -lim, lim), -clamp(Math.atan(W * fl.comX / (D * FL_GML)), -0.07, 0.07)];
+  return [clamp(Math.atan(W * fl.comY / (D * FL_GM)), -lim, lim), -clamp(Math.atan(W * fl.comX / (D * FL_GML)), -0.07, 0.07)];
 }
 
 // ── 畫：艙內的水面（每一格水柱的頂，四個角照同一個世界高度擺 ⇒ 船傾斜時水面還是平的）；噴進來的粒子跟點精靈一起畫 ──
@@ -5548,9 +5551,8 @@ function reflPass() {
   var R = RT.R; gl.bindFramebuffer(gl.FRAMEBUFFER, R.fb); gl.viewport(0, 0, R.w, R.h);
   gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   PASS.vp = M4.mul(CAM.vp, MIRROR); PASS.eye = [CAM.eye[0], -CAM.eye[1], CAM.eye[2]]; PASS.clip = 0; PASS.sh = 0;
-  gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.frontFace(gl.CW);                      // 鏡像 ⇒ 繞序反過來
+  gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);                   // 船的矩陣是鏡射（shipBaseMatrix）、反射的鏡頭又鏡射一次 ⇒ 兩次抵銷，繞序照常（CCW）
   gl.useProgram(P.vox.prog); setCommon(P.vox); drawHulls(P.vox);
-  gl.frontFace(gl.CCW);
   if (GFX.refl === 2) {
     gl.disable(gl.CULL_FACE); gl.useProgram(P.tri.prog); setCommon(P.tri); gl.uniform1f(P.tri.u.uLit, 1); drawModels(P.tri);
     gl.useProgram(P.sail.prog); setCommon(P.sail); drawSails(P.sail);
@@ -5588,7 +5590,8 @@ function render() {
   gl.depthMask(false); gl.useProgram(P.sky.prog); setCommon(P.sky); gl.uniformMatrix4fv(P.sky.u.uInv, false, CAM.inv);
   gl.bindVertexArray(SKYVAO); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.depthMask(true);
   // 船與斷開的那幾團
-  gl.enable(gl.CULL_FACE); gl.useProgram(P.vox.prog); setCommon(P.vox); drawHulls(P.vox);
+  // 船的矩陣是鏡射（shipBaseMatrix：照雕刻引擎的手性）⇒ 船殼的正面變成順時針；帆的著色器看 gl_FrontFacing 翻法線，也要跟著
+  gl.enable(gl.CULL_FACE); gl.frontFace(gl.CW); gl.useProgram(P.vox.prog); setCommon(P.vox); drawHulls(P.vox); gl.frontFace(gl.CCW);
   // 碎片
   var n = 0;
   for (var i = 0; i < D.n; i++) {
@@ -5613,7 +5616,7 @@ function render() {
     if (ow.lines && ow.lines.n) { gl.bindVertexArray(ow.lines.vao); gl.drawArrays(gl.LINES, 0, ow.lines.n); }
     if (PHYS && ow.ll && ow.ll.n) { gl.bindVertexArray(ow.ll.vao); gl.drawArrays(gl.LINES, 0, ow.ll.n); }
   });
-  gl.useProgram(P.sail.prog); setCommon(P.sail); drawSails(P.sail);
+  gl.frontFace(gl.CW); gl.useProgram(P.sail.prog); setCommon(P.sail); drawSails(P.sail); gl.frontFace(gl.CCW);
   // 折射（高）：畫海之前的場景複製到 RT.B（顏色＋深度），海的著色器讀它
   if (GFX.refr === 2) {
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, RT.A.fb); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, RT.B.fb);
@@ -6457,7 +6460,7 @@ function floodPanel() {
   var box = $('floodBody');
   box.innerHTML = SHIPS.map(function (sh, k) {
     var fl = sh.fl, who = (k === PLAYER_I ? '我艦' : '敵艦') + ' ' + sh.T.name, lines;
-    var tilt = '橫傾 ' + deg(sh.rollA) + (sh.rollA < -0.002 ? '（往' + sideName('S') + '）' : sh.rollA > 0.002 ? '（往' + sideName('P') + '）' : '') + '・縱傾 ' + deg(sh.pitchA) + (sh.pitchA < -0.002 ? '（船頭低）' : sh.pitchA > 0.002 ? '（船尾低）' : '');
+    var tilt = '橫傾 ' + deg(sh.rollA) + (sh.rollA > 0.002 ? '（往' + sideName('S') + '）' : sh.rollA < -0.002 ? '（往' + sideName('P') + '）' : '') + '・縱傾 ' + deg(sh.pitchA) + (sh.pitchA < -0.002 ? '（船頭低）' : sh.pitchA > 0.002 ? '（船尾低）' : '');
     if (!fl || sh.broken) {
       lines = '<div>' + (sh.broken ? '斷成兩截 ⇒ 照公式（一定沉）' : '公式模式（物理效果「進水」選粒子才看得到艙內的水）') + '</div>' +
         '<div>水線下打掉 ' + (sh.inflow || 0).toLocaleString() + ' 格・下沉 ' + sh.sink.toFixed(2) + ' m・' + tilt + '</div>';
@@ -6469,7 +6472,7 @@ function floodPanel() {
       '<div>進水 ' + fl.inQ.toFixed(2) + ' m³/s・往外流 ' + fl.outQ.toFixed(2) + ' m³/s・累計 進 ' + fl.inTot.toFixed(0) + '／出 ' + fl.outTot.toFixed(0) + '／抽掉 ' + fl.pumped.toFixed(0) + ' m³</div>' +
       '<div>下沉 ' + sh.sink.toFixed(2) + ' m（照水該 ' + fl.sinkT.toFixed(2) + '；4.2 m 開始沉）・' + tilt + '</div>' +
       '<div>水的重心：' + (Math.abs(fl.comY) < 0.05 ? '在中線' : '偏' + sideName(fl.comY > 0 ? 'S' : 'P') + ' ' + Math.abs(fl.comY).toFixed(1) + ' m') + '・' + (fl.comX >= 0 ? '偏船頭 ' : '偏船尾 ') + Math.abs(fl.comX).toFixed(1) + ' m・噴進來的水 ' + fl.J.n + ' 顆・水格 ' + fl.actN + ' 格（邊長 ' + (fl.F.c * S).toFixed(1) + ' m）</div>' +
-      '<div class="fpL">側視（船頭在右）</div><canvas class="fpC" id="fpS' + k + '"></canvas><div class="fpL">俯視（船頭在右、' + sideName('S') + '在上）</div><canvas class="fpC" id="fpT' + k + '"></canvas>';
+      '<div class="fpL">側視（船頭在右）</div><canvas class="fpC" id="fpS' + k + '"></canvas><div class="fpL">俯視（船頭在右、' + sideName('P') + '在上）</div><canvas class="fpC" id="fpT' + k + '"></canvas>';
     return '<div class="fpS"><div class="fpH">' + who + '</div>' + lines + '</div>';
   }).join('');
   // 剖面等下一格再畫：⛔ 剛換掉 innerHTML 就量 clientWidth ⇒ 第一次打開量到 24 px（量過），剖面縮成一小塊
@@ -6491,11 +6494,11 @@ function fpDraw(cv, sh, view) {
   }
   for (b = 0; b < NV; b++) for (a = 0; a < NX; a++) {
     var q = b * NX + a; if (!(capS[q] > 0)) continue;
-    var y0 = view ? (NV - 1 - b) * ch : (NV - 1 - b) * ch;               // 側視：z 往上；俯視：格 +y（左舷）在上
+    var y0 = view ? b * ch : (NV - 1 - b) * ch;                          // 側視：z 往上；俯視（從上往下看、船頭在右）：格 +y（右舷）在下
     g.fillStyle = 'rgba(150,150,140,0.45)'; g.fillRect(a * cw, y0, cw + 0.5, ch + 0.5);
     if (watS[q] > 1e-4) { var f = Math.min(1, watS[q] / capS[q]); g.fillStyle = 'rgba(40,140,230,' + (0.35 + 0.65 * f).toFixed(2) + ')'; g.fillRect(a * cw, y0, cw + 0.5, ch + 0.5); }
   }
-  var M = sh.M, px = function (x) { return (x - F.X0) / c * cw; }, pv = function (v) { return cv.height - (view ? (v - F.Y0) : v) / c * ch; };
+  var M = sh.M, px = function (x) { return (x - F.X0) / c * cw; }, pv = function (v) { return view ? (v - F.Y0) / c * ch : cv.height - v / c * ch; };
   if (!view) {
     g.setLineDash([4 * dpr, 4 * dpr]); g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = dpr; g.beginPath(); g.moveTo(0, pv(sh.T.zw)); g.lineTo(cv.width, pv(sh.T.zw)); g.stroke(); g.setLineDash([]);
     g.strokeStyle = 'rgba(80,230,255,0.9)'; g.lineWidth = 1.5 * dpr; g.beginPath();

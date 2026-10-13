@@ -33,7 +33,7 @@ function floodPanel() {
   var box = $('floodBody');
   box.innerHTML = SHIPS.map(function (sh, k) {
     var fl = sh.fl, who = (k === PLAYER_I ? '我艦' : '敵艦') + ' ' + sh.T.name, lines;
-    var tilt = '橫傾 ' + deg(sh.rollA) + (sh.rollA < -0.002 ? '（往' + sideName('S') + '）' : sh.rollA > 0.002 ? '（往' + sideName('P') + '）' : '') + '・縱傾 ' + deg(sh.pitchA) + (sh.pitchA < -0.002 ? '（船頭低）' : sh.pitchA > 0.002 ? '（船尾低）' : '');
+    var tilt = '橫傾 ' + deg(sh.rollA) + (sh.rollA > 0.002 ? '（往' + sideName('S') + '）' : sh.rollA < -0.002 ? '（往' + sideName('P') + '）' : '') + '・縱傾 ' + deg(sh.pitchA) + (sh.pitchA < -0.002 ? '（船頭低）' : sh.pitchA > 0.002 ? '（船尾低）' : '');
     if (!fl || sh.broken) {
       lines = '<div>' + (sh.broken ? '斷成兩截 ⇒ 照公式（一定沉）' : '公式模式（物理效果「進水」選粒子才看得到艙內的水）') + '</div>' +
         '<div>水線下打掉 ' + (sh.inflow || 0).toLocaleString() + ' 格・下沉 ' + sh.sink.toFixed(2) + ' m・' + tilt + '</div>';
@@ -45,7 +45,7 @@ function floodPanel() {
       '<div>進水 ' + fl.inQ.toFixed(2) + ' m³/s・往外流 ' + fl.outQ.toFixed(2) + ' m³/s・累計 進 ' + fl.inTot.toFixed(0) + '／出 ' + fl.outTot.toFixed(0) + '／抽掉 ' + fl.pumped.toFixed(0) + ' m³</div>' +
       '<div>下沉 ' + sh.sink.toFixed(2) + ' m（照水該 ' + fl.sinkT.toFixed(2) + '；4.2 m 開始沉）・' + tilt + '</div>' +
       '<div>水的重心：' + (Math.abs(fl.comY) < 0.05 ? '在中線' : '偏' + sideName(fl.comY > 0 ? 'S' : 'P') + ' ' + Math.abs(fl.comY).toFixed(1) + ' m') + '・' + (fl.comX >= 0 ? '偏船頭 ' : '偏船尾 ') + Math.abs(fl.comX).toFixed(1) + ' m・噴進來的水 ' + fl.J.n + ' 顆・水格 ' + fl.actN + ' 格（邊長 ' + (fl.F.c * S).toFixed(1) + ' m）</div>' +
-      '<div class="fpL">側視（船頭在右）</div><canvas class="fpC" id="fpS' + k + '"></canvas><div class="fpL">俯視（船頭在右、' + sideName('S') + '在上）</div><canvas class="fpC" id="fpT' + k + '"></canvas>';
+      '<div class="fpL">側視（船頭在右）</div><canvas class="fpC" id="fpS' + k + '"></canvas><div class="fpL">俯視（船頭在右、' + sideName('P') + '在上）</div><canvas class="fpC" id="fpT' + k + '"></canvas>';
     return '<div class="fpS"><div class="fpH">' + who + '</div>' + lines + '</div>';
   }).join('');
   // 剖面等下一格再畫：⛔ 剛換掉 innerHTML 就量 clientWidth ⇒ 第一次打開量到 24 px（量過），剖面縮成一小塊
@@ -67,11 +67,11 @@ function fpDraw(cv, sh, view) {
   }
   for (b = 0; b < NV; b++) for (a = 0; a < NX; a++) {
     var q = b * NX + a; if (!(capS[q] > 0)) continue;
-    var y0 = view ? (NV - 1 - b) * ch : (NV - 1 - b) * ch;               // 側視：z 往上；俯視：格 +y（左舷）在上
+    var y0 = view ? b * ch : (NV - 1 - b) * ch;                          // 側視：z 往上；俯視（從上往下看、船頭在右）：格 +y（右舷）在下
     g.fillStyle = 'rgba(150,150,140,0.45)'; g.fillRect(a * cw, y0, cw + 0.5, ch + 0.5);
     if (watS[q] > 1e-4) { var f = Math.min(1, watS[q] / capS[q]); g.fillStyle = 'rgba(40,140,230,' + (0.35 + 0.65 * f).toFixed(2) + ')'; g.fillRect(a * cw, y0, cw + 0.5, ch + 0.5); }
   }
-  var M = sh.M, px = function (x) { return (x - F.X0) / c * cw; }, pv = function (v) { return cv.height - (view ? (v - F.Y0) : v) / c * ch; };
+  var M = sh.M, px = function (x) { return (x - F.X0) / c * cw; }, pv = function (v) { return view ? (v - F.Y0) / c * ch : cv.height - v / c * ch; };
   if (!view) {
     g.setLineDash([4 * dpr, 4 * dpr]); g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = dpr; g.beginPath(); g.moveTo(0, pv(sh.T.zw)); g.lineTo(cv.width, pv(sh.T.zw)); g.stroke(); g.setLineDash([]);
     g.strokeStyle = 'rgba(80,230,255,0.9)'; g.lineWidth = 1.5 * dpr; g.beginPath();

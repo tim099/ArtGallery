@@ -53,7 +53,7 @@ var SEA_GLSL = (function () {
 var WV_K = { h: [6.25, 3.0], p: [6.25, 3.0], r: [1.44, 0.84] };
 /** 每步：船底的水面擬合平面 ⇒ 船的起伏、縱搖、橫搖（彈簧阻尼跟過去）。開戰第一步直接放在目標上（不從平的海晃過去）。 */
 function stepWaves(sh, dt) {
-  var T = sh.T, Lh = (T.hx1 - T.hx0) * S, c = sh.center || [sh.px, 0, sh.pz], F = fwd(sh.yaw), Z = [Math.sin(sh.yaw), 0, Math.cos(sh.yaw)];   // Z：船體 +Z（格 −y）在世界的方向
+  var T = sh.T, Lh = (T.hx1 - T.hx0) * S, c = sh.center || [sh.px, 0, sh.pz], F = fwd(sh.yaw), Z = [Math.sin(sh.yaw), 0, Math.cos(sh.yaw)];   // Z：船體 +Z（格 +y、右舷）在世界的方向
   var n = 0, hm = 0, su = 0, uu = 0, sw = 0, ww = 0;
   for (var a = -2; a <= 2; a++) for (var b = -1; b <= 1; b += 2) {
     var u = a * 0.2 * Lh, w = b * 0.1 * Lh, h = seaH(c[0] + F[0] * u + Z[0] * w, c[2] + F[2] * u + Z[2] * w, SIMT);

@@ -205,9 +205,8 @@ function reflPass() {
   var R = RT.R; gl.bindFramebuffer(gl.FRAMEBUFFER, R.fb); gl.viewport(0, 0, R.w, R.h);
   gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   PASS.vp = M4.mul(CAM.vp, MIRROR); PASS.eye = [CAM.eye[0], -CAM.eye[1], CAM.eye[2]]; PASS.clip = 0; PASS.sh = 0;
-  gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.frontFace(gl.CW);                      // 鏡像 ⇒ 繞序反過來
+  gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);                   // 船的矩陣是鏡射（shipBaseMatrix）、反射的鏡頭又鏡射一次 ⇒ 兩次抵銷，繞序照常（CCW）
   gl.useProgram(P.vox.prog); setCommon(P.vox); drawHulls(P.vox);
-  gl.frontFace(gl.CCW);
   if (GFX.refl === 2) {
     gl.disable(gl.CULL_FACE); gl.useProgram(P.tri.prog); setCommon(P.tri); gl.uniform1f(P.tri.u.uLit, 1); drawModels(P.tri);
     gl.useProgram(P.sail.prog); setCommon(P.sail); drawSails(P.sail);
@@ -245,7 +244,8 @@ function render() {
   gl.depthMask(false); gl.useProgram(P.sky.prog); setCommon(P.sky); gl.uniformMatrix4fv(P.sky.u.uInv, false, CAM.inv);
   gl.bindVertexArray(SKYVAO); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.depthMask(true);
   // 船與斷開的那幾團
-  gl.enable(gl.CULL_FACE); gl.useProgram(P.vox.prog); setCommon(P.vox); drawHulls(P.vox);
+  // 船的矩陣是鏡射（shipBaseMatrix：照雕刻引擎的手性）⇒ 船殼的正面變成順時針；帆的著色器看 gl_FrontFacing 翻法線，也要跟著
+  gl.enable(gl.CULL_FACE); gl.frontFace(gl.CW); gl.useProgram(P.vox.prog); setCommon(P.vox); drawHulls(P.vox); gl.frontFace(gl.CCW);
   // 碎片
   var n = 0;
   for (var i = 0; i < D.n; i++) {
@@ -270,7 +270,7 @@ function render() {
     if (ow.lines && ow.lines.n) { gl.bindVertexArray(ow.lines.vao); gl.drawArrays(gl.LINES, 0, ow.lines.n); }
     if (PHYS && ow.ll && ow.ll.n) { gl.bindVertexArray(ow.ll.vao); gl.drawArrays(gl.LINES, 0, ow.ll.n); }
   });
-  gl.useProgram(P.sail.prog); setCommon(P.sail); drawSails(P.sail);
+  gl.frontFace(gl.CW); gl.useProgram(P.sail.prog); setCommon(P.sail); drawSails(P.sail); gl.frontFace(gl.CCW);
   // 折射（高）：畫海之前的場景複製到 RT.B（顏色＋深度），海的著色器讀它
   if (GFX.refr === 2) {
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, RT.A.fb); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, RT.B.fb);

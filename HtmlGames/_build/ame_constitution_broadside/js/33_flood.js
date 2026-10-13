@@ -222,10 +222,10 @@ function floodSinkT(sh, fl) {
   var W = fl.vol * RHO_W, a = liftFor(sh.T, sh.flBase), b = liftFor(sh.T, sh.flBase - W);
   return fl.sinkT = a === null || b === null ? 0 : Math.max(0, a - b);
 }
-/** 水的重心 ⇒ 橫傾、縱傾的目標（rad；正負跟公式一樣：水在格 +y 那一舷 ⇒ 負 ⇒ 那一舷往下；水在船頭 ⇒ 負 ⇒ 船頭往下）。 */
+/** 水的重心 ⇒ 橫傾、縱傾的目標（rad；正負跟公式一樣：水在格 +y 那一舷 ⇒ 正 ⇒ 那一舷（右舷）往下；水在船頭 ⇒ 負 ⇒ 船頭往下）。 */
 function floodTilt(sh, fl) {
   var W = fl.vol * RHO_W, D = (sh.mass0 || shipT(sh)) + W, lim = sh.sinkingFinal ? 0.55 : 0.21;
-  return [-clamp(Math.atan(W * fl.comY / (D * FL_GM)), -lim, lim), -clamp(Math.atan(W * fl.comX / (D * FL_GML)), -0.07, 0.07)];
+  return [clamp(Math.atan(W * fl.comY / (D * FL_GM)), -lim, lim), -clamp(Math.atan(W * fl.comX / (D * FL_GML)), -0.07, 0.07)];
 }
 
 // ── 畫：艙內的水面（每一格水柱的頂，四個角照同一個世界高度擺 ⇒ 船傾斜時水面還是平的）；噴進來的粒子跟點精靈一起畫 ──

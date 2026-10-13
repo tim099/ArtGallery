@@ -1,6 +1,10 @@
 // ───────────────────────── 船 ─────────────────────────
-function shipBaseMatrix(T) {  // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x−cx), S(z−zw), −S(y−cy))
-  return new Float32Array([S, 0, 0, 0, 0, 0, -S, 0, 0, S, 0, 0, -S * T.cx, -S * T.zw, S * T.cy, 1]);
+// 格 → 船體（公尺）：(x, y, z) ⇒ (S(x−cx), S(z−zw), S(y−cy))。船體 ＝ 世界的軸（+X 船頭、+Y 上、+Z ＝ 右舷）。
+// 雕刻引擎的格是另一個手性（面向船頭 +x、上 +z，+y 在右手邊 ＝ 右舷 S：basecamp 的命名、船尾名牌 EMBER 在雕刻引擎的 view 裡讀起來是正的）
+// ⇒ 這是一個鏡射（行列式 −1）：船殼的繞序反過來（畫船時 frontFace CW，見 60_render.js shipFace）。
+// ⛔ 2026-10-13 以前是 −S(y−cy)（旋轉、不是鏡射）⇒ 整艘船畫成作品的鏡像：EMBER 反著寫、右舷 S 出現在畫面左邊。
+function shipBaseMatrix(T) {
+  return new Float32Array([S, 0, 0, 0, 0, 0, S, 0, 0, S, 0, 0, -S * T.cx, -S * T.zw, -S * T.cy, 1]);
 }
 function shipMatrix(sh) {
   var m = trans(sh.px, -sh.sink + sh.lift + (sh.wl || 0) + sh.bob, sh.pz);   // wl：船底的平均水面、bob：船身相對它的起伏（08_sea.js）
@@ -40,8 +44,7 @@ function makeShip(i, team, yaw, pz, T) {                              // T：船
   sh.yards = sh.models.filter(function (m) { return m.kind === 'yard' && m.piv; });
   // 砲：長砲（24 磅，兩舷各 14）、carronade（32 磅，兩舷各 12）、追擊砲（18 磅，船頭兩舷各 1）都是模型。
   // 砲軸 ＝ 固定點 muzzle − breech（格座標、水平）；砲口 ＝ muzzle 再往外 1.5 格（muzzle 在砲口內膛那一格）。
-  // ⚠ 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致），但 S（格 +y）在右手座標裡是船的左手邊（面向船頭 +x、上 +z ⇒ 右手是 −y）
-  //   ⇒ 畫面上是左舷。給人看的一律照畫面（sideName）；A／D 也照畫面的左右。
+  // 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致）＝ 右舷／左舷（shipBaseMatrix 照雕刻引擎的手性鏡射過來）。給人看的走 sideName；A／D 照畫面的左右。
   sh.models.forEach(function (m) {
     if (!GUNS[m.kind]) return;
     var mz = m.pts.muzzle, br = m.pts.breech, ax;

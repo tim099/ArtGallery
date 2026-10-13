@@ -196,7 +196,7 @@ function makeStations(sh) {
         if (z >= 0 && clear(x, y, z)) spot = [x, y, z];
       }
       if (!spot) return;
-      var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
+      var st = { deck: deck, mag: mag, name: D.name + (mag.name.indexOf('前') >= 0 ? '前' : mag.name.indexOf('中') >= 0 ? '中' : '後') + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
         var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: powderHP(), hpMax: powderHP(), mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },

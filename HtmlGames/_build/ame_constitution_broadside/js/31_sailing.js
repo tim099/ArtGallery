@@ -35,8 +35,8 @@ function waterline(T) {
   for (y = 0; y < G.sy; y++) if (G.get(x1 - 25, y, ZW)) { if (y < lo) lo = y; if (y > hi) hi = y; }
   T.bowHalf = hi >= lo ? (hi - lo) / 2 + 3 : 20;
 }
-function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 +y 那一側轉 ＝ 畫面上的左轉
-function sideName(side) { return side === 'S' ? '左舷' : '右舷'; }        // 模型的 S（格 +y）在畫面上是左舷（見 makeShip）
+function fwd(yaw) { return [Math.cos(yaw), 0, -Math.sin(yaw)]; }          // 船頭（格 +x）在世界的方向；yaw 變大 ＝ 往格 −y（左舷 P）那一側轉 ＝ 畫面上的左轉
+function sideName(side) { return side === 'S' ? '右舷' : '左舷'; }        // 模型的 S（格 +y）＝ 右舷（shipBaseMatrix 照雕刻引擎的手性）
 var SAILSETS = ['全收', '收帆', '戰鬥帆', '滿帆'];
 /** 帆裝 k 張不張這面帆：0 全收（一面都不張）／1 收帆（三面上桅帆＋jib）／2 戰鬥帆（再加上桅頂帆、後桅縱帆、前支索帆）／3 滿帆。
  *  收起來的帆不畫、不算航速、鏈彈打不到、依靠的格或繩斷了也不掉 —— 只有桅斷了（依靠跟著斷開的那一團走）才跟著走。 */
@@ -85,7 +85,7 @@ function sail(sh, dt) {
   } else {
     if (!sh.struck && !sh.sunk && foe) {
       // 這一舷的砲都開不了、另一舷還有 ⇒ 把另一舷轉向敵艦
-      var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? -1 : 1;
+      var other = sh.side === 'S' ? 'P' : 'S', present = sideGuns(sh, sh.side) || !sideGuns(sh, other) ? sh.side : other, sg = present === 'P' ? 1 : -1;   // sg：敵艦要在畫面左邊（左舷 P）⇒ +1
       var dx = foe.px - sh.px, dz = foe.pz - sh.pz, d = Math.hypot(dx, dz) || 1;
       tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - DIST) / DIST * 1.5, -0.4, 0.4);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }

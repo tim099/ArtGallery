@@ -54,9 +54,9 @@ function stepShip(sh, dt) {
     if (sh.sinkingFinal) { sh.sinkV += 0.06 * fk * dt; sh.sink += sh.sinkV * dt; }
     if (sh.sink > 9) { sh.sunk = true; note(sh, '沉沒', true); }
   } else { sh.sinkV = Math.min(sh.sinkV + 0.05 * dt, 1.2); sh.sink += sh.sinkV * dt; }
-  // 傾斜：破洞那一舷往下（格座標 +y ＝ 船體 −Z；繞 +X 轉負角時 −Z 那邊下沉）；粒子模式照水的重心（33_flood.js floodTilt）
+  // 傾斜：破洞那一舷往下（格座標 +y ＝ 船體 +Z（右舷）；繞 +X 轉正角時 +Z 那邊下沉）；粒子模式照水的重心（33_flood.js floodTilt）
   var tl = fl ? floodTilt(sh, fl) : null;
-  var rollT = tl ? tl[0] : -clamp(Dsp / (N + 900), -1, 1) * (sh.sinkingFinal ? 0.55 : 0.21);
+  var rollT = tl ? tl[0] : clamp(Dsp / (N + 900), -1, 1) * (sh.sinkingFinal ? 0.55 : 0.21);
   var pitchT = tl ? tl[1] : -clamp(Dbs / (N + 1500), -1, 1) * 0.07;
   sh.rollV += ((rollT - sh.rollA) * 0.9 - sh.rollV * 0.8) * dt;
   sh.rollA += sh.rollV * dt;
