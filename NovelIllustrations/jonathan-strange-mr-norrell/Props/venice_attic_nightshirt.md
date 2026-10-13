@@ -6,7 +6,7 @@ id: "venice_attic_nightshirt"
 type: "setting"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "051"
-recent_appearance: "051"
+recent_appearance: "053"
 image: "../RawImages/venice_attic_nightshirt_v1.png"
 ---
 
@@ -23,3 +23,7 @@ image: "../RawImages/venice_attic_nightshirt_v1.png"
 ## 設定稿視檢（2026-10-12）
 
 v1無真人；白睡衣領口與摺袖清楚，小凳、彩繪木櫥、獅鷲桌腿、船長椅、地上書稿與柱上紅球木像可見。桌子角度只露部分腿，未把四腿全部可見當成已驗證；場景圖以局部取景避開此數量問題。窗外建築、地毯、燭台為生成詮釋，不指認地標。無文字、水印與光效。
+
+## 第53章引用（Sirius，2026-10-13）
+
+沿用同一頂樓的彩繪木櫥、暗木桌與稿紙，取章末兩人相遇的局部。小凳睡衣、木像與完整桌腿在框外，不要求重現整室；另引用 hanging_black_ribbon_bundle 建立本章懸帶。窗光改夜晚，沒有幻覺實體或未讀結果。

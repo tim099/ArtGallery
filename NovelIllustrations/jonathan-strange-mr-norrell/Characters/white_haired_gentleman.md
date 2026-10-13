@@ -5,7 +5,7 @@ type: "character"
 work: "jonathan-strange-mr-norrell"
 first_appearance: "016"
 last_updated: "2026-10-06"
-last_referenced_chapter: "042"
+last_referenced_chapter: "053"
 image: "../RawImages/white_haired_gentleman_v1.png"
 tags: ["character", "unnamed", "manor", "silver_hair"]
 ---
@@ -24,7 +24,7 @@ tags: ["character", "unnamed", "manor", "silver_hair"]
 
 ## 劇透邊界
 
-只呈現已讀至第四十二章的外貌與言行；不為他命名、補完來歷或確認預言結果。
+只呈現已讀至第五十三章的外貌與言行；不為他命名、補完來歷或確認預言結果。
 
 ## 第三十章補充
 
@@ -37,3 +37,7 @@ tags: ["character", "unnamed", "manor", "silver_hair"]
 ## 第四十二章補充
 
 他表示要永久擄走一名未明身分的女士，並要求腐橡木；不把史蒂芬猜她是公主的說法當作事實。他救史蒂芬脫離沼澤，又要求等待九個鐘頭；其歌聲讓史蒂芬感到萬物聆聽。取木時先指揮、最後親自拖拽，完成後欣喜端詳木頭。沿用v1銀白髮、蒼白膚色與深綠外套，當次衣著濕泥破損；髮上露光是自然反射，不畫實體冠冕。木頭用途仍未知。
+
+## 第53章引用（Sirius，2026-10-13）
+
+在彩繪木櫥邊帶笑現身，穿葉綠外套、銀白髮如薊絮；走近欲揪斯特蘭奇頭髮，尚未得手便因對方問鼻煙而呆住。沿用v1身分與服裝，無沼澤泥破。場景手停在髮旁，位置與驚訝幅度為詮釋；不預畫交涉結果或束物作用。
