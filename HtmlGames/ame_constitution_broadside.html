@@ -43,7 +43,7 @@
   #gset.on{ display:block; }
   #gsetBg{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.25); z-index:5; } #gsetBg.on{ display:block; }   /* 面板外點一下就關（蓋住整個畫面，含下方的 ⚙ 設定；Tim 2026-10-13） */ #gset .gsT{ font-size:16px; color:var(--gold); margin-bottom:6px; } #gset .note{ color:var(--dim); font-size:12px; }
   #gset .gsR{ margin:9px 0; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:5px; } #gset .gsL{ color:var(--dim); font-size:13px; margin-right:2px; }
-  #gset .chip{ font-size:14px; padding:4px 12px; margin:0; } #gset .chip.big{ font-size:15px; padding:6px 16px; }
+  #gset .chip{ font-size:14px; padding:4px 12px; margin:0; } #gset .chip.big{ font-size:15px; padding:6px 16px; } #gset .chip.dis{ opacity:.45; }   /* dis：這個頁面不給全螢幕 */
   #fps{ left:50%; top:2px; transform:translateX(-50%); font:12px Consolas,monospace; color:#bfe9ff; text-shadow:0 0 3px #000, 0 0 3px #000; display:none; z-index:5; }
   #fps.on{ display:block; }
   #gfxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #gfxItems label{ width:6em; text-align:right; margin-right:6px; }
@@ -161,7 +161,7 @@
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
     <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺、帆被打穿的那塊布撕成碎片飄下來；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」（帆與繩、碎木、煙與水花、船邊水花）</div>
     <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
-    <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS</div>
+    <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS、全螢幕（手機用；電腦直接按 F11 也行，Esc 退出）</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
     <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
@@ -182,7 +182,7 @@
     <div class="gsR"><span class="chip big" id="gsGo">▶ 繼續</span><span class="chip big" id="restartB"><b>N</b> 重新開始</span><span class="chip big" id="menuB"><b>R</b> 回主選單</span><span class="chip big" id="helpB"><b>H</b> 說明</span></div>
     <div class="gsR"><span class="gsL">畫質</span><span class="chip" data-gg="low">低</span><span class="chip" data-gg="mid">中</span><span class="chip" data-gg="high">高</span><span class="note" id="gsGfx"></span></div>
     <div class="gsR"><span class="gsL">物理效果</span><span class="chip" data-gx="full">全開</span><span class="chip" data-gx="high">高</span><span class="chip" data-gx="mid">中</span><span class="chip" data-gx="low">低</span><span class="note" id="gsPhx"></span></div>
-    <div class="gsR"><span class="chip" id="physT"><b>B</b> 帆繩物理</span><span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="muteT"><b>M</b> 靜音</span><span class="chip" id="fpsT">顯示 FPS</span></div>
+    <div class="gsR"><span class="chip" id="physT"><b>B</b> 帆繩物理</span><span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="muteT"><b>M</b> 靜音</span><span class="chip" id="fpsT">顯示 FPS</span><span class="chip" id="fullT"><b>F11</b> 全螢幕</span><span class="note" id="gsFull"></span></div>
     <div class="note">畫質與物理的細項在主選單的「畫質設定…」「物理設定…」；血量、傷害、浪、天氣在開戰前設定；物理效果裡的「進水」（公式／粒子）下一場生效</div>
   </div>
 
@@ -5531,6 +5531,7 @@ function gsetShow() {
   [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.classList.toggle('on', b.dataset.gx === xl); });
   $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
   $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
+  $('fullT').classList.toggle('on', fsOn()); $('fullT').classList.toggle('dis', !fsCan()); $('gsFull').textContent = fsCan() ? '' : '（這裡不給全螢幕：iPhone 的 Safari 只給影片）';
 }
 $('setB').onclick = gsetToggle;
 // 說明（設定裡的「H 說明」、H、?）：打開 ⇒ 暫停（關掉回到打開之前的暫停狀態，跟設定一樣）；外面蓋一層 #helpBg，點外面、✕、H、Esc 都關（Tim 2026-10-13：手機上不好關說明）
@@ -5544,6 +5545,23 @@ $('gsGo').onclick = gsetClose;
 $('menuB').onclick = function () { doKey('r'); };
 $('muteT').onclick = function () { muted = !muted; gsetShow(); };
 $('fpsT').onclick = function () { GFX_FPS = !GFX_FPS; gfxShow(); };
+// 全螢幕（設定面板的「F11 全螢幕」；Tim 2026-10-13：主要給手機用）：整頁（documentElement）進出全螢幕；畫布大小每一格照量（60_render.js resize）⇒ 不用另外處理。
+//   畫廊彈窗的 iframe（sandbox＋allow="fullscreen"，ArtGallery/index.html）進得去（量過：fullscreenEnabled、點了 fs ＝ true、按鈕亮）。
+//   不給全螢幕的地方（iPhone 的 Safari 只給影片、沒開 fullscreen 權限的 iframe）⇒ 按鈕變灰、寫原因。Esc 是瀏覽器自己退出全螢幕的鍵（頁面收不到那一下）。
+//   「F11」只是提示電腦上按 F11 也能全螢幕（Tim：只是提示）—— 那是瀏覽器自己的全螢幕，頁面不攔（⛔ 攔了要猜瀏覽器的全螢幕開了沒：拿視窗跟螢幕比大小，縮放與無頭 Chrome 都會猜錯）。
+//   不存檔：進全螢幕一定要使用者點一下才行，開局自動進不去。
+function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function fsCan() { return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled); }
+function fsToggle() {
+  if (!fsCan()) return;
+  var d = document, e = d.documentElement;
+  try {
+    var r = fsOn() ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (e.requestFullscreen || e.webkitRequestFullscreen).call(e, { navigationUI: 'hide' });
+    if (r && r.catch) r.catch(function () { gsetShow(); });                          // 被拒（沒有點擊、權限）⇒ 按鈕照實際狀態
+  } catch (err) { gsetShow(); }
+}
+$('fullT').onclick = fsToggle;
+['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { document.addEventListener(ev, gsetShow); });   // 進出（含 Esc 退出）⇒ 按鈕跟著亮滅
 [].forEach.call(document.querySelectorAll('#gset [data-gg]'), function (b) { b.onclick = function () { gfxSet(b.dataset.gg); gfxShow(); }; });
 [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.onclick = function () { phxSet(b.dataset.gx); phxSync(); }; });
 $('endA').onclick = start;
