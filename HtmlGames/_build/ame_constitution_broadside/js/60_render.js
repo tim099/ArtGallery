@@ -399,13 +399,13 @@ function render() {
   lanternHalo(pushPt);                                                   // 燈籠的光暈
   BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
   var me = SHIPS[PLAYER_I], mWorld = m;                                   // mWorld 之後的是瞄準圈：另一批畫、不做深度測試（被船身擋住也看得到）
-  if (me && me.aim && !AUTOFIRE && !STILL) {
+  if (me && me.aim && handAim(me) && !STILL) {                          // 自己瞄的才畫圈（含自動開砲時點了敵艦的那一舷）
     // 圈：直立，水平軸跟著敵艦的船長方向（扣掉視線方向的分量）⇒ 從側面看跟著敵艦轉；快正對船頭／船尾時改用鏡頭的右方
     // ⛔ 世界固定的平面 ⇒ 敵艦一轉就側成一條線；⛔ 只用船身側面那個平面 ⇒ 從船頭船尾看一樣是一條線
-    var fs = aimShip(me), c = M4.pt(fs.M, me.aim[0], me.aim[1], me.aim[2]), vd = norm(sub(CAM.look, CAM.eye)), ax = shipAxis(fs);
+    var fs = aimShip(me), ac = isFoe(me, fs) ? [1, 0.85, 0.3] : [0.45, 0.78, 1], c = M4.pt(fs.M, me.aim[0], me.aim[1], me.aim[2]), vd = norm(sub(CAM.look, CAM.eye)), ax = shipAxis(fs);   // ac：瞄友艦 ⇒ 藍圈（Tim 2026-10-14）
     var u = sub(ax, mul(vd, dot(ax, vd))), ul = len(u);
     u = ul > 0.35 ? mul(u, 1 / ul) : norm(cross(vd, [0, 1, 0]));
-    for (i = 0; i < 16; i++) { var an = i / 16 * 6.2832 + SIMT; pushPt(add(c, add(mul(u, Math.cos(an) * 2.2), [0, Math.sin(an) * 2.2, 0])), 0.5, [1, 0.85, 0.3], 0.9); }
+    for (i = 0; i < 16; i++) { var an = i / 16 * 6.2832 + SIMT; pushPt(add(c, add(mul(u, Math.cos(an) * 2.2), [0, Math.sin(an) * 2.2, 0])), 0.5, ac, 0.9); }
   }
   if (FLX3) flHoleMarks(pushPt);                                         // 停格的「🔍 透視」開著：破口畫成點、隔著船殼看得到（72_floodui.js）
   if (m) {

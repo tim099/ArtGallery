@@ -17,11 +17,11 @@ var CAPTAINS = {
 };
 var CAP_KEYS = Object.keys(CAPTAINS), AIM_P = 'free';   // AIM_P：我艦手動的瞄準模式（重開時保留）
 /** 開局：每艘挑一個砲長（細節設定的；隨機 ⇒ 抽種子亂數）。 */
-function pickCaptains() {
-  SHIPS.forEach(function (sh) {
-    var k = sh.i === PLAYER_I ? CAP_SET[0] : sh.team !== playerTeam() ? CAP_SET[1] : 'random'; if (!CAPTAINS[k]) k = CAP_KEYS[(rnd() * CAP_KEYS.length) | 0];   // 細節設定的兩格：我艦／敵船（友船隨機）
-    sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.i === PLAYER_I ? AIM_P : 'free';
-  });
+function pickCaptains() { SHIPS.forEach(pickCaptain); }
+/** 一艘的砲長（開局每艘、候補進場時那一艘；52_fleet.js spawnReserve）。 */
+function pickCaptain(sh) {
+  var k = sh.i === PLAYER_I ? CAP_SET[0] : sh.team !== playerTeam() ? CAP_SET[1] : 'random'; if (!CAPTAINS[k]) k = CAP_KEYS[(rnd() * CAP_KEYS.length) | 0];   // 細節設定的兩格：我艦／敵船（友船隨機）
+  sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.i === PLAYER_I ? AIM_P : 'free';
 }
 /** 敵艦現在的水線（格座標的 z）：設計水線 ＋ 進水 − 浮高 − 浪。 */
 function wlZ(foe) { return foe.T.zw + (foe.sink - foe.lift - foe.bob) / S; }

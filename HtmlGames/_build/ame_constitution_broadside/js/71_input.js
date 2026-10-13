@@ -44,13 +44,24 @@ function pick(cx, cy) {
   var r = cv.getBoundingClientRect(), nx = (cx - r.left) / r.width * 2 - 1, ny = 1 - (cy - r.top) / r.height * 2;
   var a = M4.pt(CAM.inv, nx, ny, -1), bq = CAM.inv, w0 = bq[3] * nx + bq[7] * ny + bq[11] * -1 + bq[15], w1 = bq[3] * nx + bq[7] * ny + bq[11] + bq[15];
   var p0 = mul(M4.pt(CAM.inv, nx, ny, -1), 1 / w0), p1 = mul(M4.pt(CAM.inv, nx, ny, 1), 1 / w1), d = norm(sub(p1, p0));
-  var me = SHIPS[PLAYER_I], hit = null, on = null;                   // 每艘敵船都射一次，取最近的那一個（t：沿射線多遠；每艘的公尺／格一樣）
-  SHIPS.forEach(function (foe) {
-    if (!isFoe(me, foe)) return;
-    var oL = toLocal(foe, p0), dL = M4.dir(foe.inv, d[0], d[1], d[2]), h = VK.raycast(foe.grid, oL, dL, 3000);
-    if (h && (!hit || h.t < hit.t)) { hit = h; on = foe; }
+  var me = SHIPS[PLAYER_I], hit = null, on = null;                   // 除了自己，每艘還浮著的船都射一次（友艦也瞄得到），取最近的那一個（t：沿射線多遠；每艘的公尺／格一樣）
+  SHIPS.forEach(function (o) {
+    if (o === me || o.sunk) return;
+    var oL = toLocal(o, p0), dL = M4.dir(o.inv, d[0], d[1], d[2]), h = VK.raycast(o.grid, oL, dL, 3000);
+    if (h && (!hit || h.t < hit.t)) { hit = h; on = o; }
   });
-  if (hit) { setAim(me, [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5], on); me.pMode = AIM_P = 'free'; sfx('crack', null, 0.08); }   // 點了哪艘 ⇒ 那艘變成我的目標（52_fleet.js pickFoes）   // 點了 ⇒ 瞄準模式回到自由
+  // Tim 2026-10-14：「點海會取消瞄準；點在船身上（也可以瞄友軍，可以變色）就變成那一邊的砲手控」
+  //   點到船 ⇒ 瞄準點設在那艘（敵艦 ⇒ 也是我的目標，52_fleet.js pickFoes；友艦 ⇒ 圈變藍、打下去照樣是誤擊）；瞄準模式回到自由。
+  //   自動開砲開著 ⇒ 對得到它的那一舷交給玩家（me.hand；空白鍵齊射），另一舷照樣自動（50_sim.js aiSecond）。
+  //   點到海 ⇒ 取消瞄準（手動 ⇒ 回到預設的瞄法；自動開砲 ⇒ 回到全自動）。
+  if (hit) {
+    setAim(me, [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5], on); me.pMode = AIM_P = 'free'; sfx('crack', null, 0.08);
+    if (!isFoe(me, on)) note(me, '瞄準友艦 ' + on.T.name + teamTag(on) + ' —— 打下去一樣會傷到它');
+    if (AUTOFIRE && !me.hand) { me.hand = true; note(me, '手動瞄準：這一舷你來打（空白鍵齊射），另一舷照樣自動 —— 點海面回到全自動'); }
+  } else if (me.aim) {
+    setAim(me, null);
+    if (AUTOFIRE && me.hand) { me.hand = false; note(me, '取消瞄準 —— 回到全自動開砲'); } else note(me, '取消瞄準');
+  }
 }
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
@@ -117,7 +128,7 @@ function setCamTrack(on) {
 }
 /** 自動開砲（我艦）：觀戰預設開、其他模式預設關（reset 時照模式設）。 */
 function setAutoFire(on) {
-  AUTOFIRE = on; $('autoF').classList.toggle('on', on);
+  AUTOFIRE = on; $('autoF').classList.toggle('on', on); if (SHIPS[PLAYER_I]) SHIPS[PLAYER_I].hand = false;   // 切換 ⇒ 手動瞄準那一舷也收掉
   if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], on ? '自動開砲' : '自己開砲（點敵艦瞄準、空白鍵齊射）');
 }
 [].forEach.call(document.querySelectorAll('#hudctl [data-s]'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
@@ -346,7 +357,7 @@ function hullOptions(sel, v) { sel.innerHTML = HULL_LIST.map(function (h) { retu
 /** 主選單的艦隊編成（TASK-0537）：我方、敵方各一列，每艘一個選單；第二艘起有 ×（拿掉）；＋ 加一艘（照那一邊最後一艘的船型），合計到 MAX_SHIPS 就停用。
  *  我方第一艘 ＝ 我艦。改了就重建這兩列。 */
 function fleetUI() {
-  var full = FLEET_SET[0].length + FLEET_SET[1].length >= MAX_SHIPS;
+  var full = FLEET_SET[0].length + FLEET_SET[1].length >= FLEET_MAX;
   [0, 1].forEach(function (s) {
     var box = $('fleet' + s), L = FLEET_SET[s];
     box.innerHTML = L.map(function (id, j) {
@@ -355,9 +366,11 @@ function fleetUI() {
     }).join('') + '<button class="fa" data-s="' + s + '" aria-label="' + (s ? '加一艘敵艦' : '加一艘友艦') + '"' + (full ? ' disabled' : '') + '>＋</button>';
     [].forEach.call(box.querySelectorAll('select'), function (el) { hullOptions(el, L[+el.dataset.j]); el.onchange = function () { pickShip(s, +el.dataset.j, el.value); }; });
     [].forEach.call(box.querySelectorAll('button.fx'), function (b) { b.onclick = function () { L.splice(+b.dataset.j, 1); fleetUI(); pickShip(); }; });
-    box.querySelector('button.fa').onclick = function () { if (FLEET_SET[0].length + FLEET_SET[1].length < MAX_SHIPS) { L.push(L[L.length - 1]); fleetUI(); pickShip(); } };
+    box.querySelector('button.fa').onclick = function () { if (FLEET_SET[0].length + FLEET_SET[1].length < FLEET_MAX) { L.push(L[L.length - 1]); fleetUI(); pickShip(); } };
   });
-  $('fleetN').textContent = FLEET_SET[0].length + ' 對 ' + FLEET_SET[1].length + (full ? '（上限 ' + MAX_SHIPS + ' 艘）' : '');
+  var sp = fieldSplit(fleetSpec()), fb = sp.field.filter(function (f) { return f.team === 'blue'; }).length, fr = sp.field.length - fb;   // 開局誰上場（52_fleet.js）
+  $('fleetN').textContent = FLEET_SET[0].length + ' 對 ' + FLEET_SET[1].length + (full ? '（編成上限 ' + FLEET_MAX + ' 艘）' : '') +
+    (sp.reserve.blue.length || sp.reserve.red.length ? '　⇒ 開局 ' + fb + ' 對 ' + fr + ' 上場，候補 ' + sp.reserve.blue.length + '／' + sp.reserve.red.length + ' 艘（' + REINF_NAMES[REINF_MODE] + '）' : '');
 }
 /** 主選單換船（s 那一邊第 j 艘換成 id；不給 ⇒ 只是艘數變了）：還沒載的先載（開戰鈕暫時停用），載好就把背景的船換掉；細節設定跟著編輯我艦那一型。 */
 function pickShip(s, j, id) {
@@ -373,6 +386,13 @@ function pickShip(s, j, id) {
 }
 sliders(); setPlay(PLAY); setWeather(WX_ID);
 [].forEach.call(document.querySelectorAll('#wxs button'), function (b) { b.onclick = function () { setWeather(b.dataset.w); if (SLIDERS_SHOW) SLIDERS_SHOW(); }; });   // 主選單：天氣（08_weather.js）
+/** 主選單：同時在場（滑桿 2～MAX_SHIPS，52_fleet.js FIELD_N）；編成超過它的照候補規則進場。 */
+function fieldShow() { var f = $('field'); f.value = FIELD_N; $('fieldV').textContent = FIELD_N + ' 艘'; if ($('fleetN')) fleetUI(); }
+(function () { var f = $('field'); f.min = 2; f.max = MAX_SHIPS; f.oninput = function () { FIELD_N = Math.round(+f.value); fieldShow(); }; fieldShow(); })();
+/** 細節設定：候補補位（52_fleet.js REINF_MODE）。 */
+function reinfShow() { [].forEach.call(document.querySelectorAll('#reinfs button'), function (b) { b.className = b.dataset.r === REINF_MODE ? 'on' : ''; }); if ($('fleetN')) fleetUI(); }
+[].forEach.call(document.querySelectorAll('#reinfs button'), function (b) { b.onclick = function () { REINF_MODE = b.dataset.r; reinfShow(); }; });
+reinfShow();
 /** 主選單：開局距離（滑桿，04_state.js LIM_DIST）。開局才用 ⇒ 改了下一場生效。 */
 function distShow() { var d = $('dist'); d.value = DIST; $('distV').textContent = DIST + ' m（船頭到船頭）'; }
 (function () { var d = $('dist'); d.min = LIM_DIST[0]; d.max = LIM_DIST[1]; d.oninput = function () { DIST = Math.round(+d.value); distShow(); }; distShow(); })();

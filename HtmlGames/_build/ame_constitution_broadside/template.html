@@ -209,7 +209,7 @@
       <div class="row" id="plays">玩法
         <button data-p="fun" class="on">娛樂</button><button data-p="real">寫實</button>
       </div>
-      <div id="shipsel"><div class="row">我方 <span class="fl" id="fleet0"></span></div><div class="row">敵方 <span class="fl" id="fleet1"></span></div><div id="fleetN"></div></div>
+      <div id="shipsel"><div class="row">我方 <span class="fl" id="fleet0"></span></div><div class="row">敵方 <span class="fl" id="fleet1"></span></div><div id="fleetN"></div><div class="row slide"><label for="field">同時在場</label><input type="range" id="field" step="1" aria-label="同時在場最多幾艘（其他的候補）"><span id="fieldV"></span></div></div>
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
       </div>
@@ -316,6 +316,11 @@
       <div class="row slide"><label for="blastv">威力浮動</label><input type="range" id="blastv" step="5" aria-label="每次爆炸的威力浮動（%）"><span id="blastvV"></span></div>
       <div class="row note">彈藥庫在艙底、水線下，砲彈打不到（每桶 100 磅）：憲法號前後兩間（後 22 桶、前 116 桶），餘燼號船中段一間（230 桶），夜隼號艙房底下一間（8 桶）。每層砲甲板在每間彈藥庫上方各有一個取用點（3 桶火藥＋彈藥；正上方沒有甲板就往前後找；只有一間彈藥庫的船每層前後各一個），送藥手從離要送的那門砲最近的取用點搬到砲旁的藥箱。<br>
         預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血（同一間 3 秒只算一次）⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+      <h3>候補</h3>
+      <div class="row" id="reinfs">候補補位 <button data-r="prop">比例</button><button data-r="own">誰沉誰補</button><button data-r="alt">輪流</button></div>
+      <div class="row note">編成比主選單的「同時在場」多 ⇒ 多的照編成順序排進候補；場上的船沉了、在沉或降旗 ⇒ 空出一個名額，候補從自己那一方的後面進場（船頭對著敵方）。開局每一方至少 1 艘、其他名額照比例分。<br>
+        <b>比例</b>（預設）：剩餘戰力（場上還在打的＋候補）照比例分名額，補給離應得最遠的那一方 ⇒ 大致誰沉誰補；懸殊時人少的一方也保得住名額。<b>誰沉誰補</b>：每一方守住自己的名額，自己沒候補了那個名額就空著。<b>輪流</b>：空出名額就兩方輪流補（輪到的那方沒候補 ⇒ 給另一方）。<br>
+        勝負：一方場上的都沉了或降旗、而且候補用完 ⇒ 輸。網址 ?field=（同時在場）?reinf=prop｜own｜alt</div>
       <h3>砲長</h3>
       <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
       <div class="row slide"><label for="cap1">敵方</label><select id="cap1"></select></div>

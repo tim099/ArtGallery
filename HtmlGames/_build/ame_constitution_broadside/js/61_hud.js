@@ -6,8 +6,8 @@ var MSGS = [], MSG_MAX = 5, MSG_LIFE = 4;
 /** imp：重要的（殉爆、斷成兩截、沉沒、降旗）⇒ 留 8 秒，滿了先擠掉不重要的。 */
 function note(sh, text, imp) {
   if (DEMO >= 0 && !RUNNING) return;
-  var who = sh.i === PLAYER_I ? '我艦' : '敵艦', el = document.createElement('div');
-  el.innerHTML = '<span style="color:' + (sh.i === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text;
+  var who = sh.i === PLAYER_I ? '我艦' : sh.team === playerTeam() ? '友艦' : '敵艦', el = document.createElement('div');   // 多船：照陣營（一對一 ＝ 以前的我艦／敵艦）
+  el.innerHTML = '<span style="color:' + (teamIdx(sh) === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text;
   $('msg').appendChild(el); MSGS.push({ el: el, t: imp ? 8 : MSG_LIFE, imp: !!imp });
   while (MSGS.length > MSG_MAX) { var j = MSGS.findIndex(function (m) { return !m.imp; }); MSGS.splice(j < 0 ? 0 : j, 1)[0].el.remove(); }
 }
@@ -53,7 +53,7 @@ function newsFlush(sh) {
 }
 /** 面板的一行：砲長與現在瞄哪裡（我艦手動 ⇒ 玩家的瞄準模式，砲長待命）。 */
 function capText(sh) {
-  var C = CAPTAINS[sh.cap], manual = sh.i === PLAYER_I && !AUTOFIRE;
+  var C = CAPTAINS[sh.cap], manual = handAim(sh);
   return '砲長 ' + (C ? C.name : '—') + '：' + (manual ? '待命（我在瞄：' + AIM_NAME[sh.pMode || 'free'] + '）' : sh.aimMode ? '瞄' + AIM_NAME[sh.aimMode] : '觀察中');
 }
 // 進水 %（HUD；TASK-0535，Tim 2026-10-13：原本 ＝ 下沉 ÷ 9 m ⇒ 26% 時已經注定要沉、50% 就淹過船體 ⇒ 改用艙內積水算：船重＋積水 ＝ 浮力 ⇒ 100%）。
@@ -102,7 +102,7 @@ function gunRow(sh, side) {
     return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
   }
   var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); });   // 每層砲甲板一段（由下往上）
-  var foe = foeOf(sh), w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
+  var foe = foeOf(sh), w = handAim(sh) ? aimPoint(sh) : foe && foe.center;
   var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
   return '<span class="gr">' + lab + rows.map(function (r) { return r.map(cell).join(''); }).join('｜') + '</span>';
 }
@@ -219,14 +219,15 @@ function hud(dt) {
   stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
   var me = SHIPS[PLAYER_I], mf = flagship(playerTeam()) || me, ef = flagship(foeTeam());   // 上方兩個面板：雙方旗艦（52_fleet.js；一對一 ＝ 我艦、敵艦）
-  $('me').innerHTML = panel(mf, (mf === me ? '我艦 ' : '我方旗艦 ') + mf.T.name + teamTag(mf));
-  $('foe').innerHTML = ef ? panel(ef, (teamShips(ef.team).length > 1 ? '敵方旗艦 ' : '敵艦 ') + ef.T.name + teamTag(ef)) : '';
+  function resTag(team) { var n = RESERVE[team].length; return n ? '・候補 ' + n : ''; }   // 候補還有幾艘（52_fleet.js）
+  $('me').innerHTML = panel(mf, (mf === me ? '我艦 ' : '我方旗艦 ') + mf.T.name + teamTag(mf) + resTag(mf.team));
+  $('foe').innerHTML = ef ? panel(ef, (teamShips(ef.team).length > 1 || RESERVE[ef.team].length ? '敵方旗艦 ' : '敵艦 ') + ef.T.name + teamTag(ef) + resTag(ef.team)) : '';
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
-  var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
+  var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
   $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 停格' : '');
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
-  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (AUTOFIRE ? '砲長' : AIM_NAME[me.pMode || 'free']);
+  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (!handAim(me) ? '砲長' : (AUTOFIRE ? '手動一舷・' : '') + AIM_NAME[me.pMode || 'free']);
   var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + (PHYS ? '　物理 ' + PHYS_MS.toFixed(2) + ' ms/步、垂繩 ' + SHIPS.map(function (s) { return s.loose.length; }).join('／') : '') + '　' + FPS.toFixed(0) + ' fps' : '';
   $('tip').textContent = t;
   drawNav(me);

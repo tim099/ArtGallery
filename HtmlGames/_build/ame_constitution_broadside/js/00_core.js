@@ -32,12 +32,13 @@ function hash3(x, y, z) { var h = (Math.imul(x, 374761393) + Math.imul(y, 668265
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
 // ───────────────────────── 常數 ─────────────────────────
-// 一場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4 ⇒ 8，改檔案可調；之後放進設定後台 TASK-0542）。
+// 同時在場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4 ⇒ 8，改檔案可調；之後放進設定後台 TASK-0542）。
 // 每一格只給「視野裡離鏡頭最近的幾艘」GPU 的格（Tim 2026-10-13「優先選最近的 N 條船，超過的就沒陰影＆遮罩」「超過的靠全局覆蓋」「只選視野範圍內最近的」；60_render.js gpuSlots）：
 //   · 自己的陰影圖：最近的 GFX.shships 艘（畫質設定「陰影船數」0～MAX_SHIPS，最高畫質 ＝ MAX_SHIPS）；其他的船畫進一張罩住它們的全局陰影圖（解析度低）。
 //   · 船艙遮罩（與透視）：最近的 MASK_NEAR 艘；其他的沒有（遠處看不到艙裡）。
 //   陰影圖、船艙遮罩都是貼圖陣列（各佔一個單元：陰影第 4 號、遮罩第 1 號）⇒ 船數不受貼圖單元限制。
-var MAX_SHIPS = 8, MASK_NEAR = 4;
+// FLEET_MAX：編成最多幾艘（主選單；Tim 2026-10-13「編成可以設高一點」）—— 同時在場的最多 FIELD_N 艘（主選單滑桿 2～MAX_SHIPS），其他的候補（52_fleet.js）。
+var MAX_SHIPS = 8, MASK_NEAR = 4, FLEET_MAX = 40;
 var DT = 1 / 60, G = 9.81, V0 = 175, ZW0 = 63;    // ZW0：沒有 meta 時的設計水線（憲法號吃水 63 格，basecamp 的下水段同一個數）；每種船的在 T.zw
 var RELOAD = 7, RELOAD_SANDBOX = 1.6;
 var AMMO = ['實心彈', '爆裂彈', '鏈彈'];

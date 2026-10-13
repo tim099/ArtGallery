@@ -209,7 +209,7 @@
       <div class="row" id="plays">玩法
         <button data-p="fun" class="on">娛樂</button><button data-p="real">寫實</button>
       </div>
-      <div id="shipsel"><div class="row">我方 <span class="fl" id="fleet0"></span></div><div class="row">敵方 <span class="fl" id="fleet1"></span></div><div id="fleetN"></div></div>
+      <div id="shipsel"><div class="row">我方 <span class="fl" id="fleet0"></span></div><div class="row">敵方 <span class="fl" id="fleet1"></span></div><div id="fleetN"></div><div class="row slide"><label for="field">同時在場</label><input type="range" id="field" step="1" aria-label="同時在場最多幾艘（其他的候補）"><span id="fieldV"></span></div></div>
       <div class="row" id="sails">航行
         <button data-s="auto">自動</button><button data-s="manual">手動</button><button data-s="off">停船</button>
       </div>
@@ -316,6 +316,11 @@
       <div class="row slide"><label for="blastv">威力浮動</label><input type="range" id="blastv" step="5" aria-label="每次爆炸的威力浮動（%）"><span id="blastvV"></span></div>
       <div class="row note">彈藥庫在艙底、水線下，砲彈打不到（每桶 100 磅）：憲法號前後兩間（後 22 桶、前 116 桶），餘燼號船中段一間（230 桶），夜隼號艙房底下一間（8 桶）。每層砲甲板在每間彈藥庫上方各有一個取用點（3 桶火藥＋彈藥；正上方沒有甲板就往前後找；只有一間彈藥庫的船每層前後各一個），送藥手從離要送的那門砲最近的取用點搬到砲旁的藥箱。<br>
         預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血（同一間 3 秒只算一次）⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+      <h3>候補</h3>
+      <div class="row" id="reinfs">候補補位 <button data-r="prop">比例</button><button data-r="own">誰沉誰補</button><button data-r="alt">輪流</button></div>
+      <div class="row note">編成比主選單的「同時在場」多 ⇒ 多的照編成順序排進候補；場上的船沉了、在沉或降旗 ⇒ 空出一個名額，候補從自己那一方的後面進場（船頭對著敵方）。開局每一方至少 1 艘、其他名額照比例分。<br>
+        <b>比例</b>（預設）：剩餘戰力（場上還在打的＋候補）照比例分名額，補給離應得最遠的那一方 ⇒ 大致誰沉誰補；懸殊時人少的一方也保得住名額。<b>誰沉誰補</b>：每一方守住自己的名額，自己沒候補了那個名額就空著。<b>輪流</b>：空出名額就兩方輪流補（輪到的那方沒候補 ⇒ 給另一方）。<br>
+        勝負：一方場上的都沉了或降旗、而且候補用完 ⇒ 輸。網址 ?field=（同時在場）?reinf=prop｜own｜alt</div>
       <h3>砲長</h3>
       <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
       <div class="row slide"><label for="cap1">敵方</label><select id="cap1"></select></div>
@@ -805,12 +810,13 @@ function hash3(x, y, z) { var h = (Math.imul(x, 374761393) + Math.imul(y, 668265
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
 // ───────────────────────── 常數 ─────────────────────────
-// 一場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4 ⇒ 8，改檔案可調；之後放進設定後台 TASK-0542）。
+// 同時在場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4 ⇒ 8，改檔案可調；之後放進設定後台 TASK-0542）。
 // 每一格只給「視野裡離鏡頭最近的幾艘」GPU 的格（Tim 2026-10-13「優先選最近的 N 條船，超過的就沒陰影＆遮罩」「超過的靠全局覆蓋」「只選視野範圍內最近的」；60_render.js gpuSlots）：
 //   · 自己的陰影圖：最近的 GFX.shships 艘（畫質設定「陰影船數」0～MAX_SHIPS，最高畫質 ＝ MAX_SHIPS）；其他的船畫進一張罩住它們的全局陰影圖（解析度低）。
 //   · 船艙遮罩（與透視）：最近的 MASK_NEAR 艘；其他的沒有（遠處看不到艙裡）。
 //   陰影圖、船艙遮罩都是貼圖陣列（各佔一個單元：陰影第 4 號、遮罩第 1 號）⇒ 船數不受貼圖單元限制。
-var MAX_SHIPS = 8, MASK_NEAR = 4;
+// FLEET_MAX：編成最多幾艘（主選單；Tim 2026-10-13「編成可以設高一點」）—— 同時在場的最多 FIELD_N 艘（主選單滑桿 2～MAX_SHIPS），其他的候補（52_fleet.js）。
+var MAX_SHIPS = 8, MASK_NEAR = 4, FLEET_MAX = 40;
 var DT = 1 / 60, G = 9.81, V0 = 175, ZW0 = 63;    // ZW0：沒有 meta 時的設計水線（憲法號吃水 63 格，basecamp 的下水段同一個數）；每種船的在 T.zw
 var RELOAD = 7, RELOAD_SANDBOX = 1.6;
 var AMMO = ['實心彈', '爆裂彈', '鏈彈'];
@@ -1268,14 +1274,14 @@ var HULL_KNOWN = [{ id: 'constitution', el: 'ship', name: '憲法號' }, { id: '
   { id: 'falcon', el: 'ship-falcon', name: '夜隼號', geo: GEO_FALCON }];
 var HULL_LIST = HULL_KNOWN.filter(function (h) { return !!document.getElementById(h.el); });
 var HULLS = {}, HULLT = {};                                             // id → 載入中的 Promise ／ 載好的船型
-// 艦隊編成（TASK-0537）：FLEET_SET[0] ＝ 我方（第一艘是我艦）、[1] ＝ 敵方，各是一串船型；每一邊至少 1 艘、合計最多 MAX_SHIPS。
+// 艦隊編成（TASK-0537）：FLEET_SET[0] ＝ 我方（第一艘是我艦）、[1] ＝ 敵方，各是一串船型；每一邊至少 1 艘、合計最多 FLEET_MAX（同時在場 FIELD_N 艘，其他的候補，52_fleet.js）。
 //   主選單編；網址 ?blue=我艦,友艦…&red=敵艦,…；舊的 ?ship=我艦,敵艦 照舊（＝ 一邊一艘；?blue／?red 給了那一邊照它）。
 var FLEET_SET = [['constitution'], ['constitution']];
 if (Q.has('ship')) Q.get('ship').split(',').forEach(function (w, i) { if (i < 2 && hullInfo(w)) FLEET_SET[i] = [w]; });
 ['blue', 'red'].forEach(function (k, i) { if (!Q.has(k)) return; var L = Q.get(k).split(',').filter(hullInfo); if (L.length) FLEET_SET[i] = L; });
 fleetTrim(FLEET_SET);
-/** 合計超過 MAX_SHIPS ⇒ 從艘數多的那一邊的尾巴拿掉（一樣多 ⇒ 敵方先拿）；每一邊至少留 1 艘。 */
-function fleetTrim(F) { while (F[0].length + F[1].length > MAX_SHIPS) { var s = F[0].length > F[1].length ? 0 : 1; if (F[s].length <= 1) break; F[s].pop(); } return F; }
+/** 合計超過 FLEET_MAX ⇒ 從艘數多的那一邊的尾巴拿掉（一樣多 ⇒ 敵方先拿）；每一邊至少留 1 艘。 */
+function fleetTrim(F) { while (F[0].length + F[1].length > FLEET_MAX) { var s = F[0].length > F[1].length ? 0 : 1; if (F[s].length <= 1) break; F[s].pop(); } return F; }
 /** 編成裡用到的船型（不重複；我艦那一型第一個）。 */
 function fleetHulls() { return FLEET_SET[0].concat(FLEET_SET[1]).filter(function (id, i, a) { return a.indexOf(id) === i; }); }
 function myHull() { return FLEET_SET[0][0]; }
@@ -2501,7 +2507,7 @@ function fireGun(sh, g, target, ammo) {
   var el = disc < 0 ? 0.26 : Math.atan((v2 - Math.sqrt(disc)) / (G * d));
   var az = Math.atan2(dz, dx), saz = Math.atan2(side[2], side[0]), da = Math.atan2(Math.sin(az - saz), Math.cos(az - saz));
   da = clamp(da, -0.45, 0.45); az = saz + da;                      // 砲門只容得下 ±26°
-  var spread = sh.i === PLAYER_I && !AUTOFIRE ? 0.0045 : sh.aiSpread || 0.008;
+  var spread = handAim(sh) && !sh.autoNow ? 0.0045 : sh.aiSpread || 0.008;   // 玩家自己瞄的那幾發（含自動開砲時的手動那一舷）；sh.autoNow ＝ 這一發是電腦開的（50_sim.js 另一舷那一輪）
   if (!sh.crew.some(function (c) { return c.role === ROLE.OFFICER && able(c); })) spread *= 1.7;   // 軍官全倒 ⇒ 沒人指揮，瞄得散
   spread *= [0.7, 0.75, 0.85, 1][sh.sailSet];                       // 帆收得越多，船越穩
   spread *= wxSpread(sh);                                          // 天氣：暴風雨裡船晃得越快，點火那一下差得越多（晴天 ×1）
@@ -2530,6 +2536,8 @@ function broadside(sh, ammo, careful) {                            // careful：
   if (k) { sh.salvo++; sh.salvoT = SIMT; }
   return k;
 }
+/** 玩家自己瞄（瞄準圈、空白鍵齊射照它）：沒開自動開砲；或開著但點了敵艦（sh.hand：那一舷手動、另一舷照樣自動；Tim 2026-10-14）。 */
+function handAim(sh) { return sh.i === PLAYER_I && (!AUTOFIRE || !!sh.hand); }
 /** 暫時把瞄準點換成 (aim, on) 跑 f（瞄準、前置量、gunTarget 都讀 sh.aim／aimShip）——另一舷的那一輪齊射用（50_sim.js aiSecond），跑完換回來。 */
 function withAim(sh, aim, on, f) { var a = sh.aim, o = sh.aimOn; sh.aim = aim; sh.aimOn = on; try { return f(); } finally { sh.aim = a; sh.aimOn = o; } }
 /** 另一舷的齊射（Tim 2026-10-13：兩側都有敵人時兩舷都開）：瞄 on 那艘的 aim（格座標），只排 guns 這幾門；瞄準點記在每一發上（e.on、e.aim），
@@ -2580,7 +2588,7 @@ function anyBears(sh, w, side) { return sh.guns.some(function (g) { return g.ali
 function shipAxis(sh) { var ax = M4.dir(sh.M, 1, 0, 0); return norm([ax[0], 0, ax[2]]); }
 function aimPoint(sh) {
   var foe = foeOf(sh);
-  if (sh.i === PLAYER_I && !AUTOFIRE && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
+  if (handAim(sh) && !sh.autoNow && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
   if (sh.aim) { var on = aimShip(sh); return M4.pt(on.M, sh.aim[0], sh.aim[1], sh.aim[2]); }   // 瞄準點是那艘的格座標
   return M4.pt(foe.M, foe.T.cx, foe.T.cy, foe.T.geo.aim);
 }
@@ -5437,7 +5445,9 @@ function ai(sh, dt) {
   if (sh.sunk || sh.struck || sh.sinkingFinal || !foe) return;
   if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
   captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
+  if (sh.hand && (!sh.aimOn || isOut(sh.aimOn))) { sh.hand = false; setAim(sh, null); }   // 手動瞄的那艘出局了 ⇒ 回到全自動
   aiSecond(sh, foe, dt);                                            // 另一舷：對不到目標、但對得到別的敵艦的那幾門（沒有別的敵艦 ⇒ 什麼都不做）
+  if (sh.hand && sh.i === PLAYER_I) return;                         // 自動開砲＋手動瞄準（71_input.js pick）：目標那一舷交給玩家（不改瞄準點、不替他開）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
   var ready = 0, alive = 0, held = 0, FK = friendKeels(sh);         // 隔著友船的那幾門不算（52_fleet.js；沒有友船 ⇒ 空的）
@@ -5455,14 +5465,17 @@ function ai(sh, dt) {
  *  拿「對不到 foe、對得到它」的那幾門（還沒排進齊射、沒隔著友船）另開一輪 —— 自己的節奏 sh.aiWait2、自己的瞄準點（broadsideAt）。
  *  只有別的敵艦時才動（一對一 ⇒ 一進來就回去，不抽亂數 ⇒ 一位元都不差）。 */
 function aiSecond(sh, foe, dt) {
-  var others = SHIPS.filter(function (o) { return isFoe(sh, o) && o !== foe && !o.sunk && !o.struck && !o.sinkingFinal && o.center; });
+  // 保留給主要那一輪的砲：平常 ＝ 對得到 foe 的；玩家手動瞄準時（sh.hand，自動開砲開著、點了一艘船）＝ 打得到瞄準圈的那幾門
+  //   （Tim 2026-10-14：「能打到瞄準圈的砲不自動開砲，其他的自動瞄準、自動開砲」；瞄的可以是友艦）⇒ 其他敵艦（含 foe）都可以當這一輪的目標。
+  var hand = sh.hand && sh.i === PLAYER_I && sh.aim && sh.aimOn, ex = hand ? sh.aimOn : foe;
+  var others = SHIPS.filter(function (o) { return isFoe(sh, o) && o !== ex && !o.sunk && !o.struck && !o.sinkingFinal && o.center; });
   if (!others.length) return;
   sh.aiWait2 = (sh.aiWait2 || 0) - dt; if (sh.aiWait2 > 0) return;
   sh.aiWait2 = 0.5;                                                 // 沒開成 ⇒ 半秒後再看
   others.sort(function (a, b) { return Math.hypot(a.px - sh.px, a.pz - sh.pz) - Math.hypot(b.px - sh.px, b.pz - sh.pz); });
   var pend = EVENTS.filter(function (e) { return e.sh === sh.i; }).map(function (e) { return e.g; }), FK = friendKeels(sh);
-  var fAim = [foe.T.cx, foe.T.cy, foe.T.geo.aim];
-  var free = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && pend.indexOf(g) < 0 && !withAim(sh, fAim, foe, function () { return gunTarget(sh, g, foe.center); }); });
+  var exAim = hand ? sh.aim : [ex.T.cx, ex.T.cy, ex.T.geo.aim], exW = hand ? M4.pt(ex.M, exAim[0], exAim[1], exAim[2]) : ex.center;
+  var free = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && pend.indexOf(g) < 0 && !withAim(sh, exAim, ex, function () { return gunTarget(sh, g, exW); }); });
   for (var j = 0; j < others.length; j++) {
     var o = others[j], oAim = [o.T.cx, o.T.cy, o.T.geo.aim], alive = [], ready = [];
     free.forEach(function (g) {
@@ -5490,7 +5503,7 @@ function step() {
     var e = EVENTS[i]; if (e.t > SIMT) continue;
     EVENTS.splice(i--, 1);
     var sh = SHIPS[e.sh];
-    if (e.on) withAim(sh, e.aim, e.on, function () { var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
+    if (e.on) withAim(sh, e.aim, e.on, function () { sh.autoNow = true; var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); sh.autoNow = false; });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
     else { var et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et) fireGun(sh, e.g, et, e.ammo); }   // 開火那一刻才挑點（兩艘都在動）
   }
   if (PF) pfLap('fire');
@@ -5516,7 +5529,7 @@ function step() {
   stepPowder();                                                    // 殉爆排程（23_powder.js）
   stepBlasts();                                                    // 還沒挖完的彈坑接著挖（23_powder.js）
   if (PF) pfLap('powder');
-  if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
+  if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); reinforce(); playerHandoff(); }   // reinforce：空出名額 ⇒ 候補進場；playerHandoff：我艦出局 ⇒ 換到友艦（52_fleet.js；沒有候補／我艦還在打 ⇒ 直接回去）
   if (PF) pfLap('survey');
   if (!OVER || END_AT) checkEnd();                                 // 結束判定每一步看（結算畫面照模擬時間延後跳）
   if (PF) pfLap('end');
@@ -5541,11 +5554,11 @@ var CAPTAINS = {
 };
 var CAP_KEYS = Object.keys(CAPTAINS), AIM_P = 'free';   // AIM_P：我艦手動的瞄準模式（重開時保留）
 /** 開局：每艘挑一個砲長（細節設定的；隨機 ⇒ 抽種子亂數）。 */
-function pickCaptains() {
-  SHIPS.forEach(function (sh) {
-    var k = sh.i === PLAYER_I ? CAP_SET[0] : sh.team !== playerTeam() ? CAP_SET[1] : 'random'; if (!CAPTAINS[k]) k = CAP_KEYS[(rnd() * CAP_KEYS.length) | 0];   // 細節設定的兩格：我艦／敵船（友船隨機）
-    sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.i === PLAYER_I ? AIM_P : 'free';
-  });
+function pickCaptains() { SHIPS.forEach(pickCaptain); }
+/** 一艘的砲長（開局每艘、候補進場時那一艘；52_fleet.js spawnReserve）。 */
+function pickCaptain(sh) {
+  var k = sh.i === PLAYER_I ? CAP_SET[0] : sh.team !== playerTeam() ? CAP_SET[1] : 'random'; if (!CAPTAINS[k]) k = CAP_KEYS[(rnd() * CAP_KEYS.length) | 0];   // 細節設定的兩格：我艦／敵船（友船隨機）
+  sh.cap = k; sh.aimMode = null; sh.capT = -99; sh.pMode = sh.i === PLAYER_I ? AIM_P : 'free';
 }
 /** 敵艦現在的水線（格座標的 z）：設計水線 ＋ 進水 − 浮高 − 浪。 */
 function wlZ(foe) { return foe.T.zw + (foe.sink - foe.lift - foe.bob) / S; }
@@ -5632,10 +5645,12 @@ function foeOf(sh) { if (sh.foe === undefined) pickFoes(); return sh.foe; }
 /** 瞄準點落在哪艘船（設瞄準點那一刻的那艘；沒有 ⇒ 現在的目標）。 */
 function aimShip(sh) { return sh.aim && sh.aimOn ? sh.aimOn : foeOf(sh); }
 function setAim(sh, aim, on) { sh.aim = aim; sh.aimOn = aim ? on || foeOf(sh) : null; }
-/** 旗艦：那個陣營還沒沉的船裡，開戰時排水量（sh.mass0；還沒算 ⇒ 現算）最大的；全沉了 ⇒ 最大的那艘（Tim 2026-10-13：上方面板只顯示雙方旗艦）。
+/** 旗艦：那個陣營還在打的船（沒沉、沒在沉、沒降旗）裡，開戰時排水量（sh.mass0；還沒算 ⇒ 現算）最大的；都出局了 ⇒ 沒沉的裡最大的；全沉了 ⇒ 最大的那艘
+ *  （Tim 2026-10-13：上方面板只顯示雙方旗艦；有候補之後降旗的船還浮在場上 ⇒ ⛔ 只看沒沉 ⇒ 面板停在降旗的那艘）。
  *  ⛔ 照「現在」的排水量排 ⇒ 被打掉幾噸就換旗艦、面板一直跳。 */
 function flagship(team) {
-  var L = teamShips(team), live = L.filter(function (o) { return !o.sunk; }); if (live.length) L = live;
+  var L = teamShips(team), act = L.filter(function (o) { return !isOut(o); }), live = L.filter(function (o) { return !o.sunk; });
+  if (act.length) L = act; else if (live.length) L = live;
   var best = null, bm = -1;
   L.forEach(function (o) { var m = o.mass0 || shipT(o); if (m > bm) { bm = m; best = o; } });
   return best;
@@ -5643,8 +5658,8 @@ function flagship(team) {
 function teamTag(sh) { return teamIdx(sh) === 0 ? '（藍）' : '（紅）'; }
 function playerTeam() { var me = SHIPS[PLAYER_I]; return me ? me.team : 'blue'; }
 function foeTeam() { return playerTeam() === 'blue' ? 'red' : 'blue'; }
-/** 那個陣營打完了沒：每艘都沉了或降旗。 */
-function teamDown(team) { var L = teamShips(team); return L.length > 0 && L.every(function (o) { return o.sunk || o.struck; }); }
+/** 那個陣營打完了沒：場上每艘都沉了或降旗，而且沒有候補了（RESERVE）。 */
+function teamDown(team) { var L = teamShips(team); return L.length > 0 && L.every(function (o) { return o.sunk || o.struck; }) && !RESERVE[team].length; }
 /** 開局的編隊（70_flow.js reset；Tim 2026-10-13「兩邊船頭相對互相接近」「友軍就排在旁邊」）：
  *  兩邊船頭相對（藍往 −z、紅往 +z），船頭（水線最前那一格）相距 DIST；同一邊排成橫隊（並排，左右隔 FLEET_GAP），船頭對齊。
  *  spec：[{ team, hull }]，一對一 ＝ [我艦, 敵艦]；SHIPS 照這個順序建（i ＝ 序號；我艦是 0）。艘數超過 MAX_SHIPS ⇒ 截掉。 */
@@ -5658,8 +5673,104 @@ function fleetSpec() {
   r.slice(1).forEach(function (h) { L.push({ team: 'red', hull: h }); });
   return L;
 }
+// ───────────────────────── 候補（Tim 2026-10-13：「最大進場數量設定，超出的船在船沉後候補進場」「例如同場上限 8，編成 16 艘 ⇒ 後面 8 艘變成候補」） ─────────────────────────
+// 編成（最多 FLEET_MAX）裡同時在場最多 FIELD_N 艘（主選單滑桿 2～MAX_SHIPS；?field=）；其他的照編成順序排進候補 RESERVE[陣營]。
+// 開局：每一方先 1 艘（我艦一定在場），剩下的名額照「比例」一艘一艘分（下面 propSide），每一方上場的是它編成裡的前幾艘。
+// 空出名額 ＝ 場上的船沉了、在沉、或降旗（⛔ 降旗不算 ⇒ 一方在場的全降旗、候補永遠進不來，勝負卡住）；每半秒（survey 那一拍）看一次。
+// 補哪一方（細節設定「候補補位」REINF_MODE；Tim：「候補算法由妳決定，有多種的話可以在詳細設定中開放選擇」）：
+//   · prop 比例（預設）：剩餘戰力 ＝ 場上還在打的 ＋ 候補；那一方應得 ＝ FIELD_N × 自己剩餘 ÷ 兩方剩餘；補給「應得 − 在場」最多的那一方
+//     （一樣多 ⇒ 在場少的；再一樣 ⇒ 跟上一次補的不同邊）。⇒ 大致誰沉誰補，懸殊時人少的那一方也保得住一點名額、人多的保有優勢。
+//   · own 誰沉誰補：每一方守住自己的名額，沉一艘從自己的候補補一艘；自己沒候補了 ⇒ 那個名額空著。
+//   · alt 輪流：空出名額就兩方輪流補（輪到的那一方沒候補 ⇒ 給另一方）。
+// 進場的位置：那一方場上的船的中心往「離敵方中心」的方向再退 120 m（至少離敵方中心 260 m；那一方場上沒船 ⇒ 開局那一側），
+//   左右錯開到離每一艘還浮著的船 70 m 以上；船頭對著敵方中心。廣播「援軍進場」。
+// 船數 ≤ FIELD_N ⇒ 沒有候補，一切照舊（一對一一位元都不差）。
+var FIELD_N = MAX_SHIPS, REINF_MODE = 'prop', RESERVE = { blue: [], red: [] }, REINF = { last: null, outQ: [] };
+if (Q.has('field') && isFinite(+Q.get('field'))) FIELD_N = clamp(Math.round(+Q.get('field')), 2, MAX_SHIPS);
+if (['prop', 'own', 'alt'].indexOf(Q.get('reinf')) >= 0) REINF_MODE = Q.get('reinf');
+var REINF_NAMES = { prop: '比例', own: '誰沉誰補', alt: '輪流' };
+function isOut(o) { return o.sunk || o.struck || o.sinkingFinal; }
+function other(team) { return team === 'blue' ? 'red' : 'blue'; }
+/** 比例制挑下一個名額給哪一方：act ＝ 在場還在打的艘數、res ＝ 候補艘數（兩個都是 { blue, red }）。都沒候補 ⇒ null。 */
+function propSide(act, res, last) {
+  var tot = act.blue + res.blue + act.red + res.red, best = null, bd = -1e9;
+  ['blue', 'red'].forEach(function (s) {
+    if (!res[s]) return;
+    var d = FIELD_N * (act[s] + res[s]) / tot - act[s];
+    if (!best || d > bd + 1e-9 || (Math.abs(d - bd) <= 1e-9 && (act[s] < act[best] || (act[s] === act[best] && last === best)))) { best = s; bd = d; }
+  });
+  return best;
+}
+/** 開局分配：spec（編成的一串）⇒ { field（上場的，照 spec 順序）, reserve（{ blue: [船型…], red: […] }）}。 */
+function fieldSplit(spec) {
+  var tot = { blue: 0, red: 0 }, act = { blue: 0, red: 0 }, last = null;
+  spec.forEach(function (f) { tot[f.team]++; });
+  ['blue', 'red'].forEach(function (s) { if (tot[s]) act[s] = 1; });
+  for (var n = act.blue + act.red; n < FIELD_N; n++) {
+    var s = propSide(act, { blue: tot.blue - act.blue, red: tot.red - act.red }, last); if (!s) break;
+    act[s]++; last = s;
+  }
+  var k = { blue: 0, red: 0 }, field = [], reserve = { blue: [], red: [] };
+  spec.forEach(function (f) { if (k[f.team]++ < act[f.team]) field.push(f); else reserve[f.team].push(f.hull); });
+  return { field: field, reserve: reserve };
+}
+/** 每半秒（50_sim.js step，survey 那一拍）：有空出來的名額就照 REINF_MODE 補。 */
+function reinforce() {
+  if (OVER || (!RESERVE.blue.length && !RESERVE.red.length) || teamDown('blue') || teamDown('red')) return;   // 有一方打完了 ⇒ 不補（⛔ 不擋 ⇒ 勝負那一拍對面還補一艘進場）
+  SHIPS.forEach(function (o) { if (isOut(o) && !o.outSeen) { o.outSeen = true; REINF.outQ.push(o.team); } });
+  var act = { blue: 0, red: 0 }; SHIPS.forEach(function (o) { if (!isOut(o)) act[o.team]++; });
+  var free = FIELD_N - act.blue - act.red;
+  while (free > 0) {
+    var res = { blue: RESERVE.blue.length, red: RESERVE.red.length }, s = null;
+    if (REINF_MODE === 'own') { while (REINF.outQ.length && !s) { var t = REINF.outQ.shift(); if (res[t]) s = t; } }
+    else if (REINF_MODE === 'alt') { var nx = REINF.last ? other(REINF.last) : (REINF.outQ[0] || 'blue'); s = res[nx] ? nx : res[other(nx)] ? other(nx) : null; }
+    else s = propSide(act, res, REINF.last);
+    if (!s) break;
+    spawnReserve(s); act[s]++; free--; REINF.last = s;
+  }
+  if (REINF_MODE !== 'own') REINF.outQ = [];
+}
+/** 候補的下一艘進場（位置見上面）。 */
+function spawnReserve(team) {
+  var hull = RESERVE[team].shift(), T = HULLT[hull]; if (!T) return null;
+  function mid(L) { if (!L.length) return null; var x = 0, z = 0; L.forEach(function (o) { x += o.px; z += o.pz; }); return [x / L.length, z / L.length]; }
+  var afloat = SHIPS.filter(function (o) { return !o.sunk; });
+  var E = mid(afloat.filter(function (o) { return o.team !== team && !isOut(o); })) || mid(afloat.filter(function (o) { return o.team !== team; })) || [0, team === 'blue' ? -DIST / 2 : DIST / 2];
+  var O = mid(afloat.filter(function (o) { return o.team === team && !isOut(o); }));
+  var dx = O ? O[0] - E[0] : 0, dz = O ? O[1] - E[1] : (team === 'blue' ? 1 : -1), dl = Math.hypot(dx, dz);
+  if (dl < 1) { dx = 0; dz = team === 'blue' ? 1 : -1; dl = 1; }
+  dx /= dl; dz /= dl;
+  var R = Math.max((O ? Math.hypot(O[0] - E[0], O[1] - E[1]) : 0) + 120, 260), P = null;
+  [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5].some(function (q) {
+    var p = [E[0] + dx * R + dz * q * 80, E[1] + dz * R - dx * q * 80];
+    if (afloat.every(function (o) { return Math.hypot(o.px - p[0], o.pz - p[1]) > 70; })) { P = p; return true; }
+    return false;
+  });
+  if (!P) P = [E[0] + dx * (R + 150), E[1] + dz * (R + 150)];
+  var hx = E[0] - P[0], hz = E[1] - P[1], yaw = Math.atan2(-hz, hx);       // 船頭對著敵方中心（fwd(yaw) ＝ [cos, 0, −sin]）
+  var sh = makeShip(SHIPS.length, team, yaw, P[1], T, P[0]);
+  SHIPS.push(sh); stepShip(sh, 0); survey(sh); pickCaptain(sh); pickFoes();
+  note(sh, '援軍進場：' + T.name + teamTag(sh) + (RESERVE[team].length ? '（候補還有 ' + RESERVE[team].length + ' 艘）' : '（候補用完）'), true);
+  return sh;
+}
+/** 我艦出局（沉了、在沉、降旗）⇒ 自動換到友艦操控（Tim 2026-10-13：「玩家操作的船沉沒時，自動切換到友軍船艦操控」）：
+ *  我方還在打的船裡開戰排水量最大的（旗艦），一樣大 ⇒ 離原本那艘近的；一艘都沒有 ⇒ 等（候補進場後下一拍換過去）。
+ *  每半秒看一次（50_sim.js，跟 reinforce 同一拍）。換過去的那艘：砲長照它自己的、瞄準模式接玩家的（AIM_P），沙盒的快速裝填跟過去。
+ *  一對一沒有友艦 ⇒ 不會換（照舊等結算）。 */
+function playerHandoff() {
+  var me = SHIPS[PLAYER_I]; if (OVER || !me || !isOut(me)) return null;
+  var L = SHIPS.filter(function (o) { return o.team === me.team && !isOut(o); }); if (!L.length) return null;
+  function m(o) { return o.mass0 || shipT(o); }
+  L.sort(function (a, b) { return m(b) - m(a) || Math.hypot(a.px - me.px, a.pz - me.pz) - Math.hypot(b.px - me.px, b.pz - me.pz); });
+  var nw = L[0];
+  me.pMode = 'free'; me.hand = false; PLAYER_I = nw.i; nw.pMode = AIM_P; nw.hand = false;
+  if (MODE === 'sandbox') { nw.reloadT = RELOAD_SANDBOX; me.reloadT = RELOAD; }
+  KEYS.l = KEYS.r = false; CAM.trMe = CAM.trYaw = null;
+  note(nw, '改操控 ' + nw.T.name + teamTag(nw) + '（' + me.T.name + (me.struck && !me.sunk && !me.sinkingFinal ? '降旗了' : '沉了') + '）', true);
+  return nw;
+}
 function spawnFleet(spec) {
-  spec = spec.slice(0, MAX_SHIPS);
+  var sp = fieldSplit(spec); spec = sp.field; RESERVE = sp.reserve; REINF = { last: null, outQ: [] };
   var n = { blue: 0, red: 0 }, k = { blue: 0, red: 0 };
   spec.forEach(function (f) { n[f.team]++; });
   function slots(m) {                                                    // 橫隊的左右位置，從中間往兩側排（第一艘 ＝ 我艦／敵方第一艘在中間）
@@ -6115,13 +6226,13 @@ function render() {
   lanternHalo(pushPt);                                                   // 燈籠的光暈
   BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
   var me = SHIPS[PLAYER_I], mWorld = m;                                   // mWorld 之後的是瞄準圈：另一批畫、不做深度測試（被船身擋住也看得到）
-  if (me && me.aim && !AUTOFIRE && !STILL) {
+  if (me && me.aim && handAim(me) && !STILL) {                          // 自己瞄的才畫圈（含自動開砲時點了敵艦的那一舷）
     // 圈：直立，水平軸跟著敵艦的船長方向（扣掉視線方向的分量）⇒ 從側面看跟著敵艦轉；快正對船頭／船尾時改用鏡頭的右方
     // ⛔ 世界固定的平面 ⇒ 敵艦一轉就側成一條線；⛔ 只用船身側面那個平面 ⇒ 從船頭船尾看一樣是一條線
-    var fs = aimShip(me), c = M4.pt(fs.M, me.aim[0], me.aim[1], me.aim[2]), vd = norm(sub(CAM.look, CAM.eye)), ax = shipAxis(fs);
+    var fs = aimShip(me), ac = isFoe(me, fs) ? [1, 0.85, 0.3] : [0.45, 0.78, 1], c = M4.pt(fs.M, me.aim[0], me.aim[1], me.aim[2]), vd = norm(sub(CAM.look, CAM.eye)), ax = shipAxis(fs);   // ac：瞄友艦 ⇒ 藍圈（Tim 2026-10-14）
     var u = sub(ax, mul(vd, dot(ax, vd))), ul = len(u);
     u = ul > 0.35 ? mul(u, 1 / ul) : norm(cross(vd, [0, 1, 0]));
-    for (i = 0; i < 16; i++) { var an = i / 16 * 6.2832 + SIMT; pushPt(add(c, add(mul(u, Math.cos(an) * 2.2), [0, Math.sin(an) * 2.2, 0])), 0.5, [1, 0.85, 0.3], 0.9); }
+    for (i = 0; i < 16; i++) { var an = i / 16 * 6.2832 + SIMT; pushPt(add(c, add(mul(u, Math.cos(an) * 2.2), [0, Math.sin(an) * 2.2, 0])), 0.5, ac, 0.9); }
   }
   if (FLX3) flHoleMarks(pushPt);                                         // 停格的「🔍 透視」開著：破口畫成點、隔著船殼看得到（72_floodui.js）
   if (m) {
@@ -6159,8 +6270,8 @@ var MSGS = [], MSG_MAX = 5, MSG_LIFE = 4;
 /** imp：重要的（殉爆、斷成兩截、沉沒、降旗）⇒ 留 8 秒，滿了先擠掉不重要的。 */
 function note(sh, text, imp) {
   if (DEMO >= 0 && !RUNNING) return;
-  var who = sh.i === PLAYER_I ? '我艦' : '敵艦', el = document.createElement('div');
-  el.innerHTML = '<span style="color:' + (sh.i === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text;
+  var who = sh.i === PLAYER_I ? '我艦' : sh.team === playerTeam() ? '友艦' : '敵艦', el = document.createElement('div');   // 多船：照陣營（一對一 ＝ 以前的我艦／敵艦）
+  el.innerHTML = '<span style="color:' + (teamIdx(sh) === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text;
   $('msg').appendChild(el); MSGS.push({ el: el, t: imp ? 8 : MSG_LIFE, imp: !!imp });
   while (MSGS.length > MSG_MAX) { var j = MSGS.findIndex(function (m) { return !m.imp; }); MSGS.splice(j < 0 ? 0 : j, 1)[0].el.remove(); }
 }
@@ -6206,7 +6317,7 @@ function newsFlush(sh) {
 }
 /** 面板的一行：砲長與現在瞄哪裡（我艦手動 ⇒ 玩家的瞄準模式，砲長待命）。 */
 function capText(sh) {
-  var C = CAPTAINS[sh.cap], manual = sh.i === PLAYER_I && !AUTOFIRE;
+  var C = CAPTAINS[sh.cap], manual = handAim(sh);
   return '砲長 ' + (C ? C.name : '—') + '：' + (manual ? '待命（我在瞄：' + AIM_NAME[sh.pMode || 'free'] + '）' : sh.aimMode ? '瞄' + AIM_NAME[sh.aimMode] : '觀察中');
 }
 // 進水 %（HUD；TASK-0535，Tim 2026-10-13：原本 ＝ 下沉 ÷ 9 m ⇒ 26% 時已經注定要沉、50% 就淹過船體 ⇒ 改用艙內積水算：船重＋積水 ＝ 浮力 ⇒ 100%）。
@@ -6255,7 +6366,7 @@ function gunRow(sh, side) {
     return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
   }
   var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); });   // 每層砲甲板一段（由下往上）
-  var foe = foeOf(sh), w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
+  var foe = foeOf(sh), w = handAim(sh) ? aimPoint(sh) : foe && foe.center;
   var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
   return '<span class="gr">' + lab + rows.map(function (r) { return r.map(cell).join(''); }).join('｜') + '</span>';
 }
@@ -6372,14 +6483,15 @@ function hud(dt) {
   stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
   var me = SHIPS[PLAYER_I], mf = flagship(playerTeam()) || me, ef = flagship(foeTeam());   // 上方兩個面板：雙方旗艦（52_fleet.js；一對一 ＝ 我艦、敵艦）
-  $('me').innerHTML = panel(mf, (mf === me ? '我艦 ' : '我方旗艦 ') + mf.T.name + teamTag(mf));
-  $('foe').innerHTML = ef ? panel(ef, (teamShips(ef.team).length > 1 ? '敵方旗艦 ' : '敵艦 ') + ef.T.name + teamTag(ef)) : '';
+  function resTag(team) { var n = RESERVE[team].length; return n ? '・候補 ' + n : ''; }   // 候補還有幾艘（52_fleet.js）
+  $('me').innerHTML = panel(mf, (mf === me ? '我艦 ' : '我方旗艦 ') + mf.T.name + teamTag(mf) + resTag(mf.team));
+  $('foe').innerHTML = ef ? panel(ef, (teamShips(ef.team).length > 1 || RESERVE[ef.team].length ? '敵方旗艦 ' : '敵艦 ') + ef.T.name + teamTag(ef) + resTag(ef.team)) : '';
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
-  var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
+  var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
   $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 停格' : '');
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
-  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (AUTOFIRE ? '砲長' : AIM_NAME[me.pMode || 'free']);
+  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (!handAim(me) ? '砲長' : (AUTOFIRE ? '手動一舷・' : '') + AIM_NAME[me.pMode || 'free']);
   var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + (PHYS ? '　物理 ' + PHYS_MS.toFixed(2) + ' ms/步、垂繩 ' + SHIPS.map(function (s) { return s.loose.length; }).join('／') : '') + '　' + FPS.toFixed(0) + ' fps' : '';
   $('tip').textContent = t;
   drawNav(me);
@@ -6429,7 +6541,7 @@ function checkEnd() {
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'hands', 'drown', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'blue', 'red', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -6457,7 +6569,7 @@ function prefsSnap() {
   var gd = GFX_PRESET[GFX_DEFAULT]; if (GFX_ITEMS.some(function (it) { return GFX[it.k] !== gd[it.k]; })) { o.gfx = {}; GFX_ITEMS.forEach(function (it) { o.gfx[it.k] = GFX[it.k]; }); }   // 畫質（07_gfx.js）：跟預設不一樣 ⇒ 整組存
   put('fps', GFX_FPS, false); put('slow', SLOW.on, true); put('slowcam', SLOW.cam, true);   // 殉爆的慢動作與特寫（73_slowmo.js）
   var xd = PHX_PRESET[PHX_DEFAULT]; if (PHX_ITEMS.some(function (it) { return PHX[it.k] !== xd[it.k]; })) { o.phx = {}; PHX_ITEMS.forEach(function (it) { o.phx[it.k] = PHX[it.k]; }); }   // 物理效果（09_phx.js）：跟預設不一樣 ⇒ 整組存
-  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, LIM_DIST[2]);
+  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, LIM_DIST[2]); put('field', FIELD_N, MAX_SHIPS); put('reinf', REINF_MODE, 'prop');
   if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
   return o;
 }
@@ -6517,6 +6629,8 @@ function prefsApply(p) {
   if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
   if (p.mode === 'pve' || p.mode === 'eve' || p.mode === 'sandbox') MODE = p.mode;
   if (typeof p.auto === 'boolean') { AUTOFIRE = p.auto; LAST_MODE = MODE; }   // 存了自動開砲 ⇒ 開局不再照模式套預設（70_flow.js reset）
+  if (!Q.has('field') && typeof p.field === 'number' && isFinite(p.field)) FIELD_N = clamp(Math.round(p.field), 2, MAX_SHIPS);   // 候補（52_fleet.js）
+  if (!Q.has('reinf') && REINF_NAMES[p.reinf]) REINF_MODE = p.reinf;
   if (!Q.has('dist') && typeof p.dist === 'number' && isFinite(p.dist)) DIST = clamp(Math.round(p.dist), LIM_DIST[0], LIM_DIST[1]);   // 舊存檔的 90／140／220 照樣是合法的值
 }
 function prefsSave() {
@@ -6631,13 +6745,24 @@ function pick(cx, cy) {
   var r = cv.getBoundingClientRect(), nx = (cx - r.left) / r.width * 2 - 1, ny = 1 - (cy - r.top) / r.height * 2;
   var a = M4.pt(CAM.inv, nx, ny, -1), bq = CAM.inv, w0 = bq[3] * nx + bq[7] * ny + bq[11] * -1 + bq[15], w1 = bq[3] * nx + bq[7] * ny + bq[11] + bq[15];
   var p0 = mul(M4.pt(CAM.inv, nx, ny, -1), 1 / w0), p1 = mul(M4.pt(CAM.inv, nx, ny, 1), 1 / w1), d = norm(sub(p1, p0));
-  var me = SHIPS[PLAYER_I], hit = null, on = null;                   // 每艘敵船都射一次，取最近的那一個（t：沿射線多遠；每艘的公尺／格一樣）
-  SHIPS.forEach(function (foe) {
-    if (!isFoe(me, foe)) return;
-    var oL = toLocal(foe, p0), dL = M4.dir(foe.inv, d[0], d[1], d[2]), h = VK.raycast(foe.grid, oL, dL, 3000);
-    if (h && (!hit || h.t < hit.t)) { hit = h; on = foe; }
+  var me = SHIPS[PLAYER_I], hit = null, on = null;                   // 除了自己，每艘還浮著的船都射一次（友艦也瞄得到），取最近的那一個（t：沿射線多遠；每艘的公尺／格一樣）
+  SHIPS.forEach(function (o) {
+    if (o === me || o.sunk) return;
+    var oL = toLocal(o, p0), dL = M4.dir(o.inv, d[0], d[1], d[2]), h = VK.raycast(o.grid, oL, dL, 3000);
+    if (h && (!hit || h.t < hit.t)) { hit = h; on = o; }
   });
-  if (hit) { setAim(me, [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5], on); me.pMode = AIM_P = 'free'; sfx('crack', null, 0.08); }   // 點了哪艘 ⇒ 那艘變成我的目標（52_fleet.js pickFoes）   // 點了 ⇒ 瞄準模式回到自由
+  // Tim 2026-10-14：「點海會取消瞄準；點在船身上（也可以瞄友軍，可以變色）就變成那一邊的砲手控」
+  //   點到船 ⇒ 瞄準點設在那艘（敵艦 ⇒ 也是我的目標，52_fleet.js pickFoes；友艦 ⇒ 圈變藍、打下去照樣是誤擊）；瞄準模式回到自由。
+  //   自動開砲開著 ⇒ 對得到它的那一舷交給玩家（me.hand；空白鍵齊射），另一舷照樣自動（50_sim.js aiSecond）。
+  //   點到海 ⇒ 取消瞄準（手動 ⇒ 回到預設的瞄法；自動開砲 ⇒ 回到全自動）。
+  if (hit) {
+    setAim(me, [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5], on); me.pMode = AIM_P = 'free'; sfx('crack', null, 0.08);
+    if (!isFoe(me, on)) note(me, '瞄準友艦 ' + on.T.name + teamTag(on) + ' —— 打下去一樣會傷到它');
+    if (AUTOFIRE && !me.hand) { me.hand = true; note(me, '手動瞄準：這一舷你來打（空白鍵齊射），另一舷照樣自動 —— 點海面回到全自動'); }
+  } else if (me.aim) {
+    setAim(me, null);
+    if (AUTOFIRE && me.hand) { me.hand = false; note(me, '取消瞄準 —— 回到全自動開砲'); } else note(me, '取消瞄準');
+  }
 }
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
@@ -6704,7 +6829,7 @@ function setCamTrack(on) {
 }
 /** 自動開砲（我艦）：觀戰預設開、其他模式預設關（reset 時照模式設）。 */
 function setAutoFire(on) {
-  AUTOFIRE = on; $('autoF').classList.toggle('on', on);
+  AUTOFIRE = on; $('autoF').classList.toggle('on', on); if (SHIPS[PLAYER_I]) SHIPS[PLAYER_I].hand = false;   // 切換 ⇒ 手動瞄準那一舷也收掉
   if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], on ? '自動開砲' : '自己開砲（點敵艦瞄準、空白鍵齊射）');
 }
 [].forEach.call(document.querySelectorAll('#hudctl [data-s]'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
@@ -6933,7 +7058,7 @@ function hullOptions(sel, v) { sel.innerHTML = HULL_LIST.map(function (h) { retu
 /** 主選單的艦隊編成（TASK-0537）：我方、敵方各一列，每艘一個選單；第二艘起有 ×（拿掉）；＋ 加一艘（照那一邊最後一艘的船型），合計到 MAX_SHIPS 就停用。
  *  我方第一艘 ＝ 我艦。改了就重建這兩列。 */
 function fleetUI() {
-  var full = FLEET_SET[0].length + FLEET_SET[1].length >= MAX_SHIPS;
+  var full = FLEET_SET[0].length + FLEET_SET[1].length >= FLEET_MAX;
   [0, 1].forEach(function (s) {
     var box = $('fleet' + s), L = FLEET_SET[s];
     box.innerHTML = L.map(function (id, j) {
@@ -6942,9 +7067,11 @@ function fleetUI() {
     }).join('') + '<button class="fa" data-s="' + s + '" aria-label="' + (s ? '加一艘敵艦' : '加一艘友艦') + '"' + (full ? ' disabled' : '') + '>＋</button>';
     [].forEach.call(box.querySelectorAll('select'), function (el) { hullOptions(el, L[+el.dataset.j]); el.onchange = function () { pickShip(s, +el.dataset.j, el.value); }; });
     [].forEach.call(box.querySelectorAll('button.fx'), function (b) { b.onclick = function () { L.splice(+b.dataset.j, 1); fleetUI(); pickShip(); }; });
-    box.querySelector('button.fa').onclick = function () { if (FLEET_SET[0].length + FLEET_SET[1].length < MAX_SHIPS) { L.push(L[L.length - 1]); fleetUI(); pickShip(); } };
+    box.querySelector('button.fa').onclick = function () { if (FLEET_SET[0].length + FLEET_SET[1].length < FLEET_MAX) { L.push(L[L.length - 1]); fleetUI(); pickShip(); } };
   });
-  $('fleetN').textContent = FLEET_SET[0].length + ' 對 ' + FLEET_SET[1].length + (full ? '（上限 ' + MAX_SHIPS + ' 艘）' : '');
+  var sp = fieldSplit(fleetSpec()), fb = sp.field.filter(function (f) { return f.team === 'blue'; }).length, fr = sp.field.length - fb;   // 開局誰上場（52_fleet.js）
+  $('fleetN').textContent = FLEET_SET[0].length + ' 對 ' + FLEET_SET[1].length + (full ? '（編成上限 ' + FLEET_MAX + ' 艘）' : '') +
+    (sp.reserve.blue.length || sp.reserve.red.length ? '　⇒ 開局 ' + fb + ' 對 ' + fr + ' 上場，候補 ' + sp.reserve.blue.length + '／' + sp.reserve.red.length + ' 艘（' + REINF_NAMES[REINF_MODE] + '）' : '');
 }
 /** 主選單換船（s 那一邊第 j 艘換成 id；不給 ⇒ 只是艘數變了）：還沒載的先載（開戰鈕暫時停用），載好就把背景的船換掉；細節設定跟著編輯我艦那一型。 */
 function pickShip(s, j, id) {
@@ -6960,6 +7087,13 @@ function pickShip(s, j, id) {
 }
 sliders(); setPlay(PLAY); setWeather(WX_ID);
 [].forEach.call(document.querySelectorAll('#wxs button'), function (b) { b.onclick = function () { setWeather(b.dataset.w); if (SLIDERS_SHOW) SLIDERS_SHOW(); }; });   // 主選單：天氣（08_weather.js）
+/** 主選單：同時在場（滑桿 2～MAX_SHIPS，52_fleet.js FIELD_N）；編成超過它的照候補規則進場。 */
+function fieldShow() { var f = $('field'); f.value = FIELD_N; $('fieldV').textContent = FIELD_N + ' 艘'; if ($('fleetN')) fleetUI(); }
+(function () { var f = $('field'); f.min = 2; f.max = MAX_SHIPS; f.oninput = function () { FIELD_N = Math.round(+f.value); fieldShow(); }; fieldShow(); })();
+/** 細節設定：候補補位（52_fleet.js REINF_MODE）。 */
+function reinfShow() { [].forEach.call(document.querySelectorAll('#reinfs button'), function (b) { b.className = b.dataset.r === REINF_MODE ? 'on' : ''; }); if ($('fleetN')) fleetUI(); }
+[].forEach.call(document.querySelectorAll('#reinfs button'), function (b) { b.onclick = function () { REINF_MODE = b.dataset.r; reinfShow(); }; });
+reinfShow();
 /** 主選單：開局距離（滑桿，04_state.js LIM_DIST）。開局才用 ⇒ 改了下一場生效。 */
 function distShow() { var d = $('dist'); d.value = DIST; $('distV').textContent = DIST + ' m（船頭到船頭）'; }
 (function () { var d = $('dist'); d.min = LIM_DIST[0]; d.max = LIM_DIST[1]; d.oninput = function () { DIST = Math.round(+d.value); distShow(); }; distShow(); })();
@@ -7003,7 +7137,7 @@ function deg(a) { return (a * 57.2958).toFixed(1) + '°'; }
 function floodPanel() {
   var box = $('floodBody');
   box.innerHTML = SHIPS.map(function (sh, k) {
-    var fl = sh.fl, who = (k === PLAYER_I ? '我艦' : '敵艦') + ' ' + sh.T.name, lines;
+    var fl = sh.fl, who = (k === PLAYER_I ? '我艦' : sh.team === playerTeam() ? '友艦' : '敵艦') + ' ' + sh.T.name, lines;
     var tilt = '橫傾 ' + deg(sh.rollA) + (sh.rollA > 0.002 ? '（往' + sideName('S') + '）' : sh.rollA < -0.002 ? '（往' + sideName('P') + '）' : '') + '・縱傾 ' + deg(sh.pitchA) + (sh.pitchA < -0.002 ? '（船頭低）' : sh.pitchA > 0.002 ? '（船尾低）' : '');
     if (!fl || sh.broken) {
       lines = '<div>' + (sh.broken ? '斷成兩截 ⇒ 照公式（一定沉）' : '公式模式（物理效果「進水」選粒子才看得到艙內的水）') + '</div>' +

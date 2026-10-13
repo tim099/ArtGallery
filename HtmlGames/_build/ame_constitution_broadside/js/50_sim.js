@@ -4,7 +4,9 @@ function ai(sh, dt) {
   if (sh.sunk || sh.struck || sh.sinkingFinal || !foe) return;
   if (foe.sunk || foe.struck || foe.sinkingFinal) return;            // 對方降旗或在沉 ⇒ 停火
   captainThink(sh, foe);                                            // 砲長：該換瞄準模式就換（51_captain.js）
+  if (sh.hand && (!sh.aimOn || isOut(sh.aimOn))) { sh.hand = false; setAim(sh, null); }   // 手動瞄的那艘出局了 ⇒ 回到全自動
   aiSecond(sh, foe, dt);                                            // 另一舷：對不到目標、但對得到別的敵艦的那幾門（沒有別的敵艦 ⇒ 什麼都不做）
+  if (sh.hand && sh.i === PLAYER_I) return;                         // 自動開砲＋手動瞄準（71_input.js pick）：目標那一舷交給玩家（不改瞄準點、不替他開）
   sh.aiWait -= dt; if (sh.aiWait > 0) return;
   if (!anyBears(sh, foe.center)) { sh.aiWait = 0.5; return; }       // 哪一舷都對不到 ⇒ 等船轉過來
   var ready = 0, alive = 0, held = 0, FK = friendKeels(sh);         // 隔著友船的那幾門不算（52_fleet.js；沒有友船 ⇒ 空的）
@@ -22,14 +24,17 @@ function ai(sh, dt) {
  *  拿「對不到 foe、對得到它」的那幾門（還沒排進齊射、沒隔著友船）另開一輪 —— 自己的節奏 sh.aiWait2、自己的瞄準點（broadsideAt）。
  *  只有別的敵艦時才動（一對一 ⇒ 一進來就回去，不抽亂數 ⇒ 一位元都不差）。 */
 function aiSecond(sh, foe, dt) {
-  var others = SHIPS.filter(function (o) { return isFoe(sh, o) && o !== foe && !o.sunk && !o.struck && !o.sinkingFinal && o.center; });
+  // 保留給主要那一輪的砲：平常 ＝ 對得到 foe 的；玩家手動瞄準時（sh.hand，自動開砲開著、點了一艘船）＝ 打得到瞄準圈的那幾門
+  //   （Tim 2026-10-14：「能打到瞄準圈的砲不自動開砲，其他的自動瞄準、自動開砲」；瞄的可以是友艦）⇒ 其他敵艦（含 foe）都可以當這一輪的目標。
+  var hand = sh.hand && sh.i === PLAYER_I && sh.aim && sh.aimOn, ex = hand ? sh.aimOn : foe;
+  var others = SHIPS.filter(function (o) { return isFoe(sh, o) && o !== ex && !o.sunk && !o.struck && !o.sinkingFinal && o.center; });
   if (!others.length) return;
   sh.aiWait2 = (sh.aiWait2 || 0) - dt; if (sh.aiWait2 > 0) return;
   sh.aiWait2 = 0.5;                                                 // 沒開成 ⇒ 半秒後再看
   others.sort(function (a, b) { return Math.hypot(a.px - sh.px, a.pz - sh.pz) - Math.hypot(b.px - sh.px, b.pz - sh.pz); });
   var pend = EVENTS.filter(function (e) { return e.sh === sh.i; }).map(function (e) { return e.g; }), FK = friendKeels(sh);
-  var fAim = [foe.T.cx, foe.T.cy, foe.T.geo.aim];
-  var free = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && pend.indexOf(g) < 0 && !withAim(sh, fAim, foe, function () { return gunTarget(sh, g, foe.center); }); });
+  var exAim = hand ? sh.aim : [ex.T.cx, ex.T.cy, ex.T.geo.aim], exW = hand ? M4.pt(ex.M, exAim[0], exAim[1], exAim[2]) : ex.center;
+  var free = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && pend.indexOf(g) < 0 && !withAim(sh, exAim, ex, function () { return gunTarget(sh, g, exW); }); });
   for (var j = 0; j < others.length; j++) {
     var o = others[j], oAim = [o.T.cx, o.T.cy, o.T.geo.aim], alive = [], ready = [];
     free.forEach(function (g) {
@@ -57,7 +62,7 @@ function step() {
     var e = EVENTS[i]; if (e.t > SIMT) continue;
     EVENTS.splice(i--, 1);
     var sh = SHIPS[e.sh];
-    if (e.on) withAim(sh, e.aim, e.on, function () { var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
+    if (e.on) withAim(sh, e.aim, e.on, function () { sh.autoNow = true; var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); sh.autoNow = false; });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
     else { var et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et) fireGun(sh, e.g, et, e.ammo); }   // 開火那一刻才挑點（兩艘都在動）
   }
   if (PF) pfLap('fire');
@@ -83,7 +88,7 @@ function step() {
   stepPowder();                                                    // 殉爆排程（23_powder.js）
   stepBlasts();                                                    // 還沒挖完的彈坑接著挖（23_powder.js）
   if (PF) pfLap('powder');
-  if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
+  if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); reinforce(); playerHandoff(); }   // reinforce：空出名額 ⇒ 候補進場；playerHandoff：我艦出局 ⇒ 換到友艦（52_fleet.js；沒有候補／我艦還在打 ⇒ 直接回去）
   if (PF) pfLap('survey');
   if (!OVER || END_AT) checkEnd();                                 // 結束判定每一步看（結算畫面照模擬時間延後跳）
   if (PF) pfLap('end');
