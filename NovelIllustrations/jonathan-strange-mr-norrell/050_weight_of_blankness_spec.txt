@@ -1,0 +1,8 @@
+來源：第50章，重讀正文105–139行與既存0050 r1心得。
+敘事焦點：書冊完整、文字消失。references: strange_history_blank_volume v1（開畫前view_image）。
+本次為已讀章節自由補圖，不推進書籤。
+內建image_gen，reference image only，非修改舊圖。
+
+Use case: illustration-story. Create one standalone gallery illustration, landscape 3:2, fine classical oil painting with restrained brushwork and early nineteenth century English material texture. Source Jonathan Strange & Mr Norrell chapter 50, narrative moment the warehouse inspection discovers physically present books have lost all their writing. Reference image is a PROP IDENTITY reference only: strange_history_blank_volume v1. Preserve the unlettered brown board bindings, cream fibrous blank pages, thick page blocks and coarse twine. NEW composition different from reference: steep diagonal close viewpoint over the corner of a rough dark wooden warehouse workbench, a single open book in the lower right with absolutely empty two-page spread catching oblique cold rain-grey daylight from offscreen left. A short intact bundle of closed identical volumes recedes into the upper left shadow, twine knotted intact. Emphasize the gutter, page edges and vast blankness. Minimal dark background, subtle woodgrain, somber grey-brown and warm ivory, tangible weight, silence. No people or hands, no pen, no labels, no typography on pages or covers, no watermark, no burnt or torn books, no glowing magic, no smoke, no floating pages. Do not depict exactly ten thousand volumes or later surviving copies. This is a symbolic close-up interpretation of the reported inspection, not a reconstructed floorplan. Title concept: The Weight of Blankness, but DO NOT place any title inside image.
+
+QA: 已視檢v1，無人物、文字、水印、光效；空白兩頁、完整捆束與紙纖維可辨。桌角、視角與光線為詮釋。

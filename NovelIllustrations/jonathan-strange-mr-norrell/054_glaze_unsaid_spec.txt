@@ -1,0 +1,8 @@
+來源：第54章，重讀正文122–138行與既存0054 r1心得。
+敘事焦點：重開前閉蓋匣子的美與不安。references: heartache_silver_porcelain_box v1（開畫前view_image）。
+本次為已讀章節自由補圖，不新增離場後事件、不推進書籤。人物在畫框外。
+內建image_gen，reference image only，非修改舊圖。
+
+Use case: illustration-story. Create one standalone gallery illustration, landscape 3:2, fine classical oil painting with restrained brushwork, early nineteenth century Venetian cafe atmosphere. Source Jonathan Strange & Mr Norrell chapter 54, symbolic detail study of the closed object before he reopens it in the crowded cafe. Reference image is a PROP IDENTITY reference only: heartache_silver_porcelain_box v1. Preserve a SMALL elongated closed rectangular silver-rimmed porcelain box, pale blue lilac grey subtly cloudy glaze, silver edgework and modest hinge; pocket sized, not a treasure chest. NEW composition different from reference: low intimate oblique view at cafe table height. Small box positioned right of center, on a large dark polished wooden tabletop. One half-full small stemmed brandy glass to the far left establishes scale, warm amber candle reflection stretches in the wood; blurred distant cafe candle points only, NO recognizable patrons. Quiet dark negative space above, focus on seam of closed lid and cold ceramic color against warm light. Mood beautiful, apprehensive, withheld; no actual magic. No people or hands, no fingers or contents, no blood, no horror, no skull, no lettering, no watermark, no decorative crest, no open lid, no glowing path, no invented letter or other narrative prop. This is an interpretive still-life crop of a narrated moment, not an additional event after his departure. Title concept: What the Glaze Does Not Tell, but DO NOT put title into picture.
+
+QA: 已視檢v1，單一閉蓋長方匣、一杯酒，無人物、內容物、文字、水印或魔法效果。銀邊在暖光下的金色為反光；未定精確尺寸。
