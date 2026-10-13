@@ -829,6 +829,61 @@
           }
         ]
       ]
+    },
+    "015_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage13_gun4_yaw30.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage13_gun4_yaw150.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "015_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage13_guns_deck_yaw60_pitch55.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage13_gun_S4_step_yaw-120.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "015_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage13_guns_outside_S_yaw100.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage13_guns_inside_S_yaw-70.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ],
+        [
+          {
+            "src": "O/stage13_assembly_yaw60.png",
+            "fit": "cover",
+            "aspect": 1.6
+          }
+        ]
+      ]
     }
   }
 }
