@@ -56,9 +56,8 @@ function stepShip(sh, dt) {
   var pitchT = -clamp(Dbs / (N + 1500), -1, 1) * 0.07;
   sh.rollV += ((rollT - sh.rollA) * 0.9 - sh.rollV * 0.8) * dt;
   sh.rollA += sh.rollV * dt;
-  sh.rollW = Math.sin(SIMT * 0.53 + sh.phase) * 0.012;
   sh.pitchA += (pitchT - sh.pitchA) * 0.3 * dt;
-  sh.bob = Math.sin(SIMT * 0.7 + sh.phase) * 0.18;
+  stepWaves(sh, dt);                                                            // 浪：起伏、縱搖、橫搖（08_sea.js；以前是兩條固定的正弦）
   sh.lift += (sh.liftT - sh.lift) * Math.min(1, dt / LIFT_TAU);                    // 減重上浮：慢慢浮上去（目標每半秒在 survey 量一次）
   sh.M = M4.mul(shipMatrix(sh), M4.ident()); sh.inv = M4.inv(sh.M);
   sh.center = shipCenter(sh); sh.rad2 = 62 * 62;

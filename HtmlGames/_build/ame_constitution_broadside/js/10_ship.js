@@ -3,9 +3,9 @@ function shipBaseMatrix(T) {  // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x
   return new Float32Array([S, 0, 0, 0, 0, 0, -S, 0, 0, S, 0, 0, -S * T.cx, -S * T.zw, S * T.cy, 1]);
 }
 function shipMatrix(sh) {
-  var m = trans(sh.px, -sh.sink + sh.lift + sh.bob, sh.pz);
+  var m = trans(sh.px, -sh.sink + sh.lift + (sh.wl || 0) + sh.bob, sh.pz);   // wl：船底的平均水面、bob：船身相對它的起伏（08_sea.js）
   m = M4.mul(m, rotM([0, 1, 0], sh.yaw));
-  m = M4.mul(m, rotM([0, 0, 1], sh.pitchA));
+  m = M4.mul(m, rotM([0, 0, 1], sh.pitchA + (sh.pitchW || 0)));
   m = M4.mul(m, rotM([1, 0, 0], sh.rollA + (sh.rollW || 0)));
   return M4.mul(m, shipBaseMatrix(sh.T));
 }

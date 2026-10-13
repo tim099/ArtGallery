@@ -1,0 +1,62 @@
+// ───────────────────────── 海浪（TASK-0522） ─────────────────────────
+// 物理與畫面共用同一組浪（WAVES）：水面高度 h(x, z, t) ＝ SEA_K × Σ a·sin(kx·x ＋ kz·z − ω·t ＋ φ)，深水色散 ω ＝ √(g·k)。
+//   浪向跟著風（WIND，開局固定）：主浪順風，其他幾道偏一點 ⇒ 海面不會整片一條一條。SEA_K ＝ 細節設定的「浪」（0 ＝ 平靜的海）。
+// 用到水面高度的（seaH）：砲彈落水與打水漂（21_gunnery.js；03_camera.js 的推算）、碎片與斷開的一團浮沉（12／21／22）、
+//   落水的人（40）、垂到水裡的繩（30）、航跡（31）、船的起伏與搖晃（stepWaves，32_hull.js 每步呼叫）。
+// 船的起伏：船底 5（船長）× 2（兩舷）個點的水面擬合一個平面 ⇒ 平均高度、縱向坡度、橫向坡度，彈簧阻尼跟過去（船有慣性）。
+//   短浪在 54 m 的船長上被平均掉，長浪才搖得動船。sh.wl ＝ 船底的平均水面（絕對高度）、sh.bob ＝ 船身相對它的起伏（彈簧的落後量）
+//   ⇒ 進水、電腦瞄水線那些「水線在船上的哪一層」照舊用 sink − lift − bob（相對的），船的矩陣多加 sh.wl（10_ship.js shipMatrix）。
+// 畫面（60_render.js 的海面網格）頂點照同一個 h 位移，法線在片段裡照解析的坡度算；細的漣漪只在法線裡、跟畫質走 ——
+//   ⛔ 漣漪不進物理 ⇒ 畫質不改戰局。⛔ 相位寫死、不抽 rnd() ⇒ 浪不打亂亂數的順序。
+var WAVES = [                                   // a 振幅（m，再乘 SEA_K）、L 波長（m）、d 偏離風向幾度、ph 相位
+  { a: 0.45, L: 74, d: 0, ph: 0.0 },              // 主浪（週期 6.9 秒）：搖得動整艘船
+  { a: 0.26, L: 43, d: 26, ph: 1.7 },
+  { a: 0.15, L: 24, d: -34, ph: 4.1 },
+  { a: 0.07, L: 12.5, d: 57, ph: 2.3 }];          // 最短的：船上感覺不到，只看得到
+(function () {
+  var wa = Math.atan2(WIND[2], WIND[0]);
+  WAVES.forEach(function (w) { var k = 2 * Math.PI / w.L, a = wa + w.d * Math.PI / 180; w.kx = Math.cos(a) * k; w.kz = Math.sin(a) * k; w.w = Math.sqrt(G * k); });
+})();
+/** 水面高度（世界座標 x, z、時間 t）。 */
+function seaH(x, z, t) {
+  if (!(SEA_K > 0)) return 0;
+  var h = 0;
+  for (var i = 0; i < WAVES.length; i++) { var w = WAVES[i]; h += w.a * Math.sin(w.kx * x + w.kz * z - w.w * t + w.ph); }
+  return h * SEA_K;
+}
+// 著色器用的同一組浪（常數照 WAVES 生成；uSeaK、uSeaT 在 setCommon 給）。seaH ＝ 高度，seaG ＝ 坡度（∂h/∂x, ∂h/∂z）；
+// seaHs ＝ 照網格間距 s 拿掉太短的浪（⛔ 頂點間距比波長的 1/4 還粗 ⇒ 鋸齒、浪在網格上游動）。
+var SEA_GLSL = (function () {
+  var f = function (v) { var s = (+v).toPrecision(9); return s.indexOf('.') < 0 && s.indexOf('e') < 0 ? s + '.0' : s; };
+  var h = [], g = [], hs = [];
+  WAVES.forEach(function (w) {
+    var arg = 'dot(p,vec2(' + f(w.kx) + ',' + f(w.kz) + '))-' + f(w.w) + '*uSeaT+' + f(w.ph);
+    h.push(f(w.a) + '*sin(' + arg + ')');
+    g.push(f(w.a) + '*cos(' + arg + ')*vec2(' + f(w.kx) + ',' + f(w.kz) + ')');
+    hs.push(f(w.a) + '*(1.0-smoothstep(' + f(w.L * 0.18) + ',' + f(w.L * 0.3) + ',s))*sin(' + arg + ')');
+  });
+  return 'uniform float uSeaK, uSeaT;\n' +
+    'float seaH(vec2 p){ return uSeaK*(' + h.join('+') + '); }\n' +
+    'vec2 seaG(vec2 p){ return uSeaK*(' + g.join('+') + '); }\n' +
+    'float seaHs(vec2 p,float s){ return uSeaK*(' + hs.join('+') + '); }\n';
+})();
+// 彈簧 [k, c]（k ＝ ωn²、c ＝ 2ζωn）：起伏、縱搖週期 2.5 秒、阻尼比 0.6 ⇒ 長浪（6.9 秒）幾乎同相跟著走；橫搖週期 5 秒、阻尼比 0.35 ⇒ 會晃、會落後一點。
+//   ⛔ 起伏設成 5 秒（照巡防艦的固有週期）⇒ 跟主浪差不多快、落後 60°，船身對水面的上下跟浪本身一樣大（量過：相對 0.33 m 對浪 0.32 m），看起來像沒在跟
+var WV_K = { h: [6.25, 3.0], p: [6.25, 3.0], r: [1.44, 0.84] };
+/** 每步：船底的水面擬合平面 ⇒ 船的起伏、縱搖、橫搖（彈簧阻尼跟過去）。開戰第一步直接放在目標上（不從平的海晃過去）。 */
+function stepWaves(sh, dt) {
+  var T = sh.T, Lh = (T.hx1 - T.hx0) * S, c = sh.center || [sh.px, 0, sh.pz], F = fwd(sh.yaw), Z = [Math.sin(sh.yaw), 0, Math.cos(sh.yaw)];   // Z：船體 +Z（格 −y）在世界的方向
+  var n = 0, hm = 0, su = 0, uu = 0, sw = 0, ww = 0;
+  for (var a = -2; a <= 2; a++) for (var b = -1; b <= 1; b += 2) {
+    var u = a * 0.2 * Lh, w = b * 0.1 * Lh, h = seaH(c[0] + F[0] * u + Z[0] * w, c[2] + F[2] * u + Z[2] * w, SIMT);
+    hm += h; su += u * h; uu += u * u; sw += w * h; ww += w * w; n++;
+  }
+  hm /= n;
+  var tp = Math.atan(su / uu), tr = -Math.atan(sw / ww);              // 縱搖正 ＝ 船頭（格 +x）抬起；橫搖正 ＝ 船體 +Z 那舷往下 ⇒ 水在 +Z 那邊高就取負
+  var V = sh.wv;
+  if (!V) V = sh.wv = { h: hm, hv: 0, p: tp, pv: 0, r: tr, rv: 0 };
+  V.hv += (WV_K.h[0] * (hm - V.h) - WV_K.h[1] * V.hv) * dt; V.h += V.hv * dt;
+  V.pv += (WV_K.p[0] * (tp - V.p) - WV_K.p[1] * V.pv) * dt; V.p += V.pv * dt;
+  V.rv += (WV_K.r[0] * (tr - V.r) - WV_K.r[1] * V.rv) * dt; V.r += V.rv * dt;
+  sh.wl = hm; sh.bob = V.h - hm; sh.pitchW = V.p; sh.rollW = V.r;
+}

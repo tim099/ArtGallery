@@ -101,8 +101,9 @@ function stepPiece(pc, dt) {
     if (tilt > 1.25 || pc.t > 6) { pc.hinge = false; pc.v = add(cross(pc.w, r), pc.sh ? pc.sh.vel : [0, 0, 0]); crush(pc, r); }
   } else {
     pc.v = add(pc.v, mul(g, dt));
-    if (pc.c[1] < 0) {
-      var float = pc.t < 40 ? -0.6 : -0.6 - (pc.t - 40) * 0.8;                     // 浮在水面 40 秒，之後慢慢沉
+    var sea = seaH(pc.c[0], pc.c[2], SIMT);
+    if (pc.c[1] < sea) {
+      var float = sea + (pc.t < 40 ? -0.6 : -0.6 - (pc.t - 40) * 0.8);                     // 浮在水面 40 秒，之後慢慢沉
       pc.v[1] += ((float - pc.c[1]) * 3 - pc.v[1] * 2.5) * dt + G * dt;
       pc.v = mul(pc.v, 1 - 1.6 * dt); pc.w = mul(pc.w, 1 - 1.8 * dt);
       if (!pc.wet) { pc.wet = true; for (var k = 0; k < Math.min(6, 1 + pc.n / 8000); k++) splash(add(pc.c, [gauss() * 4, 0, gauss() * 4]), true); } }

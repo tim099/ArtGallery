@@ -85,10 +85,11 @@ function stepBall(b, dt) {
   for (var s = 0; s < steps && b.alive; s++) {
     b.v[1] -= G * h;
     b.p[0] += b.v[0] * h; b.p[1] += b.v[1] * h; b.p[2] += b.v[2] * h; b.trav += len(b.v) * h;
-    if (b.p[1] < 0) {
+    var sea = seaH(b.p[0], b.p[2], SIMT);                              // 水面跟著浪（08_sea.js）
+    if (b.p[1] < sea) {
       var spd = len(b.v), ang = Math.asin(-b.v[1] / spd);
       if (b.ammo === 0 && !b.bounced && ang < 0.11 && spd > 90) {       // 打水漂：低角度的實心彈會跳一下
-        b.v[1] = -b.v[1] * 0.45; b.v[0] *= 0.7; b.v[2] *= 0.7; b.p[1] = 0.01; b.bounced = true; splash(b.p, false); continue;
+        b.v[1] = -b.v[1] * 0.45; b.v[0] *= 0.7; b.v[2] *= 0.7; b.p[1] = sea + 0.01; b.bounced = true; splash(b.p, false); continue;
       }
       splash(b.p, true); b.alive = false; return;
     }
@@ -244,7 +245,7 @@ function crewBase(b) { return 1.4 * b.dmg * ammoK(b.ammo, VS_CREW); }
 function stepFly(f, dt) {
   f.t += dt;
   f.v[1] -= G * dt;
-  if (f.c[1] < 0) {
+  if (f.c[1] < seaH(f.c[0], f.c[2], SIMT)) {
     if (!f.wet) { f.wet = true; splash(f.c, true); }
     f.v = mul(f.v, 1 - 2.5 * dt); f.v[1] = Math.max(f.v[1], -1.0); f.w = mul(f.w, 1 - 2 * dt);
   }

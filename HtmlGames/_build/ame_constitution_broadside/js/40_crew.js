@@ -199,7 +199,7 @@ function stepCrew(sh, dt) {
     c.t += dt; if (c.hitT > 0) c.hitT -= dt;            // hitT：被打中但沒倒下的閃紅
     if (c.st === 4) {                                   // 落體
       c.fv[1] -= G * dt; c.fw = add(c.fw, mul(c.fv, dt));
-      if (c.fw[1] < 0) { if (!c.splashed) { c.splashed = true; splash(c.fw, false); } c.st = 3; }
+      if (c.fw[1] < seaH(c.fw[0], c.fw[2], SIMT)) { if (!c.splashed) { c.splashed = true; splash(c.fw, false); } c.st = 3; }
       return;
     }
     if (c.st === 1 && c.t > 12) { c.st = 3; return; }    // 傷者被抬下去
