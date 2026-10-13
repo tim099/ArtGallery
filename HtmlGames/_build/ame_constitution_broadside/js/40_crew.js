@@ -70,13 +70,24 @@ function makeCrew(sh) {
   [[qx + 22, CY + 8], [qx + 30, CY - 6], [qx + 40, CY + 14], [qx + 14, CY - 12]].forEach(function (p) { add(ROLE.OFFICER, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, 1); });
   var cap = crew.filter(function (c) { return c.role === ROLE.OFFICER; })[0]; if (cap) cap.art = ART_CAPTAIN;   // 船長：只換貼圖
   if (wheel) { var wx = Math.floor(wheel.bb[0]) - 3; [[wx, CY + 3], [wx, CY - 3]].forEach(function (p) { add(ROLE.HELM, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, -1); }); }   // 舵輪後面（⛔ 舵輪中心往後 4 格還在舵輪的外框裡 ⇒ 以前一個舵手都站不上去）
-  // 桅頂：每根桅的平台上找四個可以站的位置
+  // 桅頂：每根桅最低的那層平台（從 z 200 往上，第一層有 6 個以上站得住的點）上分散站四個人；頭頂 1.4 m 空（同一般站位）。
+  //   憲法號：前桅 263、主桅 286、後桅 241。⛔ 從 250 找 ⇒ 跳過後桅的桅頂；⛔ 不夠四個就往上找 ⇒ 站到 377–465 的高處橫桁上；⛔ 頭頂只看 0.6 m
+  var TOP_A = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15], TOP_R = [12, 15, 9, 18];   // 角度照「先對角、再補中間」排 ⇒ 四個人分散在平台四周
+  function topSpot(m, k, r, z) {
+    var a = k / 16 * 6.2832, px = Math.round(m.x + Math.cos(a) * r), py = Math.round(CY + Math.sin(a) * r);
+    if (taken[px + ',' + py + ',' + z] || !g.get(px, py, z - 1) || g.get(px, py, z)) return null;
+    for (var h = 1; h < 14; h++) if (g.get(px, py, z + h)) return null;
+    return [px, py];
+  }
   sh.masts.forEach(function (m) {
-    var found = 0;
-    for (var z = 250; z < 470 && found < 4; z += 1) for (var k = 0; k < 8 && found < 4; k++) {
-      var a = k / 8 * 6.2832, px = Math.round(m.x + Math.cos(a) * 11), py = Math.round(CY + Math.sin(a) * 11);
-      if (taken[px + ',' + py + ',' + z]) continue;
-      if (g.get(px, py, z - 1) && !g.get(px, py, z) && !g.get(px, py, z + 6)) { taken[px + ',' + py + ',' + z] = 1; add(ROLE.TOP, [px + 0.5, py + 0.5, z], null, 1); found++; }
+    for (var z = 200; z < 470; z++) {
+      var n = 0; TOP_A.forEach(function (k) { TOP_R.forEach(function (r) { if (topSpot(m, k, r, z)) n++; }); });
+      if (n < 6) continue;
+      var found = 0;
+      TOP_A.forEach(function (k) {
+        for (var i = 0; i < TOP_R.length && found < 4; i++) { var p = topSpot(m, k, TOP_R[i], z); if (p) { taken[p[0] + ',' + p[1] + ',' + z] = 1; add(ROLE.TOP, [p[0] + 0.5, p[1] + 0.5, z], null, 1); found++; return; } }
+      });
+      return;
     }
   });
   return crew;
