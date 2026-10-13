@@ -285,6 +285,73 @@
           }
         ]
       ]
+    },
+    "005_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet03_planking_v1.png",
+            "crop": [
+              20,
+              50,
+              1680,
+              380
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet03_planking_v1.png",
+            "crop": [
+              30,
+              420,
+              580,
+              630
+            ]
+          },
+          {
+            "src": "D/sheet03_planking_v1.png",
+            "crop": [
+              990,
+              610,
+              1500,
+              960
+            ]
+          }
+        ]
+      ]
+    },
+    "005_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage3_planking_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.25
+          },
+          {
+            "src": "O/stage3_planking_yaw-135.png",
+            "fit": "cover",
+            "aspect": 1.25
+          }
+        ]
+      ]
+    },
+    "005_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage3_leak_probe.png"
+          }
+        ],
+        [
+          {
+            "src": "O/stage3_planking_yaw135.png",
+            "fit": "cover",
+            "aspect": 2.2
+          }
+        ]
+      ]
     }
   }
 }
