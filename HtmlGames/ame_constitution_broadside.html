@@ -86,7 +86,8 @@
   #cover #detV{ color:var(--dim); font-size:12px; max-width:560px; margin:2px auto 6px; line-height:1.6; }   /* ⛔ 只寫 #detV：被 #cover .row 的 margin 蓋掉 */
   .hp{ position:relative; } .hp::after{ content:''; position:absolute; left:0; bottom:-1px; height:2px; width:var(--hp); background:#e0574a; }   /* 砲列：受損的砲底下一條血條 */
   .ico.hp::after{ bottom:-4px; }   /* 圖示版：人手狀態的底線在圖示裡面，血條放到它下面 */
-  @media (max-width:520px){ #cover .card{ padding:18px 16px; } #cover .slide input{ width:130px; } #cover .slide span{ width:9em; } }
+  @media (max-width:520px){ #cover .card{ padding:14px 12px; } #cover .slide input{ width:130px; } #cover .slide span{ width:9em; }
+    #cover h1{ font-size:24px; } #cover .row{ margin:5px 0; } #cover button{ font-size:13px; padding:5px 9px; margin:2px; } #cover button.go{ font-size:17px; padding:8px 30px; } }   /* 手機：按鈕小一號 ⇒ 每一列不折行、開戰鈕不被擠出畫面（Tim 2026-10-13） */
   #load{ color:var(--dim); font-size:12px; min-height:18px; font-family:Consolas,monospace; white-space:pre-line; }
   #help{ position:absolute; right:12px; bottom:12px; max-width:330px; font-size:12px; display:none; pointer-events:none; max-height:calc(100% - 24px); overflow-y:auto; }
   #help.on{ display:block; pointer-events:auto; }
@@ -149,8 +150,6 @@
   <div id="cover">
     <div class="card panel">
       <h1>憲法號對轟</h1>
-      <div class="sub">Constitution Broadside —— 兩艘 1:1 的憲法號（0.1 公尺一格）互轟，船殼一格一格被打碎、桅杆打得斷、破洞進水會沉。<br>
-        素材：basecamp 的雕刻作品《憲法號（組裝）》</div>
       <div class="row" id="modes">
         <button data-m="pve" class="on">對戰電腦</button><button data-m="eve">觀戰（自動開砲）</button><button data-m="sandbox">沙盒（敵艦不還手）</button>
       </div>
@@ -171,8 +170,11 @@
         <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button><button id="phxB">物理設定…</button>
       </div>
       <div class="row"><button id="detB">細節設定…</button></div>
-      <div class="row" id="detV"></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
+      <!-- 說明與細節設定的摘要放在開戰鈕下面（Tim 2026-10-13：手機上開戰鈕被擠到畫面外、要捲才看得到） -->
+      <div class="sub">Constitution Broadside —— 兩艘 1:1 的憲法號（0.1 公尺一格）互轟，船殼一格一格被打碎、桅杆打得斷、破洞進水會沉。<br>
+        素材：basecamp 的雕刻作品《憲法號（組裝）》</div>
+      <div class="row" id="detV"></div>
       <div id="load"></div>
     </div>
     <!-- 物理設定（從主選單進；TASK-0526）：每一項的檔位在 js/09_phx.js 的 PHX_ITEMS，按鈕由 js/71_input.js 生 -->
