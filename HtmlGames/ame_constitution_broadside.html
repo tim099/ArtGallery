@@ -17,6 +17,7 @@
   #me{ left:12px; top:12px; border-left:3px solid var(--blue); }
   #foe{ right:12px; top:12px; border-left:3px solid var(--red); text-align:left; }
   .hud h3{ margin:0 0 2px; font-size:14px; }
+  .hud h3 .disp{ color:var(--dim); font-weight:normal; font-size:.85em; margin-left:1em; }   /* 排水量（61_hud.js panel）；窄螢幕自己一行 */
   .bar{ height:5px; background:rgba(255,255,255,.15); border-radius:3px; overflow:hidden; margin:2px 0 4px; width:170px; }
   .bar i{ display:block; height:100%; background:var(--gold); }
   .bar.water i{ background:#4fb3d9; }
@@ -62,7 +63,8 @@
     #nav{ left:50%; top:6px; bottom:auto; width:auto; padding:3px; border-radius:50%; transform:translateX(-50%); }
     #navc{ width:clamp(44px, calc(100vw - 322px), 84px); height:clamp(44px, calc(100vw - 322px), 84px); margin:0; } #navt{ display:none; }
     #ctl{ white-space:normal; width:96vw; padding:6px 4px; bottom:6px; } #ctl .kb{ font-size:13px; padding:5px 9px; } #tip{ display:none; }
-    #msg{ top:144px; width:94vw; font-size:13px; } #msg div:last-child{ font-size:15px; } }   /* 廣播：兩邊面板（底 136 px）正下方 */
+    #msg{ top:144px; width:94vw; font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：兩邊面板（底 136 px）正下方 */
+    .hud h3 .disp{ display:block; margin-left:0; } }                                     /* 排水量換到船名下一行（⛔ 同一行 ⇒ 面板縮半之後「現在 …」被切掉） */
   /* 手機橫拿（矮）：面板與控制列都縮 */
   @media (max-height:520px) and (min-width:761px){
     #me{ transform:scale(.6); transform-origin:left top; } #foe{ transform:scale(.6); transform-origin:right top; }
@@ -5807,7 +5809,10 @@ function floodPct(sh) {
 function panel(sh, title) {
   var hull = sh.grid.count / sh.orig, fl = floodPct(sh);
   var m = sh.masts.map(function (x) { return x.name + (x.up ? '✓' : '✗'); }).join(' ');
-  return '<h3>' + title + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
+  // 排水量（Tim 2026-10-13）＝ 開戰時整艘船的重量（格＋砲＋火藥桶＋壓艙物，sh.mass0）：浮著的船排開的水跟自己一樣重；預設壓艙物剛好在設計水線 ⇒ 也就是設計排水量。
+  // 「現在」＝ 扣掉被打掉的（格、打飛的砲、炸掉的桶，massLost，跟減重上浮同一支）；艙內的積水不算（那是進水，看下一行）
+  var m0 = sh.mass0 || shipT(sh), disp = Math.round(m0), now = Math.round(m0 - massLost(sh));   // 兩個都取到 1 噸（⛔ 開戰時的取到 10 噸 ⇒ 第一格「2,150・現在 2,154」，現在比開戰還重）
+  return '<h3>' + title + '<span class="disp">排水量 ' + disp.toLocaleString() + ' 噸・現在 ' + now.toLocaleString() + ' 噸</span>' + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
     '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + (sh.fl && !sh.broken ? '（艙內積水 ' + Math.round(sh.fl.vol * RHO_W).toLocaleString() + ' 噸・破口 ' + sh.fl.area.toFixed(1) + ' m²）' : '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
     ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +

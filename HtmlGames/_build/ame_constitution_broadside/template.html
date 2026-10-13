@@ -17,6 +17,7 @@
   #me{ left:12px; top:12px; border-left:3px solid var(--blue); }
   #foe{ right:12px; top:12px; border-left:3px solid var(--red); text-align:left; }
   .hud h3{ margin:0 0 2px; font-size:14px; }
+  .hud h3 .disp{ color:var(--dim); font-weight:normal; font-size:.85em; margin-left:1em; }   /* 排水量（61_hud.js panel）；窄螢幕自己一行 */
   .bar{ height:5px; background:rgba(255,255,255,.15); border-radius:3px; overflow:hidden; margin:2px 0 4px; width:170px; }
   .bar i{ display:block; height:100%; background:var(--gold); }
   .bar.water i{ background:#4fb3d9; }
@@ -62,7 +63,8 @@
     #nav{ left:50%; top:6px; bottom:auto; width:auto; padding:3px; border-radius:50%; transform:translateX(-50%); }
     #navc{ width:clamp(44px, calc(100vw - 322px), 84px); height:clamp(44px, calc(100vw - 322px), 84px); margin:0; } #navt{ display:none; }
     #ctl{ white-space:normal; width:96vw; padding:6px 4px; bottom:6px; } #ctl .kb{ font-size:13px; padding:5px 9px; } #tip{ display:none; }
-    #msg{ top:144px; width:94vw; font-size:13px; } #msg div:last-child{ font-size:15px; } }   /* 廣播：兩邊面板（底 136 px）正下方 */
+    #msg{ top:144px; width:94vw; font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：兩邊面板（底 136 px）正下方 */
+    .hud h3 .disp{ display:block; margin-left:0; } }                                     /* 排水量換到船名下一行（⛔ 同一行 ⇒ 面板縮半之後「現在 …」被切掉） */
   /* 手機橫拿（矮）：面板與控制列都縮 */
   @media (max-height:520px) and (min-width:761px){
     #me{ transform:scale(.6); transform-origin:left top; } #foe{ transform:scale(.6); transform-origin:right top; }
