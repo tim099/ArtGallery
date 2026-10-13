@@ -63,7 +63,7 @@ function sbLoop() {
 function sbBatch() {
   if (UI.batch && !UI.batch.done) { UI.batch.stop = true; return; }
   var N = +$('bn').value, S = CMD_STRATS, jobs = [], res = {};
-  S.forEach(function (a) { S.forEach(function (b) { res[a + '|' + b] = { w: 0, l: 0, d: 0, t: 0, left: 0, n: 0 }; for (var i = 0; i < N; i++) jobs.push({ a: a, b: b, seed: 1000 + i, swap: i % 2 === 1 }); }); });
+  S.forEach(function (a) { S.forEach(function (b) { res[a + '|' + b] = { w: 0, l: 0, d: 0, t: 0, left: 0, n: 0, j: 0 }; for (var i = 0; i < N; i++) jobs.push({ a: a, b: b, seed: 1000 + i, swap: i % 2 === 1 }); }); });
   UI.batch = { jobs: jobs, res: res, i: 0, stop: false, done: false, t0: performance.now() };
   $('bgo').textContent = '停止';
   (function chunk() {
@@ -74,6 +74,7 @@ function sbBatch() {
       var r = sbRun(o, +$('bt').value), mine = j.swap ? 'red' : 'blue', cell = B.res[j.a + '|' + j.b];
       cell.n++; cell.t += r.t; cell.left += r.left[mine] - r.left[mine === 'blue' ? 'red' : 'blue'];
       if (r.winner === mine) cell.w++; else if (r.winner) cell.l++; else cell.d++;
+      if (r.judged) cell.j++;
     }
     sbTable(B);
     if (B.i < B.jobs.length && !B.stop) setTimeout(chunk, 0); else { B.done = true; $('bgo').textContent = '批次對打'; $('bprog').textContent += '　（' + ((performance.now() - B.t0) / 1000).toFixed(1) + ' 秒）'; }
@@ -87,7 +88,7 @@ function sbTable(B) {
     return '<tr><th>' + CMD_NAMES[a] + '</th>' + S.map(function (b) {
       var c = B.res[a + '|' + b]; if (!c.n) return '<td>…</td>';
       var wr = (c.w + c.d / 2) / c.n; if (a !== b) { tot += wr; cnt++; }
-      return '<td style="background:rgba(' + (wr > 0.5 ? '90,200,120,' : '230,100,90,') + (Math.abs(wr - 0.5) * 1.2).toFixed(2) + ')">' + Math.round(wr * 100) + '%<br><small>' + (c.t / c.n).toFixed(0) + ' 秒・差 ' + (c.left / c.n).toFixed(1) + ' 艘' + (c.d ? '・和 ' + c.d : '') + '</small></td>';
+      return '<td style="background:rgba(' + (wr > 0.5 ? '90,200,120,' : '230,100,90,') + (Math.abs(wr - 0.5) * 1.2).toFixed(2) + ')">' + Math.round(wr * 100) + '%<br><small>' + (c.t / c.n).toFixed(0) + ' 秒・差 ' + (c.left / c.n).toFixed(1) + ' 艘' + (c.j ? '・判定 ' + c.j : '') + (c.d ? '・和 ' + c.d : '') + '</small></td>';
     }).join('') + '<td>' + (cnt ? Math.round(tot / cnt * 100) + '%' : '…') + '</td></tr>';
   }).join('');
 }

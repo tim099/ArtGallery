@@ -41,7 +41,7 @@
 <div id="batch">
   <button id="bgo">批次對打</button> <label>每格</label> <input type="number" id="bn" value="40" min="2" step="2"> 場　<label>每場最多</label> <input type="number" id="bt" value="900" step="60"> 秒　<span id="bprog" class="note"></span>
   <table id="btab"></table>
-  <p class="note">批次：兩方的編成照上面那一列，策略兩兩對打；每一格的場一半換邊（藍紅、編成一起對調）⇒ 格子裡是「列的策略打欄的策略」的勝率（和局算半場）、平均打多久、平均多剩幾艘。
+  <p class="note">批次：兩方的編成照上面那一列，策略兩兩對打；每一格的場一半換邊（藍紅、編成一起對調）⇒ 格子裡是「列的策略打欄的策略」的勝率（到時限還沒分出來 ⇒ 判定：比兩方剩下的戰力；差太少才算和局，和局算半場）、平均打多久、平均多剩幾艘。
     沙盒只模擬指揮官要的東西（位置、航向、照風的航速、兩舷的砲、船殼／砲／人三條血），數字從遊戲量；名次要拿完整的遊戲對照過才算數（TASK-0551）。</p>
 </div>
 <script src="js/53_commander.js" data-bundle="sb"></script>

@@ -15,12 +15,13 @@ var SB_HULLS = {
 // 校準（遊戲量的，2026-10-14；量法：兩艘憲法號平行對轟、每秒拉回原位，距離 100／150／200／300／400／600／800 m 各 60 秒，兩邊合計）：
 //   hit：每一發打中的機率 ＝ 兩邊的命中 ÷ 開火（兩邊差很多：一邊 ~30%、一邊 ~70%，跟距離無關 —— 風讓船傾、上風舷與下風舷的砲口高低不同；沙盒不模擬傾斜 ⇒ 取平均）。
 //     對方小一號 ⇒ 乘 (水線長 ÷ 55.5)^0.7（只量了憲法號，這是估的）。
-//   每中一發：倒 crewHit 人（1,174 人 ÷ 905 發）、少 gunHit 門砲（105 ÷ 905）、帆掉 sailHit（60 秒內帆剩 15–78%，合計 8.42 ÷ 905）。
+//   每中一發：少 gunHit 門砲（105 ÷ 905）、帆掉 sailHit（60 秒內帆剩 15–78%，合計 8.42 ÷ 905）、倒 crewHit 人 ——
+//     ⛔ 那一組量到 1.30 人（陣亡＋受傷 1,174 ÷ 905）太多：電腦對電腦 420 秒（種子 7／42／1797）挨 720 發的那艘只陣亡 169、沒全員倒下 ⇒ 用 0.35。
 //   船殼：遊戲沉船靠水線下的洞慢慢進水（60 秒上百發只沉 0–0.016 m）⇒ 沙盒用「幾發沉」近似：憲法號 hullHits 發，別的船型照排水量^0.7 換算；
-//     hullHits 對的是「一對一 140 m 約 290 秒打沉」（遊戲 README 的電腦對電腦讀數；sbCalSink 量）。
+//     電腦對電腦 420 秒三個種子都沒沉（各挨 38–720 發）⇒ 900（README 舊的「290 秒打沉」是船變耐打之前的讀數）。
 //   開火：一門裝填 reload × 船型倍率 秒（遊戲 RELOAD 7），電腦兩輪之間再等 wait 秒（50_sim.js ai 的 aiWait 1–3.5 秒平均）⇒ 憲法號約 8.3 秒一輪（量的：60 秒 170–190 發 ≈ 27 門 × 7 輪）。
-var SB_CAL = { hit: [[100, 0.60], [150, 0.50], [200, 0.51], [300, 0.41], [400, 0.38], [600, 0.35], [800, 0.33], [1000, 0.2]], crewHit: 1.30, gunHit: 0.116, sailHit: 0.0093,
-  hullHits: 400, reload: 7, wait: 2.25, rmax: 1000, arc: 0.45, sinkT: 20 };
+var SB_CAL = { hit: [[100, 0.60], [150, 0.50], [200, 0.51], [300, 0.41], [400, 0.38], [600, 0.35], [800, 0.33], [1000, 0.2]], crewHit: 0.35, gunHit: 0.116, sailHit: 0.0093,
+  hullHits: 900, reload: 7, wait: 2.25, rmax: 1000, arc: 0.45, sinkT: 20 };
 function sbPolar(deg) { for (var i = 1; i < SB_POLAR.length; i++) if (deg <= SB_POLAR[i][0]) { var a = SB_POLAR[i - 1], b = SB_POLAR[i]; return a[1] + (b[1] - a[1]) * (deg - a[0]) / (b[0] - a[0]); } return SB_POLAR[SB_POLAR.length - 1][1]; }
 function sbHit(d, tgt) { return sbHitD(d) * Math.min(1, Math.pow(tgt.H.len / 55.5, 0.7)); }
 function sbHitD(d) { var H = SB_CAL.hit; if (d <= H[0][0]) return H[0][1]; for (var i = 1; i < H.length; i++) if (d <= H[i][0]) { var a = H[i - 1], b = H[i]; return a[1] + (b[1] - a[1]) * (d - a[0]) / (b[0] - a[0]); } return 0; }
@@ -169,6 +170,11 @@ function sbRun(opt, tmax) {
 }
 function sbResult(W) {
   function left(tm) { return W.ships.filter(function (s) { return s.team === tm && !s.out; }).length; }
-  return { winner: W.over ? W.over.winner : null, t: +W.t.toFixed(1), left: { blue: left('blue'), red: left('red') },
+  // 到時限還沒分出來 ⇒ 判定：比兩方剩下的戰力（還在打的船的 船殼 × 0.5 ＋ 砲 × 0.3 ＋ 人 × 0.2，跟指揮官的 cmdStrength 同一把尺），差不到 0.05 艘 ⇒ 和局
+  // （⛔ 沒有判定 ⇒ 4 對 4 開局 140 m、1800 秒，一格 20 場有 7–20 場和局，勝率表看不出差別）
+  function pow(tm) { return W.ships.filter(function (s) { return s.team === tm && !s.out; }).reduce(function (a, s) { return a + 0.5 * Math.max(0, s.hp) + 0.3 * (s.guns.P + s.guns.S) / (s.H.guns.P + s.H.guns.S) + 0.2 * s.crew; }, 0); }
+  var judged = false, winner = W.over ? W.over.winner : null;
+  if (!W.over) { var pb = pow('blue'), pr = pow('red'); if (Math.abs(pb - pr) >= 0.05) { winner = pb > pr ? 'blue' : 'red'; judged = true; } }
+  return { winner: winner, judged: judged, t: +W.t.toFixed(1), left: { blue: left('blue'), red: left('red') },
     hits: { blue: W.ships.filter(function (s) { return s.team === 'blue'; }).reduce(function (a, s) { return a + s.hits; }, 0), red: W.ships.filter(function (s) { return s.team === 'red'; }).reduce(function (a, s) { return a + s.hits; }, 0) } };
 }
