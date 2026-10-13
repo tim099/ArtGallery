@@ -352,6 +352,77 @@
           }
         ]
       ]
+    },
+    "006_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet04_decks_v1.png",
+            "crop": [
+              20,
+              50,
+              1680,
+              370
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet04_decks_v1.png",
+            "crop": [
+              20,
+              390,
+              1680,
+              740
+            ]
+          }
+        ]
+      ]
+    },
+    "006_p02": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet04_decks_v1.png",
+            "crop": [
+              480,
+              740,
+              1450,
+              1110
+            ]
+          }
+        ],
+        [
+          {
+            "src": "O/stage4_assembly_yaw60_pitch55.png",
+            "fit": "cover",
+            "aspect": 1.2
+          },
+          {
+            "src": "O/stage4_assembly_yaw60_pitch55_hide_quarter.png",
+            "fit": "cover",
+            "aspect": 1.2
+          }
+        ]
+      ]
+    },
+    "006_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage4_assembly_yaw-45.png",
+            "fit": "cover",
+            "aspect": 1.6
+          }
+        ],
+        [
+          {
+            "src": "O/stage4_assembly_yaw135.png",
+            "fit": "cover",
+            "aspect": 2.2
+          }
+        ]
+      ]
     }
   }
 }
