@@ -642,6 +642,54 @@
           }
         ]
       ]
+    },
+    "011_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage9_assembly_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage9_bow_yaw0.png",
+            "fit": "cover",
+            "aspect": 0.8
+          }
+        ]
+      ]
+    },
+    "011_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage9_channels_fore_yaw60.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage9_fore_tops_yaw50.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "011_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage9_bobstay_yaw20.png",
+            "fit": "cover",
+            "aspect": 0.85
+          },
+          {
+            "src": "O/stage9_assembly_yaw90.png",
+            "fit": "cover",
+            "aspect": 1.09
+          }
+        ]
+      ]
     }
   }
 }
