@@ -884,6 +884,33 @@
           }
         ]
       ]
+    },
+    "016_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage14_tackle_inside_S_yaw-70.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage14_tackle_S56_yaw-110.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "016_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage14_tackle_cabin_S12_yaw-60.png",
+            "fit": "cover",
+            "aspect": 1.6
+          }
+        ]
+      ]
     }
   }
 }
