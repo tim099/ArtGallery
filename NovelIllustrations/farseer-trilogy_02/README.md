@@ -79,6 +79,8 @@ next_chapter: "none in this volume; confirm third-volume media before continuing
 | 017 | [捲軸與顫抖的手](../../ReadingReflections/meadow_farseer_trilogy_02_interlude_shrewd_trembling_v1.md) | `fitz_young_teen`, `king_shrewd`, `king_fool`, `king_shrewd_bedroom_fireplace`, `jhaemy_elderling_scrolls` | 已繪 v1 |
 | 017 | [暴雨將至的心碎海灘](../../ReadingReflections/calli_farseer_trilogy_02_interlude_beach_heartbreak_v1.md) | `fitz_young_teen`, `molly_bundle`, `cliff_beach_cove` | 已繪 v1；已視檢 |
 | 018 | [苦味藥草間的遲來理解](../../ReadingReflections/meadow_farseer_trilogy_02_bitter_herbs_realization_v1.md) | `fitz_young_teen`, `naisin_hanging_herbs_room` | 已繪 v1 |
+| 018 | [風雪烽火台的花園之問](../../ReadingReflections/calli_farseer_trilogy_02_beacon_garden_elderlings_v1.md) | `fitz_young_teen`, `ketricken`, `queen_garden_beacon` | 已繪 v1；已視檢 |
+| 018 | [燭火地圖上的遠征盟約](../../ReadingReflections/calli_farseer_trilogy_02_verity_map_elderling_v1.md) | `verity`, `ketricken`, `fitz_young_teen`, `verity_map_room` | 已繪 v1；已視檢 |
 | 019 | [沉住門前的怒氣](../../ReadingReflections/meadow_farseer_trilogy_02_before_the_door_opens_v1.md) | `fitz_young_teen`, `ketricken`, `ketricken_quiet_sitting_room` | 已繪 v1 |
 | 020 | [苦果與相握之手](../../ReadingReflections/meadow_farseer_trilogy_02_bitter_loyalty_molly_v1.md) | `fitz_young_teen`, `molly_bundle` | 已繪 v1 |
 | 021 | [門後的一小片安穩：夜眼守著蜚滋](../../ReadingReflections/meadow_farseer_trilogy_02_night_eyes_guard_v1.md) | `fitz_young_teen`, `wolf_cub` | 已繪 v1 |
