@@ -2223,6 +2223,12 @@ function makeStations(sh) {
         sh.models.push(m); st.kegs.push(m);
       });
       st.at = [spot[0] + 5.5, spot[1] + 5.5, spot[2]];                 // 送藥手站在三桶圍出來的那一角
+      // 站位：那一角＋桶堆外圍幾格（站得住、不在砲裡）；同時好幾個人來拿 ⇒ 各站一格（⛔ 全站同一點 ⇒ 幾張人疊在一起、姿勢不同，看起來像一個人在抖）
+      st.slots = [st.at].concat([[13, 5.5], [5.5, 13], [13, 13], [13, -2], [-2, 13], [5.5, -3], [-3, 5.5], [-3, -3]].map(function (o) {   // 齊射後同一個取用點最多 8 人在路上或在拿
+        var x = Math.floor(spot[0] + o[0]), y = Math.floor(spot[1] + o[1]), z = standZ(BASE, x, y, spot[2] - 1, spot[2] + 1, 8);
+        if (z < 0 || guns.some(function (m) { var b = m.bb; return x > b[0] - 2 && x < b[3] + 2 && y > b[1] - 2 && y < b[4] + 2 && z + 8 > b[2] && z - 3 < b[5]; })) return null;
+        return [x + 0.5, y + 0.5, z];
+      }).filter(Boolean));
       out.push(st);
     });
   });
@@ -2244,11 +2250,19 @@ function makeMonkeys(sh, crew, taken, add) {
     gs.forEach(function (g) { g.pm = c; });
   });
 }
-/** 下一份送去哪門：同一層、還在、藥箱沒滿、是自己的或送藥手倒了的砲；先送等著的、空的、有人操作的、自己的、近的。 */
+/** 別的送藥手已經要送去 g 的份數（在去拿、在拿、拿著送的；拿著的照手上的份數）。 */
+function incoming(sh, c, g) {
+  var n = 0;
+  sh.crew.forEach(function (o) { if (o !== c && o.pm && o.pm.g === g && o.pm.st !== 'idle' && able(o)) n += o.pm.st === 'carry' ? o.cart || 0 : CARRY_N; });
+  return n;
+}
+/** 下一份送去哪門：同一層、還在、藥箱（算上別人已經在送的）沒滿、是自己的或送藥手倒了的砲；先送等著的、空的、有人操作的、自己的、近的。
+ *  ⛔ 不算別人在送的 ⇒ 沒有送藥手的砲一缺，整層的送藥手全跑去拿（量到 8 個），沒搶到的拿著藥包站在桶邊等十幾秒。 */
 function needGun(sh, c) {
   var best = null, bs = 1e9;
   sh.guns.forEach(function (g) {
     if (!g.alive || !g.drop || gunDeck(g) !== c.deck || g.box >= BOX_N || (g.pm && g.pm !== c && able(g.pm))) return;
+    if (g.box + incoming(sh, c, g) >= BOX_N) return;
     var s = g.box * 10 + (g.needCart ? 0 : 5) + (g.pm === c ? 0 : 3) + (gunRate(g) > 0 ? 0 : 20) + Math.abs(g.muz[0] - c.pos[0]) / 40;
     if (s < bs) { bs = s; best = g; }
   });
@@ -2258,6 +2272,16 @@ function needGun(sh, c) {
 function stationFor(sh, c, g) {
   var best = null, bd = 1e9;
   sh.stations.forEach(function (st) { if (st.deck !== c.deck || st.mag.gone) return; var d = Math.abs(st.at[0] - g.muz[0]); if (d < bd) { bd = d; best = st; } });
+  return best;
+}
+/** 在取用點站哪一格：別人（去拿、在拿）最少的那格，一樣多挑近的。 */
+function slotFor(sh, c, st) {
+  var best = st.at, bs = 1e9;
+  (st.slots || [st.at]).forEach(function (s) {
+    var n = sh.crew.filter(function (o) { return o !== c && o.pm && o.pm.src === st && o.pm.at === s && (o.pm.st === 'fetch' || o.pm.st === 'fill') && able(o); }).length;
+    var v = n * 1e4 + Math.hypot(s[0] - c.pos[0], s[1] - c.pos[1]);
+    if (v < bs) { bs = v; best = s; }
+  });
   return best;
 }
 /** 走直線到 to（格座標）；高度跟著甲板。到了回 true。 */
@@ -2274,18 +2298,18 @@ function stepMonkey(sh, c, dt) {
   if (P.st === 'idle') {
     var g = needGun(sh, c), st = g && stationFor(sh, c, g);
     if (!st) { monkeyTo(sh, c, c.home, dt); return; }                  // 都滿了（或沒地方拿）⇒ 回自己那一對砲中間等
-    P.st = 'fetch'; P.src = st; P.g = g;
+    P.st = 'fetch'; P.src = st; P.g = g; P.at = slotFor(sh, c, st);
   }
   if (P.st === 'fetch') {
     if (P.src.mag.gone) { P.st = 'idle'; return; }
-    if (monkeyTo(sh, c, P.src.at, dt)) { P.st = 'fill'; P.t = FILL_T; }
+    if (monkeyTo(sh, c, P.at, dt)) { P.st = 'fill'; P.t = FILL_T; }
     return;
   }
   if (P.st === 'fill') { c.moving = false; if ((P.t -= dt) <= 0) { c.cart = CARRY_N; P.st = 'carry'; } return; }
   if (P.st === 'carry') {
     if (!c.cart) { P.st = 'idle'; return; }                            // 藥包炸掉或掉了
     if (!P.g || !P.g.alive || P.g.box >= BOX_N) P.g = needGun(sh, c);
-    if (!P.g) { c.moving = false; return; }                            // 拿著等（都滿了）
+    if (!P.g) { monkeyTo(sh, c, c.home, dt); return; }                 // 都滿了 ⇒ 拿著回自己那一對砲中間等（⛔ 不站在桶邊：擋住下一個來拿的）
     if (monkeyTo(sh, c, P.g.drop, dt)) {                               // 放進藥箱（放得下多少放多少）；手上還有 ⇒ 送下一門
       var put = Math.min(c.cart, BOX_N - P.g.box); P.g.box += put; c.cart -= put;
       if (c.cart <= 0) { c.cart = 0; P.st = 'idle'; } else P.g = null;
