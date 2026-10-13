@@ -146,8 +146,24 @@ function clothTemplate(H, s) {                         // H：船型（帆的布
     sim.yk[ci] = bi;
   });
   var foot = -1; Object.keys(clewYard).forEach(function (q) { if (clewYard[q] >= 0) foot = clewYard[q]; });
-  return { name: s.name, col: s.color || [0.95, 0.92, 0.85], n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
+  var vcol = texColors(s.texture, n);                   // 有貼圖（旗）⇒ 每個頂點照 UV 取貼圖的顏色；整面的顏色（布片、碎布）取平均
+  return { name: s.name, col: vcol ? vcol.avg : s.color || [0.95, 0.92, 0.85], vcol: vcol ? vcol.c : null, n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
     hk: hk, hv: hv, sides: sides, pins: pins, clews: clews, foot: foot };   // foot：帆腳跟著轉的帆桁（-1 ＝ 不轉；砲彈打帆照高度內插轉角用）
+}
+/** 旗的貼圖（.vxk 帆的 texture：w×h 的 RGBA、base64，uv 每個頂點一對）⇒ 前 n 個頂點（正面那一份）的顏色：每個頂點取它四周一格布寬的平均（不透明的才算）。
+ *  Tim 2026-10-13：夜隼號的旗變成白旗 —— 遊戲畫帆只用一個顏色，夜隼號那面旗的顏色欄是帆布白（憲法號的是紅）。沒有貼圖 ⇒ null（照舊單色）。 */
+function texColors(tx, n) {
+  if (!tx || !tx.rgba || !tx.uv || tx.uv.length < n * 2 || !tx.w || !tx.h) return null;
+  var b = atob(tx.rgba), W = tx.w, H = tx.h, am = tx.alpha_min || 0, f = 0.5 / Math.sqrt(n), c = new Float32Array(n * 3), avg = [0, 0, 0], i;
+  if (b.length < W * H * 4) return null;
+  for (i = 0; i < n; i++) {
+    var u = tx.uv[i * 2], v = tx.uv[i * 2 + 1], x0 = clamp(Math.floor((u - f) * W), 0, W - 1), x1 = clamp(Math.ceil((u + f) * W) - 1, x0, W - 1);
+    var y0 = clamp(Math.floor((v - f) * H), 0, H - 1), y1 = clamp(Math.ceil((v + f) * H) - 1, y0, H - 1), r = 0, g = 0, bl = 0, k = 0;
+    for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var o = (y * W + x) * 4; if (b.charCodeAt(o + 3) < am) continue; r += b.charCodeAt(o); g += b.charCodeAt(o + 1); bl += b.charCodeAt(o + 2); k++; }
+    if (!k) { r = g = bl = 242; k = 1; }
+    c[i * 3] = r / k / 255; c[i * 3 + 1] = g / k / 255; c[i * 3 + 2] = bl / k / 255; avg[0] += c[i * 3] / n; avg[1] += c[i * 3 + 1] / n; avg[2] += c[i * 3 + 2] / n;
+  }
+  return { c: c, avg: avg };
 }
 /** 一塊布的約束：邊（三角形的邊）＋ 跨點（同一條格線上隔一點的兩點，布不會揉成一團）；靜止長度 ＝ 雕刻作品那一刻的距離。 */
 function meshCons(pos, T) {

@@ -21,10 +21,10 @@ function sailBuf(ow) {
   }
   (ow.cl || []).forEach(function (c, k) {
     if (isShip) { var s = ow.sails[k]; if (PHYS ? (!c.p || c.hidden || c.gone) : (s.dead || s.furled)) return; }
-    put((PHYS || !isShip) && c.p ? clothFine(c, SBP) : c.T.p0, c.T.n, c.T.tris, c.T.col, c.torn ? c.tv : null);
+    put((PHYS || !isShip) && c.p ? clothFine(c, SBP) : c.T.p0, c.T.n, c.T.tris, c.T.col, c.torn ? c.tv : null, c.T.vcol);
   });
   if (F) F.forEach(function (f) { put(f.p, f.n, f.T.sim.tris, f.col, null); });
-  function put(p, n, tr, col, tv) {                                      // tv：藏起來的細格點（撕開的洞）
+  function put(p, n, tr, col, tv, vc) {                                  // tv：藏起來的細格點（撕開的洞）；vc：每個頂點的顏色（旗的貼圖，30_rig_physics.js texColors）
     var base = nv, j, i;
     SBN.fill(0, 0, n * 3);
     for (j = 0; j < tr.length; j += 3) {
@@ -38,7 +38,7 @@ function sailBuf(ow) {
     for (i = 0; i < n; i++) {
       var o = (base + i) * 9, q = i * 3;
       SBV[o] = p[q]; SBV[o + 1] = p[q + 1]; SBV[o + 2] = p[q + 2]; SBV[o + 3] = SBN[q]; SBV[o + 4] = SBN[q + 1]; SBV[o + 5] = SBN[q + 2];
-      SBV[o + 6] = col[0]; SBV[o + 7] = col[1]; SBV[o + 8] = col[2];
+      if (vc) { SBV[o + 6] = vc[q]; SBV[o + 7] = vc[q + 1]; SBV[o + 8] = vc[q + 2]; } else { SBV[o + 6] = col[0]; SBV[o + 7] = col[1]; SBV[o + 8] = col[2]; }
     }
     nv += n;
   }

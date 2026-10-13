@@ -179,7 +179,8 @@ function makeHands(sh, crew, add) {
     else if (c.role === ROLE.HELM) H.helm0++;
   });
   var N = Ls[home].N, used = [];
-  if (N.cells.length) for (var k = 0; k < HANDS; k++) {
+  var NH = Math.round(HANDS * sh.T.geo.handsK);                       // 船型的倍率（05_hull.js GEO0；夜隼號 ¼：小船）
+  if (N.cells.length) for (var k = 0; k < NH; k++) {
     var i = -1;
     for (var tries = 0; tries < 12; tries++) {
       i = N.cells[(rnd() * N.cells.length) | 0];

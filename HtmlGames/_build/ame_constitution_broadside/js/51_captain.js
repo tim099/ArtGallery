@@ -35,7 +35,7 @@ function magNear(foe) {
 function aimValue(foe, mode) {
   if (mode === 'water') return 0.6 + 2.4 * clamp(foe.lift / 1.2, 0, 1) + 0.4 * clamp(foe.sink / 4, 0, 1);
   if (mode === 'hull') return 0.2 + 0.8 * (foe.gunsManned || 0) / Math.max(1, foe.guns.length);
-  if (mode === 'rig') return (foe.mastsUp || 0) / 3 * foe.sailFrac;
+  if (mode === 'rig') return (foe.mastsUp || 0) / Math.max(1, foe.masts.length) * foe.sailFrac;   // 照那艘有幾根桅（夜隼號 2）
   if (mode === 'deck') return 0.2 + 0.8 * (foe.able || 0) / Math.max(1, foe.crew0);
   if (mode === 'mag') { if (powderNever()) return 0; var n = magNear(foe); return !n ? 0 : n.d <= 0 ? 3 : n.d < 1 ? 3 * (1 - n.d) : 0; }
   return 0;
@@ -64,7 +64,7 @@ function modeAim(foe, mode, rand) {
   if (mode === 'water') return { t: [R(WL_X0 + 40, WL_X1 - 40), CY, wl + R(1, 9)], ammo: 0 };                 // 水面上 0.1–0.9 m（砲彈碰到水就沒了）
   if (mode === 'rig') {
     var masts = foe.masts.filter(function (m) { return m.up; });
-    if (masts.length) { var m = rand ? masts[(rnd() * masts.length) | 0] : masts.reduce(function (a, b) { return Math.abs(b.x - xm) < Math.abs(a.x - xm) ? b : a; }); return { t: [m.x, CY, R(150, 300)], ammo: P(0.7) ? 2 : 0 }; }
+    if (masts.length) { var m = rand ? masts[(rnd() * masts.length) | 0] : masts.reduce(function (a, b) { return Math.abs(b.x - xm) < Math.abs(a.x - xm) ? b : a; }); return { t: [m.x, CY, R(foe.T.geo.rigAim[0], foe.T.geo.rigAim[1])], ammo: P(0.7) ? 2 : 0 }; }
     mode = 'hull';
   }
   if (mode === 'deck') {
@@ -72,7 +72,7 @@ function modeAim(foe, mode, rand) {
     if (on.length) { var c = rand ? on[(rnd() * on.length) | 0] : on[0]; return { t: [rand ? c.pos[0] : xm, CY, c.pos[2] + 10], ammo: P(0.8) ? 1 : 0 }; }
     mode = 'hull';
   }
-  return { t: [R(WL_X0 + 60, WL_X1 - 60), CY, R(84, 104)], ammo: P(0.3) ? 1 : 0 };                          // 砲甲板
+  return { t: [R(WL_X0 + 60, WL_X1 - 60), CY, R(foe.T.geo.deckAim[0], foe.T.geo.deckAim[1])], ammo: P(0.3) ? 1 : 0 };   // 砲甲板（高度照船型，05_hull.js GEO0）
 }
 /** 細節設定的砲長選單：選項 ＝ 隨機 ＋ 各砲長（說明當 title）。 */
 function capOptions(sel, v) {

@@ -66,19 +66,24 @@ function makeCrew(sh) {
   makeMonkeys(sh, crew, taken, add);
   // spar deck 的高度：從 carronade 推；陸戰隊沿 S 那一舷（格 +y）的舷牆、軍官在後甲板、舵手在舵輪旁
   var carr = sh.models.filter(function (m) { return m.kind === 'carr'; }), wheel = sh.models.filter(function (m) { return m.kind === 'wheel'; })[0];
-  var sz0 = carr.length ? Math.floor(carr[0].bb[2]) - 6 : 100, sz1 = sz0 + 9;
-  for (var x = HULL_X0 + 160; x < HULL_X1 - 220 && crew.filter(function (c) { return c.role === ROLE.MARINE; }).length < 12; x += 37) {
+  var GZ = sh.T.geo, sz0 = carr.length ? Math.floor(carr[0].bb[2]) - 6 : GZ.spar ? GZ.spar[0] : 100, sz1 = carr.length || !GZ.spar ? sz0 + 9 : GZ.spar[1];   // 沒有 carronade ⇒ 船型給的高度（05_hull.js GEO0；夜隼號主甲板到後甲板）
+  for (var x = HULL_X0 + GZ.marines[0]; x < HULL_X1 - GZ.marines[1] && crew.filter(function (c) { return c.role === ROLE.MARINE; }).length < 12; x += 37) {
     // 從中線往外走到舷牆前一格（⛔ 從外往裡掃會先碰到舷外的 channels 平台）
-    var last = -1;
-    for (var y = CY + 4; y < CY + 80; y++) { if (standZ(g, x, y, sz0, sz1, 14) >= 0) last = y; else if (last >= 0) break; }
-    if (last >= 0) add(ROLE.MARINE, standNear(g, x, last - 2, sz0, sz1, 14, taken), null, 1);
+    var last = -1, m0 = sz0, m1 = sz1;
+    if (GZ.spar) {   // 船型給了站人的範圍（夜隼號 z 28–47：主甲板到後甲板，舷側的繫繩欄、錨鏈台頂也在裡面 ⇒ 陸戰隊站到船殼外 y 113–116）⇒ 只看這一段甲板 −1～+2 格
+      var zd = -1; for (var z = sz0; z <= sz1 && zd < 0; z++) if (standZ(g, x, CY + 10, z, z, 14) >= 0) zd = z;   // 最低那一層 ＝ 甲板（甲板上的東西都比它高）
+      if (zd < 0) continue; m0 = zd - 1; m1 = zd + 2;
+    }
+    for (var y = CY + 4; y < CY + 80; y++) { if (standZ(g, x, y, m0, m1, 14) >= 0) last = y; else if (last >= 0) break; }
+    if (last >= 0) add(ROLE.MARINE, standNear(g, x, last - 2, m0, m1, 14, taken), null, 1);
   }
   var qx = wheel ? Math.floor(wheel.c[0]) : HULL_X0 + 160;
   [[qx + 22, CY + 8], [qx + 30, CY - 6], [qx + 40, CY + 14], [qx + 14, CY - 12]].forEach(function (p) { add(ROLE.OFFICER, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, 1); });
   var cap = crew.filter(function (c) { return c.role === ROLE.OFFICER; })[0]; if (cap) cap.art = ART_CAPTAIN;   // 船長：只換貼圖
   if (wheel) { var wx = Math.floor(wheel.bb[0]) - 3; [[wx, CY + 3], [wx, CY - 3]].forEach(function (p) { add(ROLE.HELM, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, -1); }); }   // 舵輪後面（⛔ 舵輪中心往後 4 格還在舵輪的外框裡 ⇒ 以前一個舵手都站不上去）
-  // 桅頂：每根桅最低的那層平台（從 z 200 往上，第一層有 6 個以上站得住的點）上分散站四個人；頭頂 1.4 m 空（同一般站位）。
-  //   憲法號：前桅 263、主桅 286、後桅 241。⛔ 從 250 找 ⇒ 跳過後桅的桅頂；⛔ 不夠四個就往上找 ⇒ 站到 377–465 的高處橫桁上；⛔ 頭頂只看 0.6 m
+  // 桅頂：每根桅最低的那層平台（從那根桅最低的橫帆桁往上，第一層有 6 個以上站得住的點；沒有帆桁 meta ⇒ 從 z 200）上分散站四個人；頭頂 1.4 m 空（同一般站位）。
+  //   憲法號：前桅 263、主桅 286、後桅 241（帆桁 254／276／232 ⇒ 跟以前從 200 找一樣）；夜隼號：前桅 127、主桅 137。
+  //   ⛔ 從 250 找 ⇒ 跳過後桅的桅頂；⛔ 不夠四個就往上找 ⇒ 站到 377–465 的高處橫桁上；⛔ 頭頂只看 0.6 m
   var TOP_A = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15], TOP_R = [12, 15, 9, 18];   // 角度照「先對角、再補中間」排 ⇒ 四個人分散在平台四周
   function topSpot(m, k, r, z) {
     var a = k / 16 * 6.2832, px = Math.round(m.x + Math.cos(a) * r), py = Math.round(CY + Math.sin(a) * r);
@@ -87,7 +92,7 @@ function makeCrew(sh) {
     return [px, py];
   }
   sh.masts.forEach(function (m) {
-    for (var z = 200; z < 470; z++) {
+    for (var z = m.z0top || 200; z < 470; z++) {
       var n = 0; TOP_A.forEach(function (k) { TOP_R.forEach(function (r) { if (topSpot(m, k, r, z)) n++; }); });
       if (n < 6) continue;
       var found = 0;

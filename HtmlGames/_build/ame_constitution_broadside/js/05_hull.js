@@ -9,7 +9,22 @@
 // 認得的船（el ＝ 內嵌 .vxk 的 id）；選單只列 HTML 裡真的有內嵌資料的那幾艘 ⇒ 加一艘 ＝ template 加一個 x-vxk 標籤＋這裡一行。
 // zw0：作品沒有 `kind=ship, waterline_z` 的 meta 時用的設計水線（格的 z）。餘燼號 71 ＝ basecamp 的作品筆記（basecamp-ember-01m/todo.md「水線抬高 z 63 → 71」，
 //   Tim：船變高了水線也往上）。⛔ 沒有這一格 ⇒ 用憲法號的 63，多出來那層砲甲板的排水沒算進去（排水量 2,522 噸，跟憲法號 2,154 差不多 —— Tim 2026-10-13 發現）。meta 補上之後以 meta 為準。
-var HULL_KNOWN = [{ id: 'constitution', el: 'ship', name: '憲法號' }, { id: 'ember', el: 'ship-ember', name: '餘燼號', zw0: 71 }];
+// geo：船型的高度（格的 z）與範圍 —— 這些本來寫死成憲法號的數字；沒給的照 GEO0（＝ 原本的數字 ⇒ 憲法號、餘燼號照舊）。
+//   夜隼號（summit，2026-10-13 接）只有憲法號一半高：水線 15、主甲板 z 30、後甲板 45、桅頂平台 126（前）／136（主）、桅頂 272 ⇒ 照她的作品量的。
+//   桅不在這裡：照帆桁的 meta 判斷（10_ship.js findMasts）。
+var GEO0 = {
+  spar: null,              // 露天甲板站人的高度 [z0, z1]（陸戰隊、軍官、舵手）；null ⇒ 照 carronade 推、沒有 carronade ⇒ 100–109
+  marines: [160, 220],     // 陸戰隊沿舷牆站的範圍：船尾外框 + [0] 到船頭外框 − [1]（每 37 格一個，最多 12）
+  center: 140,             // 船的中心高度（鏡頭看哪裡）
+  aim: 90,                 // 沒有目標時瞄哪個高度（21_gunnery.js）
+  aimZ: [40, 320],         // 瞄準點的高度夾在這段裡
+  deckAim: [84, 104],      // 砲長「砲甲板」模式瞄的高度（51_captain.js）
+  rigAim: [150, 300],      // 砲長「桅」模式瞄的高度
+  handsK: 1                // 預備水手的人數倍率（細節設定的人數 × 這個）
+};
+var GEO_FALCON = { spar: [28, 47], marines: [100, 60], center: 50, aim: 30, aimZ: [5, 270], deckAim: [25, 40], rigAim: [60, 240], handsK: 0.25 };
+var HULL_KNOWN = [{ id: 'constitution', el: 'ship', name: '憲法號' }, { id: 'ember', el: 'ship-ember', name: '餘燼號', zw0: 71 },
+  { id: 'falcon', el: 'ship-falcon', name: '夜隼號', geo: GEO_FALCON }];
 var HULL_LIST = HULL_KNOWN.filter(function (h) { return !!document.getElementById(h.el); });
 var HULLS = {}, HULLT = {};                                             // id → 載入中的 Promise ／ 載好的船型
 var SHIP_SET = ['constitution', 'constitution'];                         // [我艦, 敵艦] 的船型（主選單選；網址 ?ship=我艦,敵艦）
@@ -37,7 +52,7 @@ function buildHull(info, model, t0, C) {
   if (S && Math.abs(h.meters_per_voxel - S) > 1e-9) throw new Error(info.name + ' 是 ' + h.meters_per_voxel + ' 公尺一格，跟已經載入的船（' + S + '）不一樣 —— 模擬只吃同一個比例');
   S = h.meters_per_voxel;
   var T = { id: info.id, name: info.name, model: model, h: h, rig: h.rig || { ropes: [], sails: [] },
-    sz: h.size[2], cx: (h.bbox[0] + h.bbox[3]) / 2, cy: h.size[1] / 2, hx0: h.bbox[0], hx1: h.bbox[3], zw: hullZW(h, info) };   // 外框：含艏斜桅與後桅帆桁
+    sz: h.size[2], cx: (h.bbox[0] + h.bbox[3]) / 2, cy: h.size[1] / 2, hx0: h.bbox[0], hx1: h.bbox[3], zw: hullZW(h, info), geo: Object.assign({}, GEO0, info.geo) };   // 外框：含艏斜桅與後桅帆桁
   T.cached = !!C; T.keep = C ? null : {};
   T.ms = {};                                                               // 每一段花多久（毫秒；讀數 window.__vxk.ms）
   function tm(k, f) { var a = performance.now(); f(); T.ms[k] = +(performance.now() - a).toFixed(1); }

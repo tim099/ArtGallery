@@ -18,7 +18,7 @@ function fireGun(sh, g, target, ammo) {
   spread *= wxSpread(sh);                                          // 天氣：暴風雨裡船晃得越快，點火那一下差得越多（晴天 ×1）
   el = clamp(el + gauss() * spread, -0.17, 0.26); az += gauss() * spread;
   var dir = [Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)];
-  var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: GS.big, dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）
+  var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: GS.big, hole: GS.hole, dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）；hole：洞的倍率（4 磅彈小）
   BALLS.push(b); g.reload = sh.reloadT * GS.reload * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
   g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
@@ -62,7 +62,7 @@ function bears(sh, g, w) {
 function gunTarget(sh, g, w) {
   if (bears(sh, g, w)) return w;
   var foe = SHIPS[1 - sh.i]; if (!foe || !foe.M) return null;
-  var z = clamp(toLocal(foe, w)[2], 40, 320), best = null, bd = 1e18;
+  var z = clamp(toLocal(foe, w)[2], foe.T.geo.aimZ[0], foe.T.geo.aimZ[1]), best = null, bd = 1e18;   // 高度範圍照敵艦的船型（05_hull.js GEO0）
   for (var k = 0; k <= 12; k++) {
     var p = M4.pt(foe.M, foe.T.wl0 + 15 + (foe.T.wl1 - foe.T.wl0 - 30) * k / 12, foe.T.cy, z);
     if (!bears(sh, g, p)) continue;
@@ -77,7 +77,7 @@ function aimPoint(sh) {
   var foe = SHIPS[1 - sh.i];
   if (sh.i === PLAYER_I && !AUTOFIRE && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
   if (sh.aim) return M4.pt(foe.M, sh.aim[0], sh.aim[1], sh.aim[2]);
-  return M4.pt(foe.M, foe.T.cx, foe.T.cy, 90);
+  return M4.pt(foe.M, foe.T.cx, foe.T.cy, foe.T.geo.aim);
 }
 
 /** 砲彈這一步（每 5 cm 一小段：450 m/s 的彈一步 150 段）。
@@ -146,7 +146,7 @@ function impact(b, sh, L) {
     if (r.n > 30) { sfx('crack', w, 0.9); smoke(w, [0, 0.2, 0], 3, false); }
     return;
   }
-  var R = rr(3.4, 4.6) * (b.big ? 1.25 : 1) * Math.pow(sh.cfg.hard, -0.25);
+  var R = rr(3.4, 4.6) * (b.big ? 1.25 : b.hole || 1) * Math.pow(sh.cfg.hard, -0.25);
   r = shatter(sh, L, dirL, R, b.v, 260, 0.55);   // 實心彈：一口一口往裡鑽（carronade 的 32 磅彈洞大一點；越硬洞越小）
   if (r.n) hurt(sh, L, R * 1.1, R * 2.6, dirL, '碎木', crewBase(b));             // 碎木往前噴：船裡的人主要是被這個傷到的
   var nsp = sp - r.cost * 0.24 * sh.cfg.hard;
@@ -222,6 +222,7 @@ function blowModel(sh, m, vel, drop) {
     sfx('crack', c0, 1.3);
   }
   if (m.kind === 'wheel') note(sh, '舵輪被打飛了');
+  else if (m.kind === 'rudder') note(sh, drop ? '舵掉了' : '舵被打飛了');
   else if (m.kind === 'yard' && !drop) note(sh, '帆桁 ' + m.name.replace('yard-', '') + ' 被打斷');
   else if (GUNS[m.kind]) newsGun(sh, m, drop);                    // 廣播（同一刻好幾門 ⇒ 併成一行，見 61_hud.js）
 }
