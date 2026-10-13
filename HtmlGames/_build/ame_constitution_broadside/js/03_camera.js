@@ -47,4 +47,54 @@ function camUpdate(dt) {
   CAM.vp = M4.mul(proj, view); CAM.inv = M4.inv(CAM.vp);
 }
 function lerp3(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+// 追砲彈（mode 1；Tim 2026-10-13）：只追我艦打的（觀戰也是）；追著的那顆打中或落水才換（落點停 1.2 秒，CAM.hold）。
+//   挑下一顆的時機：這輪齊射打完（最新那顆飛了 BALL_SETTLE 秒）或最舊那顆飛了 BALL_WAIT 秒（連續開火時不等到天荒地老）；
+//   挑哪顆：照現在的位置與速度往前推算（重力、打水漂同 stepBall；敵艦照現在的船速平移），會打中敵艦的優先、其中離命中最久的那顆；
+//   都不中 ⇒ 只追剛開出去的（飛不到 BALL_FRESH 秒）；連這也沒有 ⇒ 停在上一個落點等下一輪（⛔ 追一顆快落水的不中彈 ⇒ 看不到東西；⛔ 跳回自由鏡頭 ⇒ 畫面一閃）。
+//   每顆只推算一次（BALL_PRED；一次最多約 20 ms，⛔ 每一格重算會卡）。
+//   ⛔ 以前每開一砲就切到新那顆 ⇒ 齊射時鏡頭一直跳、追的那顆還沒打中就換掉；觀戰還會追到敵艦的砲彈。
+//   只在畫面這一層跑（frame），不抽 rnd()、不改狀態 ⇒ 戰局不受影響。
+var BALL_SETTLE = 0.25, BALL_WAIT = 1.2, BALL_FRESH = 0.6, BALL_PRED = new WeakMap();
+/** 砲彈 b 照現在的速度飛下去，幾秒後打中敵艦（格或模型）；不會中 ⇒ null。 */
+function ballPredict(b) {
+  var foe = SHIPS[1 - b.owner]; if (!foe || !foe.center || !foe.inv || foe.sunk) return null;
+  var p = b.p.slice(), v = b.v.slice(), bounced = b.bounced, h = 1 / 1500, M = foe.inv, c = foe.center, fv = foe.vel || [0, 0, 0], g = foe.grid;
+  for (var t = 0; t < 12 - b.age; t += h) {                            // 每步約 0.1 m（初速 175 m/s）
+    v[1] -= G * h; p[0] += v[0] * h; p[1] += v[1] * h; p[2] += v[2] * h;
+    if (p[1] < 0) {
+      var sp = len(v);
+      if (b.ammo === 0 && !bounced && Math.asin(-v[1] / sp) < 0.11 && sp > 90) { v[1] = -v[1] * 0.45; v[0] *= 0.7; v[2] *= 0.7; p[1] = 0.01; bounced = true; continue; }
+      return null;
+    }
+    var x = p[0] - fv[0] * t, y = p[1], z = p[2] - fv[2] * t, dx = x - c[0], dy = y - c[1], dz = z - c[2];   // 換到敵艦「現在」的座標（它照船速平移）
+    if (dx * dx + dy * dy + dz * dz > foe.rad2) continue;
+    var L = [M[0] * x + M[4] * y + M[8] * z + M[12], M[1] * x + M[5] * y + M[9] * z + M[13], M[2] * x + M[6] * y + M[10] * z + M[14]];
+    if (g.get(L[0] | 0, L[1] | 0, L[2] | 0) || hitModel(foe, L, b.ammo === 2 ? 10 : 1.5, null)) return t;
+  }
+  return null;
+}
+/** 每一格（frame）：追著的那顆沒了 ⇒ 落點停 CAM.hold 秒；之後挑下一顆。debug：__game.camFollow(dt) 手動推進（預覽窗格在背景時 rAF 會停）。 */
+function camFollow(dt) {
+  if (CAM.mode !== 1) return;
+  var f = CAM.follow;
+  if (f && f.alive) return;                                            // 追著的那顆還在飛 ⇒ 不換
+  if (f && CAM.hold > 0) { CAM.hold -= dt; return; }                   // 落點停一下（50_sim.js 在那顆沒了的時候設）
+  var nb = pickBall(); if (nb) CAM.follow = nb;                        // 沒有值得追的 ⇒ 停在上一個落點
+}
+/** 下一顆要追的砲彈（還不到挑的時候 ⇒ null）。 */
+function pickBall() {
+  var mine = BALLS.filter(function (b) { return b.alive && b.owner === PLAYER_I; });
+  if (!mine.length) return null;
+  var young = 1e9, old = 0; mine.forEach(function (b) { young = Math.min(young, b.age); old = Math.max(old, b.age); });
+  if (young < BALL_SETTLE && old < BALL_WAIT) return null;             // 這輪齊射還在開
+  var best = null, bt = -1, fresh = null;
+  mine.forEach(function (b) {
+    if (!BALL_PRED.has(b)) BALL_PRED.set(b, { at: b.age, t: ballPredict(b) });
+    var pr = BALL_PRED.get(b), left = pr.t === null ? null : pr.t - (b.age - pr.at);   // 離命中還有幾秒
+    if (left !== null && left > 0.05 && left > bt) { bt = left; best = b; }
+    if (b.age < BALL_FRESH) fresh = b;
+  });
+  CAM.pick = { n: mine.length, hit: !!best, t: best ? +bt.toFixed(2) : null };   // 讀數（__game.camera）
+  return best || fresh;
+}
 

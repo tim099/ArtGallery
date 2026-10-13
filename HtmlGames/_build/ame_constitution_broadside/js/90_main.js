@@ -8,8 +8,7 @@ function frame(ts) {
     while (acc >= DT && n < 4) { step(); acc -= DT; n++; }
     if (n === 4) acc = 0;
   }
-  if (CAM.hold > 0) { CAM.hold -= dt; if (CAM.hold <= 0) CAM.follow = null; }
-  if (CAM.mode === 1 && !CAM.follow) { var bs = BALLS.filter(function (b) { return b.owner === PLAYER_I || MODE === 'eve'; }); if (bs.length) CAM.follow = bs[bs.length - 1]; }
+  camFollow(dt);                                                      // 追砲彈（03_camera.js）
   SHIPS.forEach(function (sh) { sh.rs.flush(); });
   camUpdate(dt); render(); hud(dt);
   requestAnimationFrame(frame);
@@ -22,7 +21,7 @@ if (DEBUG) window.__game = {
   fire: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) me.aim = aim; return broadside(me, ammo || 0); },
   one: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) me.aim = aim; fireOne(me, ammo || 0); return BALLS.length; },
   ships: function () { return SHIPS; }, balls: function () { return BALLS; }, pieces: function () { return PIECES; },
-  camera: function () { return { mode: CAM.mode, track: CAM.track, yaw: CAM.yaw, dist: CAM.dist, tgt: CAM.tgt.slice(), eye: CAM.eye.slice() }; },
+  camera: function () { return { mode: CAM.mode, follow: CAM.follow ? { age: +CAM.follow.age.toFixed(2), owner: CAM.follow.owner, alive: CAM.follow.alive } : null, pick: CAM.pick || null, track: CAM.track, yaw: CAM.yaw, dist: CAM.dist, tgt: CAM.tgt.slice(), eye: CAM.eye.slice() }; },
   strike: function (o) { for (var k in o) STRIKE[k] = o[k]; return { rules: STRIKE, text: strikeText() }; },
   /** 量降旗用：第 i 艘還能動的人照順序倒下，直到死傷比例到 frac（role 給了只倒那個職位）；下一次 survey 才判降旗。 */
   casualty: function (i, frac, role) {
@@ -30,6 +29,8 @@ if (DEBUG) window.__game = {
     sh.crew.forEach(function (c) { if (need > 0 && able(c) && (role === undefined || c.role === role)) { killCrew(sh, c, '量測'); need--; } });
     return sh.crew.filter(able).length;
   },
+  camFollow: function (dt) { camFollow(dt); return CAM.follow; },
+  predict: function (b) { return ballPredict(b); },
   cam: function (o) { for (var k in o) CAM[k] = o[k]; CAM.snap = true; camUpdate(1); render(); },
   phys: function (on) { if (on !== undefined) setPhys(!!on); return PHYS; },
   /** 帆桁追風的讀數：相對風吹去的方向、每根帆桁現在離正橫幾度（作品的角度＋追風轉的）。 */

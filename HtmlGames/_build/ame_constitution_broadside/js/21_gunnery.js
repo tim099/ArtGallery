@@ -23,7 +23,6 @@ function fireGun(sh, g, target, ammo) {
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
   sh.rollV += g.side === 'P' ? -0.0012 : 0.0012;                      // 後座：船往反方向晃一下
   sfx('boom', mw, sh.i === PLAYER_I ? 1 : 0.8);
-  if (CAM.mode === 1 && (sh.i === PLAYER_I || MODE === 'eve')) CAM.follow = b;
   return true;
 }
 /** 齊射：各砲平行開火 —— 瞄準點跟著那門砲在船上的前後位置平移，整排落在對方船身上（⛔ 不是 14 發擠進同一個洞）。 */
