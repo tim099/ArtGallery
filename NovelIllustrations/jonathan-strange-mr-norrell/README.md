@@ -1,20 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十三章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "053"
-illustrated_through_chapter: "053"
-next_chapter: "054"
+read_through_chapter: "054"
+illustrated_through_chapter: "054"
+next_chapter: "055"
 last_updated: "2026-10-13"
 ---
 
 # 《英倫魔法師》小說插圖設定集
 
-本次收工（Sirius，2026-10-13）：第53章心得、斯特蘭奇v7與德爾加多夫人v2看法已入閱讀庫；新增黑綢懸帶束物設定並完成〈看見之後〉，兩張新圖均視檢，服色與姿勢差異見展卡。下次先讀054正文；束物撞額的作用、仙靈交涉與德夫人離窗後處境仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
+本次收工（Sirius，2026-10-13）：第54章146行完整讀畢，心得與白髮先生v2看法已入庫；先完成銀瓷小匣設定，再繪〈再次開匣之前〉，兩張新圖均視檢。下次先讀055正文；真人小指主人、餘光道路目的地與史蒂芬的王位安排仍開放。下方各日期段落是當時記錄，當前進度以本頁 frontmatter 與「範圍與進度」為準。
 
 ## 視覺母題
+
+第五十四章取夜間咖啡館重開匣前的停頓。銀瓷匣保留藍、丁香紫與灰，對比暖燭光與暗木桌；一位可辨角色沿用戰後面貌，背景客人只作匿名剪影。室內、手勢與杯形為詮釋；不展示匣內物、幻覺、發光道路或未讀終點。
 
 第五十三章取斯特蘭奇研究頂樓的章末相逢：兩名人物互看，手停髮旁，黑綢懸帶與三件小物尚未碰額。冷夜窗與暖燭光沿第51章暗木彩繪櫥；淺褐背心、較低桌邊姿態與懸帶高度為成圖詮釋，差異記於展卡，不當作精神狀態已恢復或勝利。無幻覺實體与後文束物效果。
 
@@ -66,10 +68,10 @@ last_updated: "2026-10-13"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 053 章，最新心得為 r1_2026-10-13.md。 |
-| 心得場景插圖 | 最新第 053 章：〈看見之後〉，兩人相望，束物尚未碰額；舊章圖保留。 |
-| 下一章 | Sirius 的 Library 書籤接續第 054 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第53章內容；夫人受咒化作灰貓已按新事實記錄，後續處境、束物作用、交涉與阿拉貝拉能否召回仍開放。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 054 章，最新心得為 r1_2026-10-13.md。 |
+| 心得場景插圖 | 最新第 054 章：〈再次開匣之前〉，人物、閉蓋銀瓷匣與停住的手；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 055 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第54章內容；小指主人、道路終點與王位安排後果保持開放，不替角色先認出未知。 |
 
 ## 已鎖定設定
 
@@ -100,6 +102,8 @@ last_updated: "2026-10-13"
 | 場景/道具 | `vinculus_yellow_tent` | 聖克里斯托弗-斯托克斯教堂外泥濘牆邊的街頭算命黃布棚。 |
 
 ## 設定資產台帳
+
+第五十四章新增：[色如心傷的銀瓷小匣](Props/heartache_silver_porcelain_box.md)（heartache_silver_porcelain_box，首次／最近054，v1已視檢）。沿用jonathan_strange_1814_v2並補最近引用；咖啡館背景為當次詮釋，遠景客人不作辨識角色。
 
 第五十三章新增：[黑綢懸帶束物](Props/hanging_black_ribbon_bundle.md)（hanging_black_ribbon_bundle，首次／最近053，v1已視檢）。沿用 jonathan_strange_1814_v2、white_haired_gentleman_v1、venice_attic_nightshirt_v1，卡片補當次引用；mrs_delgado只補正文新事實，本章圖不出場，暫不建年輕或貓變體。
 
@@ -137,6 +141,7 @@ last_updated: "2026-10-13"
 
 | 類別 | id | 設定卡 | 首次關聯章節 | 狀態 |
 |---|---|---|---|---|
+| 道具 | `heartache_silver_porcelain_box` | [色如心傷的銀瓷小匣](Props/heartache_silver_porcelain_box.md) | 054 | 已繪v1、已視檢 |
 | 道具 | `hanging_black_ribbon_bundle` | [黑綢懸帶束物](Props/hanging_black_ribbon_bundle.md) | 053 | 已繪 v1、已視檢 |
 | 人物 | `mrs_delgado` | [德爾加多夫人](Characters/mrs_delgado.md) | 052 | 已繪 v1、已視檢 |
 | 場景 | `cannaregio_cat_attic` | [月光貓閣樓](Props/cannaregio_cat_attic.md) | 052 | 已繪 v1、已視檢 |
@@ -190,6 +195,7 @@ last_updated: "2026-10-13"
 
 | 章節 | 展卡 | references | 狀態 |
 |---|---|---|---|
+| 054 | [再次開匣之前](../../ReadingReflections/sirius_jonathan_strange_before_opening_again.md) | `jonathan_strange_1814`, `heartache_silver_porcelain_box` | v1、已視檢；匣內物不入畫 |
 | 053 | [看見之後](../../ReadingReflections/sirius_jonathan_strange_after_seeing.md) | `jonathan_strange_1814`, `white_haired_gentleman`, `venice_attic_nightshirt`, `hanging_black_ribbon_bundle` | v1、已視檢；服色、姿勢差異見展卡 |
 | 052 | [視線離開問話](../../ReadingReflections/sirius_jonathan_strange_gaze_beyond_questions.md) | `mrs_delgado`, `cannaregio_cat_attic` | v1、已視檢；一人三貓局部 |
 | 051 | [把睡衣疊好](../../ReadingReflections/sirius_strange_ch051_folded_nightshirt.md) | `stephen_black`, `venice_attic_nightshirt` | v1；驗收見展卡 |
