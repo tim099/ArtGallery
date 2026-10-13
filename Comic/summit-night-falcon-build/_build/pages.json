@@ -1003,6 +1003,32 @@
           }
         ]
       ]
+    },
+    "020_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/final_compare_sheet.png",
+            "fit": "contain"
+          }
+        ]
+      ]
+    },
+    "020_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage18_v1_slab_under_hull.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage18_magazine_section.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
     }
   }
 }
