@@ -44,9 +44,16 @@ function makeCrew(sh) {
     if (gn.type === 'chase') { z0 = b[2] - 3; z1 = b[2] + 3; }
     else if (gn.type === 'carr') { z0 = b[2] - 6; z1 = b[2] + 3; }
     else { z0 = b[2] - 8; z1 = b[2] + 3; }                            // 長砲（24、32 磅）
-    var cx = Math.floor((b[0] + b[3]) / 2), sg = gn.side === 'P' ? -1 : 1, y0 = sg > 0 ? b[1] : b[4];
-    // 砲的兩側、砲尾後面（inboard：S 那一舷的砲是 y 小的那邊、P 那一舷的砲是 y 大的那邊）
-    var spots = [[b[0] - 3, y0 + 10 * sg], [b[3] + 3, y0 + 10 * sg], [b[0] - 3, y0 + 4 * sg], [b[3] + 3, y0 + 4 * sg], [b[0] - 2, y0 - 3 * sg], [b[3] + 2, y0 - 3 * sg], [cx, y0 - 6 * sg], [cx - 5, y0 - 10 * sg]];
+    var cx = Math.floor((b[0] + b[3]) / 2), sg = gn.side === 'P' ? -1 : 1, y0 = sg > 0 ? b[1] : b[4], spots;
+    if (Math.abs(gn.ax[0]) <= Math.abs(gn.ax[1])) {
+      // 往舷外開的砲（舷側砲、偏正橫的追擊砲）：砲的兩側（沿 x）、砲尾後面（inboard：S 那一舷的砲是 y 小的那邊、P 那一舷的砲是 y 大的那邊）
+      spots = [[b[0] - 3, y0 + 10 * sg], [b[3] + 3, y0 + 10 * sg], [b[0] - 3, y0 + 4 * sg], [b[3] + 3, y0 + 4 * sg], [b[0] - 2, y0 - 3 * sg], [b[3] + 2, y0 - 3 * sg], [cx, y0 - 6 * sg], [cx - 5, y0 - 10 * sg]];
+    } else {
+      // 往船頭／船尾開的砲（餘燼號的船尾追擊砲：砲軸 −170°～−175°）：同一個排法轉 90° —— 砲的兩側（沿 y）、砲尾往船裡那一頭（沿 x）。
+      // ⛔ 照上面那組排 ⇒ 站位落在船尾板外面或砲身上，四門船尾追擊砲各只找到 1 個位置、一個砲手都分不到（0／3），永遠開不了
+      var ex = gn.ax[0] > 0 ? 1 : -1, x0 = ex > 0 ? b[0] : b[3], cyg = Math.floor((b[1] + b[4]) / 2);
+      spots = [[x0 + 10 * ex, b[1] - 3], [x0 + 10 * ex, b[4] + 3], [x0 + 4 * ex, b[1] - 3], [x0 + 4 * ex, b[4] + 3], [x0 - 3 * ex, b[1] - 2], [x0 - 3 * ex, b[4] + 2], [x0 - 6 * ex, cyg], [x0 - 10 * ex, cyg - 5]];
+    }
     gn.crewFull = n; gn.crewMin = GUNS[gn.type].min; gn.spots = [];
     for (i = 0; i < n; i++) {
       var at = standNear(g, spots[i][0], spots[i][1], z0, z1, 14, taken);

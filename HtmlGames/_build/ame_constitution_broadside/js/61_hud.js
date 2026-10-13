@@ -123,6 +123,23 @@ var COMPASS = ['北', '北北東', '東北', '東北東', '東', '東南東', '�
 function bearing(x, z) { return ((Math.atan2(x, -z) * 57.2958) % 360 + 360) % 360; }
 function compassName(b) { return COMPASS[Math.round(b / 22.5) % 16]; }
 function deg3(b) { return ('00' + Math.round(b) % 360).slice(-3) + '°'; }
+/** 羅盤的射界（drawNav）：世界方位角（度，atan2(z, x)）的連續段 [起, 迄]。all ＝ 開得動的砲、on ＝ 這一刻對得到敵艦的。 */
+var ARC_BIN = { all: new Uint8Array(360), on: new Uint8Array(360) };
+function gunArcs(sh, foe) {
+  var A = ARC_BIN.all, O = ARC_BIN.on, w = foe && foe.center; A.fill(0); O.fill(0);
+  sh.guns.forEach(function (gn) {
+    if (!gn.alive || gunRate(gn) <= 0) return;
+    var ax = gunAxis(sh, gn), a = Math.round(Math.atan2(ax[2], ax[0]) * 57.2958), on = w && !!gunTarget(sh, gn, w);
+    for (var d = -26; d <= 26; d++) { var k = ((a + d) % 360 + 360) % 360; A[k] = 1; if (on) O[k] = 1; }   // ±26° ＝ ±0.45 rad
+  });
+  function runs(B) {
+    var out = [], s0 = -1, k, i;
+    for (k = 0; k < 360 && B[k]; k++); if (k === 360) return [[0, 360]];   // 整圈都有
+    for (i = 1; i <= 360; i++) { var j = (k + i) % 360; if (B[j] && s0 < 0) s0 = k + i; if (!B[j] && s0 >= 0) { out.push([s0, k + i - 1]); s0 = -1; } }   // 從空的那一格開始掃 ⇒ 跨 0° 的段不會斷成兩截
+    return out;
+  }
+  return { all: runs(A), on: runs(O) };
+}
 function drawNav(sh) {
   if (!CAM.look) return;
   var c2 = $('navc'), g = c2.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = 150;
@@ -137,13 +154,16 @@ function drawNav(sh) {
   g.font = '11px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#e8c26a';
   var pn = P(dirOf(0), 1.17); g.fillText('北', pn[0], pn[1]);
   var F = fwd(sh.yaw), foe = SHIPS[1 - sh.i];
-  // 兩舷的射界
-  ['S', 'P'].forEach(function (side) {
-    var st = M4.dir(sh.M, 0, side === 'S' ? 1 : -1, 0); st = norm([st[0], 0, st[2]]);
-    var on = foe && foe.center && anyBears(sh, foe.center, side), p = P([0, 0, 0], 0);
-    g.fillStyle = on ? 'rgba(232,194,106,.45)' : 'rgba(232,194,106,.13)'; g.beginPath(); g.moveTo(p[0], p[1]);
-    for (var t = -0.45; t <= 0.4501; t += 0.15) { var q = P(add(mul(st, Math.cos(t)), mul(F, Math.sin(t))), 0.97); g.lineTo(q[0], q[1]); }
-    g.closePath(); g.fill();
+  // 射界（Tim 2026-10-13：照真的能開的砲畫）：每一門還開得動的砲（沒毀、有人）自己的砲門射界（砲軸 ±0.45 rad，跟 bears 同一個數）的聯集 ⇒ 暗；
+  //   這一刻對得到敵艦的那幾門（gunTarget，跟開砲同一支）再疊一層亮的。追擊砲（船頭、餘燼號的船尾）各自的方向都畫得出來；砲打掉、沒人操作 ⇒ 那一塊消失。
+  //   以 1° 一格累計再畫連續的段（聯集、跨 ±180° 都不用另外處理）；從船的中心畫（羅盤的比例下砲口在船上的前後差可以不管）。
+  var arc = gunArcs(sh, foe), p0 = P([0, 0, 0], 0);
+  [[arc.all, 'rgba(232,194,106,.13)'], [arc.on, 'rgba(232,194,106,.45)']].forEach(function (L) {
+    L[0].forEach(function (r) {
+      g.fillStyle = L[1]; g.beginPath(); g.moveTo(p0[0], p0[1]);
+      for (var d = r[0]; ; d = Math.min(d + 3, r[1])) { var t = d / 57.2958, q = P([Math.cos(t), 0, Math.sin(t)], 0.97); g.lineTo(q[0], q[1]); if (d >= r[1]) break; }   // 每 3° 一點，最後一點落在段尾
+      g.closePath(); g.fill();
+    });
   });
   // 風：從圈外吹進來的箭頭
   var Wd = norm(WIND), from = [-Wd[0], 0, -Wd[2]], a0 = P(from, 1.2), a1 = P(from, 0.62), hd = norm([a1[0] - a0[0], 0, a1[1] - a0[1]]);
