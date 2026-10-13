@@ -5,7 +5,7 @@ function fireGun(sh, g, target, ammo) {
   var mw = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]);
   var side = gunAxis(sh, g);
   var GS = GUNS[g.type], V = GS.V;                                    // 初速照砲種（carronade：32 磅、短砲身 ⇒ 初速低、彈大）
-  var foe = SHIPS[1 - sh.i], rel = sub(foe.vel, sh.vel);           // 前置量：砲彈帶著本艦的船速 ⇒ 瞄對方「相對本艦」飛行時間後的位置
+  var foe = aimShip(sh), rel = sub(foe.vel, sh.vel);              // 前置量：砲彈帶著本艦的船速 ⇒ 瞄對方「相對本艦」飛行時間後的位置（瞄的那艘，52_fleet.js）
   target = add(target, mul(rel, Math.hypot(target[0] - mw[0], target[2] - mw[2]) / V));
   var dx = target[0] - mw[0], dz = target[2] - mw[2], dy = target[1] - mw[1], d = Math.hypot(dx, dz);
   var v2 = V * V, disc = v2 * v2 - G * (G * d * d + 2 * dy * v2);
@@ -61,7 +61,7 @@ function bears(sh, g, w) {
  *  這門砲射界內、離 w 最近的那一點；整艘都在射界外 ⇒ null。⇒ 瞄準點在射界外，只要還有機會打中敵艦就開。 */
 function gunTarget(sh, g, w) {
   if (bears(sh, g, w)) return w;
-  var foe = SHIPS[1 - sh.i]; if (!foe || !foe.M) return null;
+  var foe = aimShip(sh); if (!foe || !foe.M) return null;
   var z = clamp(toLocal(foe, w)[2], foe.T.geo.aimZ[0], foe.T.geo.aimZ[1]), best = null, bd = 1e18;   // 高度範圍照敵艦的船型（05_hull.js GEO0）
   for (var k = 0; k <= 12; k++) {
     var p = M4.pt(foe.M, foe.T.wl0 + 15 + (foe.T.wl1 - foe.T.wl0 - 30) * k / 12, foe.T.cy, z);
@@ -74,9 +74,9 @@ function gunTarget(sh, g, w) {
 function anyBears(sh, w, side) { return sh.guns.some(function (g) { return g.alive && gunRate(g) > 0 && (!side || g.side === side) && !!gunTarget(sh, g, w); }); }
 function shipAxis(sh) { var ax = M4.dir(sh.M, 1, 0, 0); return norm([ax[0], 0, ax[2]]); }
 function aimPoint(sh) {
-  var foe = SHIPS[1 - sh.i];
+  var foe = foeOf(sh);
   if (sh.i === PLAYER_I && !AUTOFIRE && sh.pMode && sh.pMode !== 'free') { var t = modeAim(foe, sh.pMode, false).t; return M4.pt(foe.M, t[0], t[1], t[2]); }   // 我艦手動的瞄準模式：那個模式的中心點（51_captain.js）
-  if (sh.aim) return M4.pt(foe.M, sh.aim[0], sh.aim[1], sh.aim[2]);
+  if (sh.aim) { var on = aimShip(sh); return M4.pt(on.M, sh.aim[0], sh.aim[1], sh.aim[2]); }   // 瞄準點是那艘的格座標
   return M4.pt(foe.M, foe.T.cx, foe.T.cy, foe.T.geo.aim);
 }
 
@@ -108,7 +108,7 @@ function stepBall(b, dt) {
       var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]), nb = (near || (near = []))[i] || (near[i] = ballNear(sh, L, sp * dt));
       var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM, nb.id);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 一發扣好幾次血）
       if (hm) {                                                          // 打到模型：扣血（每發傷害 × 彈種對砲倍率；歸零整個飛出去），砲彈被擋掉一大半
-        if (sh.i !== b.owner && !b.hitOnce) { SHIPS[b.owner].hits++; b.hitOnce = true; }
+        if (sh.i !== b.owner && !b.hitOnce) { SHIPS[b.owner].hits++; ffHit(sh, b); b.hitOnce = true; }
         (b.hitM = b.hitM || []).push(hm);
         damageModel(sh, hm, b.v, b.dmg * ammoK(b.ammo, VS_GUN));
         if (b.ammo === 1) { explode(b.p.slice(), sh, 0); blastModels(sh, L, 22, b.p, b.hitM, b.dmg); hurt(sh, L, 13, 30, null, '爆炸', crewBase(b)); b.alive = false; return; }   // 直接打中的那一門已經扣過，不再吃爆風
@@ -133,7 +133,7 @@ function stepBall(b, dt) {
 }
 function impact(b, sh, L) {
   var dirL = norm(M4.dir(sh.inv, b.v[0], b.v[1], b.v[2])), sp = len(b.v), r, w = b.p.slice();
-  if (sh.i !== b.owner) SHIPS[b.owner].hits += (b.hitOnce ? 0 : 1); b.hitOnce = true;
+  if (sh.i !== b.owner) { SHIPS[b.owner].hits += (b.hitOnce ? 0 : 1); if (!b.hitOnce) ffHit(sh, b); } b.hitOnce = true;
   if (b.ammo === 1) {                                                   // 爆裂彈：第一下就炸
     r = shatter(sh, L, dirL, rr(10, 13) * Math.pow(sh.cfg.hard, -0.3), mul(b.v, 0.05), 650, 0.85);
     explode(w, sh, r.n); blastModels(sh, L, 22, w, null, b.dmg); hurt(sh, L, 13, 30, null, '爆炸', crewBase(b)); b.alive = false; return;

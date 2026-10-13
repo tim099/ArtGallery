@@ -44,9 +44,13 @@ function pick(cx, cy) {
   var r = cv.getBoundingClientRect(), nx = (cx - r.left) / r.width * 2 - 1, ny = 1 - (cy - r.top) / r.height * 2;
   var a = M4.pt(CAM.inv, nx, ny, -1), bq = CAM.inv, w0 = bq[3] * nx + bq[7] * ny + bq[11] * -1 + bq[15], w1 = bq[3] * nx + bq[7] * ny + bq[11] + bq[15];
   var p0 = mul(M4.pt(CAM.inv, nx, ny, -1), 1 / w0), p1 = mul(M4.pt(CAM.inv, nx, ny, 1), 1 / w1), d = norm(sub(p1, p0));
-  var foe = SHIPS[1 - PLAYER_I], oL = toLocal(foe, p0), dL = M4.dir(foe.inv, d[0], d[1], d[2]);
-  var hit = VK.raycast(foe.grid, oL, dL, 3000);
-  if (hit) { SHIPS[PLAYER_I].aim = [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5]; SHIPS[PLAYER_I].pMode = AIM_P = 'free'; sfx('crack', null, 0.08); }   // 點了 ⇒ 瞄準模式回到自由
+  var me = SHIPS[PLAYER_I], hit = null, on = null;                   // 每艘敵船都射一次，取最近的那一個（t：沿射線多遠；每艘的公尺／格一樣）
+  SHIPS.forEach(function (foe) {
+    if (!isFoe(me, foe)) return;
+    var oL = toLocal(foe, p0), dL = M4.dir(foe.inv, d[0], d[1], d[2]), h = VK.raycast(foe.grid, oL, dL, 3000);
+    if (h && (!hit || h.t < hit.t)) { hit = h; on = foe; }
+  });
+  if (hit) { setAim(me, [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5], on); me.pMode = AIM_P = 'free'; sfx('crack', null, 0.08); }   // 點了哪艘 ⇒ 那艘變成我的目標（52_fleet.js pickFoes）   // 點了 ⇒ 瞄準模式回到自由
 }
 window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;

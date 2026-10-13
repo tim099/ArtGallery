@@ -233,7 +233,7 @@ function drawCrew() {
   SHIPS.forEach(function (sh) {
     var gone = sh.sink > 40;                           // 沉了：船上的不畫，在水裡的照畫（43_swim.js）
     if (gone && !sh.swims) return;
-    var team = sh.i, faceW = M4.dir(sh.M, 0, 1, 0);
+    var team = teamIdx(sh), faceW = M4.dir(sh.M, 0, 1, 0);
     sh.crew.forEach(function (c) {
       if (c.st === 3 || n >= BBMAX || (gone && c.st !== 5) || cutHides(sh, c)) return;             // cutHides：剖面、隱藏甲板拿掉的那一邊（74_cutaway.js）
       var art = c.art !== undefined && c.art < CREW_ROWS ? c.art : c.role;   // 船長那一列沒有 ⇒ 用職位那一列

@@ -6,7 +6,7 @@ function camUpdate(dt) {
   // 我艦→敵艦（預設，mode 4）：注視點 ＝ 我艦中心（略高），鏡頭在我艦背對敵艦的那一側 ⇒ 畫面中間是我艦、敵艦在它後方；
   // 兩艘繞著彼此轉時鏡頭跟著轉。拖曳改的是相對這條視線的角度（aoff）與俯仰，滾輪改遠近。沒有敵艦 ⇒ 看船頭方向。
   if (CAM.mode === 4 && SHIPS.length) {
-    var m4 = SHIPS[PLAYER_I], f4 = SHIPS[1 - PLAYER_I], c4 = m4.center || shipCenter(m4), fc = f4 && (f4.center || shipCenter(f4));
+    var m4 = SHIPS[PLAYER_I], f4 = foeOf(m4), c4 = m4.center || shipCenter(m4), fc = f4 && (f4.center || shipCenter(f4));
     var a4 = fc && Math.hypot(fc[0] - c4[0], fc[2] - c4[2]) > 1 ? Math.atan2(fc[2] - c4[2], fc[0] - c4[0]) : Math.atan2(-Math.sin(m4.yaw), Math.cos(m4.yaw));
     var y4 = a4 + Math.PI + CAM.aoff, t4 = [c4[0], c4[1] + 4, c4[2]];
     var e4 = [t4[0] + Math.cos(y4) * Math.cos(CAM.pitch) * CAM.dist, t4[1] + Math.sin(CAM.pitch) * CAM.dist, t4[2] + Math.sin(y4) * Math.cos(CAM.pitch) * CAM.dist];
@@ -20,14 +20,14 @@ function camUpdate(dt) {
   // 自由鏡頭的注視點照我艦平移＋繞我艦中心轉；鏡頭角度跟著被看的那艘轉（看敵艦 ⇒ 敵艦，其他 ⇒ 我艦）。
   // ⛔ 跟兩艘的中點：兩艘繞著中點轉圈 ⇒ 中點幾乎不動，看起來像沒在跟。
   // 角度慣例：鏡頭 yaw 是 (x, z) 平面上 atan2(z, x)；船頭方向的這個角 ＝ −sh.yaw ⇒ 船 yaw 增 Δ，鏡頭 yaw 減 Δ。
-  if (SHIPS.length === 2 && CAM.track) {
+  if (SHIPS.length >= 2 && CAM.track) {
     var me = SHIPS[PLAYER_I], mc = me.center || shipCenter(me);
     if (CAM.trMe) {
       var d0 = -(me.yaw - CAM.trMe.yaw), c0 = Math.cos(d0), s0 = Math.sin(d0), ox = CAM.tgt[0] - CAM.trMe.c[0], oz = CAM.tgt[2] - CAM.trMe.c[2];
       CAM.tgt[0] = mc[0] + ox * c0 - oz * s0; CAM.tgt[2] = mc[2] + ox * s0 + oz * c0;
     }
     CAM.trMe = { yaw: me.yaw, c: mc.slice() };
-    var ts = SHIPS[CAM.mode === 2 ? 1 - PLAYER_I : PLAYER_I];
+    var ts = CAM.mode === 2 ? foeOf(me) || me : me;
     if (CAM.trYaw && CAM.trYaw.i === ts.i) CAM.yaw -= ts.yaw - CAM.trYaw.yaw;
     CAM.trYaw = { i: ts.i, yaw: ts.yaw };
   } else CAM.trMe = CAM.trYaw = null;
@@ -37,7 +37,7 @@ function camUpdate(dt) {
     eye = add(sub(b.p, mul(vd, 9)), [0, 2.2, 0]); tgt = add(b.p, mul(vd, 25));
     CAM.eye = lerp3(CAM.eye, eye, 1 - Math.exp(-dt * 10)); CAM.look = lerp3(CAM.look || tgt, tgt, 1 - Math.exp(-dt * 10));
   } else {
-    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = SHIPS[CAM.mode === 2 ? 1 - PLAYER_I : PLAYER_I]; if (sh) tgt = shipCenter(sh); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
+    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = CAM.mode === 2 ? foeOf(SHIPS[PLAYER_I]) || SHIPS[PLAYER_I] : SHIPS[PLAYER_I]; if (sh) tgt = shipCenter(sh); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
     eye = [tgt[0] + Math.cos(yaw) * Math.cos(pitch) * dist, tgt[1] + Math.sin(pitch) * dist, tgt[2] + Math.sin(yaw) * Math.cos(pitch) * dist];
     var eys = seaH(eye[0], eye[2], SIMT) + 1.5; if (eye[1] < eys) eye[1] = eys;
     var k = CAM.snap ? 1 : 1 - Math.exp(-dt * 6); CAM.snap = false;
@@ -56,9 +56,14 @@ function lerp3(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1])
 //   ⛔ 以前每開一砲就切到新那顆 ⇒ 齊射時鏡頭一直跳、追的那顆還沒打中就換掉；觀戰還會追到敵艦的砲彈。
 //   只在畫面這一層跑（frame），不抽 rnd()、不改狀態 ⇒ 戰局不受影響。
 var BALL_SETTLE = 0.25, BALL_WAIT = 1.2, BALL_FRESH = 0.6, BALL_PRED = new WeakMap();
-/** 砲彈 b 照現在的速度飛下去，幾秒後打中敵艦（格或模型）；不會中 ⇒ null。 */
+/** 砲彈 b 照現在的速度飛下去，幾秒後打中別艘（格或模型；開砲那艘以外最早打中的那艘）；不會中 ⇒ null。 */
 function ballPredict(b) {
-  var foe = SHIPS[1 - b.owner]; if (!foe || !foe.center || !foe.inv || foe.sunk) return null;
+  var best = null;
+  SHIPS.forEach(function (o) { if (o.i === b.owner) return; var t = ballPredictOn(b, o); if (t !== null && (best === null || t < best)) best = t; });
+  return best;
+}
+function ballPredictOn(b, foe) {
+  if (!foe || !foe.center || !foe.inv || foe.sunk) return null;
   var p = b.p.slice(), v = b.v.slice(), bounced = b.bounced, h = 1 / 1500, M = foe.inv, c = foe.center, fv = foe.vel || [0, 0, 0], g = foe.grid;
   for (var t = 0; t < 12 - b.age; t += h) {                            // 每步約 0.1 m（初速 175 m/s）
     v[1] -= G * h; p[0] += v[0] * h; p[1] += v[1] * h; p[2] += v[2] * h;

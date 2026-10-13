@@ -102,7 +102,7 @@ function gunRow(sh, side) {
     return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
   }
   var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); });   // 每層砲甲板一段（由下往上）
-  var foe = SHIPS[1 - sh.i], w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
+  var foe = foeOf(sh), w = sh.i === PLAYER_I && !AUTOFIRE ? aimPoint(sh) : foe && foe.center;
   var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
   return '<span class="gr">' + lab + rows.map(function (r) { return r.map(cell).join(''); }).join('｜') + '</span>';
 }
@@ -157,7 +157,7 @@ function drawNav(sh) {
   for (var b = 0; b < 360; b += 30) line(P(dirOf(b), b % 90 ? 0.93 : 0.86), P(dirOf(b), 1), 'rgba(255,255,255,.35)', 1);
   g.font = '11px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#e8c26a';
   var pn = P(dirOf(0), 1.17); g.fillText('北', pn[0], pn[1]);
-  var F = fwd(sh.yaw), foe = SHIPS[1 - sh.i];
+  var F = fwd(sh.yaw), foe = foeOf(sh);
   // 射界（Tim 2026-10-13：照真的能開的砲畫）：每一門還開得動的砲（沒毀、有人）自己的砲門射界（砲軸 ±0.45 rad，跟 bears 同一個數）的聯集 ⇒ 暗；
   //   這一刻對得到敵艦的那幾門（gunTarget，跟開砲同一支）再疊一層亮的。追擊砲（船頭、餘燼號的船尾）各自的方向都畫得出來；砲打掉、沒人操作 ⇒ 那一塊消失。
   //   以 1° 一格累計再畫連續的段（聯集、跨 ±180° 都不用另外處理）；從船的中心畫（羅盤的比例下砲口在船上的前後差可以不管）。
@@ -173,14 +173,15 @@ function drawNav(sh) {
   var Wd = norm(WIND), from = [-Wd[0], 0, -Wd[2]], a0 = P(from, 1.2), a1 = P(from, 0.62), hd = norm([a1[0] - a0[0], 0, a1[1] - a0[1]]);
   line(a0, a1, '#8fd3ff', 2.5);
   g.fillStyle = '#8fd3ff'; g.beginPath(); g.moveTo(a1[0] + hd[0] * 4, a1[1] + hd[2] * 4); g.lineTo(a1[0] - hd[0] * 6 - hd[2] * 5, a1[1] - hd[2] * 6 + hd[0] * 5); g.lineTo(a1[0] - hd[0] * 6 + hd[2] * 5, a1[1] - hd[2] * 6 - hd[0] * 5); g.fill();
-  // 敵艦方位
-  if (foe && foe.center && sh.center) {
-    var e = norm([foe.center[0] - sh.center[0], 0, foe.center[2] - sh.center[2]]), pe = P(e, 0.86);
-    g.fillStyle = foe.sunk ? '#666' : '#ff6f6f'; g.beginPath(); g.arc(pe[0], pe[1], 4.5, 0, 6.2832); g.fill();
-  }
+  // 其他船的方位（TASK-0537：全部畫，敵紅、友藍、沉了灰；一對一 ＝ 以前那一個紅點）
+  SHIPS.forEach(function (o) {
+    if (o === sh || !o.center || !sh.center) return;
+    var e = norm([o.center[0] - sh.center[0], 0, o.center[2] - sh.center[2]]), pe = P(e, 0.86);
+    g.fillStyle = o.sunk ? '#666' : isFoe(sh, o) ? '#ff6f6f' : '#6f9bff'; g.beginPath(); g.arc(pe[0], pe[1], 4.5, 0, 6.2832); g.fill();
+  });
   // 我艦：從上面俯瞰的船（05_hull.js navImg，載入時算一次；船頭朝上、右舷在右 ⇒ 只轉不翻），船長（含艏斜桅）＝ 半徑的 1.575 倍（中心到兩端約 0.79 R，還在圈裡）
   //   （⛔ 0.8 倍 ⇒ 船長寬比約 6:1，在 150 px 的圈裡細成一條線；Tim 2026-10-13：1.05 倍再放大 1.5 倍）；外面一圈我方的顏色。沒有圖 ⇒ 以前的三角形
-  var tc = sh.i === 0 ? '#6f9bff' : '#ff6f6f', NI = sh.T.navImg;
+  var tc = teamIdx(sh) === 0 ? '#6f9bff' : '#ff6f6f', NI = sh.T.navImg;
   if (NI) {
     var tip = P(F, 1), sc = R * 1.575 / NI.height;
     g.save(); g.translate(cx, cy); g.rotate(Math.atan2(tip[1] - cy, tip[0] - cx) + Math.PI / 2); g.scale(sc, sc);
@@ -217,9 +218,9 @@ function drawNav(sh) {
 function hud(dt) {
   stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
-  var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I];
-  $('me').innerHTML = panel(me, '我艦 ' + me.T.name + '（藍）');
-  $('foe').innerHTML = panel(foe, '敵艦 ' + foe.T.name + '（紅）');
+  var me = SHIPS[PLAYER_I], mf = flagship(playerTeam()) || me, ef = flagship(foeTeam());   // 上方兩個面板：雙方旗艦（52_fleet.js；一對一 ＝ 我艦、敵艦）
+  $('me').innerHTML = panel(mf, (mf === me ? '我艦 ' : '我方旗艦 ') + mf.T.name + teamTag(mf));
+  $('foe').innerHTML = ef ? panel(ef, (teamShips(ef.team).length > 1 ? '敵方旗艦 ' : '敵艦 ') + ef.T.name + teamTag(ef)) : '';
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
   var warn = bs || AUTOFIRE ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
@@ -242,19 +243,23 @@ function checkEnd() {
     if (END_AT && !END_WAIT && SIMT >= END_AT) { END_AT = 0; $('end').className = 'on'; }
     return;
   }
-  var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
+  // 照陣營（TASK-0537）：敵方每艘都沉了或降旗 ⇒ 勝；我方每艘都是 ⇒ 敗。一對一 ⇒ 跟以前同一句、同一個判定順序。
+  var me = SHIPS[PLAYER_I], mt = playerTeam(), ft = foeTeam(), mine = teamShips(mt), foes = teamShips(ft), txt = null, lose = null;
   function fate(sh) { return sh.sunk ? '沉沒' : sh.fate; }
-  if (foe.sunk || foe.struck) txt = '勝利！敵艦' + fate(foe);
+  function who(L, one) { return L.length === 1 ? one + fate(L[0]) : one.replace('艦', '方') + ' ' + L.length + ' 艘全數' + (L.every(function (o) { return o.sunk; }) ? '沉沒' : '沉沒或降旗'); }
+  if (foes.length && teamDown(ft)) { txt = '勝利！' + who(foes, '敵艦'); lose = foes; }
   else if (me.selfD) txt = '自爆！我艦引爆了彈藥庫';                      // 自爆（23_powder.js selfDestruct）：第一間炸的那一刻就結算（文字不等最後那間）
-  else if (me.sunk || me.struck) txt = '敗北……我艦' + fate(me);
+  else if (teamDown(mt)) { txt = '敗北……' + who(mine, '我艦'); lose = mine; }
   if (!txt) return;
   OVER = true;
+  function sum(L, k) { return L.reduce(function (a, o) { return a + o[k]; }, 0); }
   $('endT').textContent = txt;
-  $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
+  $('endS').innerHTML = '打掉的格數：我' + (mine.length > 1 ? '方 ' : '艦 ') + sum(mine, 'lost').toLocaleString() + '　敵' + (foes.length > 1 ? '方 ' : '艦 ') + sum(foes, 'lost').toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
     '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
-  var lose = foe.sunk || foe.struck ? foe : me;                     // 重開／回選單時 END_AT、END_WAIT 歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
-  if (lose.sunk) END_AT = SIMT + END_SINK;
-  else if (lose.sinkingFinal) { END_WAIT = lose; END_AT = SIMT + END_MAX; }
+  lose = lose || mine;                                              // 重開／回選單時 END_AT、END_WAIT 歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
+  var sinking = lose.filter(function (o) { return o.sinkingFinal && !o.sunk; })[0];   // 輸的那邊還有在沉的 ⇒ 等它沉下去
+  if (sinking) { END_WAIT = sinking; END_AT = SIMT + END_MAX; }
+  else if (lose.some(function (o) { return o.sunk; })) END_AT = SIMT + END_SINK;
   else END_AT = SIMT + END_OTHER;
 }
 

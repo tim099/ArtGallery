@@ -76,12 +76,13 @@ function stepSwim(sh, c, dt) {
   if (S2.t > S2.life) { drown(sh, c); return; }
   if (w[1] < top - 0.05) { w[1] = Math.min(top, w[1] + SWIM_UP * dt); c.fv = [0, 1, 0]; return; }
   w[1] = top + 0.06 * Math.sin(c.t * 2.4);
-  var foe = SHIPS[1 - sh.i], dst = S2.no.indexOf(sh) < 0 && boardPoint(sh, w) ? sh : foe && S2.no.indexOf(foe) < 0 && boardPoint(foe, w) ? foe : null;   // 自己的船優先，上不去才往敵艦
+  var dst = S2.no.indexOf(sh) < 0 && boardPoint(sh, w) ? sh : null;   // 自己的船優先，上不去才往別艘（友船先、再敵船；照 SHIPS 的順序 ⇒ 一對一 ＝ 以前的敵艦）
+  if (!dst) swimOthers(sh).some(function (o) { if (S2.no.indexOf(o) < 0 && boardPoint(o, w)) { dst = o; return true; } return false; });
   if (!dst) { c.fv = [0, 0, 0]; return; }
   var p = boardPoint(dst, w), dx = p[0] - w[0], dz = p[2] - w[2], d = Math.hypot(dx, dz);
   if (d < SWIM_REACH && Math.abs(dst.spd) < SWIM_GRAB) {                 // 船太快 ⇒ 抓不住，跟在旁邊游（船慢下來才爬得上去）
     if (dst === sh) { if (board(sh, c, true)) { sh.saved = (sh.saved || 0) + 1; note(sh, '一個落水的水手爬回船上了'); } else S2.no.push(sh); }
-    else if (!S2.xfer) { S2.xfer = true; (sh.xfer = sh.xfer || []).push(c); }   // 敵艦：這一步跑完再換名單（swimXfer）
+    else if (!S2.xfer) { S2.xfer = true; S2.to = dst; (sh.xfer = sh.xfer || []).push(c); }   // 別艘：這一步跑完再換名單（swimXfer）
     return;
   }
   var s = Math.min(d, SWIM_SP * dt); w[0] += dx / d * s; w[2] += dz / d * s; c.fv = [dx / d, 0, dz / d];
@@ -110,14 +111,16 @@ function board(sh, c, own) {
 }
 /** 那一艘的每一步跑完（stepCrew）：游到敵艦舷邊的人爬上敵艦、從這艘的名單移到敵艦的（爬不上去 ⇒ 留在水裡、不再往敵艦游）。 */
 function swimXfer(sh) {
-  var foe = SHIPS[1 - sh.i], L = sh.xfer; sh.xfer = null;
+  var L = sh.xfer; sh.xfer = null;
   L.forEach(function (c) {
     var i = sh.crew.indexOf(c); if (i < 0 || c.st !== 5) return;
+    var foe = c.swim.to || foeOf(sh), ally = foe && foe.team === sh.team;   // 游到的那一艘（友船 ⇒ 換到友船上，照樣當預備水手）
     c.swim.xfer = false;
     if (!foe || !board(foe, c, false)) { c.swim.no.push(foe); return; }
     sh.crew.splice(i, 1); foe.crew.push(c);
     sh.lostTo = (sh.lostTo || 0) + 1; foe.gained = (foe.gained || 0) + 1;
-    note(sh, '一個落水的水手被敵艦撈走了'); note(foe, '撈起一個敵艦的落水水手（加入我方）');
+    if (ally) { note(sh, '一個落水的水手爬上了友艦'); note(foe, '撈起一個友艦的落水水手'); }
+    else { note(sh, '一個落水的水手被敵艦撈走了'); note(foe, '撈起一個敵艦的落水水手（加入我方）'); }
   });
 }
 /** HUD 一段：現在在水裡的（還沒溺水的）。 */

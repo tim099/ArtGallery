@@ -32,6 +32,9 @@ function hash3(x, y, z) { var h = (Math.imul(x, 374761393) + Math.imul(y, 668265
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
 // ───────────────────────── 常數 ─────────────────────────
+// 一場最多幾艘船（TASK-0537；Tim 2026-10-13：上限 4、改檔案可調，不做遊戲內設定）：GPU 的格數（陰影圖、船艙遮罩）照它生著色器，場上沒用到的格不跑（52_fleet.js）。
+//   貼圖單元：前兩艘照舊（船艙 1–2、陰影 4–5），第三艘起 9、10、11…（每艘兩號）⇒ 5 艘用到 15 號（WebGL2 片段著色器至少 16 個）；再多要先看 MAX_TEXTURE_IMAGE_UNITS。
+var MAX_SHIPS = 4;
 var DT = 1 / 60, G = 9.81, V0 = 175, ZW0 = 63;    // ZW0：沒有 meta 時的設計水線（憲法號吃水 63 格，basecamp 的下水段同一個數）；每種船的在 T.zw
 var RELOAD = 7, RELOAD_SANDBOX = 1.6;
 var AMMO = ['實心彈', '爆裂彈', '鏈彈'];

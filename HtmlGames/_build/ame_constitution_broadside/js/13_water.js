@@ -206,7 +206,7 @@ function wpGL() {
     '#version 300 es\nprecision highp float; in vec2 vQ; in vec3 vW; in float vA; in float vS; uniform vec3 uEye,uFog; uniform float uFogD; out vec4 o;\n' + SHADOW_GLSL + HULL_GLSL +
     'float hs1(float n){ return fract(sin(n*12.9898)*43758.5453); }\n' +
     'float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); float a=hs1(dot(i,vec2(1.0,57.0))), b=hs1(dot(i+vec2(1.0,0.0),vec2(1.0,57.0))), c=hs1(dot(i+vec2(0.0,1.0),vec2(1.0,57.0))), d=hs1(dot(i+vec2(1.0,1.0),vec2(1.0,57.0))); return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }\n' +
-    'void main(){ if((uHide.x>0.5&&inHull(uInv0,uHull0,uHullK0))||(uHide.y>0.5&&inHull(uInv1,uHull1,uHullK1))) discard;\n' +
+    'void main(){ if(' + HULL_HIT + ') discard;\n' +
     ' float m=(vn(vQ*1.7+vS)*0.65+vn(vQ*4.3+vS*1.7+3.1)*0.35)*(1.0-smoothstep(0.45,1.0,length(vQ))); float th=mix(0.62,0.22,vA);\n' +
     ' float a=smoothstep(th,th+0.12,m)*(0.35+0.65*vA); if(a<0.01) discard;\n' +
     ' vec3 col=vec3(0.84,0.88,0.9)*(0.55+0.45*shadowK(vW,vec3(0.0,1.0,0.0))); float fd=length(vW-uEye); o=vec4(mix(col,uFog,1.0-exp(-fd*uFogD)),a*0.9); }\n');
