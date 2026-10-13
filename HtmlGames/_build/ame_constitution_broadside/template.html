@@ -9,7 +9,7 @@
   html,body{ margin:0; height:100%; background:#0d1218; color:var(--ink); overflow:hidden;
     font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif; }
   #stage{ position:fixed; inset:0; }
-  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }   /* 手機：拖曳 ＝ 轉鏡頭、雙指 ＝ 縮放（⛔ 不關 ⇒ 瀏覽器拿去捲頁面） */
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }   /* 手機：拖曳 ＝ 轉鏡頭、雙指張合 ＝ 縮放、雙指一起拖 ＝ 平移（⛔ 不關 ⇒ 瀏覽器拿去捲頁面） */
   .hud{ position:absolute; pointer-events:none; font-size:13px; line-height:1.5; text-shadow:0 1px 2px #000; }
   .panel{ background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; }
   #me{ left:12px; top:12px; border-left:3px solid var(--blue); }
@@ -111,7 +111,7 @@
   <div id="help" class="hud panel">
     <div class="note" style="color:var(--dim)">金框的鍵點下去就等於按那個鍵（手機也能玩）</div>
     <div><kbd>左鍵</kbd> 點敵艦：設瞄準點（拖曳＝轉鏡頭；手機：點一下瞄準、拖曳轉鏡頭）</div>
-    <div><kbd>右鍵</kbd> 拖曳：平移　<kbd>滾輪</kbd> 遠近（手機：雙指縮放）</div>
+    <div><kbd>右鍵</kbd> 拖曳：平移　<kbd>滾輪</kbd> 遠近（手機：雙指張合縮放、雙指一起拖平移）</div>
     <div><kbd data-k=" ">空白</kbd> 齊射（裝填好的砲依序開火）　<kbd data-k="f">F</kbd> 開一門</div>
     <div><kbd data-k="1">1</kbd> 實心彈：鑽得深，打水線讓船進水</div>
     <div><kbd data-k="2">2</kbd> 爆裂彈：炸開大洞，但不深；對砲傷害大</div>
