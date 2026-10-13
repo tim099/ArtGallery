@@ -542,6 +542,58 @@
           }
         ]
       ]
+    },
+    "009_p01": {
+      "rows": [
+        [
+          {
+            "src": "R/night_falcon_v1.png",
+            "crop": [
+              20,
+              640,
+              600,
+              1170
+            ]
+          },
+          {
+            "src": "O/stage7_assembly_yaw90.png",
+            "fit": "cover",
+            "aspect": 1.09
+          }
+        ]
+      ]
+    },
+    "009_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage7_tops_yaw60.png",
+            "fit": "cover",
+            "aspect": 0.8
+          },
+          {
+            "src": "O/stage7_bowsprit_yaw30.png",
+            "fit": "cover",
+            "aspect": 0.8
+          }
+        ]
+      ]
+    },
+    "009_p03": {
+      "rows": [
+        [
+          {
+            "src": "O/stage7_assembly_yaw45.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage7_assembly_yaw-135.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
     }
   }
 }
