@@ -10,6 +10,7 @@ function panBy(dx, dy) {
   CAM.tgt = add(CAM.tgt, add(mul(rt, -dx * k), mul(fw, dy * k)));
 }
 cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function (e) { if (!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) e.preventDefault(); });   // 面板、按鈕、說明上長按也不跳選單（輸入框照常）
 cv.addEventListener('pointerdown', function (e) {
   cv.setPointerCapture(e.pointerId); PTRS.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (PTRS.size === 2) { var m0 = pinchM(); PINCH = { d: pinchD(), dist: CAM.dist, x0: m0.x, y0: m0.y, mx: m0.x, my: m0.y, moved: false }; drag = null; return; }

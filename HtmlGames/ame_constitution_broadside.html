@@ -7,7 +7,9 @@
 <style>
   :root{ --ink:#f3ead8; --dim:#b9ae98; --gold:#e8c26a; --blue:#6f9bff; --red:#ff6f6f; --panel:rgba(14,18,24,.72); }
   html,body{ margin:0; height:100%; background:#0d1218; color:var(--ink); overflow:hidden;
-    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif; }
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }   /* 手機長按不選字、不跳拷貝選單（Tim 2026-10-13）；右鍵／長按選單在 71_input.js 擋 */
+  input, textarea, select{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }   /* 彈種倍率表要能打字 */
   #stage{ position:fixed; inset:0; }
   canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }   /* 手機：拖曳 ＝ 轉鏡頭、雙指張合 ＝ 縮放、雙指一起拖 ＝ 平移（⛔ 不關 ⇒ 瀏覽器拿去捲頁面） */
   .hud{ position:absolute; pointer-events:none; font-size:13px; line-height:1.5; text-shadow:0 1px 2px #000; }
@@ -4104,6 +4106,7 @@ function panBy(dx, dy) {
   CAM.tgt = add(CAM.tgt, add(mul(rt, -dx * k), mul(fw, dy * k)));
 }
 cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function (e) { if (!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) e.preventDefault(); });   // 面板、按鈕、說明上長按也不跳選單（輸入框照常）
 cv.addEventListener('pointerdown', function (e) {
   cv.setPointerCapture(e.pointerId); PTRS.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (PTRS.size === 2) { var m0 = pinchM(); PINCH = { d: pinchD(), dist: CAM.dist, x0: m0.x, y0: m0.y, mx: m0.x, my: m0.y, moved: false }; drag = null; return; }
