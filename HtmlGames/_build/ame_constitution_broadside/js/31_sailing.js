@@ -80,9 +80,9 @@ function sail(sh, dt) {
   var SPK = sh.cfg.speed * playK('speed') * WX.speed;                 // 航速倍率（船隻設定 × 玩法的加成 × 天氣：暴風雨風大 ×1.15）
   var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - dU)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
   sh.irons = nogo;
-  var target = sh.sunk || stop ? 0 : VMAX * SPK * Math.sqrt(WIND_SPD) * sh.sailFrac * polar(dU) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1);
+  var target = sh.sunk || stop ? 0 : VMAX * SPK * Math.sqrt(WIND_SPD) * sh.sailFrac * polar(dU) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1);   // throttle：讓開友艦砲線時放慢（52_fleet.js lineClear；平常 1）
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
-  sh.spd += (target - sh.spd) * Math.min(1, dt / (stop ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
+  sh.spd += (target - sh.spd) * Math.min(1, dt / (stop || sh.throttle < 1 ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
   var foe = foeOf(sh), tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
@@ -107,7 +107,7 @@ function sail(sh, dt) {
       var R = aiRange();                                                 // 想保持的交戰距離：遠了往敵艦切（遠很多 ⇒ 最多切 1.2 rad，幾乎船頭對著開過去）、近了往外拉（最多 0.4）
       tY = (sg > 0 ? Math.atan2(-dx / d, -dz / d) : Math.atan2(dx / d, dz / d)) + sg * clamp((d - R) / R * 1.5, -0.4, 1.2);   // 敵艦在那一舷正橫的航向 ＋ 距離修正
     }
-    if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av !== null) tY = av; }   // 讓友船（52_fleet.js；沒有友船 ⇒ null）
+    sh.throttle = 1; if (!sh.struck && !sh.sunk) { var av = friendAvoid(sh); if (av === null) av = lineClear(sh); if (av !== null) tY = av; }   // throttle 每一步重設（lineClear 要放慢才改）   // 讓友船 ＞ 讓開友艦的砲線（52_fleet.js；沒有友船 ⇒ null）
     var e = Math.atan2(Math.sin(tY - sh.yaw), Math.cos(tY - sh.yaw));
     rate = clamp(e * 0.5, -rmax, rmax); sh.rudder = rmax > 0 ? rate / rmax : 0;
   }

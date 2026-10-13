@@ -32,7 +32,7 @@ if (DEBUG) window.__game = {
     return SHIPS.map(function (s) { return { i: s.i, team: s.team, hull: s.T.id, px: s.px, pz: s.pz, foe: s.foe ? s.foe.i : null }; });
   },
   loadHull: function (id) { return loadHull(id).then(function (T) { return T.id; }); },
-  foes: function () { return SHIPS.map(function (s) { return { i: s.i, team: s.team, foe: s.foe ? s.foe.i : null, aimOn: s.aimOn ? s.aimOn.i : null, ff: s.ff || 0, ffOut: s.ffOut || 0, ffHold: s.ffHold || 0, avoid: s.avoidN || 0, salvo: s.salvo, salvo2: s.salvo2 || 0, hits: s.hits, sunk: s.sunk, struck: s.struck, x: +s.px.toFixed(1), z: +s.pz.toFixed(1) }; }); },
+  foes: function () { return SHIPS.map(function (s) { return { i: s.i, team: s.team, foe: s.foe ? s.foe.i : null, aimOn: s.aimOn ? s.aimOn.i : null, ff: s.ff || 0, ffOut: s.ffOut || 0, ffHold: s.ffHold || 0, avoid: s.avoidN || 0, clear: s.clearN || 0, salvo: s.salvo, salvo2: s.salvo2 || 0, hits: s.hits, sunk: s.sunk, struck: s.struck, x: +s.px.toFixed(1), z: +s.pz.toFixed(1) }; }); },
   mask: function (k) { MASK_OFF = k === undefined ? -1 : k; render(); return MASK_OFF; },   // 船艙遮罩（60_render.js）：關掉第 k 艘的、畫一格
   gpu: function () { render(); function ix(L) { return L.map(function (s) { return s.i; }); } return { max: MAX_SHIPS, shships: GFX.shships, masks: GFX.masks, shadow: ix(SSLOTS), global: ix(SSLOTS.rest), mask: ix(MSLOTS), noMask: ix(MSLOTS.rest), glob: SHM.glob, layers: SHM.layers, shadowN: SHM.n, offG: +SHM.offG.toFixed(3), hullLayers: HULLA.key, err: gl.getError() }; },   // GPU 的格（60_render.js gpuSlots）
   cut: function (o) { if (o) for (var k in o) CUTV[k] = o[k]; render(); return CUTV; },     // 剖面與隱藏甲板（74_cutaway.js）：{ half, deck }

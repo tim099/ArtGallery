@@ -205,3 +205,46 @@ function friendAvoid(sh) {
   sh.avoidN = (sh.avoidN || 0) + 1;                                       // 讀數：開局以來讓了幾步
   return sh.yaw + (dot(best.n, left) > 0 ? -1 : 1) * AV_TURN * w;          // 友船在左 ⇒ 右轉
 }
+/** 讓開砲線（Tim 2026-10-14：「友軍儘量避開砲線，我剛剛被擋住很久」）：電腦的友艦擋在某艘友艦（玩家那艘看它瞄的那艘，其他看各自的目標）的砲線上 ⇒
+ *  舵往離開砲線最近的那一側打（航向 ＝ 垂直砲線、帶一半原本順著砲線的分量 ⇒ 不用整個掉頭），出了 LC_OUT 才放手（進 LC_IN、出 LC_OUT ⇒ 不在邊界抖）。
+ *  「擋在砲線上」＝ 自己的龍骨線離「射手 → 目標」那一段不到 LC_IN（m），而且自己的中心落在中間那 8%–92%（在射手或目標旁邊的是擦撞，交給 friendAvoid）；
+ *  只看 LC_RANGE 以內的砲線。優先序：擦撞（friendAvoid）＞ 讓開砲線 ＞ 追敵。沒有友船 ⇒ null（一對一一位元都不差）。讀數 sh.clearN（讓了幾步）。 */
+var LC_IN = 22, LC_OUT = 36, LC_RANGE = 600;
+function lineClear(sh) {
+  var fr = friendsOf(sh); if (!fr.length) { sh.clearing = null; return null; }
+  var me = keelLine(sh), mid = [(me[0][0] + me[1][0]) / 2, 0, (me[0][2] + me[1][2]) / 2], best = null;
+  fr.forEach(function (f) {
+    if (isOut(f)) return;
+    var t = f.i === PLAYER_I ? aimShip(f) : foeOf(f); if (!t || t === sh || t.sunk) return;
+    var a = [f.px, 0, f.pz], b = [t.px, 0, t.pz], L = Math.hypot(b[0] - a[0], b[2] - a[2]); if (L > LC_RANGE || L < 1) return;
+    var ux = (b[0] - a[0]) / L, uz = (b[2] - a[2]) / L, tt = ((mid[0] - a[0]) * ux + (mid[2] - a[2]) * uz) / L;
+    if (tt < 0.08 || tt > 0.92) return;
+    var d = segSeg(a, b, me[0], me[1]).d; if (d >= (sh.clearing === f ? LC_OUT : LC_IN)) return;
+    if (!best || d < best.d) best = { d: d, f: f, t: t, tt: tt, ux: ux, uz: uz, px: a[0] + ux * tt * L, pz: a[2] + uz * tt * L };
+  });
+  if (!best) { sh.clearing = null; return null; }
+  sh.clearing = best.f; sh.clearN = (sh.clearN || 0) + 1;
+  // 怎麼離開：砲線跟著射手與目標走 ⇒ 要的是「相對砲線」橫切的速度（⛔ 只看自己 ⇒ 並排同向同速時往前直走，砲線跟著一起走、永遠擋著）；
+  //   砲線在自己那一點的速度 ＝ 射手與目標的速度照位置內插（⛔ 只算射手 ⇒ 射手與目標反向走時那一點幾乎不動，「放慢」反而停在線上：量過 16 → 40 秒）。
+  //   選項：兩側（垂直砲線）× 斜 0／±30° 六個航向，加「放慢」（照原航向、帆速 × 0.3 ⇒ 讓射手跟砲線從前面過去）；
+  //   每個 ⇒ 相對速度 ＝ 自己在那個航向的帆速（照風，polar）− 砲線在那一點的速度，橫切砲線的分量；離開要多久 ＝ 那一側離 LC_OUT 還多遠 ÷ 它 ＋ 轉過去的時間（約 0.05 rad/s）。挑最短的。
+  //   ⛔ 只往近的那一側垂直走 ⇒ 那一側剛好頂風時船慢到 1 m/s 以下、舵也轉不動（量過：30 秒都出不去）。
+  var nx = -best.uz, nz = best.ux, off = (mid[0] - best.px) * nx + (mid[2] - best.pz) * nz;   // 法線、自己在砲線的哪一側（正 ＝ 法線那邊）
+  var W = norm(WIND), UP = sh.cfg.upwind || 1, F = fwd(sh.yaw), fv = best.f.vel || [0, 0, 0], tv = best.t.vel || [0, 0, 0], sv = [fv[0] + (tv[0] - fv[0]) * best.tt, 0, fv[2] + (tv[2] - fv[2]) * best.tt], bt = 1e9, bv = null, slow = false;
+  var V0 = VMAX * sh.cfg.speed * playK('speed') * WX.speed * Math.sqrt(WIND_SPD) * sh.sailFrac;
+  function spdAt(v) { var deg = Math.acos(clamp(dot(v, W), -1, 1)) * 57.2958; return V0 * polar(UP === 1 || deg <= 90 ? deg : 90 + (deg - 90) / UP); }
+  function opt(v, spd, isSlow) {
+    var rel = [v[0] * spd - sv[0], 0, v[2] * spd - sv[2]], turn = Math.acos(clamp(dot(v, F), -1, 1));
+    [1, -1].forEach(function (s) {
+      var a = s * (rel[0] * nx + rel[2] * nz); if (a <= 0.05) return;     // 往 s 那一側的相對速度
+      var t = (LC_OUT - s * off) / a + turn / 0.05;
+      if (t < bt) { bt = t; bv = v; slow = isSlow; }
+    });
+  }
+  [1, -1].forEach(function (s) { [0, 0.58, -0.58].forEach(function (k) { var v = norm([s * nx + k * best.ux, 0, s * nz + k * best.uz]); opt(v, spdAt(v), false); }); });
+  opt(F, spdAt(F) * 0.3, true);
+  if (!bv) bv = F;
+  if (slow) sh.throttle = 0.3;
+  sh.clearSlow = slow;
+  return Math.atan2(-bv[2], bv[0]);                                       // fwd(yaw) ＝ [cos, 0, −sin] ⇒ yaw ＝ atan2(−z, x)
+}
