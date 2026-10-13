@@ -116,11 +116,12 @@ function clothTemplate(H, s) {                         // H：船型（帆的布
     if (an >= 0) { hk[i] = 1; hv[i] = an; } else { var rp = ropeNear(w, 16); if (rp >= 0) { hk[i] = 2; hv[i] = rp; } }
   }
   var own = []; H.rig.ropes.forEach(function (r, j2) { if (r.name && r.name.indexOf(s.name + '.') === 0) own.push(j2); });
-  var clews = 0;
+  var clews = 0, clewYard = {};                          // 帆腳 → 跟哪根帆桁轉（-1 ＝ 不轉）
   corner.forEach(function (kc) {
     var q = loop[kc]; if (hk[q]) return;
-    var w = P(q), best = -1, bd = 100;
-    own.forEach(function (j2) { var pts = H.rig.ropes[j2].pts; [0, pts.length - 3].forEach(function (o) { var dx = pts[o] - w[0], dy = pts[o + 1] - w[1], dz = pts[o + 2] - w[2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = j2; } }); });
+    var w = P(q), best = -1, bd = 100, end = null;
+    own.forEach(function (j2) { var pts = H.rig.ropes[j2].pts; [0, pts.length - 3].forEach(function (o) { var dx = pts[o] - w[0], dy = pts[o + 1] - w[1], dz = pts[o + 2] - w[2], d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = j2; end = [pts[o], pts[o + 1], pts[o + 2]]; } }); });
+    clewYard[q] = end ? yardNear(H, end, 3) : -1;        // 帆自己的 sheet 靠帆那一端在哪根帆桁上（topsail 以上：下一根帆桁的兩端）；course 的綁甲板繩栓 ⇒ 不轉（basecamp 2026-10-12）
     if (best < 0) { var an = anchorNear(H, w[0], w[1], w[2], 6); if (an >= 0) { hk[q] = 1; hv[q] = an; clews++; return; } best = ropeNear(w, 16); }
     if (best >= 0) { hk[q] = 2; hv[q] = best; clews++; }
   });
@@ -129,7 +130,9 @@ function clothTemplate(H, s) {                         // H：船型（帆的布
   var cg = coarseOf(n, T), sim = meshCons(cg.idx.map(P), cg.tris);
   sim.fine = cg.idx; sim.hk = new Int8Array(cg.idx.length); sim.hv = new Int32Array(cg.idx.length);
   cg.idx.forEach(function (f, ci) { sim.hk[ci] = hk[f]; sim.hv[ci] = hv[f]; });
-  // 跟著哪根帆桁轉：這面帆的帆桁（meta sail）裡離這一點最近的那根（線段：方帆桁 arm-P–arm-S、gaff／boom pivot–end）；帆腳（綁甲板的 sheet）也跟著轉 ⇒ 整面帆一起追風
+  // 跟著哪根帆桁轉：綁邊上的點 ＝ 這面帆的帆桁（meta sail）裡離這一點最近的那根（線段：方帆桁 arm-P–arm-S、gaff／boom pivot–end）；
+  //   帆腳 ＝ 它的 sheet 綁在哪根帆桁上（上面的 clewYard）。course 的帆腳綁在甲板繩栓上、不轉 ⇒ 帆桁轉了，帆頂跟著轉、帆腳留著，中間的布交給物理。
+  //   ⛔ 帆腳跟著自己的帆桁轉 ⇒ course 整面被拖著轉、sheet 與 tack 也被拖離繩栓（2026-10-12 的版本）。
   var ys = []; (H.rig.models || []).forEach(function (m, k) {
     var mt = m.meta || {}, pt = m.points || {}; if (mt.kind !== 'yard' || mt.sail !== s.name || !pt.pivot) return;
     var a = pt['arm-P'] || pt.pivot, b = pt['arm-S'] || pt.end || pt.pivot; ys.push({ k: k, a: a, b: b });
@@ -137,12 +140,14 @@ function clothTemplate(H, s) {                         // H：船型（帆的布
   sim.yk = new Int16Array(cg.idx.length).fill(-1);
   if (ys.length) cg.idx.forEach(function (f, ci) {
     if (!sim.hk[ci]) return;
+    if (f in clewYard) { sim.yk[ci] = clewYard[f]; return; }
     var w = P(f), bi = -1, bd = 1e18;
     ys.forEach(function (y) { var d = segDist2(w, y.a[0], y.a[1], y.a[2], y.b[0], y.b[1], y.b[2]); if (d < bd) { bd = d; bi = y.k; } });
     sim.yk[ci] = bi;
   });
+  var foot = -1; Object.keys(clewYard).forEach(function (q) { if (clewYard[q] >= 0) foot = clewYard[q]; });
   return { name: s.name, col: s.color || [0.95, 0.92, 0.85], n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
-    hk: hk, hv: hv, sides: sides, pins: pins, clews: clews };
+    hk: hk, hv: hv, sides: sides, pins: pins, clews: clews, foot: foot };   // foot：帆腳跟著轉的帆桁（-1 ＝ 不轉；砲彈打帆照高度內插轉角用）
 }
 /** 一塊布的約束：邊（三角形的邊）＋ 跨點（同一條格線上隔一點的兩點，布不會揉成一團）；靜止長度 ＝ 雕刻作品那一刻的距離。 */
 function meshCons(pos, T) {

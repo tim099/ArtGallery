@@ -72,7 +72,13 @@ function makeShip(i, team, yaw, pz, T) {                              // T：船
   // 帆自己的繩（`<帆名>.sheet-S`、`.tack-P`…）：帆腳那一端綁在帆上 ⇒ 帆掉了或被帶走，它們跟著斷
   // （⛔ 只靠繩的依靠不夠：sheet 與 tack 互相掛著、另一端綁甲板，帆沒了也還浮在半空）
   sh.sails.forEach(function (s, k) { s.k = k; s.hp = s.hpMax = SAIL_HP; s.lines = []; sh.ropes.forEach(function (r, j) { if (r.name && r.name.indexOf(s.name + '.') === 0) s.lines.push(j); }); });
-  sh.sails.forEach(function (s) { s.yards = sh.yards.filter(function (y) { return y.sail === s.name; }); });   // 掛這面帆的帆桁（spanker：gaff＋boom）
+  sh.sails.forEach(function (s) {
+    s.yards = sh.yards.filter(function (y) { return y.sail === s.name; });   // 掛這面帆的帆桁（spanker：gaff＋boom）
+    // 帆腳跟著轉的帆桁：topsail 以上 ＝ 下一根（sheet 綁在它兩端）；course ＝ 沒有（綁甲板）；spanker（沒有帆腳，下緣綁 boom）＝ 低的那根
+    var f = T.cloth[s.k] ? T.cloth[s.k].foot : -1, low = s.yards.slice().sort(function (a, b) { return a.piv[2] - b.piv[2]; });
+    s.footYard = f >= 0 ? sh.models[f] : low.length > 1 ? low[0] : null;
+    if (low.length > 1) s.yards = low.reverse();                          // 帆頂那根排第一（打中帆照它轉回作品角度）
+  });
   ropeYards(sh);
   sh.ropes.forEach(function (r) { r.never = r.lz = !!r.dead; });        // 一開始就不畫的繩不會變成垂下來的繩（物理，見 physStep）
   sh.cl = T.cloth.map(function (C) { return { T: C, p: null, hidden: true }; }); sh.loose = [];
@@ -131,21 +137,12 @@ function yardNear(T, P, r) {
   }
   return -1;
 }
-/** 繩的兩端各跟著哪根帆桁轉（-1 ＝ 不跟）：端點靠在帆桁上（綁在帆桁上的 brace、lift、footrope…）；
- *  帆自己的繩（sheet、tack）靠帆那一端跟著帆的帆桁（帆腳跟著帆轉）。同一型的兩艘共用一份（T.ropeYard）。 */
+/** 繩的兩端各跟著哪根帆桁轉（-1 ＝ 不跟）：端點靠在帆桁上（綁在帆桁上的 brace、lift、footrope，topsail 以上的 sheet…）。
+ *  course 的 sheet 與 tack 兩端都不在帆桁上（帆腳綁甲板繩栓）⇒ 不轉，跟帆腳一起留著（clothTemplate 的 clewYard）。同一型的兩艘共用一份（T.ropeYard）。 */
 function ropeYards(sh) {
   var T = sh.T;
   if (!T.ropeYard) T.ropeYard = T.rig.ropes.map(function (r) { var n = r.pts.length / 3; return [yardNear(T, [r.pts[0], r.pts[1], r.pts[2]], 3), yardNear(T, [r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1]], 3)]; });
   sh.ropes.forEach(function (r, j) { r.pts0 = r.pts; r.ya = T.ropeYard[j][0]; r.yb = T.ropeYard[j][1]; });
-  sh.sails.forEach(function (s) {
-    if (!s.yards.length) return;
-    var v = s.verts;
-    s.lines.forEach(function (j) {
-      var r = sh.ropes[j], n = r.pts.length / 3; if (r.ya >= 0 || r.yb >= 0) return;
-      function dmin(o) { var d = 1e18; for (var q = 0; q < v.length; q += 3) d = Math.min(d, (v[q] - r.pts[o]) * (v[q] - r.pts[o]) + (v[q + 1] - r.pts[o + 1]) * (v[q + 1] - r.pts[o + 1]) + (v[q + 2] - r.pts[o + 2]) * (v[q + 2] - r.pts[o + 2])); return d; }
-      if (dmin(0) < dmin(n * 3 - 3)) r.ya = s.yards[0].k; else r.yb = s.yards[0].k;
-    });
-  });
   sh.yRopes = sh.ropes.filter(function (r) { return r.ya >= 0 || r.yb >= 0; });
 }
 /** 模型的種類：meta 優先（basecamp TASK-0517：kind／gun），沒有 meta 才照名字（舊的 .vxk；舵輪本來就沒有 meta）。 */
