@@ -159,10 +159,10 @@ function goToGun(sh, c, g) {
 }
 /** 這一點附近的人扣血（r 格數）：rKill 內吃滿基準傷害 base，rKill～rWound 從 0.55 遞減到 0.1，再乘 0.6～1.4 的隨機。
  *  base ＝ 1.4 × 每發傷害 × 彈種對人倍率（crewBase）⇒ 24 磅實心 140：rKill 內約 85% 當場陣亡（跟以前的 0.85 對齊）。
- *  dir（格座標的單位向量）給了 ⇒ 前方（碎屑噴的方向）的範圍拉長。 */
-function hurt(sh, L, rKill, rWound, dir, cause, base) {
+ *  dir（格座標的單位向量）給了 ⇒ 前方（碎屑噴的方向）的範圍拉長。list：只看這幾個人（砲彈掠過，21_gunnery.js ballNear 先挑好的；沒給 ⇒ 全船）。 */
+function hurt(sh, L, rKill, rWound, dir, cause, base, list) {
   var n = 0;
-  sh.crew.forEach(function (c) {
+  (list || sh.crew).forEach(function (c) {
     if (c.st > 1) return;
     var d = sub([c.pos[0], c.pos[1], c.pos[2] + 9], L), dist = len(d);
     if (dir) { var along = dot(d, dir); if (along > 0) dist = Math.sqrt(Math.max(0, dist * dist - along * along * 0.75)); }  // 前方的碎屑錐

@@ -73,6 +73,8 @@ var LAST_MODE = null;                                // 上一場的模式（自
 var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
 var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
+// 殉爆的慢動作與特寫（73_slowmo.js）：on／cam 是設定；ts 現在的時間倍率。SLOW_VIS：這一格畫面裡只給人看的效果改由 frame 走（step() 讀它決定要不要跳過）
+var SLOW = { on: Q.get('slowmo') !== '0', cam: Q.get('slowcam') !== '0', ts: 1, t: 0, min: 1, hold: 0, active: false, camSave: null, camT: 0, camMode: 0, kicks: 0 }, SLOW_VIS = false;
 var AUTOFIRE = false;                                  // 自動開砲：電腦替我艦瞄準、開火（觀戰 ＝ 一般戰鬥＋自動開砲預設開；G 切換）
 var PHYS = Q.get('phys') !== '0';                      // 帆與繩的物理（選單勾選、B 鍵、下方按鈕；?phys=0 關）：關 ＝ 靜態，跟以前一樣
 

@@ -15,6 +15,11 @@ var DEMO = Q.has('demo') ? Math.max(0, parseFloat(Q.get('demo')) || 0) : -1;
 var STILL = Q.get('still') === '1', DEBUG = Q.get('debug') === '1';
 var SEED = (parseInt(Q.get('seed'), 10) >>> 0) || 1797;
 var CAMQ = Q.get('cam') || '';
+// 逐幀分段計時（?debug=1 才有；TASK-0531 找卡頓）：每一格畫面各段花幾 ms（模擬每一步的各段累加），留最近 PF.max 格；__game.frames() 讀最慢的幾格。
+//   pfLap(k)：從上一個 lap（或這一段的起點 PF.t）到現在的時間記到 k。沒開 debug ⇒ PF ＝ null，呼叫端一個判斷就跳過。
+var PF = DEBUG ? { t: 0, cur: {}, ring: [], max: 1200 } : null;
+function pfLap(k) { var t = performance.now(); PF.cur[k] = (PF.cur[k] || 0) + t - PF.t; PF.t = t; }
+function pfEnd(f0, steps) { var c = PF.cur; c.total = performance.now() - f0; c.steps = steps; c.simt = SIMT; PF.ring.push(c); if (PF.ring.length > PF.max) PF.ring.shift(); PF.cur = {}; }
 if (STILL) document.getElementById('stage').classList.add('still');
 function $(id) { return document.getElementById(id); }
 

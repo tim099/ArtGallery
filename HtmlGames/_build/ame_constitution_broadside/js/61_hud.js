@@ -56,8 +56,27 @@ function capText(sh) {
   var C = CAPTAINS[sh.cap], manual = sh.i === PLAYER_I && !AUTOFIRE;
   return '砲長 ' + (C ? C.name : '—') + '：' + (manual ? '待命（我在瞄：' + AIM_NAME[sh.pMode || 'free'] + '）' : sh.aimMode ? '瞄' + AIM_NAME[sh.aimMode] : '觀察中');
 }
+// 進水 %（HUD；TASK-0535，Tim 2026-10-13：原本 ＝ 下沉 ÷ 9 m ⇒ 26% 時已經注定要沉、50% 就淹過船體 ⇒ 改用艙內積水算：船重＋積水 ＝ 浮力 ⇒ 100%）。
+//   浮力算到「開始沉」那條線（下沉 SINK_FINAL ＝ 4.2 m，32_hull.js；約略是甲板泡水）：W100 ＝ 船從現在的浮高再往下 4.2 m 要多吃的水（浮力表 T.hyd；
+//   船被打輕、浮高了 ⇒ W100 跟著變大）。粒子模式 W ＝ 艙內的積水；公式模式沒有水量 ⇒ W ＝ 現在比原本多吃的水（下沉照浮力表換算）。
+//   ⇒ 兩種模式都是開始沉那一刻 100%。只是顯示：航速照舊用下沉 ÷ 9 m（31_sailing.js，模擬）。
+var SINK_FINAL = 4.2;
+/** 浮高 L 公尺（負 ＝ 吃水深）時比設計水線的排水輕幾噸（32_hull.js liftFor 的反函數）。 */
+function tonsAt(T, L) {
+  var HYD = T.hyd, n = HYD.length - 1, z = T.zw - L / S;
+  if (z <= 0) return HYD[0] * RHO_W; if (z >= n) return HYD[n] * RHO_W;
+  var i = Math.floor(z); return (HYD[i] + (HYD[i + 1] - HYD[i]) * (z - i)) * RHO_W;
+}
+/** 進水 %（0–1）。 */
+function floodPct(sh) {
+  if (sh.sinkingFinal || sh.sunk) return 1;
+  var T = sh.T; if (!T || !T.hyd) return clamp(sh.sink / SINK_FINAL, 0, 1);
+  var base = T.disp - (sh.mass0 || shipT(sh)) + massLost(sh), L0 = liftFor(T, base), W100 = base - tonsAt(T, L0 - SINK_FINAL);
+  var W = sh.fl && !sh.broken ? sh.fl.vol * RHO_W : base - tonsAt(T, L0 - sh.sink);
+  return W100 > 0 ? clamp(W / W100, 0, 1) : 1;
+}
 function panel(sh, title) {
-  var hull = sh.grid.count / sh.orig, fl = clamp(sh.sink / 9, 0, 1);
+  var hull = sh.grid.count / sh.orig, fl = floodPct(sh);
   var m = sh.masts.map(function (x) { return x.name + (x.up ? '✓' : '✗'); }).join(' ');
   return '<h3>' + title + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
     '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + (sh.fl && !sh.broken ? '（艙內積水 ' + Math.round(sh.fl.vol * RHO_W).toLocaleString() + ' 噸・破口 ' + sh.fl.area.toFixed(1) + ' m²）' : '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
@@ -140,7 +159,7 @@ function drawNav(sh) {
   g.fillStyle = sh.i === 0 ? '#6f9bff' : '#ff6f6f'; g.beginPath(); g.moveTo(tip[0], tip[1]); g.lineTo(l[0], l[1]); g.lineTo(r2[0], r2[1]); g.closePath(); g.fill();
   // 文字
   var hb = bearing(F[0], F[2]), wb = bearing(from[0], from[2]), roll = (sh.rollA + (sh.rollW || 0)) * 57.2958, pitch = (sh.pitchA + (sh.pitchW || 0)) * 57.2958;
-  var hull = sh.grid.count / sh.orig * 100, fl = clamp(sh.sink / 9, 0, 1) * 100;
+  var hull = sh.grid.count / sh.orig * 100, fl = floodPct(sh) * 100;
   $('navt').innerHTML =
     '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
     '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
@@ -164,11 +183,18 @@ function hud(dt) {
   $('tip').textContent = t;
   drawNav(me);
 }
-// 結算畫面照模擬時間延後跳（暫停時不會跳出來）：沉了 2.5 秒；降旗、殉爆、全員倒下 5.5 秒（Tim：先看完精彩畫面 —— 殉爆的火球、斷成兩截）
-var END_AT = 0, END_SINK = 2.5, END_OTHER = 5.5;
+// 結算畫面照模擬時間延後跳（暫停時不會跳出來；殉爆的慢動作中跟著變慢）（Tim：先看完精彩畫面 —— 殉爆的火球、斷成兩截）：
+//   輸的那艘已經沉了 ⇒ 再等 END_SINK 秒；已經開始沉（殉爆斷船、進水太多）⇒ 等它沉下去（sunk）再等 END_SINK 秒，最多等 END_MAX 秒（END_WAIT）；
+//   降旗、全員倒下（沒在沉）⇒ END_OTHER 秒。Tim 2026-10-13：讓玩家欣賞完沉船 ⇒ 沉了 2.5 → 5 秒、開始沉的等它沉下去（以前一律 5.5 秒，斷船的那艘沉到一半就被結算蓋住）。
+//   只管什麼時候亮出結算畫面：OVER、結算的文字照舊在分出勝負那一步定 ⇒ 戰局讀數不變。
+var END_AT = 0, END_SINK = 5, END_OTHER = 5.5, END_MAX = 40, END_WAIT = null;
 function checkEnd() {
   if (MODE === 'sandbox' || DEMO >= 0) return;
-  if (OVER) { if (END_AT && SIMT >= END_AT) { END_AT = 0; $('end').className = 'on'; } return; }
+  if (OVER) {
+    if (END_WAIT && (END_WAIT.sunk || SIMT >= END_AT)) { END_AT = Math.min(END_AT, SIMT + END_SINK); END_WAIT = null; }
+    if (END_AT && !END_WAIT && SIMT >= END_AT) { END_AT = 0; $('end').className = 'on'; }
+    return;
+  }
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
   function fate(sh) { return sh.sunk ? '沉沒' : sh.fate; }
   if (foe.sunk || foe.struck) txt = '勝利！敵艦' + fate(foe);
@@ -178,6 +204,9 @@ function checkEnd() {
   $('endT').textContent = txt;
   $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
     '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
-  END_AT = SIMT + (foe.sunk || me.sunk ? END_SINK : END_OTHER);   // 重開／回選單時歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
+  var lose = foe.sunk || foe.struck ? foe : me;                     // 重開／回選單時 END_AT、END_WAIT 歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
+  if (lose.sunk) END_AT = SIMT + END_SINK;
+  else if (lose.sinkingFinal) { END_WAIT = lose; END_AT = SIMT + END_MAX; }
+  else END_AT = SIMT + END_OTHER;
 }
 

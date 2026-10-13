@@ -19,7 +19,10 @@ function spawnDebris(p, v, col, size, life) {
   D.q[i * 4] = 0; D.q[i * 4 + 1] = 0; D.q[i * 4 + 2] = 0; D.q[i * 4 + 3] = 1;
   D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1;
 }
+/** 碎木每一步：飛、轉、落水、落在甲板上。
+ *  省時間（TASK-0531：殉爆噴一萬多顆，每步 10 ms 以上）：比最高的浪還高 ⇒ 不算 seaH；不在那艘船的格子外接球裡（格子盒的中心＋半對角線）⇒ 不換格座標查格子。結果跟全算一樣。 */
 function stepDebris(dt) {
+  var top = SEA_K > 0 ? 1.15 * SEA_K * WX.sea : 0, sc = SHIPS.map(function (sh) { var B = sh.T.base; return { c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), r2: Math.pow(0.5 * S * Math.hypot(B.sx, B.sy, B.sz) + 1, 2) }; });
   for (var i = 0; i < D.n; i++) {
     var st = D.st[i]; if (!st) continue;
     D.life[i] -= dt;
@@ -38,13 +41,14 @@ function stepDebris(dt) {
     var nx = qx + wx * qw + wy * qz - wz * qy, ny = qy + wy * qw + wz * qx - wx * qz, nz = qz + wz * qw + wx * qy - wy * qx, nw = qw - wx * qx - wy * qy - wz * qz, l = Math.hypot(nx, ny, nz, nw);
     D.q[qi] = nx / l; D.q[qi + 1] = ny / l; D.q[qi + 2] = nz / l; D.q[qi + 3] = nw / l;
     if (st === 1) {
-      if (D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {                                    // 落水：慢慢沉
+      if (D.p[o + 1] < top && D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {               // 落水：慢慢沉
         D.st[i] = 3; D.v[o] *= 0.1; D.v[o + 1] = -0.25; D.v[o + 2] *= 0.1; D.life[i] = Math.min(D.life[i], 4);
         if (rndD() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
         wpDrop(D.p[o], D.p[o + 2]);                                     // 船邊水花（13_water.js）：幾滴、偶爾一小片白沫
         continue;
       }
       if (D.v[o + 1] < 0) for (var s = 0; s < SHIPS.length; s++) {       // 掉到甲板上 ⇒ 停住
+        var q = sc[s], ex = D.p[o] - q.c[0], ey = D.p[o + 1] - q.c[1], ez = D.p[o + 2] - q.c[2]; if (ex * ex + ey * ey + ez * ez > q.r2) continue;
         var sh = SHIPS[s], L = M4.pt(sh.inv, D.p[o], D.p[o + 1], D.p[o + 2]);
         if (L[0] < 0 || L[2] < 0 || L[0] >= sh.grid.sx) continue;
         if (sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {

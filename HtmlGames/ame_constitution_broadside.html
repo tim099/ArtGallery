@@ -46,6 +46,8 @@
   #gset .chip{ font-size:14px; padding:4px 12px; margin:0; } #gset .chip.big{ font-size:15px; padding:6px 16px; } #gset .chip.dis{ opacity:.45; }   /* dis：這個頁面不給全螢幕 */
   #fps{ left:50%; top:2px; transform:translateX(-50%); font:12px Consolas,monospace; color:#bfe9ff; text-shadow:0 0 3px #000, 0 0 3px #000; display:none; z-index:5; }
   #fps.on{ display:block; }
+  #slowB{ left:50%; bottom:150px; transform:translateX(-50%); font-size:15px; font-weight:700; color:#ffd27a; letter-spacing:2px; text-shadow:0 0 4px #000, 0 0 4px #000; display:none; }   /* 殉爆的慢動作（73_slowmo.js）：放在下方操作列上面（⛔ 上方 ⇒ 殉爆那一刻廣播一次好幾則，疊在一起） */
+  #slowB.on{ display:block; }
   #gfxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #gfxItems label{ width:6em; text-align:right; margin-right:6px; }
   #gfxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
   #phxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #phxItems label{ width:6em; text-align:right; margin-right:6px; }
@@ -135,6 +137,7 @@
   <div id="msg" class="hud"></div>
   <div id="tip" class="hud"></div>
   <div id="fps" class="hud"></div>
+  <div id="slowB" class="hud"></div>
   <div id="nav" class="hud panel"><canvas id="navc"></canvas><div id="navt"></div></div>
   <div id="frz" class="hud panel"><span class="fz">⏸ 停格中</span><span class="fzL">進水</span><span class="chip" id="frzFlood">📊 圖表（I）</span><span class="chip" id="frzX">🔍 透視（X）</span><span class="chip" id="frzGo">▶ 繼續（P）</span></div>
   <div id="floodp" class="hud panel">
@@ -161,7 +164,7 @@
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
     <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺、帆被打穿的那塊布撕成碎片飄下來；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」（帆與繩、碎木、煙與水花、船邊水花）</div>
     <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
-    <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS、全螢幕（手機用；電腦直接按 F11 也行，Esc 退出）</div>
+    <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS、全螢幕（手機用；電腦直接按 F11 也行，Esc 退出）、彈藥庫殉爆時的慢動作與特寫鏡頭（各自開關）</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
     <div><kbd>砲</kbd> 砲列：● 裝填好 ◌ 裝填中 △ 等火藥與彈藥 ○ 開不了 ✕ 毀；<span class="g-full">綠 滿編</span>、<span class="g-short">黃 人數不足（照開、較慢）</span>、<span class="g-none">灰 少於最少人數</span>、<span class="g-dead">紅 毀</span></div>
@@ -172,6 +175,8 @@
     <div><kbd>風</kbd> 風向、風速會慢慢變（暴風雨變得快、風大）：羅盤的藍箭頭與文字跟著變；轉了 20° 以上或風勢變了三成，上方廣播。航速跟著風速變</div>
     <div><kbd>畫</kbd> 畫質在主選單（低／中／高；「畫質設定…」可以一項一項調：陰影、海面反射、海水折射、海面細緻度、解析度、反鋸齒），只改畫面、不改戰局；浪的大小在「細節設定」</div>
     <div><kbd>浮</kbd> 打掉的格、飛掉的砲讓船變輕、浮起來（面板的「減重浮起」）：浮出水面的洞不進水；削掉夠多水上的部分，艙底的彈藥庫會露出水面；壓艙物在「細節設定」</div>
+    <div><kbd>%</kbd> 面板的「進水 %」：艙內的積水（公式模式：多吃的水）÷ 船再往下沉 4.2 m 要吃的水 ⇒ 100% ＝ 開始沉（之後一定沉）</div>
+    <div><kbd>殉</kbd> 彈藥庫殉爆：慢動作（越大越慢）＋鏡頭切到爆心，幾秒後回來；⚙ 設定裡可以各自關掉</div>
     <div><kbd>報</kbd> 上方廣播：砲被打飛（同一刻的併成一行）、傷亡（第一個人倒下起算，每 5 秒報一次陣亡與受傷人數；是 0 的不報）；船長、軍官、舵手倒下當下就報</div>
     <div><kbd data-k="p">P</kbd> 停格（停住、照樣轉鏡頭；停格時看得到進水的「📊 圖表」（I）與「🔍 透視」（X），兩個分開開關）　<kbd data-k="m">M</kbd> 靜音　<kbd data-k="n">N</kbd> 重新開始（同樣的設定，下方也點得到）　<kbd data-k="r">R</kbd> 回選單　<kbd data-k="h">H</kbd> 說明（打開時暫停；點外面就關）</div>
   </div>
@@ -183,6 +188,7 @@
     <div class="gsR"><span class="gsL">畫質</span><span class="chip" data-gg="low">低</span><span class="chip" data-gg="mid">中</span><span class="chip" data-gg="high">高</span><span class="note" id="gsGfx"></span></div>
     <div class="gsR"><span class="gsL">物理效果</span><span class="chip" data-gx="full">全開</span><span class="chip" data-gx="high">高</span><span class="chip" data-gx="mid">中</span><span class="chip" data-gx="low">低</span><span class="note" id="gsPhx"></span></div>
     <div class="gsR"><span class="chip" id="physT"><b>B</b> 帆繩物理</span><span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="muteT"><b>M</b> 靜音</span><span class="chip" id="fpsT">顯示 FPS</span><span class="chip" id="fullT"><b>F11</b> 全螢幕</span><span class="note" id="gsFull"></span></div>
+    <div class="gsR"><span class="gsL">彈藥庫殉爆</span><span class="chip" id="slowT">慢動作</span><span class="chip" id="slowCamT">特寫鏡頭</span></div>
     <div class="note">畫質與物理的細項在主選單的「畫質設定…」「物理設定…」；血量、傷害、浪、天氣在開戰前設定；物理效果裡的「進水」（公式／粒子）下一場生效</div>
   </div>
 
@@ -767,6 +773,11 @@ var DEMO = Q.has('demo') ? Math.max(0, parseFloat(Q.get('demo')) || 0) : -1;
 var STILL = Q.get('still') === '1', DEBUG = Q.get('debug') === '1';
 var SEED = (parseInt(Q.get('seed'), 10) >>> 0) || 1797;
 var CAMQ = Q.get('cam') || '';
+// 逐幀分段計時（?debug=1 才有；TASK-0531 找卡頓）：每一格畫面各段花幾 ms（模擬每一步的各段累加），留最近 PF.max 格；__game.frames() 讀最慢的幾格。
+//   pfLap(k)：從上一個 lap（或這一段的起點 PF.t）到現在的時間記到 k。沒開 debug ⇒ PF ＝ null，呼叫端一個判斷就跳過。
+var PF = DEBUG ? { t: 0, cur: {}, ring: [], max: 1200 } : null;
+function pfLap(k) { var t = performance.now(); PF.cur[k] = (PF.cur[k] || 0) + t - PF.t; PF.t = t; }
+function pfEnd(f0, steps) { var c = PF.cur; c.total = performance.now() - f0; c.steps = steps; c.simt = SIMT; PF.ring.push(c); if (PF.ring.length > PF.max) PF.ring.shift(); PF.cur = {}; }
 if (STILL) document.getElementById('stage').classList.add('still');
 function $(id) { return document.getElementById(id); }
 
@@ -1151,6 +1162,8 @@ var LAST_MODE = null;                                // 上一場的模式（自
 var MODE = 'pve', DIST = 140, SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
 var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
+// 殉爆的慢動作與特寫（73_slowmo.js）：on／cam 是設定；ts 現在的時間倍率。SLOW_VIS：這一格畫面裡只給人看的效果改由 frame 走（step() 讀它決定要不要跳過）
+var SLOW = { on: Q.get('slowmo') !== '0', cam: Q.get('slowcam') !== '0', ts: 1, t: 0, min: 1, hold: 0, active: false, camSave: null, camT: 0, camMode: 0, kicks: 0 }, SLOW_VIS = false;
 var AUTOFIRE = false;                                  // 自動開砲：電腦替我艦瞄準、開火（觀戰 ＝ 一般戰鬥＋自動開砲預設開；G 切換）
 var PHYS = Q.get('phys') !== '0';                      // 帆與繩的物理（選單勾選、B 鍵、下方按鈕；?phys=0 關）：關 ＝ 靜態，跟以前一樣
 // ── js/05_hull.js ──
@@ -1850,7 +1863,10 @@ function spawnDebris(p, v, col, size, life) {
   D.q[i * 4] = 0; D.q[i * 4 + 1] = 0; D.q[i * 4 + 2] = 0; D.q[i * 4 + 3] = 1;
   D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1;
 }
+/** 碎木每一步：飛、轉、落水、落在甲板上。
+ *  省時間（TASK-0531：殉爆噴一萬多顆，每步 10 ms 以上）：比最高的浪還高 ⇒ 不算 seaH；不在那艘船的格子外接球裡（格子盒的中心＋半對角線）⇒ 不換格座標查格子。結果跟全算一樣。 */
 function stepDebris(dt) {
+  var top = SEA_K > 0 ? 1.15 * SEA_K * WX.sea : 0, sc = SHIPS.map(function (sh) { var B = sh.T.base; return { c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), r2: Math.pow(0.5 * S * Math.hypot(B.sx, B.sy, B.sz) + 1, 2) }; });
   for (var i = 0; i < D.n; i++) {
     var st = D.st[i]; if (!st) continue;
     D.life[i] -= dt;
@@ -1869,13 +1885,14 @@ function stepDebris(dt) {
     var nx = qx + wx * qw + wy * qz - wz * qy, ny = qy + wy * qw + wz * qx - wx * qz, nz = qz + wz * qw + wx * qy - wy * qx, nw = qw - wx * qx - wy * qy - wz * qz, l = Math.hypot(nx, ny, nz, nw);
     D.q[qi] = nx / l; D.q[qi + 1] = ny / l; D.q[qi + 2] = nz / l; D.q[qi + 3] = nw / l;
     if (st === 1) {
-      if (D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {                                    // 落水：慢慢沉
+      if (D.p[o + 1] < top && D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {               // 落水：慢慢沉
         D.st[i] = 3; D.v[o] *= 0.1; D.v[o + 1] = -0.25; D.v[o + 2] *= 0.1; D.life[i] = Math.min(D.life[i], 4);
         if (rndD() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
         wpDrop(D.p[o], D.p[o + 2]);                                     // 船邊水花（13_water.js）：幾滴、偶爾一小片白沫
         continue;
       }
       if (D.v[o + 1] < 0) for (var s = 0; s < SHIPS.length; s++) {       // 掉到甲板上 ⇒ 停住
+        var q = sc[s], ex = D.p[o] - q.c[0], ey = D.p[o + 1] - q.c[1], ez = D.p[o + 2] - q.c[2]; if (ex * ex + ey * ey + ez * ez > q.r2) continue;
         var sh = SHIPS[s], L = M4.pt(sh.inv, D.p[o], D.p[o + 1], D.p[o + 2]);
         if (L[0] < 0 || L[2] < 0 || L[0] >= sh.grid.sx) continue;
         if (sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
@@ -1999,10 +2016,12 @@ function wpRing(T) {
   return R;
 }
 /** 每一步（50_sim.js，碎片與粒子之後）：船身與船尾生水花與白沫、水滴落海、白沫漂。關 ⇒ 清空。 */
-function stepWater(dt) {
+/** only：'ship' ⇒ 只生（船身與船尾，照模擬的步：wpShip 拿這一步與上一步的船矩陣算速度）；'fly' ⇒ 只飛與散（殉爆慢動作時照畫面的時間走，73_slowmo.js）；沒給 ⇒ 都做。 */
+function stepWater(dt, only) {
   var L = wpLv();
   if (!L) { WS.n = WF.n = 0; return; }
-  SHIPS.forEach(function (sh) { wpShip(sh, dt, L); });
+  if (only !== 'fly') SHIPS.forEach(function (sh) { wpShip(sh, dt, L); });
+  if (only === 'ship') return;
   var hmax = 1.2 * SEA_K * WX.sea + 0.1, i, o, wx = WIND[0] * WX.wind * 0.12 * dt, wz = WIND[2] * WX.wind * 0.12 * dt, kd = 1 - 0.35 * dt;
   for (i = 0; i < WS.n; i++) {
     o = i * 3; WS.life[i] -= dt;
@@ -2388,13 +2407,19 @@ function aimPoint(sh) {
   return M4.pt(foe.M, foe.T.cx, foe.T.cy, 90);
 }
 
+/** 砲彈這一步（每 5 cm 一小段：450 m/s 的彈一步 150 段）。
+ *  省時間（TASK-0531：開戰第一輪對砲幾十顆彈同時飛，每格 240–320 ms，掉到 15 FPS 以下；判定一個都不能變）：
+ *    · 海面：比最高的浪（七道振幅和 1.14 m × 浪 × 天氣）還高就不可能落水 ⇒ 不算 seaH。
+ *    · 繩、帆、人、模型：進了某艘船的外接球，先挑出「這一步飛得到的範圍」（這一點起算、這一步最多飛 sp × dt）裡的（ballNear），
+ *      後面的小段只看這幾個（順序照原本的；模型照原本的桶、只是跳過沒挑到的）⇒ 判定與亂數順序跟全看一模一樣。量過：同一個種子戰局讀數逐字相同。
+ *    量過（觀戰種子 1797，第一輪對砲最慢的一格）：繩 120–160 → 12–17 ms、人 40–46 → 1–2 ms（之後再加帆與模型）。 */
 function stepBall(b, dt) {
   b.age += dt;
-  var sp = len(b.v), steps = Math.max(1, Math.ceil(sp * dt / 0.05)), h = dt / steps;
+  var sp = len(b.v), steps = Math.max(1, Math.ceil(sp * dt / 0.05)), h = dt / steps, top = SEA_K > 0 ? 1.15 * SEA_K * WX.sea : 0, near = null;
   for (var s = 0; s < steps && b.alive; s++) {
     b.v[1] -= G * h;
     b.p[0] += b.v[0] * h; b.p[1] += b.v[1] * h; b.p[2] += b.v[2] * h; b.trav += len(b.v) * h;
-    var sea = seaH(b.p[0], b.p[2], SIMT);                              // 水面跟著浪（08_sea.js）
+    var sea = b.p[1] < top ? seaH(b.p[0], b.p[2], SIMT) : -1e9;         // 水面跟著浪（08_sea.js）；比最高的浪還高 ⇒ 不用算
     if (b.p[1] < sea) {
       var spd = len(b.v), ang = Math.asin(-b.v[1] / spd);
       if (b.ammo === 0 && !b.bounced && ang < 0.11 && spd > 90) {       // 打水漂：低角度的實心彈會跳一下
@@ -2407,8 +2432,8 @@ function stepBall(b, dt) {
       if (i === b.owner && b.trav < 6) continue;
       var cc = sh.center, dx = b.p[0] - cc[0], dy = b.p[1] - cc[1], dz = b.p[2] - cc[2];
       if (dx * dx + dy * dy + dz * dz > sh.rad2) continue;
-      var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]);
-      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 一發扣好幾次血）
+      var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]), nb = (near || (near = []))[i] || (near[i] = ballNear(sh, L, sp * dt));
+      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM, nb.id);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 一發扣好幾次血）
       if (hm) {                                                          // 打到模型：扣血（每發傷害 × 彈種對砲倍率；歸零整個飛出去），砲彈被擋掉一大半
         if (sh.i !== b.owner && !b.hitOnce) { SHIPS[b.owner].hits++; b.hitOnce = true; }
         (b.hitM = b.hitM || []).push(hm);
@@ -2417,9 +2442,9 @@ function stepBall(b, dt) {
         b.v = mul(b.v, b.ammo === 2 ? 0.5 : 0.55);
         if (len(b.v) < 30) { ballToDebris(b); return; }
       }
-      if (b.ammo === 2) cutRig(sh, L, 14, b);
-      else if ((s & 3) === 0) cutRig(sh, L, 3, b);                       // 實心與爆裂：細繩照斷、穿過帆會打洞（帆扣得少，見彈種倍率）
-      if ((s & 3) === 1 && sh.i !== b.owner) hurt(sh, L, 4, 0, null, '砲彈', crewBase(b) * 2);      // 砲彈直接掠過：兩倍
+      if (b.ammo === 2) cutRig(sh, L, 14, b, nb.ropes, nb.sails);
+      else if ((s & 3) === 0) cutRig(sh, L, 3, b, nb.ropes, nb.sails);             // 實心與爆裂：細繩照斷、穿過帆會打洞（帆扣得少，見彈種倍率）
+      if ((s & 3) === 1 && sh.i !== b.owner) hurt(sh, L, 4, 0, null, '砲彈', crewBase(b) * 2, nb.crew);      // 砲彈直接掠過：兩倍
       if (!sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
         if (b.ammo !== 2) continue;
         // 鏈彈：兩顆彈中間一條鏈、轉著飛，約 2.4 公尺寬 ⇒ 沿那條橫桿取樣，碰到哪裡就從哪裡咬下去
@@ -2457,9 +2482,10 @@ function impact(b, sh, L) {
   b.v = mul(b.v, nsp / sp);
 }
 /** 格座標 L 落在哪個還在的模型外框裡（外擴 m 格）。 */
-function hitModel(sh, L, m, skip) {                                     // skip：這顆砲彈已經打過的（略過它、找後面那一個）
+function hitModel(sh, L, m, skip, nb) {                                 // skip：這顆砲彈已經打過的（略過它、找後面那一個）；nb：只看蓋了這個戳記的（stepBall 的 ballNear；沒給 ⇒ 全看）
   var bk = L[0] >= 0 ? sh.mIdx[Math.floor(L[0] / 16)] : null; if (!bk) return null;   // 只看這一桶（modelIndex；登記時外擴 12 格 ≥ 鏈彈的 10）
   for (var i = 0; i < bk.length; i++) {
+    if (nb && bk[i].nb !== nb) continue;
     var o = bk[i], b = o.bb, Q = o.rot ? unrotL(o, L) : L;                 // 轉過的帆桁：把彈點轉回作品裡的角度再比
     if (o.alive && !(skip && skip.indexOf(o) >= 0) && Q[0] > b[0] - m && Q[0] < b[3] + m && Q[1] > b[1] - m && Q[1] < b[4] + m && Q[2] > b[2] - m && Q[2] < b[5] + m &&
         (m > 2 || inMesh(o, Q))) return o;                               // 實心／爆裂彈：外框裡還要真的碰到砲身或砲架（鏈彈橫掃 2.4 m ⇒ 外框就算）
@@ -2602,10 +2628,30 @@ function explode(w, sh, n) {
   for (var i = 0; i < 26; i++) spawnPt(w, [gauss() * 7, rr(1, 9), gauss() * 7], rr(0.3, 0.8), [1, rr(0.45, 0.7), 0.15], 0.9, rr(1.5, 3), rr(3, 5), 0, 2.5, 3);
   smoke(w, [0, 1, 0], 22, true); sfx('blast', w, 1.4);
 }
-/** 經過的繩（距離 < r 格）斷掉；鏈彈穿過帆 ⇒ 帆掉下來。 */
-function cutRig(sh, L, r, b) {
+/** 這顆彈這一步在 sh 上飛得到的範圍（格座標 L 起算、最多再飛 reach 公尺）裡的繩、帆、人、模型：碰得到這個範圍（再外擴 16 格 ≥ 斷繩的 14、
+ *  傷人的 4、帆的 8、模型的 10）的才留，順序照原本的。繩與帆與模型的外框、帆桁的角度、人的位置在砲彈這一段都不會變（帆桁轉、人走路在別段）⇒ 用一整步。
+ *  跟著帆桁轉的（帆、帆桁模型）：判定時把彈點繞轉軸轉回作品的角度 ⇒ 離轉軸的水平距離不變 ⇒ 用圓柱挑（轉軸到範圍的水平距離 ≤ 外框四角離轉軸最遠的 ＋ 外擴 × 1.5）。
+ *  模型不另外列：蓋戳記（o.nb ＝ 這一次的編號），hitModel 照原本的桶走、沒戳記的跳過 ⇒ 打到哪一個的先後跟原本一樣。 */
+var NB_ID = 0;
+function ballNear(sh, L, reach) {
+  var H = (reach + 0.5) / S + 16, xa = L[0] - H, xb = L[0] + H, ya = L[1] - H, yb = L[1] + H, za = L[2] - H, zb = L[2] + H, id = ++NB_ID;
+  function box(bb, r) { return bb[0] - r <= xb && bb[3] + r >= xa && bb[1] - r <= yb && bb[4] + r >= ya && bb[2] - r <= zb && bb[5] + r >= za; }
+  function cyl(p, bb, r) {
+    if (bb[2] - r > zb || bb[5] + r < za) return false;
+    var R = 0; [[bb[0], bb[1]], [bb[3], bb[1]], [bb[0], bb[4]], [bb[3], bb[4]]].forEach(function (q) { R = Math.max(R, Math.hypot(q[0] - p[0], q[1] - p[1])); });
+    var dx = Math.max(xa - p[0], 0, p[0] - xb), dy = Math.max(ya - p[1], 0, p[1] - yb);
+    return Math.hypot(dx, dy) <= R + r * 1.5;
+  }
+  sh.models.forEach(function (o) { if (o.alive && (o.rot && o.piv ? cyl(o.piv, o.bb, 10) : box(o.bb, 10))) o.nb = id; });
+  return { id: id,
+    ropes: sh.ropes.filter(function (rp) { return !rp.dead && box(rp.bb, 0); }),
+    sails: sh.sails.filter(function (s) { var y0 = s.yards && s.yards[0]; return !s.dead && !s.furled && (y0 ? cyl(y0.piv, s.bb, 8) : box(s.bb, 8)); }),
+    crew: sh.crew.filter(function (c) { var p = c.pos; return p[0] >= xa && p[0] <= xb && p[1] >= ya && p[1] <= yb && p[2] + 9 >= za && p[2] + 9 <= zb; }) };
+}
+/** 經過的繩（距離 < r 格）斷掉；鏈彈穿過帆 ⇒ 帆掉下來。ropes／sails：只看這幾條、這幾面（stepBall 先挑好的，ballNear；沒給 ⇒ 全部）。 */
+function cutRig(sh, L, r, b, ropes, sails) {
   var r2 = r * r, changed = false;
-  sh.ropes.forEach(function (rp) {
+  (ropes || sh.ropes).forEach(function (rp) {
     if (rp.dead) return;
     var bb = rp.bb;
     if (L[0] < bb[0] - r || L[0] > bb[3] + r || L[1] < bb[1] - r || L[1] > bb[4] + r || L[2] < bb[2] - r || L[2] > bb[5] + r) return;
@@ -2616,7 +2662,7 @@ function cutRig(sh, L, r, b) {
   });
   // 帆：鏈彈纏上（彈心 0.8 m 內有頂點）；實心與爆裂穿過（0.4 m 內）也扣、打個小洞。扣 ＝ 每發傷害 × 彈種對帆倍率
   var chain = b.ammo === 2, rs2 = chain ? 64 : 16, rb = chain ? 8 : 4;
-  sh.sails.forEach(function (s) {
+  (sails || sh.sails).forEach(function (s) {
     if (s.dead || s.furled) return;
     var v = s.verts, sb = s.bb;
     if (b.sails && b.sails.indexOf(s) >= 0) return;                    // 同一顆彈穿過一面帆要好幾個小步 ⇒ 只算一次（記帆本身：兩艘的同編號帆是不同的帆）
@@ -2684,7 +2730,7 @@ function spawnPiece(sh, pc) {
   }
   var px = 0, py = 0, pz = 0, pn = 0;
   for (i = 0; i < n; i++) { z = pc[i] >> 20; if (z <= minz + 2) { px += (pc[i] & 1023); py += (pc[i] >> 10) & 1023; pz += z; pn++; } }
-  var rs2 = new VK.RegionSet(gl, g, QIDX); rs2.buildAll();
+  var rs2 = new VK.RegionSet(gl, g, QIDX); rsAllDirty(rs2);                 // 網格分批建（60_render.js remesh；⛔ buildAll ⇒ 十萬格的半截船那一格卡上百 ms）
   var M0 = sh.M, c0 = M4.pt(M0, sx / n + 0.5, sy / n + 0.5, sz / n + 0.5), pivot = M4.pt(M0, px / pn + 0.5, py / pn + 0.5, pz / pn);
   var imp = sh.impulse; imp = [imp[0], 0, imp[2]]; if (len(imp) < 1e-6) imp = [rnd() - 0.5, 0, rnd() - 0.5];
   var axis = norm(cross([0, 1, 0], norm(imp)));
@@ -2788,6 +2834,12 @@ function stepPiece(pc, dt) {
 //      留下的那半截一定沉（進水速度 0 也沉）、算降旗（不再開砲）。
 // 威力是能量 ⇒ 爆炸半徑照立方根縮放：0.25× ⇒ 0.63 倍半徑、4× ⇒ 1.59 倍。
 var BOOMS = [], KEG_R = 9, KEG_REACH = 30, KEG_DMG = 300, MAG_R = 95, MAG_LB = 11600, BREAK_R = 80;
+// 彈坑分幾步挖（TASK-0531，Tim：卡畫面的事件分散到不同幀）：一次挖掉三十幾萬格要 120–230 ms ⇒ 那一步卡住。
+//   區塊照離爆心的距離排好，從爆心往外，每一步挖到 BLAST_STEP 格就停、下一步接著挖（BLASTS，step() 的 stepBlasts）⇒ 爆炸往外擴，三十幾萬格約 9 步（0.15 秒）挖完。
+//   碎片照挖到的格抽樣、挖到那一步才噴。人、模型照舊在殉爆那一刻算；斷船（橫切那一刀）與廣播（含打掉幾格）挖完才做。
+//   ⛔ 斷船在殉爆那一刻切 ⇒ 還沒挖到的彈坑格被連通判定一起搬進斷開的半截（半截船 27 萬格、上面沒有彈坑，量過）。
+//   ⚠ 殉爆之後的戰局跟以前（一步挖完）不一樣；但跟慢動作、特寫開不開無關 ⇒ 開或關同一局。
+var BLASTS = [], BLAST_STEP = 40000;
 function blastK() { return Math.pow(BLAST_K, 1 / 3); }
 /** 這艘船的彈藥庫：關聯 meta kind=magazine ＋ 名字在它底下的火藥桶模型。 */
 function makeMags(sh) {
@@ -2840,16 +2892,12 @@ function magBoom(sh, mag) {
   mag.kegs.forEach(function (m) { m.alive = false; m.lit = true; });
   BOOMS = BOOMS.filter(function (e) { return e.m.mag !== mag; });
   var k = blastK(), R = MAG_R * Math.pow(mag.lb / MAG_LB, 1 / 3) * k, c = mag.blast, w = M4.pt(sh.M, c[0], c[1], c[2]);
-  var cr = crater(sh, c, R);
   // 畫面：火球、碎片往外噴、濃煙往上
   flash(w, [0, 1, 0], 200, true);
   for (var i = 0; i < 160; i++) spawnPt(add(w, [gauss() * R * 0.04, rr(0, R * 0.06), gauss() * R * 0.04]), [gauss() * 14, rr(6, 30), gauss() * 14], rr(0.8, 2.2), [1, rr(0.4, 0.75), 0.12], 0.95, rr(3, 7), rr(6, 12), 2, 1.5, 3);
   smoke(w, [0, 1, 0], 120, true); smoke(add(w, [0, R * 0.05, 0]), [0, 1, 0], 80, true);
-  for (var j = 0; j < cr.sample.length; j += 4) {
-    var p = M4.pt(sh.M, cr.sample[j] + 0.5, cr.sample[j + 1] + 0.5, cr.sample[j + 2] + 0.5), dir = norm(sub(p, w));
-    spawnDebris(p, add(add(mul(dir, rr(8, 40)), [0, rr(4, 22), 0]), sh.vel), cr.sample[j + 3], rr(0.06, 0.16), rr(8, 16));
-  }
   sfx('blast', w, 2); sfx('creak', w, 1.6);
+  if (typeof slowKick === 'function') slowKick(sh, w, R);              // 殉爆的慢動作與特寫（73_slowmo.js；只動畫面的時間與鏡頭）
   // 爆心附近：人、模型
   hurt(sh, c, R * 0.85, R * 1.4, null, '殉爆', 1500 * BLAST_K);
   sh.models.forEach(function (o) {
@@ -2858,30 +2906,55 @@ function magBoom(sh, mag) {
     var cw = M4.pt(sh.M, o.c[0], o.c[1], o.c[2]);
     damageModel(sh, o, mul(norm(sub(cw, w)), 300 * (1 - d / (R * 1.3)) + 80), 5000);
   });
-  // 斷船
+  // 斷船（橫切那一刀等彈坑挖完：blastStep）
   var brk = R >= BREAK_R * Math.pow(sh.cfg.hard / 2, 0.15);
-  if (brk) breakShip(sh, c[0]);
   sh.struck = sh.struck || brk; sh.broken = sh.broken || brk;
   if (brk) { sh.fate = '殉爆（船斷成兩截）'; sh.sinkingFinal = true; }
-  note(sh, '<b style="color:#ffb35a">' + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫殉爆！</b>（' + mag.lb.toLocaleString() + ' 磅、半徑 ' + (R * S).toFixed(1) + ' m、打掉 ' + cr.n.toLocaleString() + ' 格）' + (brk ? '　船斷成兩截' : ''), true);
-  mag.R = R; mag.removed = cr.n; mag.broke = brk;
+  mag.R = R; mag.removed = 0; mag.broke = brk;
+  var job = crater(sh, c, R); job.w = w; job.mag = mag; BLASTS.push(job);
+  blastStep(job);                                                      // 爆心那幾塊這一步就挖（其他的 stepBlasts 接著挖）
 }
-/** 炸掉一個球（邊緣參差：0.85～1.15 倍半徑）。只走有東西的區塊（⛔ 照 shatter 的三重迴圈：9.5 m 的球要走兩千八百萬格）。
- *  回：打掉幾格、抽樣（碎片用，最多約 2,400 顆）。邊緣那一圈才推連通的種子（裡面的鄰格也都打掉了）。 */
-function crater(sh, c, R) {
-  var g = sh.grid, n = 0, sample = [], R2 = R * 1.15, cx0 = Math.max(0, Math.floor((c[0] - R2) / 16)), cx1 = Math.min(g.nx - 1, Math.floor((c[0] + R2) / 16));
-  var cy0 = Math.max(0, Math.floor((c[1] - R2) / 16)), cy1 = Math.min(g.ny - 1, Math.floor((c[1] + R2) / 16)), cz0 = Math.max(0, Math.floor((c[2] - R2) / 16)), cz1 = Math.min(g.nz - 1, Math.floor((c[2] + R2) / 16));
-  var est = Math.max(1, Math.round(4 / 3 * Math.PI * R * R * R * 0.08 / 2400));   // 大約每幾格抽一顆碎片
-  for (var cz = cz0; cz <= cz1; cz++) for (var cy = cy0; cy <= cy1; cy++) for (var cx = cx0; cx <= cx1; cx++) {
-    var tab = g.tab[g.ci(cx, cy, cz)]; if (!tab) continue;       // ⛔ 寫入會換掉 g.tab 那一格（共用資料先複製）：照原本那份走，每格只拆一次
+/** 每一步（step() 的殉爆排程之後）：還沒挖完的彈坑接著挖。 */
+function stepBlasts() {
+  for (var i = 0; i < BLASTS.length; i++) if (BLASTS[i].done || BLASTS[i].sh.sink > 40 || blastStep(BLASTS[i])) BLASTS.splice(i--, 1);
+}
+/** 挖一段：從上次停的那一塊接著，挖到 BLAST_STEP 格（或挖完）。挖到的格照抽樣噴碎片。挖完 ⇒ 廣播（含打掉幾格）、回 true。 */
+function blastStep(J) {
+  var sh = J.sh, g = sh.grid, c = J.c, R = J.R, n0 = J.n, sample = [];
+  while (J.k < J.ch.length && J.n - n0 < BLAST_STEP) {
+    var ci = J.ch[J.k++], tab = g.tab[ci]; if (!tab) continue;        // ⛔ 寫入會換掉 g.tab 那一格（共用資料先複製）：照原本那份走，每格只拆一次
+    var cx = ci % g.nx, cy = Math.floor(ci / g.nx) % g.ny, cz = Math.floor(ci / (g.nx * g.ny));
     for (var li = 0; li < 4096; li++) {
       var col = tab[li]; if (!col) continue;
       var x = cx * 16 + (li & 15), y = cy * 16 + ((li >> 4) & 15), z = cz * 16 + (li >> 8), dx = x - c[0], dy = y - c[1], dz = z - c[2], d = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (d > R * (0.85 + 0.3 * hash3(x, y, z))) continue;
-      if (removeVoxel(sh, x, y, z, d > R * 0.8)) { if (++n % est === 0) sample.push(x, y, z, col); }
+      if (removeVoxel(sh, x, y, z, d > R * 0.8)) { if (++J.n % J.est === 0) sample.push(x, y, z, col); }
     }
   }
-  return { n: n, sample: sample };
+  for (var j = 0; j < sample.length; j += 4) {
+    var p = M4.pt(sh.M, sample[j] + 0.5, sample[j + 1] + 0.5, sample[j + 2] + 0.5), dir = norm(sub(p, J.w));
+    spawnDebris(p, add(add(mul(dir, rr(8, 40)), [0, rr(4, 22), 0]), sh.vel), sample[j + 3], rr(0.06, 0.16), rr(8, 16));
+  }
+  J.mag.removed = J.n;
+  if (J.k < J.ch.length) return false;
+  J.done = true;
+  if (J.mag.broke) breakShip(sh, c[0]);                                   // 彈坑挖完才切（下一步的連通判定把短的那半截變成斷開的一團）
+  note(sh, '<b style="color:#ffb35a">' + (J.mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫殉爆！</b>（' + J.mag.lb.toLocaleString() + ' 磅、半徑 ' + (R * S).toFixed(1) + ' m、打掉 ' + J.n.toLocaleString() + ' 格）' + (J.mag.broke ? '　船斷成兩截' : ''), true);
+  return true;
+}
+/** 彈坑（邊緣參差：0.85～1.15 倍半徑）的工作：只走有東西、而且碰得到球的區塊（⛔ 照 shatter 的三重迴圈：9.5 m 的球要走兩千八百萬格），
+ *  照區塊離爆心最近的距離排（同距離照編號）⇒ blastStep 從爆心往外挖。est：大約每幾格抽一顆碎片（全部約 2,400 顆）。
+ *  邊緣那一圈才推連通的種子（裡面的鄰格也都打掉了）。 */
+function crater(sh, c, R) {
+  var g = sh.grid, ch = [], R2 = R * 1.15, cx0 = Math.max(0, Math.floor((c[0] - R2) / 16)), cx1 = Math.min(g.nx - 1, Math.floor((c[0] + R2) / 16));
+  var cy0 = Math.max(0, Math.floor((c[1] - R2) / 16)), cy1 = Math.min(g.ny - 1, Math.floor((c[1] + R2) / 16)), cz0 = Math.max(0, Math.floor((c[2] - R2) / 16)), cz1 = Math.min(g.nz - 1, Math.floor((c[2] + R2) / 16));
+  for (var cz = cz0; cz <= cz1; cz++) for (var cy = cy0; cy <= cy1; cy++) for (var cx = cx0; cx <= cx1; cx++) {
+    var ci = g.ci(cx, cy, cz); if (!g.tab[ci]) continue;
+    var ex = Math.max(cx * 16 - c[0], 0, c[0] - (cx * 16 + 15)), ey = Math.max(cy * 16 - c[1], 0, c[1] - (cy * 16 + 15)), ez = Math.max(cz * 16 - c[2], 0, c[2] - (cz * 16 + 15)), d = Math.sqrt(ex * ex + ey * ey + ez * ez);
+    if (d <= R2) ch.push([d, ci]);
+  }
+  ch.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+  return { sh: sh, c: c, R: R, ch: ch.map(function (e) { return e[1]; }), k: 0, n: 0, est: Math.max(1, Math.round(4 / 3 * Math.PI * R * R * R * 0.08 / 2400)) };
 }
 /** 船從 x ＝ xb 那一截斷開：橫切一刀（切面參差 ±0.5～1.2 m），龍骨的錨只留長的那半截 ⇒ 短的那半截在下一步的連通判定裡變成斷開的一團。 */
 function breakShip(sh, xb) {
@@ -4278,10 +4351,10 @@ function goToGun(sh, c, g) {
 }
 /** 這一點附近的人扣血（r 格數）：rKill 內吃滿基準傷害 base，rKill～rWound 從 0.55 遞減到 0.1，再乘 0.6～1.4 的隨機。
  *  base ＝ 1.4 × 每發傷害 × 彈種對人倍率（crewBase）⇒ 24 磅實心 140：rKill 內約 85% 當場陣亡（跟以前的 0.85 對齊）。
- *  dir（格座標的單位向量）給了 ⇒ 前方（碎屑噴的方向）的範圍拉長。 */
-function hurt(sh, L, rKill, rWound, dir, cause, base) {
+ *  dir（格座標的單位向量）給了 ⇒ 前方（碎屑噴的方向）的範圍拉長。list：只看這幾個人（砲彈掠過，21_gunnery.js ballNear 先挑好的；沒給 ⇒ 全船）。 */
+function hurt(sh, L, rKill, rWound, dir, cause, base, list) {
   var n = 0;
-  sh.crew.forEach(function (c) {
+  (list || sh.crew).forEach(function (c) {
     if (c.st > 1) return;
     var d = sub([c.pos[0], c.pos[1], c.pos[2] + 9], L), dist = len(d);
     if (dir) { var along = dot(d, dir); if (along > 0) dist = Math.sqrt(Math.max(0, dist * dist - along * along * 0.75)); }  // 前方的碎屑錐
@@ -4648,6 +4721,7 @@ function ai(sh, dt) {
 
 // ───────────────────────── 一步 ─────────────────────────
 function step() {
+  if (PF) PF.t = performance.now();                                 // 逐幀分段計時（?debug=1，00_core.js）
   SIMT += DT;
   stepWind(SIMT);                                                  // 風會變（08_weather.js）
   for (var i = 0; i < EVENTS.length; i++) {
@@ -4656,19 +4730,31 @@ function step() {
     var sh = SHIPS[e.sh], et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off)));   // 開火那一刻才挑點（兩艘都在動）
     if (et) fireGun(sh, e.g, et, e.ammo);
   }
-  SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); stepCrew(sh, DT); });
+  if (PF) pfLap('fire');
+  SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); if (PF) pfLap('ship'); stepCrew(sh, DT); if (PF) pfLap('crew'); });
   collide();
   if (AUTOFIRE) ai(SHIPS[PLAYER_I], DT);                           // 自動開砲：我艦也交給電腦瞄準開火
   if (MODE !== 'sandbox') ai(SHIPS[1 - PLAYER_I], DT);            // 沙盒的敵艦不還手
+  if (PF) pfLap('ai');
   for (i = 0; i < BALLS.length; i++) { stepBall(BALLS[i], DT); if (!BALLS[i].alive) { if (CAM.follow === BALLS[i]) { CAM.hold = 1.2; } BALLS.splice(i--, 1); } }
+  if (PF) pfLap('balls');
   SHIPS.forEach(function (sh) { integrity(sh); sh.impulse = [0, 0, 0]; });
+  if (PF) pfLap('integrity');
   for (i = 0; i < PIECES.length; i++) if (!stepPiece(PIECES[i], DT)) { PIECES[i].rs.dispose(); PIECES.splice(i--, 1); }
   for (i = 0; i < FLY.length; i++) if (!stepFly(FLY[i], DT)) FLY.splice(i--, 1);
-  stepDebris(DT); stepPts(DT); stepWater(DT);                       // 船邊水花（13_water.js；只給人看、自己的亂數）
+  if (PF) pfLap('pieces');
+  if (SLOW_VIS) stepWater(DT, 'ship');                             // 殉爆慢動作中：只給人看的照畫面的時間走（73_slowmo.js），這裡只生船邊的水花
+  else { stepDebris(DT); if (PF) pfLap('debris'); stepPts(DT); if (PF) pfLap('pts'); stepWater(DT); }
+  if (PF) pfLap('water');                       // 船邊水花（13_water.js；只給人看、自己的亂數）
   if (PHYS) { var pt0 = performance.now(); SHIPS.forEach(function (sh) { if (sh.sink < 40) physStep(sh); }); PHYS_MS = PHYS_MS * 0.98 + (performance.now() - pt0) * 0.02; }   // 讀數只看、不回寫模擬
+  if (PF) pfLap('phys');
   stepPowder();                                                    // 殉爆排程（23_powder.js）
+  stepBlasts();                                                    // 還沒挖完的彈坑接著挖（23_powder.js）
+  if (PF) pfLap('powder');
   if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
+  if (PF) pfLap('survey');
   if (!OVER || END_AT) checkEnd();                                 // 結束判定每一步看（結算畫面照模擬時間延後跳）
+  if (PF) pfLap('end');
 }
 // ── js/51_captain.js ──
 // ───────────────────────── 砲長：瞄準模式與策略（Tim 2026-10-12） ─────────────────────────
@@ -4874,6 +4960,24 @@ function prepRig() {
     if (PHYS && ow.crew) looseBuf(ow);
     if (DEBUG) PROF.buf += performance.now() - tb;
   });
+}
+// 重網格化（TASK-0531）：打掉的格要重建那幾個區塊的網格（VoxelKit RegionSet：dirty 裡的區塊 → meshChunk → 那一區重新上傳）。
+//   畫面迴圈每一格最多 RM_BUDGET 塊（殉爆、斷船一次上千塊 ⇒ 那一格卡 170 ms）；先做斷開的那幾團（新建的）、再做船
+//   ⇒ 半截船先長出來、船身那邊才拿掉 ⇒ 中間那幾格只會兩份疊在一起（位置一樣、看不出來），不會開洞。
+//   快轉（__game.run、?demo）一次做完（remesh(Infinity)）⇒ 縮圖不變。只動畫面：格子本身在模擬那一步就改好了。
+//   ⛔ 不改 VoxelKit：RegionSet.dirty 是公開的 Set，這裡先把超出預算的拿出來、flush 完再放回去。
+var RM_BUDGET = 96;
+function rsAllDirty(rs) { var t = rs.grid.tab; for (var i = 0; i < t.length; i++) if (t[i] !== null) rs.dirty.add(i); }   // 新建的一團：整份排進去（＝ buildAll，只是分批）
+function rsFlushSome(rs, n) {
+  var k = rs.dirty.size; if (k <= n) { rs.flush(); return k; }
+  var rest = [], j = 0;
+  rs.dirty.forEach(function (i) { if (j++ >= n) rest.push(i); });
+  rest.forEach(function (i) { rs.dirty.delete(i); }); rs.flush(); rest.forEach(function (i) { rs.dirty.add(i); });
+  return n;
+}
+function remesh(budget) {
+  var left = budget;
+  PIECES.concat(SHIPS).forEach(function (o) { if (left > 0 && o.rs.dirty.size) left -= rsFlushSome(o.rs, left); });
 }
 function drawHulls(prog, near) {                                       // near(c)：只畫靠近 c 的（陰影圖用；沒給 ⇒ 全畫）
   SHIPS.forEach(function (sh) { if (sh.sink > 40 || (near && !near(sh))) return; gl.uniformMatrix4fv(prog.u.uModel, false, sh.M); sh.rs.draw(); });
@@ -5116,8 +5220,27 @@ function capText(sh) {
   var C = CAPTAINS[sh.cap], manual = sh.i === PLAYER_I && !AUTOFIRE;
   return '砲長 ' + (C ? C.name : '—') + '：' + (manual ? '待命（我在瞄：' + AIM_NAME[sh.pMode || 'free'] + '）' : sh.aimMode ? '瞄' + AIM_NAME[sh.aimMode] : '觀察中');
 }
+// 進水 %（HUD；TASK-0535，Tim 2026-10-13：原本 ＝ 下沉 ÷ 9 m ⇒ 26% 時已經注定要沉、50% 就淹過船體 ⇒ 改用艙內積水算：船重＋積水 ＝ 浮力 ⇒ 100%）。
+//   浮力算到「開始沉」那條線（下沉 SINK_FINAL ＝ 4.2 m，32_hull.js；約略是甲板泡水）：W100 ＝ 船從現在的浮高再往下 4.2 m 要多吃的水（浮力表 T.hyd；
+//   船被打輕、浮高了 ⇒ W100 跟著變大）。粒子模式 W ＝ 艙內的積水；公式模式沒有水量 ⇒ W ＝ 現在比原本多吃的水（下沉照浮力表換算）。
+//   ⇒ 兩種模式都是開始沉那一刻 100%。只是顯示：航速照舊用下沉 ÷ 9 m（31_sailing.js，模擬）。
+var SINK_FINAL = 4.2;
+/** 浮高 L 公尺（負 ＝ 吃水深）時比設計水線的排水輕幾噸（32_hull.js liftFor 的反函數）。 */
+function tonsAt(T, L) {
+  var HYD = T.hyd, n = HYD.length - 1, z = T.zw - L / S;
+  if (z <= 0) return HYD[0] * RHO_W; if (z >= n) return HYD[n] * RHO_W;
+  var i = Math.floor(z); return (HYD[i] + (HYD[i + 1] - HYD[i]) * (z - i)) * RHO_W;
+}
+/** 進水 %（0–1）。 */
+function floodPct(sh) {
+  if (sh.sinkingFinal || sh.sunk) return 1;
+  var T = sh.T; if (!T || !T.hyd) return clamp(sh.sink / SINK_FINAL, 0, 1);
+  var base = T.disp - (sh.mass0 || shipT(sh)) + massLost(sh), L0 = liftFor(T, base), W100 = base - tonsAt(T, L0 - SINK_FINAL);
+  var W = sh.fl && !sh.broken ? sh.fl.vol * RHO_W : base - tonsAt(T, L0 - sh.sink);
+  return W100 > 0 ? clamp(W / W100, 0, 1) : 1;
+}
 function panel(sh, title) {
-  var hull = sh.grid.count / sh.orig, fl = clamp(sh.sink / 9, 0, 1);
+  var hull = sh.grid.count / sh.orig, fl = floodPct(sh);
   var m = sh.masts.map(function (x) { return x.name + (x.up ? '✓' : '✗'); }).join(' ');
   return '<h3>' + title + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
     '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + (sh.fl && !sh.broken ? '（艙內積水 ' + Math.round(sh.fl.vol * RHO_W).toLocaleString() + ' 噸・破口 ' + sh.fl.area.toFixed(1) + ' m²）' : '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
@@ -5200,7 +5323,7 @@ function drawNav(sh) {
   g.fillStyle = sh.i === 0 ? '#6f9bff' : '#ff6f6f'; g.beginPath(); g.moveTo(tip[0], tip[1]); g.lineTo(l[0], l[1]); g.lineTo(r2[0], r2[1]); g.closePath(); g.fill();
   // 文字
   var hb = bearing(F[0], F[2]), wb = bearing(from[0], from[2]), roll = (sh.rollA + (sh.rollW || 0)) * 57.2958, pitch = (sh.pitchA + (sh.pitchW || 0)) * 57.2958;
-  var hull = sh.grid.count / sh.orig * 100, fl = clamp(sh.sink / 9, 0, 1) * 100;
+  var hull = sh.grid.count / sh.orig * 100, fl = floodPct(sh) * 100;
   $('navt').innerHTML =
     '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
     '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
@@ -5224,11 +5347,18 @@ function hud(dt) {
   $('tip').textContent = t;
   drawNav(me);
 }
-// 結算畫面照模擬時間延後跳（暫停時不會跳出來）：沉了 2.5 秒；降旗、殉爆、全員倒下 5.5 秒（Tim：先看完精彩畫面 —— 殉爆的火球、斷成兩截）
-var END_AT = 0, END_SINK = 2.5, END_OTHER = 5.5;
+// 結算畫面照模擬時間延後跳（暫停時不會跳出來；殉爆的慢動作中跟著變慢）（Tim：先看完精彩畫面 —— 殉爆的火球、斷成兩截）：
+//   輸的那艘已經沉了 ⇒ 再等 END_SINK 秒；已經開始沉（殉爆斷船、進水太多）⇒ 等它沉下去（sunk）再等 END_SINK 秒，最多等 END_MAX 秒（END_WAIT）；
+//   降旗、全員倒下（沒在沉）⇒ END_OTHER 秒。Tim 2026-10-13：讓玩家欣賞完沉船 ⇒ 沉了 2.5 → 5 秒、開始沉的等它沉下去（以前一律 5.5 秒，斷船的那艘沉到一半就被結算蓋住）。
+//   只管什麼時候亮出結算畫面：OVER、結算的文字照舊在分出勝負那一步定 ⇒ 戰局讀數不變。
+var END_AT = 0, END_SINK = 5, END_OTHER = 5.5, END_MAX = 40, END_WAIT = null;
 function checkEnd() {
   if (MODE === 'sandbox' || DEMO >= 0) return;
-  if (OVER) { if (END_AT && SIMT >= END_AT) { END_AT = 0; $('end').className = 'on'; } return; }
+  if (OVER) {
+    if (END_WAIT && (END_WAIT.sunk || SIMT >= END_AT)) { END_AT = Math.min(END_AT, SIMT + END_SINK); END_WAIT = null; }
+    if (END_AT && !END_WAIT && SIMT >= END_AT) { END_AT = 0; $('end').className = 'on'; }
+    return;
+  }
   var me = SHIPS[PLAYER_I], foe = SHIPS[1 - PLAYER_I], txt = null;
   function fate(sh) { return sh.sunk ? '沉沒' : sh.fate; }
   if (foe.sunk || foe.struck) txt = '勝利！敵艦' + fate(foe);
@@ -5238,7 +5368,10 @@ function checkEnd() {
   $('endT').textContent = txt;
   $('endS').innerHTML = '打掉的格數：我艦 ' + me.lost.toLocaleString() + '　敵艦 ' + foe.lost.toLocaleString() + '<br>開火／命中：' + me.fired + '／' + me.hits + '　經過 ' + SIMT.toFixed(0) + ' 秒' +
     '<br><span style="color:var(--dim)">' + strikeText() + '</span>';
-  END_AT = SIMT + (foe.sunk || me.sunk ? END_SINK : END_OTHER);   // 重開／回選單時歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
+  var lose = foe.sunk || foe.struck ? foe : me;                     // 重開／回選單時 END_AT、END_WAIT 歸零（⛔ 不歸零 ⇒ 結束後幾秒內按重新開始，新的一局會跳出結算）
+  if (lose.sunk) END_AT = SIMT + END_SINK;
+  else if (lose.sinkingFinal) { END_WAIT = lose; END_AT = SIMT + END_MAX; }
+  else END_AT = SIMT + END_OTHER;
 }
 // ── js/69_prefs.js ──
 // ───────────────────────── 設定存檔（localStorage；Tim 2026-10-13：直接開網頁時，設定存在玩家自己的瀏覽器，下次打開自動套用） ─────────────────────────
@@ -5254,7 +5387,7 @@ function checkEnd() {
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -5280,7 +5413,7 @@ function prefsSnap() {
   if (STRIKE.cas !== LIM.cas[2] || STRIKE.guns || STRIKE.masts || STRIKE.officers) o.strike = { cas: STRIKE.cas, guns: STRIKE.guns, masts: STRIKE.masts, officers: STRIKE.officers };
   if (CAP_SET.some(function (k) { return k !== 'random'; })) o.cap = CAP_SET.slice();
   var gd = GFX_PRESET[GFX_DEFAULT]; if (GFX_ITEMS.some(function (it) { return GFX[it.k] !== gd[it.k]; })) { o.gfx = {}; GFX_ITEMS.forEach(function (it) { o.gfx[it.k] = GFX[it.k]; }); }   // 畫質（07_gfx.js）：跟預設不一樣 ⇒ 整組存
-  put('fps', GFX_FPS, false);
+  put('fps', GFX_FPS, false); put('slow', SLOW.on, true); put('slowcam', SLOW.cam, true);   // 殉爆的慢動作與特寫（73_slowmo.js）
   var xd = PHX_PRESET[PHX_DEFAULT]; if (PHX_ITEMS.some(function (it) { return PHX[it.k] !== xd[it.k]; })) { o.phx = {}; PHX_ITEMS.forEach(function (it) { o.phx[it.k] = PHX[it.k]; }); }   // 物理效果（09_phx.js）：跟預設不一樣 ⇒ 整組存
   put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
   if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
@@ -5329,6 +5462,8 @@ function prefsApply(p) {
   PHYS = PHX.rig > 0;
   if (p.gfx && typeof p.gfx === 'object' && !Q.has('gfx')) GFX_ITEMS.forEach(function (it) { var x = num(p.gfx[it.k], [0, it.opt.length - 1], true); if (x !== undefined && !Q.has('g_' + it.k)) GFX[it.k] = x; });
   if (typeof p.fps === 'boolean') GFX_FPS = p.fps;
+  if (typeof p.slow === 'boolean' && !Q.has('slowmo')) SLOW.on = p.slow;
+  if (typeof p.slowcam === 'boolean' && !Q.has('slowcam')) SLOW.cam = p.slowcam;
   if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
   if (p.mode === 'pve' || p.mode === 'eve' || p.mode === 'sandbox') MODE = p.mode;
   if (typeof p.auto === 'boolean') { AUTOFIRE = p.auto; LAST_MODE = MODE; }   // 存了自動開砲 ⇒ 開局不再照模式套預設（70_flow.js reset）
@@ -5369,11 +5504,11 @@ function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
 // ── js/70_flow.js ──
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
-  END_AT = 0;
+  END_AT = 0; END_WAIT = null;
   rs = SEED; rsD = SEED ^ RSD0; rsW = SEED ^ RSW0; rsF = SEED ^ RSF0; rsC = SEED ^ RSC0; SH_STAT.cut = SH_STAT.tris = 0; FLOOD_LV = PHX.flood; WP_STAT.spray = WP_STAT.foam = 0; WP_STAT.src = {}; DEB_ACC = PT_ACC = 0; SIMT = 0; stepWind(0);   // 開局的風 ＝ 原本的風（08_weather.js）              // 碎木、水花、進水粒子的亂數，少生的節拍跟著重設（12_effects.js、13_water.js、33_flood.js）；進水模式在這裡定（戰鬥中改了下一場生效）
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
-  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; WS.n = WF.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
+  SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; BLASTS = []; D.n = 0; PT.n = 0; WS.n = WF.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
   clearMsgs();
   PLAYER_I = 0;
   SHIPS.push(makeShip(0, 'blue', 0, DIST / 2, HULLT[SHIP_SET[0]]));
@@ -5470,7 +5605,7 @@ function doKey(k, repeat) {
   else if (k === 'x') xrayToggle();
   else if (k === 'm') { muted = !muted; gsetShow(); }
   else if (k === 'h' || k === '?') helpToggle();
-  else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; }
+  else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; END_WAIT = null; $('cover').style.display = ''; $('end').className = ''; }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     var order = ['auto', 'manual', 'off'];
     setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
@@ -5531,6 +5666,7 @@ function gsetShow() {
   [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.classList.toggle('on', b.dataset.gx === xl); });
   $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
   $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
+  $('slowT').classList.toggle('on', SLOW.on); $('slowCamT').classList.toggle('on', SLOW.cam);
   $('fullT').classList.toggle('on', fsOn()); $('fullT').classList.toggle('dis', !fsCan()); $('gsFull').textContent = fsCan() ? '' : '（這裡不給全螢幕：iPhone 的 Safari 只給影片）';
 }
 $('setB').onclick = gsetToggle;
@@ -5844,29 +5980,96 @@ function flHoleMarks(pushPt) {
     });
   });
 }
+// ── js/73_slowmo.js ──
+// ───────────────────────── 殉爆的慢動作與特寫（TASK-0531） ─────────────────────────
+// Tim 2026-10-13：卡頓先優化掉（開戰第一輪對砲：21_gunnery.js stepBall）；減速只留給殉爆，可以開關；慢多少是動態的（大的殉爆慢很多）。
+// 慢動作：模擬照舊一步 1/60 秒（DT），只是每一格畫面累積的時間 ×SLOW.ts（90_main.js frame）⇒ 模擬時間對真實時間變慢。
+//   ⇒ 開或關同一個種子走出同一局（只差在哪一格畫面走那一步）；?demo、__game.run 不經過 frame ⇒ 不受影響。
+//   倍率：殉爆那一刻掉到 tsMin（照爆炸半徑：前彈藥庫 9.5 m ⇒ 0.1×、後彈藥庫 5.5 m ⇒ 約 0.26×），停 hold 秒（真實時間，大的停久一點：前 5 秒、後 3.7 秒），再 SLOW_EASE 秒平滑回到 1×。
+//   Tim 2026-10-13：慢動作時間可以延長 ⇒ 停 1–2.5 → 2–5 秒、回到 1× 2.5 → 3.5 秒。
+//   兩間接連炸 ⇒ 取比較慢的那個、從頭算。
+//   慢動作中，只給人看的（碎木、煙與水花、船邊水花：12_effects.js、13_water.js）改成每一格畫面照「畫面的 dt × 倍率」走（SLOW_VIS；step() 那邊跳過）
+//   ⇒ 火球、碎片照樣平順（⛔ 留在 step() ⇒ 0.1× 時十格才動一下）。它們不回寫模擬 ⇒ 戰局不變。
+// 特寫：殉爆那一刻鏡頭切到爆心的側面（自由鏡頭、不跟船），慢動作回到 1× 再過 SLOW_CAM_TAIL 秒，回到原本的鏡頭；中間按了換鏡頭（C）⇒ 不再切回去。
+// 設定：遊戲內設定面板的「殉爆慢動作」「殉爆特寫」（跟著存檔；網址 ?slowmo=0、?slowcam=0）。狀態 SLOW 在 04_state.js（存檔在 69_prefs.js 載入時就讀）。
+var SLOW_EASE = 3.5, SLOW_CAM_TAIL = 0.8;
+/** 殉爆（23_powder.js magBoom）：w ＝ 爆心（世界）、R ＝ 爆炸半徑（格）。快轉（?demo）不切。 */
+function slowKick(sh, w, R) {
+  if (DEMO >= 0 || !RUNNING) return;
+  var k = clamp(R / MAG_R, 0, 1.3);
+  SLOW.kicks++;
+  if (SLOW.on) {
+    var m = clamp(0.1 + (1 - k) * 0.37, 0.1, 0.5), h = 2 + 3 * Math.min(k, 1);
+    if (!SLOW.active || m < SLOW.ts) { SLOW.min = m; SLOW.hold = h; SLOW.t = 0; SLOW.active = true; SLOW.ts = m; }
+  }
+  if (SLOW.cam) {
+    if (!SLOW.camSave) SLOW.camSave = { mode: CAM.mode, tgt: CAM.tgt.slice(), dist: CAM.dist, yaw: CAM.yaw, pitch: CAM.pitch, track: CAM.track };
+    var F = M4.dir(sh.M, 1, 0, 0), side = norm([-F[2], 0, F[0]]), e = CAM.eye;          // 船的正橫；站在鏡頭本來那一側
+    if ((e[0] - w[0]) * side[0] + (e[2] - w[2]) * side[2] < 0) side = mul(side, -1);
+    var yw = Math.atan2(side[2], side[0]) + 0.35;                                         // 偏一點船頭的方向 ⇒ 看得到斷開的兩截
+    CAM.mode = 0; CAM.track = false; CAM.tgt = [w[0], w[1] + R * S * 0.4, w[2]]; CAM.dist = clamp(R * S * 5.2, 28, 70); CAM.yaw = yw; CAM.pitch = 0.2; CAM.snap = true;
+    SLOW.camT = SLOW.hold + SLOW_EASE + SLOW_CAM_TAIL; SLOW.camMode = 0;
+  }
+}
+/** 每一格畫面（90_main.js frame，停格時不走）：照真實時間算現在的倍率；特寫時間到了把鏡頭還回去。回：倍率。 */
+function slowTick(dt) {
+  if (SLOW.active) {
+    SLOW.t += dt;
+    var u = (SLOW.t - SLOW.hold) / SLOW_EASE;
+    if (u >= 1 || !SLOW.on) { SLOW.active = false; SLOW.ts = 1; }
+    else SLOW.ts = u <= 0 ? SLOW.min : SLOW.min + (1 - SLOW.min) * u * u * (3 - 2 * u);
+  }
+  if (SLOW.camSave) {
+    SLOW.camT -= dt;
+    if (CAM.mode !== SLOW.camMode) SLOW.camSave = null;                                   // 中間換過鏡頭 ⇒ 照玩家的
+    else if (SLOW.camT <= 0 || !SLOW.cam) {
+      var s = SLOW.camSave; SLOW.camSave = null;
+      CAM.mode = s.mode; CAM.tgt = s.tgt; CAM.dist = s.dist; CAM.yaw = s.yaw; CAM.pitch = s.pitch; CAM.track = s.track;
+    }
+  }
+  return SLOW.ts;
+}
+/** 慢動作中，只給人看的效果照畫面的時間走（step() 那邊跳過）。 */
+function slowVisStep(dt) { stepDebris(dt); stepPts(dt); stepWater(dt, 'fly'); }
+/** 慢動作的提示（畫面上方中間）：倍率 < 0.98 才顯示。 */
+function slowShow() {
+  var el = $('slowB'); if (!el) return;
+  var on = RUNNING && SLOW.active && SLOW.ts < 0.98;
+  el.classList.toggle('on', on); if (on) el.textContent = '慢動作 ×' + SLOW.ts.toFixed(2);
+}
+$('slowT').onclick = function () { SLOW.on = !SLOW.on; if (!SLOW.on) { SLOW.active = false; SLOW.ts = 1; } gsetShow(); };
+$('slowCamT').onclick = function () { SLOW.cam = !SLOW.cam; gsetShow(); };
 // ── js/90_main.js ──
 // ───────────────────────── 主迴圈 ─────────────────────────
 var last = 0, acc = 0, FPS = 60, fpsT = 0;
-function frame(ts) {
+function frame(ts, noRaf) {                                         // noRaf：__game.live 同步呼叫（不再排下一格，⛔ 排了 ⇒ 兩條畫面迴圈、模擬走兩倍快）
+  var f0 = PF ? performance.now() : 0;                                // 逐幀分段計時（?debug=1）
   var dt = last ? Math.min(0.1, (ts - last) / 1000) : DT; last = ts;
   FPS = FPS * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
   if (RUNNING && !PAUSED) {
-    acc += dt; var n = 0;
+    var sk = slowTick(dt); SLOW_VIS = sk < 1;                         // 殉爆的慢動作（73_slowmo.js）：模擬一步照舊 DT，只是每格累積的時間 × 倍率
+    acc += dt * sk; var n = 0;
     while (acc >= DT && n < 4) { step(); acc -= DT; n++; }
     if (n === 4) acc = 0;
+    if (SLOW_VIS) { if (PF) PF.t = performance.now(); slowVisStep(dt * sk); if (PF) pfLap('slowvis'); }
+    SLOW_VIS = false;                                                 // 快轉（__game.run）不經過這裡 ⇒ 照常在 step() 走
   }
+  if (PF) PF.t = performance.now();
   camFollow(dt);                                                      // 追砲彈（03_camera.js）
   if (!PAUSED && !STILL) stepRain(dt);                                // 3D 雨滴（14_rain.js）：照畫面的時間走；停格、縮圖不動
-  SHIPS.forEach(function (sh) { sh.rs.flush(); });
-  camUpdate(dt); render(); hud(dt); frzShow();                        // 停格條（72_floodui.js）
+  if (PF) pfLap('rain');
+  remesh(RM_BUDGET);                                                  // 重網格化，每格有預算（60_render.js）
+  if (PF) pfLap('flush');
+  camUpdate(dt); render(); if (PF) pfLap('render'); hud(dt); frzShow(); slowShow();                        // 停格條（72_floodui.js）
+  if (PF) { pfLap('hud'); pfEnd(f0, RUNNING && !PAUSED ? n : 0); }
   if (GFX_FPS && (fpsT -= dt) <= 0) { fpsT = 0.5; $('fps').textContent = 'FPS ' + Math.round(FPS) + '　畫質 ' + GFX_NAME[gfxLevel()] + '　' + CAM.w + '×' + CAM.h + (RT && RT.s ? '　MSAA ' + RT.s + '×' : ''); }   // 畫質設定頁的「顯示 FPS」
-  requestAnimationFrame(frame);
+  if (!noRaf) requestAnimationFrame(frame);
 }
 
 // ───────────────────────── 載入 ─────────────────────────
 if (DEBUG) window.__game = {
   start: function (mode, dist) { MODE = mode || 'pve'; DIST = dist || DIST; start(); },
-  run: function (sec) { var n = Math.round(sec / DT); for (var i = 0; i < n; i++) { step(); if (i % 30 === 29) SHIPS.forEach(function (sh) { sh.rs.flush(); }); } SHIPS.forEach(function (sh) { sh.rs.flush(); }); camUpdate(1); render(); hud(1); return this.stats(); },
+  run: function (sec) { var n = Math.round(sec / DT); for (var i = 0; i < n; i++) { step(); if (i % 30 === 29) remesh(Infinity); } remesh(Infinity); camUpdate(1); render(); hud(1); PF.cur = {}; return this.stats(); },   // PF.cur：快轉的不算進下一格畫面
   fire: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) me.aim = aim; return broadside(me, ammo || 0); },
   one: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) me.aim = aim; fireOne(me, ammo || 0); return BALLS.length; },
   ships: function () { return SHIPS; }, balls: function () { return BALLS; }, pieces: function () { return PIECES; },
@@ -5910,6 +6113,22 @@ if (DEBUG) window.__game = {
     sh.rs.flush(); return { removed: n, skin: y0 };
   },
   /** 船邊水花（13_water.js）：現在的檔、水滴與白沫各幾顆、開局以來生了幾顆。{ hide: true } ⇒ 照算、不畫（量繪製成本）。 */
+  /** 逐幀分段計時（TASK-0531）：最慢的 top 格（預設 8）各段幾 ms、這一格走了幾步模擬；{ clear: true } ⇒ 清掉重記；{ sum: true } ⇒ 再附上全部格的各段總和與平均。 */
+  /** 照真的畫面迴圈跑 sec 秒模擬（同步呼叫 frame()，dt ＝ 實際經過的時間 ⇒ 追趕迴圈補幾步跟真的玩一樣；預覽分頁在背景時 rAF 停也量得到）。finish ⇒ 每格 gl.finish()（把 GPU 的時間也算進去）。 */
+  live: function (sec, finish) {
+    var end = SIMT + sec, n = 0, t0 = performance.now(); last = 0;
+    while (SIMT < end && n < sec * 400) { frame(performance.now(), true); if (finish) gl.finish(); n++; }
+    return { frames: n, ms: Math.round(performance.now() - t0), simt: +SIMT.toFixed(2), fps: +(n / ((performance.now() - t0) / 1000)).toFixed(1) };
+  },
+  frames: function (o) {
+    o = o || {}; if (o.clear) { PF.ring = []; PF.cur = {}; return 'cleared'; }
+    var R = PF.ring, f2 = function (x) { return +x.toFixed(1); }, fmt = function (c) { var r = { simt: f2(c.simt), total: f2(c.total), steps: c.steps }; Object.keys(c).filter(function (k) { return ['simt', 'total', 'steps'].indexOf(k) < 0 && c[k] >= 0.5; }).sort(function (a, b) { return c[b] - c[a]; }).forEach(function (k) { r[k] = f2(c[k]); }); return r; };
+    var top = R.slice().sort(function (a, b) { return b.total - a.total; }).slice(0, o.top || 8).map(fmt), out = { frames: R.length, top: top };
+    if (o.sum) { var s = {}; R.forEach(function (c) { for (var k in c) if (k !== 'simt' && k !== 'steps') s[k] = (s[k] || 0) + c[k]; }); for (var k in s) s[k] = f2(s[k] / Math.max(1, R.length)); out.avg = s; }
+    return out;
+  },
+  /** 殉爆的慢動作與特寫（73_slowmo.js）：給 { on, cam } 就改設定；回現在的倍率、狀態、殉爆幾次。 */
+  slow: function (o) { if (o) { if ('on' in o) SLOW.on = !!o.on; if ('cam' in o) SLOW.cam = !!o.cam; gsetShow(); } return { on: SLOW.on, cam: SLOW.cam, active: SLOW.active, ts: +SLOW.ts.toFixed(3), min: SLOW.min, hold: SLOW.hold, t: +SLOW.t.toFixed(2), kicks: SLOW.kicks, camHeld: !!SLOW.camSave }; },
   /** 3D 雨滴（14_rain.js）：現在幾滴、上一格畫了幾條、水花幾個、開了以來落海與打到船幾次。{ bench: n } ⇒ 量 n 格（走一格＋填緩衝畫一次）各花幾 ms。 */
   rain: function (o) {
     var b = null; if (o && o.bench) { var t0 = performance.now(), i; for (i = 0; i < o.bench; i++) stepRain(1 / 60); var t1 = performance.now(); for (i = 0; i < o.bench; i++) rdDraw(); gl.finish(); b = { step: +((t1 - t0) / o.bench).toFixed(3), draw: +((performance.now() - t1) / o.bench).toFixed(3) }; }
@@ -6010,15 +6229,15 @@ yieldUI().then(function () {                                        // 先讓主
     var steps = Math.round(DEMO / DT), phys = PHYS, from = Math.max(0, steps - 360);     // 帆與繩只畫最後那一格 ⇒ 物理只在最後 6 秒跑（不影響戰局）
     if (phys && from > 0) setPhys(false);
     // ?dump=1：每半秒記每艘的最大橫傾、開始沉／沉沒／降旗的時間，跑完寫進頁面（#dump；無頭 Chrome --dump-dom 讀，量進水模式用）
-    var rec = Q.get('dump') === '1' ? SHIPS.map(function () { return { maxList: 0, maxPre: 0, final: null, sunk: null, struck: null }; }) : null;
+    var rec = Q.get('dump') === '1' ? SHIPS.map(function () { return { maxList: 0, maxPre: 0, maxSinkPre: 0, final: null, sunk: null, struck: null }; }) : null;
     for (var i = 0; i < steps; i++) {
-      if (phys && i === from && from > 0) setPhys(true); step(); if (i % 30 === 29) SHIPS.forEach(function (sh) { sh.rs.flush(); });
-      if (rec && i % 30 === 29) SHIPS.forEach(function (sh, k) { var r = rec[k]; r.maxList = Math.max(r.maxList, Math.abs(sh.rollA)); if (!sh.sinkingFinal) r.maxPre = Math.max(r.maxPre, Math.abs(sh.rollA)); if (sh.sinkingFinal && r.final === null) r.final = +SIMT.toFixed(1); if (sh.sunk && r.sunk === null) r.sunk = +SIMT.toFixed(1); if (sh.struck && r.struck === null) r.struck = +SIMT.toFixed(1); });
+      if (phys && i === from && from > 0) setPhys(true); step(); if (i % 30 === 29) remesh(Infinity);
+      if (rec && i % 30 === 29) SHIPS.forEach(function (sh, k) { var r = rec[k]; r.maxList = Math.max(r.maxList, Math.abs(sh.rollA)); if (!sh.sinkingFinal) { r.maxPre = Math.max(r.maxPre, Math.abs(sh.rollA)); r.maxSinkPre = Math.max(r.maxSinkPre, sh.sink); r.maxPctPre = Math.max(r.maxPctPre || 0, floodPct(sh)); } if (sh.sinkingFinal && r.final === null) r.final = +SIMT.toFixed(1); if (sh.sunk && r.sunk === null) r.sunk = +SIMT.toFixed(1); if (sh.struck && r.struck === null) r.struck = +SIMT.toFixed(1); });
     }
-    SHIPS.forEach(function (sh) { sh.rs.flush(); }); RUNNING = false; $('cover').style.display = 'none';
+    remesh(Infinity); RUNNING = false; $('cover').style.display = 'none';
     if (rec) { var pre = document.createElement('pre'); pre.id = 'dump'; document.body.appendChild(pre);
       pre.textContent = JSON.stringify({ seed: SEED, t: +SIMT.toFixed(1), flood: FLOOD_LV, ships: SHIPS.map(function (sh, k) { var r = rec[k];
-        return { maxListDeg: +(r.maxList * 57.3).toFixed(1), maxPreDeg: +(r.maxPre * 57.3).toFixed(1), final: r.final, sunk: r.sunk, struck: r.struck, fate: sh.fate, lost: sh.lost, hits: sh.hits, sink: +sh.sink.toFixed(2), water: sh.fl ? Math.round(sh.fl.vol * RHO_W) : null, area: sh.fl ? +sh.fl.area.toFixed(1) : null, inflow: sh.inflow }; }) }); }
+        return { maxListDeg: +(r.maxList * 57.3).toFixed(1), maxPreDeg: +(r.maxPre * 57.3).toFixed(1), maxSinkPre: +r.maxSinkPre.toFixed(2), maxPctPre: Math.round((r.maxPctPre || 0) * 100), final: r.final, sunk: r.sunk, struck: r.struck, fate: sh.fate, lost: sh.lost, hits: sh.hits, sink: +sh.sink.toFixed(2), water: sh.fl ? Math.round(sh.fl.vol * RHO_W) : null, area: sh.fl ? +sh.fl.area.toFixed(1) : null, inflow: sh.inflow }; }) }); }
     window.__vxk.demo = { t: SIMT, lost: SHIPS.map(function (s) { return s.lost; }), pieces: PIECES.length, debris: D.n };
   } else {
     // 選單後面先擺好兩艘船當背景

@@ -120,6 +120,24 @@ function prepRig() {
     if (DEBUG) PROF.buf += performance.now() - tb;
   });
 }
+// 重網格化（TASK-0531）：打掉的格要重建那幾個區塊的網格（VoxelKit RegionSet：dirty 裡的區塊 → meshChunk → 那一區重新上傳）。
+//   畫面迴圈每一格最多 RM_BUDGET 塊（殉爆、斷船一次上千塊 ⇒ 那一格卡 170 ms）；先做斷開的那幾團（新建的）、再做船
+//   ⇒ 半截船先長出來、船身那邊才拿掉 ⇒ 中間那幾格只會兩份疊在一起（位置一樣、看不出來），不會開洞。
+//   快轉（__game.run、?demo）一次做完（remesh(Infinity)）⇒ 縮圖不變。只動畫面：格子本身在模擬那一步就改好了。
+//   ⛔ 不改 VoxelKit：RegionSet.dirty 是公開的 Set，這裡先把超出預算的拿出來、flush 完再放回去。
+var RM_BUDGET = 96;
+function rsAllDirty(rs) { var t = rs.grid.tab; for (var i = 0; i < t.length; i++) if (t[i] !== null) rs.dirty.add(i); }   // 新建的一團：整份排進去（＝ buildAll，只是分批）
+function rsFlushSome(rs, n) {
+  var k = rs.dirty.size; if (k <= n) { rs.flush(); return k; }
+  var rest = [], j = 0;
+  rs.dirty.forEach(function (i) { if (j++ >= n) rest.push(i); });
+  rest.forEach(function (i) { rs.dirty.delete(i); }); rs.flush(); rest.forEach(function (i) { rs.dirty.add(i); });
+  return n;
+}
+function remesh(budget) {
+  var left = budget;
+  PIECES.concat(SHIPS).forEach(function (o) { if (left > 0 && o.rs.dirty.size) left -= rsFlushSome(o.rs, left); });
+}
 function drawHulls(prog, near) {                                       // near(c)：只畫靠近 c 的（陰影圖用；沒給 ⇒ 全畫）
   SHIPS.forEach(function (sh) { if (sh.sink > 40 || (near && !near(sh))) return; gl.uniformMatrix4fv(prog.u.uModel, false, sh.M); sh.rs.draw(); });
   PIECES.forEach(function (pc) { if (near && !near(pc)) return; gl.uniformMatrix4fv(prog.u.uModel, false, pc.M); pc.rs.draw(); });

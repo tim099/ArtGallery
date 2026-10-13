@@ -11,7 +11,7 @@
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'slowmo', 'slowcam'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -37,7 +37,7 @@ function prefsSnap() {
   if (STRIKE.cas !== LIM.cas[2] || STRIKE.guns || STRIKE.masts || STRIKE.officers) o.strike = { cas: STRIKE.cas, guns: STRIKE.guns, masts: STRIKE.masts, officers: STRIKE.officers };
   if (CAP_SET.some(function (k) { return k !== 'random'; })) o.cap = CAP_SET.slice();
   var gd = GFX_PRESET[GFX_DEFAULT]; if (GFX_ITEMS.some(function (it) { return GFX[it.k] !== gd[it.k]; })) { o.gfx = {}; GFX_ITEMS.forEach(function (it) { o.gfx[it.k] = GFX[it.k]; }); }   // 畫質（07_gfx.js）：跟預設不一樣 ⇒ 整組存
-  put('fps', GFX_FPS, false);
+  put('fps', GFX_FPS, false); put('slow', SLOW.on, true); put('slowcam', SLOW.cam, true);   // 殉爆的慢動作與特寫（73_slowmo.js）
   var xd = PHX_PRESET[PHX_DEFAULT]; if (PHX_ITEMS.some(function (it) { return PHX[it.k] !== xd[it.k]; })) { o.phx = {}; PHX_ITEMS.forEach(function (it) { o.phx[it.k] = PHX[it.k]; }); }   // 物理效果（09_phx.js）：跟預設不一樣 ⇒ 整組存
   put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
   if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
@@ -86,6 +86,8 @@ function prefsApply(p) {
   PHYS = PHX.rig > 0;
   if (p.gfx && typeof p.gfx === 'object' && !Q.has('gfx')) GFX_ITEMS.forEach(function (it) { var x = num(p.gfx[it.k], [0, it.opt.length - 1], true); if (x !== undefined && !Q.has('g_' + it.k)) GFX[it.k] = x; });
   if (typeof p.fps === 'boolean') GFX_FPS = p.fps;
+  if (typeof p.slow === 'boolean' && !Q.has('slowmo')) SLOW.on = p.slow;
+  if (typeof p.slowcam === 'boolean' && !Q.has('slowcam')) SLOW.cam = p.slowcam;
   if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
   if (p.mode === 'pve' || p.mode === 'eve' || p.mode === 'sandbox') MODE = p.mode;
   if (typeof p.auto === 'boolean') { AUTOFIRE = p.auto; LAST_MODE = MODE; }   // 存了自動開砲 ⇒ 開局不再照模式套預設（70_flow.js reset）

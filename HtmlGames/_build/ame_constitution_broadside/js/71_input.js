@@ -69,7 +69,7 @@ function doKey(k, repeat) {
   else if (k === 'x') xrayToggle();
   else if (k === 'm') { muted = !muted; gsetShow(); }
   else if (k === 'h' || k === '?') helpToggle();
-  else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; $('cover').style.display = ''; $('end').className = ''; }
+  else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; END_WAIT = null; $('cover').style.display = ''; $('end').className = ''; }
   else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
     var order = ['auto', 'manual', 'off'];
     setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
@@ -130,6 +130,7 @@ function gsetShow() {
   [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.classList.toggle('on', b.dataset.gx === xl); });
   $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
   $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
+  $('slowT').classList.toggle('on', SLOW.on); $('slowCamT').classList.toggle('on', SLOW.cam);
   $('fullT').classList.toggle('on', fsOn()); $('fullT').classList.toggle('dis', !fsCan()); $('gsFull').textContent = fsCan() ? '' : '（這裡不給全螢幕：iPhone 的 Safari 只給影片）';
 }
 $('setB').onclick = gsetToggle;

@@ -21,7 +21,7 @@ function spawnPiece(sh, pc) {
   }
   var px = 0, py = 0, pz = 0, pn = 0;
   for (i = 0; i < n; i++) { z = pc[i] >> 20; if (z <= minz + 2) { px += (pc[i] & 1023); py += (pc[i] >> 10) & 1023; pz += z; pn++; } }
-  var rs2 = new VK.RegionSet(gl, g, QIDX); rs2.buildAll();
+  var rs2 = new VK.RegionSet(gl, g, QIDX); rsAllDirty(rs2);                 // 網格分批建（60_render.js remesh；⛔ buildAll ⇒ 十萬格的半截船那一格卡上百 ms）
   var M0 = sh.M, c0 = M4.pt(M0, sx / n + 0.5, sy / n + 0.5, sz / n + 0.5), pivot = M4.pt(M0, px / pn + 0.5, py / pn + 0.5, pz / pn);
   var imp = sh.impulse; imp = [imp[0], 0, imp[2]]; if (len(imp) < 1e-6) imp = [rnd() - 0.5, 0, rnd() - 0.5];
   var axis = norm(cross([0, 1, 0], norm(imp)));

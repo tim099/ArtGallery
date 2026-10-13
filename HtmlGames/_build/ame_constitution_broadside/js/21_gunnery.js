@@ -80,13 +80,19 @@ function aimPoint(sh) {
   return M4.pt(foe.M, foe.T.cx, foe.T.cy, 90);
 }
 
+/** 砲彈這一步（每 5 cm 一小段：450 m/s 的彈一步 150 段）。
+ *  省時間（TASK-0531：開戰第一輪對砲幾十顆彈同時飛，每格 240–320 ms，掉到 15 FPS 以下；判定一個都不能變）：
+ *    · 海面：比最高的浪（七道振幅和 1.14 m × 浪 × 天氣）還高就不可能落水 ⇒ 不算 seaH。
+ *    · 繩、帆、人、模型：進了某艘船的外接球，先挑出「這一步飛得到的範圍」（這一點起算、這一步最多飛 sp × dt）裡的（ballNear），
+ *      後面的小段只看這幾個（順序照原本的；模型照原本的桶、只是跳過沒挑到的）⇒ 判定與亂數順序跟全看一模一樣。量過：同一個種子戰局讀數逐字相同。
+ *    量過（觀戰種子 1797，第一輪對砲最慢的一格）：繩 120–160 → 12–17 ms、人 40–46 → 1–2 ms（之後再加帆與模型）。 */
 function stepBall(b, dt) {
   b.age += dt;
-  var sp = len(b.v), steps = Math.max(1, Math.ceil(sp * dt / 0.05)), h = dt / steps;
+  var sp = len(b.v), steps = Math.max(1, Math.ceil(sp * dt / 0.05)), h = dt / steps, top = SEA_K > 0 ? 1.15 * SEA_K * WX.sea : 0, near = null;
   for (var s = 0; s < steps && b.alive; s++) {
     b.v[1] -= G * h;
     b.p[0] += b.v[0] * h; b.p[1] += b.v[1] * h; b.p[2] += b.v[2] * h; b.trav += len(b.v) * h;
-    var sea = seaH(b.p[0], b.p[2], SIMT);                              // 水面跟著浪（08_sea.js）
+    var sea = b.p[1] < top ? seaH(b.p[0], b.p[2], SIMT) : -1e9;         // 水面跟著浪（08_sea.js）；比最高的浪還高 ⇒ 不用算
     if (b.p[1] < sea) {
       var spd = len(b.v), ang = Math.asin(-b.v[1] / spd);
       if (b.ammo === 0 && !b.bounced && ang < 0.11 && spd > 90) {       // 打水漂：低角度的實心彈會跳一下
@@ -99,8 +105,8 @@ function stepBall(b, dt) {
       if (i === b.owner && b.trav < 6) continue;
       var cc = sh.center, dx = b.p[0] - cc[0], dy = b.p[1] - cc[1], dz = b.p[2] - cc[2];
       if (dx * dx + dy * dy + dz * dz > sh.rad2) continue;
-      var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]);
-      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 一發扣好幾次血）
+      var L = M4.pt(sh.inv, b.p[0], b.p[1], b.p[2]), nb = (near || (near = []))[i] || (near[i] = ballNear(sh, L, sp * dt));
+      var hm = hitModel(sh, L, b.ammo === 2 ? 10 : 1.5, b.hitM, nb.id);          // 同一顆砲彈對同一個模型只算一次（穿過外框要好幾個小步；⛔ 每步都扣 ⇒ 一發扣好幾次血）
       if (hm) {                                                          // 打到模型：扣血（每發傷害 × 彈種對砲倍率；歸零整個飛出去），砲彈被擋掉一大半
         if (sh.i !== b.owner && !b.hitOnce) { SHIPS[b.owner].hits++; b.hitOnce = true; }
         (b.hitM = b.hitM || []).push(hm);
@@ -109,9 +115,9 @@ function stepBall(b, dt) {
         b.v = mul(b.v, b.ammo === 2 ? 0.5 : 0.55);
         if (len(b.v) < 30) { ballToDebris(b); return; }
       }
-      if (b.ammo === 2) cutRig(sh, L, 14, b);
-      else if ((s & 3) === 0) cutRig(sh, L, 3, b);                       // 實心與爆裂：細繩照斷、穿過帆會打洞（帆扣得少，見彈種倍率）
-      if ((s & 3) === 1 && sh.i !== b.owner) hurt(sh, L, 4, 0, null, '砲彈', crewBase(b) * 2);      // 砲彈直接掠過：兩倍
+      if (b.ammo === 2) cutRig(sh, L, 14, b, nb.ropes, nb.sails);
+      else if ((s & 3) === 0) cutRig(sh, L, 3, b, nb.ropes, nb.sails);             // 實心與爆裂：細繩照斷、穿過帆會打洞（帆扣得少，見彈種倍率）
+      if ((s & 3) === 1 && sh.i !== b.owner) hurt(sh, L, 4, 0, null, '砲彈', crewBase(b) * 2, nb.crew);      // 砲彈直接掠過：兩倍
       if (!sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
         if (b.ammo !== 2) continue;
         // 鏈彈：兩顆彈中間一條鏈、轉著飛，約 2.4 公尺寬 ⇒ 沿那條橫桿取樣，碰到哪裡就從哪裡咬下去
@@ -149,9 +155,10 @@ function impact(b, sh, L) {
   b.v = mul(b.v, nsp / sp);
 }
 /** 格座標 L 落在哪個還在的模型外框裡（外擴 m 格）。 */
-function hitModel(sh, L, m, skip) {                                     // skip：這顆砲彈已經打過的（略過它、找後面那一個）
+function hitModel(sh, L, m, skip, nb) {                                 // skip：這顆砲彈已經打過的（略過它、找後面那一個）；nb：只看蓋了這個戳記的（stepBall 的 ballNear；沒給 ⇒ 全看）
   var bk = L[0] >= 0 ? sh.mIdx[Math.floor(L[0] / 16)] : null; if (!bk) return null;   // 只看這一桶（modelIndex；登記時外擴 12 格 ≥ 鏈彈的 10）
   for (var i = 0; i < bk.length; i++) {
+    if (nb && bk[i].nb !== nb) continue;
     var o = bk[i], b = o.bb, Q = o.rot ? unrotL(o, L) : L;                 // 轉過的帆桁：把彈點轉回作品裡的角度再比
     if (o.alive && !(skip && skip.indexOf(o) >= 0) && Q[0] > b[0] - m && Q[0] < b[3] + m && Q[1] > b[1] - m && Q[1] < b[4] + m && Q[2] > b[2] - m && Q[2] < b[5] + m &&
         (m > 2 || inMesh(o, Q))) return o;                               // 實心／爆裂彈：外框裡還要真的碰到砲身或砲架（鏈彈橫掃 2.4 m ⇒ 外框就算）
@@ -294,10 +301,30 @@ function explode(w, sh, n) {
   for (var i = 0; i < 26; i++) spawnPt(w, [gauss() * 7, rr(1, 9), gauss() * 7], rr(0.3, 0.8), [1, rr(0.45, 0.7), 0.15], 0.9, rr(1.5, 3), rr(3, 5), 0, 2.5, 3);
   smoke(w, [0, 1, 0], 22, true); sfx('blast', w, 1.4);
 }
-/** 經過的繩（距離 < r 格）斷掉；鏈彈穿過帆 ⇒ 帆掉下來。 */
-function cutRig(sh, L, r, b) {
+/** 這顆彈這一步在 sh 上飛得到的範圍（格座標 L 起算、最多再飛 reach 公尺）裡的繩、帆、人、模型：碰得到這個範圍（再外擴 16 格 ≥ 斷繩的 14、
+ *  傷人的 4、帆的 8、模型的 10）的才留，順序照原本的。繩與帆與模型的外框、帆桁的角度、人的位置在砲彈這一段都不會變（帆桁轉、人走路在別段）⇒ 用一整步。
+ *  跟著帆桁轉的（帆、帆桁模型）：判定時把彈點繞轉軸轉回作品的角度 ⇒ 離轉軸的水平距離不變 ⇒ 用圓柱挑（轉軸到範圍的水平距離 ≤ 外框四角離轉軸最遠的 ＋ 外擴 × 1.5）。
+ *  模型不另外列：蓋戳記（o.nb ＝ 這一次的編號），hitModel 照原本的桶走、沒戳記的跳過 ⇒ 打到哪一個的先後跟原本一樣。 */
+var NB_ID = 0;
+function ballNear(sh, L, reach) {
+  var H = (reach + 0.5) / S + 16, xa = L[0] - H, xb = L[0] + H, ya = L[1] - H, yb = L[1] + H, za = L[2] - H, zb = L[2] + H, id = ++NB_ID;
+  function box(bb, r) { return bb[0] - r <= xb && bb[3] + r >= xa && bb[1] - r <= yb && bb[4] + r >= ya && bb[2] - r <= zb && bb[5] + r >= za; }
+  function cyl(p, bb, r) {
+    if (bb[2] - r > zb || bb[5] + r < za) return false;
+    var R = 0; [[bb[0], bb[1]], [bb[3], bb[1]], [bb[0], bb[4]], [bb[3], bb[4]]].forEach(function (q) { R = Math.max(R, Math.hypot(q[0] - p[0], q[1] - p[1])); });
+    var dx = Math.max(xa - p[0], 0, p[0] - xb), dy = Math.max(ya - p[1], 0, p[1] - yb);
+    return Math.hypot(dx, dy) <= R + r * 1.5;
+  }
+  sh.models.forEach(function (o) { if (o.alive && (o.rot && o.piv ? cyl(o.piv, o.bb, 10) : box(o.bb, 10))) o.nb = id; });
+  return { id: id,
+    ropes: sh.ropes.filter(function (rp) { return !rp.dead && box(rp.bb, 0); }),
+    sails: sh.sails.filter(function (s) { var y0 = s.yards && s.yards[0]; return !s.dead && !s.furled && (y0 ? cyl(y0.piv, s.bb, 8) : box(s.bb, 8)); }),
+    crew: sh.crew.filter(function (c) { var p = c.pos; return p[0] >= xa && p[0] <= xb && p[1] >= ya && p[1] <= yb && p[2] + 9 >= za && p[2] + 9 <= zb; }) };
+}
+/** 經過的繩（距離 < r 格）斷掉；鏈彈穿過帆 ⇒ 帆掉下來。ropes／sails：只看這幾條、這幾面（stepBall 先挑好的，ballNear；沒給 ⇒ 全部）。 */
+function cutRig(sh, L, r, b, ropes, sails) {
   var r2 = r * r, changed = false;
-  sh.ropes.forEach(function (rp) {
+  (ropes || sh.ropes).forEach(function (rp) {
     if (rp.dead) return;
     var bb = rp.bb;
     if (L[0] < bb[0] - r || L[0] > bb[3] + r || L[1] < bb[1] - r || L[1] > bb[4] + r || L[2] < bb[2] - r || L[2] > bb[5] + r) return;
@@ -308,7 +335,7 @@ function cutRig(sh, L, r, b) {
   });
   // 帆：鏈彈纏上（彈心 0.8 m 內有頂點）；實心與爆裂穿過（0.4 m 內）也扣、打個小洞。扣 ＝ 每發傷害 × 彈種對帆倍率
   var chain = b.ammo === 2, rs2 = chain ? 64 : 16, rb = chain ? 8 : 4;
-  sh.sails.forEach(function (s) {
+  (sails || sh.sails).forEach(function (s) {
     if (s.dead || s.furled) return;
     var v = s.verts, sb = s.bb;
     if (b.sails && b.sails.indexOf(s) >= 0) return;                    // 同一顆彈穿過一面帆要好幾個小步 ⇒ 只算一次（記帆本身：兩艘的同編號帆是不同的帆）

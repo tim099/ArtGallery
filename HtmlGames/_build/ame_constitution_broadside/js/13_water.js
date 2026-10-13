@@ -54,10 +54,12 @@ function wpRing(T) {
   return R;
 }
 /** 每一步（50_sim.js，碎片與粒子之後）：船身與船尾生水花與白沫、水滴落海、白沫漂。關 ⇒ 清空。 */
-function stepWater(dt) {
+/** only：'ship' ⇒ 只生（船身與船尾，照模擬的步：wpShip 拿這一步與上一步的船矩陣算速度）；'fly' ⇒ 只飛與散（殉爆慢動作時照畫面的時間走，73_slowmo.js）；沒給 ⇒ 都做。 */
+function stepWater(dt, only) {
   var L = wpLv();
   if (!L) { WS.n = WF.n = 0; return; }
-  SHIPS.forEach(function (sh) { wpShip(sh, dt, L); });
+  if (only !== 'fly') SHIPS.forEach(function (sh) { wpShip(sh, dt, L); });
+  if (only === 'ship') return;
   var hmax = 1.2 * SEA_K * WX.sea + 0.1, i, o, wx = WIND[0] * WX.wind * 0.12 * dt, wz = WIND[2] * WX.wind * 0.12 * dt, kd = 1 - 0.35 * dt;
   for (i = 0; i < WS.n; i++) {
     o = i * 3; WS.life[i] -= dt;

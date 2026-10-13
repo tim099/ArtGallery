@@ -19,6 +19,7 @@ function ai(sh, dt) {
 
 // ───────────────────────── 一步 ─────────────────────────
 function step() {
+  if (PF) PF.t = performance.now();                                 // 逐幀分段計時（?debug=1，00_core.js）
   SIMT += DT;
   stepWind(SIMT);                                                  // 風會變（08_weather.js）
   for (var i = 0; i < EVENTS.length; i++) {
@@ -27,18 +28,30 @@ function step() {
     var sh = SHIPS[e.sh], et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off)));   // 開火那一刻才挑點（兩艘都在動）
     if (et) fireGun(sh, e.g, et, e.ammo);
   }
-  SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); stepCrew(sh, DT); });
+  if (PF) pfLap('fire');
+  SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); if (PF) pfLap('ship'); stepCrew(sh, DT); if (PF) pfLap('crew'); });
   collide();
   if (AUTOFIRE) ai(SHIPS[PLAYER_I], DT);                           // 自動開砲：我艦也交給電腦瞄準開火
   if (MODE !== 'sandbox') ai(SHIPS[1 - PLAYER_I], DT);            // 沙盒的敵艦不還手
+  if (PF) pfLap('ai');
   for (i = 0; i < BALLS.length; i++) { stepBall(BALLS[i], DT); if (!BALLS[i].alive) { if (CAM.follow === BALLS[i]) { CAM.hold = 1.2; } BALLS.splice(i--, 1); } }
+  if (PF) pfLap('balls');
   SHIPS.forEach(function (sh) { integrity(sh); sh.impulse = [0, 0, 0]; });
+  if (PF) pfLap('integrity');
   for (i = 0; i < PIECES.length; i++) if (!stepPiece(PIECES[i], DT)) { PIECES[i].rs.dispose(); PIECES.splice(i--, 1); }
   for (i = 0; i < FLY.length; i++) if (!stepFly(FLY[i], DT)) FLY.splice(i--, 1);
-  stepDebris(DT); stepPts(DT); stepWater(DT);                       // 船邊水花（13_water.js；只給人看、自己的亂數）
+  if (PF) pfLap('pieces');
+  if (SLOW_VIS) stepWater(DT, 'ship');                             // 殉爆慢動作中：只給人看的照畫面的時間走（73_slowmo.js），這裡只生船邊的水花
+  else { stepDebris(DT); if (PF) pfLap('debris'); stepPts(DT); if (PF) pfLap('pts'); stepWater(DT); }
+  if (PF) pfLap('water');                       // 船邊水花（13_water.js；只給人看、自己的亂數）
   if (PHYS) { var pt0 = performance.now(); SHIPS.forEach(function (sh) { if (sh.sink < 40) physStep(sh); }); PHYS_MS = PHYS_MS * 0.98 + (performance.now() - pt0) * 0.02; }   // 讀數只看、不回寫模擬
+  if (PF) pfLap('phys');
   stepPowder();                                                    // 殉爆排程（23_powder.js）
+  stepBlasts();                                                    // 還沒挖完的彈坑接著挖（23_powder.js）
+  if (PF) pfLap('powder');
   if ((Math.round(SIMT / DT) % 30) === 0) { SHIPS.forEach(survey); SHIPS.forEach(newsFlush); }
+  if (PF) pfLap('survey');
   if (!OVER || END_AT) checkEnd();                                 // 結束判定每一步看（結算畫面照模擬時間延後跳）
+  if (PF) pfLap('end');
 }
 

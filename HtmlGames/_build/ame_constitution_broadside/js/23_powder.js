@@ -9,6 +9,12 @@
 //      留下的那半截一定沉（進水速度 0 也沉）、算降旗（不再開砲）。
 // 威力是能量 ⇒ 爆炸半徑照立方根縮放：0.25× ⇒ 0.63 倍半徑、4× ⇒ 1.59 倍。
 var BOOMS = [], KEG_R = 9, KEG_REACH = 30, KEG_DMG = 300, MAG_R = 95, MAG_LB = 11600, BREAK_R = 80;
+// 彈坑分幾步挖（TASK-0531，Tim：卡畫面的事件分散到不同幀）：一次挖掉三十幾萬格要 120–230 ms ⇒ 那一步卡住。
+//   區塊照離爆心的距離排好，從爆心往外，每一步挖到 BLAST_STEP 格就停、下一步接著挖（BLASTS，step() 的 stepBlasts）⇒ 爆炸往外擴，三十幾萬格約 9 步（0.15 秒）挖完。
+//   碎片照挖到的格抽樣、挖到那一步才噴。人、模型照舊在殉爆那一刻算；斷船（橫切那一刀）與廣播（含打掉幾格）挖完才做。
+//   ⛔ 斷船在殉爆那一刻切 ⇒ 還沒挖到的彈坑格被連通判定一起搬進斷開的半截（半截船 27 萬格、上面沒有彈坑，量過）。
+//   ⚠ 殉爆之後的戰局跟以前（一步挖完）不一樣；但跟慢動作、特寫開不開無關 ⇒ 開或關同一局。
+var BLASTS = [], BLAST_STEP = 40000;
 function blastK() { return Math.pow(BLAST_K, 1 / 3); }
 /** 這艘船的彈藥庫：關聯 meta kind=magazine ＋ 名字在它底下的火藥桶模型。 */
 function makeMags(sh) {
@@ -61,16 +67,12 @@ function magBoom(sh, mag) {
   mag.kegs.forEach(function (m) { m.alive = false; m.lit = true; });
   BOOMS = BOOMS.filter(function (e) { return e.m.mag !== mag; });
   var k = blastK(), R = MAG_R * Math.pow(mag.lb / MAG_LB, 1 / 3) * k, c = mag.blast, w = M4.pt(sh.M, c[0], c[1], c[2]);
-  var cr = crater(sh, c, R);
   // 畫面：火球、碎片往外噴、濃煙往上
   flash(w, [0, 1, 0], 200, true);
   for (var i = 0; i < 160; i++) spawnPt(add(w, [gauss() * R * 0.04, rr(0, R * 0.06), gauss() * R * 0.04]), [gauss() * 14, rr(6, 30), gauss() * 14], rr(0.8, 2.2), [1, rr(0.4, 0.75), 0.12], 0.95, rr(3, 7), rr(6, 12), 2, 1.5, 3);
   smoke(w, [0, 1, 0], 120, true); smoke(add(w, [0, R * 0.05, 0]), [0, 1, 0], 80, true);
-  for (var j = 0; j < cr.sample.length; j += 4) {
-    var p = M4.pt(sh.M, cr.sample[j] + 0.5, cr.sample[j + 1] + 0.5, cr.sample[j + 2] + 0.5), dir = norm(sub(p, w));
-    spawnDebris(p, add(add(mul(dir, rr(8, 40)), [0, rr(4, 22), 0]), sh.vel), cr.sample[j + 3], rr(0.06, 0.16), rr(8, 16));
-  }
   sfx('blast', w, 2); sfx('creak', w, 1.6);
+  if (typeof slowKick === 'function') slowKick(sh, w, R);              // 殉爆的慢動作與特寫（73_slowmo.js；只動畫面的時間與鏡頭）
   // 爆心附近：人、模型
   hurt(sh, c, R * 0.85, R * 1.4, null, '殉爆', 1500 * BLAST_K);
   sh.models.forEach(function (o) {
@@ -79,30 +81,55 @@ function magBoom(sh, mag) {
     var cw = M4.pt(sh.M, o.c[0], o.c[1], o.c[2]);
     damageModel(sh, o, mul(norm(sub(cw, w)), 300 * (1 - d / (R * 1.3)) + 80), 5000);
   });
-  // 斷船
+  // 斷船（橫切那一刀等彈坑挖完：blastStep）
   var brk = R >= BREAK_R * Math.pow(sh.cfg.hard / 2, 0.15);
-  if (brk) breakShip(sh, c[0]);
   sh.struck = sh.struck || brk; sh.broken = sh.broken || brk;
   if (brk) { sh.fate = '殉爆（船斷成兩截）'; sh.sinkingFinal = true; }
-  note(sh, '<b style="color:#ffb35a">' + (mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫殉爆！</b>（' + mag.lb.toLocaleString() + ' 磅、半徑 ' + (R * S).toFixed(1) + ' m、打掉 ' + cr.n.toLocaleString() + ' 格）' + (brk ? '　船斷成兩截' : ''), true);
-  mag.R = R; mag.removed = cr.n; mag.broke = brk;
+  mag.R = R; mag.removed = 0; mag.broke = brk;
+  var job = crater(sh, c, R); job.w = w; job.mag = mag; BLASTS.push(job);
+  blastStep(job);                                                      // 爆心那幾塊這一步就挖（其他的 stepBlasts 接著挖）
 }
-/** 炸掉一個球（邊緣參差：0.85～1.15 倍半徑）。只走有東西的區塊（⛔ 照 shatter 的三重迴圈：9.5 m 的球要走兩千八百萬格）。
- *  回：打掉幾格、抽樣（碎片用，最多約 2,400 顆）。邊緣那一圈才推連通的種子（裡面的鄰格也都打掉了）。 */
-function crater(sh, c, R) {
-  var g = sh.grid, n = 0, sample = [], R2 = R * 1.15, cx0 = Math.max(0, Math.floor((c[0] - R2) / 16)), cx1 = Math.min(g.nx - 1, Math.floor((c[0] + R2) / 16));
-  var cy0 = Math.max(0, Math.floor((c[1] - R2) / 16)), cy1 = Math.min(g.ny - 1, Math.floor((c[1] + R2) / 16)), cz0 = Math.max(0, Math.floor((c[2] - R2) / 16)), cz1 = Math.min(g.nz - 1, Math.floor((c[2] + R2) / 16));
-  var est = Math.max(1, Math.round(4 / 3 * Math.PI * R * R * R * 0.08 / 2400));   // 大約每幾格抽一顆碎片
-  for (var cz = cz0; cz <= cz1; cz++) for (var cy = cy0; cy <= cy1; cy++) for (var cx = cx0; cx <= cx1; cx++) {
-    var tab = g.tab[g.ci(cx, cy, cz)]; if (!tab) continue;       // ⛔ 寫入會換掉 g.tab 那一格（共用資料先複製）：照原本那份走，每格只拆一次
+/** 每一步（step() 的殉爆排程之後）：還沒挖完的彈坑接著挖。 */
+function stepBlasts() {
+  for (var i = 0; i < BLASTS.length; i++) if (BLASTS[i].done || BLASTS[i].sh.sink > 40 || blastStep(BLASTS[i])) BLASTS.splice(i--, 1);
+}
+/** 挖一段：從上次停的那一塊接著，挖到 BLAST_STEP 格（或挖完）。挖到的格照抽樣噴碎片。挖完 ⇒ 廣播（含打掉幾格）、回 true。 */
+function blastStep(J) {
+  var sh = J.sh, g = sh.grid, c = J.c, R = J.R, n0 = J.n, sample = [];
+  while (J.k < J.ch.length && J.n - n0 < BLAST_STEP) {
+    var ci = J.ch[J.k++], tab = g.tab[ci]; if (!tab) continue;        // ⛔ 寫入會換掉 g.tab 那一格（共用資料先複製）：照原本那份走，每格只拆一次
+    var cx = ci % g.nx, cy = Math.floor(ci / g.nx) % g.ny, cz = Math.floor(ci / (g.nx * g.ny));
     for (var li = 0; li < 4096; li++) {
       var col = tab[li]; if (!col) continue;
       var x = cx * 16 + (li & 15), y = cy * 16 + ((li >> 4) & 15), z = cz * 16 + (li >> 8), dx = x - c[0], dy = y - c[1], dz = z - c[2], d = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (d > R * (0.85 + 0.3 * hash3(x, y, z))) continue;
-      if (removeVoxel(sh, x, y, z, d > R * 0.8)) { if (++n % est === 0) sample.push(x, y, z, col); }
+      if (removeVoxel(sh, x, y, z, d > R * 0.8)) { if (++J.n % J.est === 0) sample.push(x, y, z, col); }
     }
   }
-  return { n: n, sample: sample };
+  for (var j = 0; j < sample.length; j += 4) {
+    var p = M4.pt(sh.M, sample[j] + 0.5, sample[j + 1] + 0.5, sample[j + 2] + 0.5), dir = norm(sub(p, J.w));
+    spawnDebris(p, add(add(mul(dir, rr(8, 40)), [0, rr(4, 22), 0]), sh.vel), sample[j + 3], rr(0.06, 0.16), rr(8, 16));
+  }
+  J.mag.removed = J.n;
+  if (J.k < J.ch.length) return false;
+  J.done = true;
+  if (J.mag.broke) breakShip(sh, c[0]);                                   // 彈坑挖完才切（下一步的連通判定把短的那半截變成斷開的一團）
+  note(sh, '<b style="color:#ffb35a">' + (J.mag.name.indexOf('前') >= 0 ? '前' : '後') + '彈藥庫殉爆！</b>（' + J.mag.lb.toLocaleString() + ' 磅、半徑 ' + (R * S).toFixed(1) + ' m、打掉 ' + J.n.toLocaleString() + ' 格）' + (J.mag.broke ? '　船斷成兩截' : ''), true);
+  return true;
+}
+/** 彈坑（邊緣參差：0.85～1.15 倍半徑）的工作：只走有東西、而且碰得到球的區塊（⛔ 照 shatter 的三重迴圈：9.5 m 的球要走兩千八百萬格），
+ *  照區塊離爆心最近的距離排（同距離照編號）⇒ blastStep 從爆心往外挖。est：大約每幾格抽一顆碎片（全部約 2,400 顆）。
+ *  邊緣那一圈才推連通的種子（裡面的鄰格也都打掉了）。 */
+function crater(sh, c, R) {
+  var g = sh.grid, ch = [], R2 = R * 1.15, cx0 = Math.max(0, Math.floor((c[0] - R2) / 16)), cx1 = Math.min(g.nx - 1, Math.floor((c[0] + R2) / 16));
+  var cy0 = Math.max(0, Math.floor((c[1] - R2) / 16)), cy1 = Math.min(g.ny - 1, Math.floor((c[1] + R2) / 16)), cz0 = Math.max(0, Math.floor((c[2] - R2) / 16)), cz1 = Math.min(g.nz - 1, Math.floor((c[2] + R2) / 16));
+  for (var cz = cz0; cz <= cz1; cz++) for (var cy = cy0; cy <= cy1; cy++) for (var cx = cx0; cx <= cx1; cx++) {
+    var ci = g.ci(cx, cy, cz); if (!g.tab[ci]) continue;
+    var ex = Math.max(cx * 16 - c[0], 0, c[0] - (cx * 16 + 15)), ey = Math.max(cy * 16 - c[1], 0, c[1] - (cy * 16 + 15)), ez = Math.max(cz * 16 - c[2], 0, c[2] - (cz * 16 + 15)), d = Math.sqrt(ex * ex + ey * ey + ez * ez);
+    if (d <= R2) ch.push([d, ci]);
+  }
+  ch.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+  return { sh: sh, c: c, R: R, ch: ch.map(function (e) { return e[1]; }), k: 0, n: 0, est: Math.max(1, Math.round(4 / 3 * Math.PI * R * R * R * 0.08 / 2400)) };
 }
 /** 船從 x ＝ xb 那一截斷開：橫切一刀（切面參差 ±0.5～1.2 m），龍骨的錨只留長的那半截 ⇒ 短的那半截在下一步的連通判定裡變成斷開的一團。 */
 function breakShip(sh, xb) {
