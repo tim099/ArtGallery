@@ -3,7 +3,7 @@ title: 《龍骨是直的》圖文版
 description: basecamp 造憲法號（0.1 公尺一格）的過程心得，配上當時的原圖、新圖紙、疊圖與渲染。不是畫出來的漫畫，是過程圖排成格子、字幕走漫畫的讀法。
 source: Books/basecamp-keel-is-straight（第一冊）、Books/basecamp-seen-from-inside（第二冊《從裡面看》）
 task: TASK-0488
-last_updated: 2026-10-13（連載：037～041 餘燼號階段九～十六：浴火的鳳凰、縮在砲門裡、往上塗八層、釘在隔牆上、借來的火藥（改編自作品 notes.md，小說還沒寫到）；034～036 餘燼號階段八：借來的房間、貼著哪一面牆、餘燼之心；030〈拆下來〉—— 帆桁拆成模型；031～033 第二艘船餘燼號（魔改憲法號）：插一層、拉長、從前面看；029 與之前。動畫版第一話《從一根龍骨開始》在 HtmlVideos/basecamp_constitution_build_ep01）
+last_updated: 2026-10-13（連載：042～045 餘燼號階段十七～二十一：退一公尺、零碰撞的三樣、只說它是什麼、放到中間；046～049 憲法號：十五顆星、只加不刻、吊在外面、兩個艙口中間（改編自作品 notes.md，小說還沒寫到；047～049 用了 1931 年修復的海軍配置圖）；037～041 餘燼號階段九～十六：浴火的鳳凰、縮在砲門裡、往上塗八層、釘在隔牆上、借來的火藥（改編自作品 notes.md，小說還沒寫到）；034～036 餘燼號階段八：借來的房間、貼著哪一面牆、餘燼之心；030〈拆下來〉—— 帆桁拆成模型；031～033 第二艘船餘燼號（魔改憲法號）：插一層、拉長、從前面看；029 與之前。動畫版第一話《從一根龍骨開始》在 HtmlVideos/basecamp_constitution_build_ep01）
 status: 連載中
 ---
 
@@ -62,6 +62,14 @@ status: 連載中
 | [039〈往上塗八層〉](Chapters/039.md) | 作品 `notes.md` 水線抬高、quarter gallery 開窗（小說後寫：第二冊 `032.txt`） | 2 | 餘燼號：船變高了水線也往上、用清單不用噴漆、一塊實心的黑掏空開門 |
 | [040〈釘在隔牆上〉](Chapters/040.md) | 作品 `notes.md` 階段十二、十三（小說後寫：第二冊 `033.txt`） | 2 | 餘燼號：三百一十六條砲索、連隔壁的砲一起量、隔牆上的環、TASK-0534、十四道舷梯 |
 | [041〈借來的火藥〉](Chapters/041.md) | 作品 `notes.md` 階段十四～十六（小說後寫：第二冊 `034.txt`） | 2 | 餘燼號：借來的兩間彈藥庫與它們自己的不對稱、換銅的舵、支柱穿過桌面的軍官室 |
+| [042〈退一公尺〉](Chapters/042.md) | 餘燼號 `notes.md` 階段十七、梯子給遊戲的點 | 2 | 餘燼號：零碰撞卻堵在梯子落腳處的舵輪、四十個腳踩的那一格 |
+| [043〈零碰撞的三樣〉](Chapters/043.md) | 餘燼號 `notes.md` 階段十八、十九 | 2 | 餘燼號：羅經櫃、貼著 fife rail 的絞盤、垂下來蓋住帆的長旗 —— 量的是穿模，不是放不放得下 |
+| [044〈只說它是什麼〉](Chapters/044.md) | 餘燼號 `notes.md` 階段十九、二十、遊戲 meta 補齊 | 2 | 餘燼號：旗、撞到欄杆柱的艇架、給遊戲的四個 kind |
+| [045〈放到中間〉](Chapters/045.md) | 餘燼號 `notes.md` 階段二十一 | 1 | 餘燼號：自己的彈藥庫、兩百三十桶、自己鋪的天花板、包了銅的支柱 |
+| [046〈十五顆星〉](Chapters/046.md) | 憲法號 `notes.md`「旗」 | 2 | 憲法號：往下二十三格（先量本尊）、程式數到十三顆就停 |
+| [047〈只加不刻〉](Chapters/047.md) | 憲法號 `notes.md` 階段三十四、三十五 | 2 | 憲法號：舷頂上那一道欄杆、不往下刻的 waist、第五張圖上的 chesstree |
+| [048〈吊在外面〉](Chapters/048.md) | 憲法號 `notes.md` 階段三十六、三十七 | 2 | 憲法號：壓在 backstay 上的 davit 挪一公尺、橢圓是橫切面 —— 橫吊的 gig |
+| [049〈兩個艙口中間〉](Chapters/049.md) | 憲法號 `notes.md` 階段三十八、bumpkins | 2 | 憲法號：剛好就在那裡的絞盤、方向相反的舵輪、量過不做的 bumpkin |
 
 共 42 話、93 頁 —— **連載中**（Tim 2026-10-11：漫畫跟著建造進度連載，船造完才完結）。
 000～007 改編自第一冊《龍骨是直的》；008、009 當時書還沒寫到，改編自作品的製作筆記 `Sculpture/works/basecamp-frigate-constitution-01m/journal/`（後來寫進第二冊《從裡面看》第一、二章）；010 起改編自第二冊（Tim 2026-10-11：「更新一下漫畫＋小說吧」—— 每個建造階段，小說一章、圖文版一話）。031 起是第二艘船「餘燼號」（`Sculpture/works/basecamp-ember-01m/`）—— 它的每一個部件都是憲法號換算過來的（插一層、拉長），所以續在同一冊、同一個連載裡。
@@ -80,3 +88,5 @@ status: 連載中
 | `O/` | `Sculpture/works/basecamp-frigate-constitution-01m/overlays/`（每階段的疊圖、剖面、渲染） |
 | `D/` | `Sculpture/works/basecamp-frigate-constitution-01m/design/`（新圖紙與原圖對照） |
 | `R/` | `Sculpture/references/uss-constitution-1927/`（NARA RG 19 原圖 02／11 號） |
+| `E/`／`F/` | `Sculpture/works/basecamp-ember-01m/{overlays,design}/`（餘燼號） |
+| `P/` | `Sculpture/references/uss-constitution-1931-plans/`（1927–31 修復的海軍配置圖裁切：plan 24474、24422；公有領域，USS Constitution Museum 提供） |

@@ -339,6 +339,58 @@
   "041_p02": {"rows": [
     [{"src": "E/stage16_wardroom_b.png"}],
     [{"src": "E/stage16_wardroom_bulkhead.png"}]
+  ]},
+  "042_p01": {"rows": [
+    [{"src": "E/stage17_wheel_deck.png"}, {"src": "E/stage17_wheel_close.png"}]
+  ]},
+  "042_p02": {"rows": [
+    [{"src": "E/stage8b_ladder_after.png", "crop": [600, 1350, 1650, 2250]}]
+  ]},
+  "043_p01": {"rows": [
+    [{"src": "E/stage18_binnacle_part.png"}, {"src": "E/stage18_capstan_part.png"}],
+    [{"src": "E/stage18_helm.png", "fit": "cover", "aspect": 1.8}]
+  ]},
+  "043_p02": {"rows": [
+    [{"src": "E/stage18_capstan.png", "fit": "cover", "aspect": 1.8}],
+    [{"src": "E/stage19_flags_ensign.png"}, {"src": "E/stage19_flags_pennant.png"}]
+  ]},
+  "044_p01": {"rows": [
+    [{"src": "E/stage19_flags_ship.png"}, {"src": "E/stage20_boats_waist.png"}]
+  ]},
+  "044_p02": {"rows": [
+    [{"src": "E/stage20_boats_ship.png", "fit": "cover", "aspect": 1.4}]
+  ]},
+  "045_p01": {"rows": [
+    [{"src": "E/stage21_magazine_section.png", "crop": [60, 160, 1940, 450]}],
+    [{"src": "E/stage21_magazine_room.png"}]
+  ]},
+  "046_p01": {"rows": [
+    [{"src": "O/flags_ship.png", "crop": [300, 100, 1500, 1120]}]
+  ]},
+  "046_p02": {"rows": [
+    [{"src": "O/flags_ensign.png"}, {"src": "O/flags_pennant.png"}]
+  ]},
+  "047_p01": {"rows": [
+    [{"src": "R/RG19_ALPHA_Constitution_1797_11.JPG", "crop": [500, 1300, 4100, 1800]}],
+    [{"src": "O/stage34_rails_quarterdeck.png"}, {"src": "O/stage34_rails_forecastle.png"}]
+  ]},
+  "047_p02": {"rows": [
+    [{"src": "P/24474_waist_chesstrees.png"}],
+    [{"src": "O/stage35_chesstrees_waist.png"}, {"src": "O/stage35_chesstree_quarter.png"}]
+  ]},
+  "048_p01": {"rows": [
+    [{"src": "P/24474_quarter_boats.png"}],
+    [{"src": "O/stage36_quarter_boat_out.png"}, {"src": "O/stage36_quarter_boat_end.png"}]
+  ]},
+  "048_p02": {"rows": [
+    [{"src": "P/24474_quarter_bumpkin.png"}],
+    [{"src": "O/stage37_stern_gig.png"}, {"src": "O/stage37_ship_stern.png", "crop": [560, 150, 1240, 1130]}]
+  ]},
+  "049_p01": {"rows": [
+    [{"src": "P/24422_capstan.png"}, {"src": "O/stage38_capstan.png"}]
+  ]},
+  "049_p02": {"rows": [
+    [{"src": "P/24422_wheel.png"}, {"src": "P/24474_bow_bumpkin.png"}]
   ]}
  }
 }
