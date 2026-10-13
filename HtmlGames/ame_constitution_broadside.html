@@ -309,8 +309,8 @@
       <div class="row slide"><label for="powderhp">血量</label><input type="range" id="powderhp" step="10" aria-label="火藥桶的血量"><span id="powderhpV"></span></div>
       <div class="row slide"><label for="blast">殉爆威力</label><input type="range" id="blast" step="0.05"><span id="blastV"></span></div>
       <div class="row slide"><label for="blastv">威力浮動</label><input type="range" id="blastv" step="5" aria-label="每次爆炸的威力浮動（%）"><span id="blastvV"></span></div>
-      <div class="row note">兩間彈藥庫在艙底（後 22 桶、前 116 桶，每桶 100 磅；水線下，砲彈打不到）。兩層甲板在彈藥庫上方各有一個取用點（3 桶火藥＋彈藥），送藥手從那裡搬到砲旁的藥箱。<br>
-        預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×4/9 ⇒ 300：藥包常炸、偶爾整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
+      <div class="row note">彈藥庫在艙底、水線下，砲彈打不到（每桶 100 磅）：憲法號前後兩間（後 22 桶、前 116 桶），餘燼號船中段一間（230 桶）。每層砲甲板在每間彈藥庫上方各有一個取用點（3 桶火藥＋彈藥；正上方沒有甲板就往前後找），送藥手從那裡搬到砲旁的藥箱。<br>
+        預設 675（寫實）：很難殉爆但有機率；娛樂再乘「娛樂加成」的火藥血量（預設 ×2/3 ⇒ 450：藥包會炸、有時整間殉爆）。675 時：很難殉爆但有機率（藥包偶爾會炸，彈藥庫要火光竄下去三次才會著）；拉滿 1000 ＝ 都不會爆。火藥桶歸零 ⇒ 炸、旁邊的桶扣血（連鎖）；藥包（送藥手手上、砲旁藥箱）血量 ＝ 火藥桶的 30%，被打中就可能炸；爆炸離取用點 3 m 內 ⇒ 火光竄下艙口、彈藥庫的桶扣血 ⇒ 一間炸掉三成就整間殉爆，夠大就把船炸成兩截。</div>
       <h3>砲長</h3>
       <div class="row slide"><label for="cap0">我艦</label><select id="cap0"></select></div>
       <div class="row slide"><label for="cap1">敵艦</label><select id="cap1"></select></div>
@@ -1124,7 +1124,7 @@ var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], g
   sea: [0, 3, 1],                                                                             // 浪的大小（08_sea.js）：0 ＝ 平靜、1 ＝ 中浪（浪高約 1–2 m）、3 ＝ 大浪
   stall: [0, 1, 1],                                                                           // 頂風失速（31_sailing.js）：0 ＝ 頂風只是慢、1 ＝ 寫實
   funspeed: [1, 3, 1.4], funagile: [1, 3, 1.5], funstall: [0, 1, 0.4],                       // 娛樂加成：玩法選「娛樂」時再乘的倍率（寫實 ＝ 都是 1）
-  funpowder: [0.1, 1, 4 / 9] };                                                               // 火藥血量（Tim 2026-10-13：娛樂 300 剛好 —— 觸發得了殉爆、又不會太頻繁）：675 × 4/9 ＝ 300
+  funpowder: [0.1, 1, 2 / 3] };                                                               // 火藥血量：675 × 2/3 ＝ 450（Tim 2026-10-13 晚：「娛樂模式的彈藥庫血量要增加一些，憲法號很容易爆」；原本 4/9 ＝ 300）
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
 // 玩法（Tim 2026-10-13：配置分成寫實與娛樂兩組，主選單切換，預設娛樂）：細節設定的滑桿 ＝ 寫實的基準，
 //   娛樂 ＝ 在那之上再乘娛樂加成（航速、靈活性、頂風失速）。⇒ 兩組共用同一份滑桿，切換不會把調好的數字蓋掉。網址 ?play=real／fun
@@ -6969,7 +6969,7 @@ yieldUI().then(function () {                                        // 先讓主
     remesh(Infinity); RUNNING = false; $('cover').style.display = 'none';
     if (rec) { var pre = document.createElement('pre'); pre.id = 'dump'; document.body.appendChild(pre);
       pre.textContent = JSON.stringify({ seed: SEED, t: +SIMT.toFixed(1), flood: FLOOD_LV, ships: SHIPS.map(function (sh, k) { var r = rec[k];
-        return { maxListDeg: +(r.maxList * 57.3).toFixed(1), maxPreDeg: +(r.maxPre * 57.3).toFixed(1), maxSinkPre: +r.maxSinkPre.toFixed(2), maxPctPre: Math.round((r.maxPctPre || 0) * 100), final: r.final, sunk: r.sunk, struck: r.struck, fate: sh.fate, lost: sh.lost, hits: sh.hits, sink: +sh.sink.toFixed(2), water: sh.fl ? Math.round(sh.fl.vol * RHO_W) : null, area: sh.fl ? +sh.fl.area.toFixed(1) : null, inflow: sh.inflow }; }) }); }
+        return { maxListDeg: +(r.maxList * 57.3).toFixed(1), maxPreDeg: +(r.maxPre * 57.3).toFixed(1), maxSinkPre: +r.maxSinkPre.toFixed(2), maxPctPre: Math.round((r.maxPctPre || 0) * 100), final: r.final, sunk: r.sunk, struck: r.struck, fate: sh.fate, lost: sh.lost, hits: sh.hits, dead: sh.dead, cart: sh.cartN || 0, magGone: sh.mags.filter(function (m) { return m.gone; }).length, sink: +sh.sink.toFixed(2), water: sh.fl ? Math.round(sh.fl.vol * RHO_W) : null, area: sh.fl ? +sh.fl.area.toFixed(1) : null, inflow: sh.inflow }; }) }); }
     window.__vxk.demo = { t: SIMT, lost: SHIPS.map(function (s) { return s.lost; }), pieces: PIECES.length, debris: D.n };
   } else {
     // 選單後面先擺好兩艘船當背景
