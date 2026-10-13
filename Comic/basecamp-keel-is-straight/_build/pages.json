@@ -299,6 +299,46 @@
   "036_p02": {"rows": [
     [{"src": "E/stage8c_cabin_only_side.png", "crop": [40, 270, 1370, 630]}],
     [{"src": "E/stage8c_cabin_only_fwd.png", "crop": [50, 90, 1350, 810]}]
+  ]},
+  "037_p01": {"rows": [
+    [{"src": "F/sheet10_head_v1.png", "crop": [40, 60, 1540, 770]}],
+    [{"src": "E/stage9_head_front.png", "crop": [250, 30, 1350, 1080]}]
+  ]},
+  "037_p02": {"rows": [
+    [{"src": "E/stage9_figurehead_close.png"}],
+    [{"src": "E/stage9_head_side.png"}]
+  ]},
+  "038_p01": {"rows": [
+    [{"src": "E/stage10_guns_side.png", "crop": [80, 200, 2320, 790]}],
+    [{"src": "E/stage10_guns_lower.png", "crop": [550, 80, 1850, 1150]}]
+  ]},
+  "038_p02": {"rows": [
+    [{"src": "E/stage10_guns_spar.png", "crop": [550, 40, 1850, 1150]}],
+    [{"src": "E/stage10_guns_upper.png", "crop": [550, 40, 1850, 1150]}]
+  ]},
+  "039_p01": {"rows": [
+    [{"src": "E/stage10_guns_side.png", "crop": [80, 200, 2320, 790]}],
+    [{"src": "E/stage11_waterline_side.png", "crop": [80, 200, 2320, 790]}],
+    [{"src": "E/stage11_waterline_bowq.png", "crop": [150, 100, 1950, 1150]}]
+  ]},
+  "039_p02": {"rows": [
+    [{"src": "E/stage12_gallery_sternq.png", "crop": [230, 280, 1620, 1160]}],
+    [{"src": "E/stage12_gallery_inside.png", "crop": [300, 30, 1350, 1170]}]
+  ]},
+  "040_p01": {"rows": [
+    [{"src": "E/stage12_fittings_lower.png"}],
+    [{"src": "E/stage12_fittings_upper.png"}]
+  ]},
+  "040_p02": {"rows": [
+    [{"src": "E/stage13_entry_oblique.png"}, {"src": "E/stage13_entry_side.png"}]
+  ]},
+  "041_p01": {"rows": [
+    [{"src": "E/stage14_magazine_fore.png"}],
+    [{"src": "E/stage15_rudder_side.png", "crop": [350, 0, 1600, 1300]}]
+  ]},
+  "041_p02": {"rows": [
+    [{"src": "E/stage16_wardroom_b.png"}],
+    [{"src": "E/stage16_wardroom_bulkhead.png"}]
   ]}
  }
 }
