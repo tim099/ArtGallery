@@ -163,7 +163,7 @@
     <div class="gsR"><span class="gsL">畫質</span><span class="chip" data-gg="low">低</span><span class="chip" data-gg="mid">中</span><span class="chip" data-gg="high">高</span><span class="note" id="gsGfx"></span></div>
     <div class="gsR"><span class="gsL">物理效果</span><span class="chip" data-gx="full">全開</span><span class="chip" data-gx="high">高</span><span class="chip" data-gx="mid">中</span><span class="chip" data-gx="low">低</span><span class="note" id="gsPhx"></span></div>
     <div class="gsR"><span class="chip" id="physT"><b>B</b> 帆繩物理</span><span class="chip" id="camT"><b>V</b> 鏡頭跟船</span><span class="chip" id="muteT"><b>M</b> 靜音</span><span class="chip" id="fpsT">顯示 FPS</span></div>
-    <div class="note">畫質與物理的細項在主選單的「畫質設定…」「物理設定…」；血量、傷害、浪、天氣在開戰前設定</div>
+    <div class="note">畫質與物理的細項在主選單的「畫質設定…」「物理設定…」；血量、傷害、浪、天氣在開戰前設定；物理效果裡的「進水」（公式／粒子）下一場生效</div>
   </div>
 
   <div id="cover">
@@ -202,12 +202,13 @@
     <!-- 物理設定（從主選單進；TASK-0526）：每一項的檔位在 js/09_phx.js 的 PHX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="phxp" style="display:none">
       <h2>物理設定</h2>
-      <div class="sub">給人看的物理：帆與繩、碎木、煙與水花、船邊水花。改了立刻生效、跟著設定存檔。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water=（第幾檔，從 0 起）</div>
+      <div class="sub">物理：帆與繩、碎木、煙與水花、船邊水花、進水。改了立刻生效、跟著設定存檔（進水的模式開戰時決定）。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water= ?p_flood=（第幾檔，從 0 起）</div>
       <div class="row" id="phxPre">預設 <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button>　<span id="phxLv" class="note"></span></div>
       <div id="phxItems"></div>
       <div class="row note">帆與繩：高 ＝ 布與繩各迭代 4 次、帆 30 Hz、垂下來的繩最多 500 條；中 3 次、30 Hz、300 條；低 2 次、15 Hz、150 條；關 ＝ 帆停在雕刻作品那一刻（B 鍵、下方「物理」按鈕也是開關這一項）。<br>
         碎木、煙與水花少生幾顆不改戰局；帆與繩關掉時帆桁不追風，打中帆桁的那幾下會不一樣（跟以前關掉物理一樣）。浪的大小會改戰局，在「細節設定」。<br>
-        船邊水花：船頭推開的浪、船尾翻的白沫、浪拍船身、擦撞與落水的水滴，落回海面變成貼著浪的白沫；只給人看（不改戰局）。高 ＝ 水滴最多 8,000、白沫 4,000；中 4,500／2,200；低 2,000／1,000（白沫散得快一點）；關 ＝ 原本的點。</div>
+        船邊水花：船頭推開的浪、船尾翻的白沫、浪拍船身、擦撞與落水的水滴，落回海面變成貼著浪的白沫；只給人看（不改戰局）。高 ＝ 水滴最多 8,000、白沫 4,000；中 4,500／2,200；低 2,000／1,000（白沫散得快一點）；關 ＝ 原本的點。<br>
+        進水：公式 ＝ 原本的（水線下破洞數 × √水深）；粒子 ＝ 水從破口噴進來（洞越大、越深流得越多，浮出水面的洞不流）、往低處流、在艙底積起來，<b>進水量、下沉、傾斜都照艙內的水算（會改戰局）</b>，水偏一舷船就往那邊斜。粗／中／細 ＝ 水格 1.0／0.7／0.5 m、粒子最多 300／800／2,000。開戰時決定，戰鬥中改了下一場生效。</div>
       <div class="row"><button id="phxX">返回</button></div>
     </div>
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
@@ -320,6 +321,7 @@
 <script src="js/30_rig_physics.js" data-bundle="game"></script>
 <script src="js/31_sailing.js" data-bundle="game"></script>
 <script src="js/32_hull.js" data-bundle="game"></script>
+<script src="js/33_flood.js" data-bundle="game"></script>
 <script src="js/40_crew.js" data-bundle="game"></script>
 <script src="js/41_crew_art.js" data-bundle="game"></script>
 <script src="js/50_sim.js" data-bundle="game"></script>

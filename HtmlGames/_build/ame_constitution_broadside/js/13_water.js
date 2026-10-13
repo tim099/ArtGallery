@@ -161,6 +161,12 @@ function wpDrop(x, z) {
   for (var i = 0; i < 3; i++) wsAdd(x, h + 0.03, z, gsW() * 0.5, rgW(1, 3), gsW() * 0.5, rgW(0.5, 0.9), rgW(0.08, 0.15), 0.6);
   if (rndW() < 0.3) wfAdd(x, z, 0, 0, rgW(3, 5), 0.3, 0.8, 0.5, 0);
 }
+/** 艙內的水從破口往外流（33_flood.js，粒子模式）：洞口往外噴幾滴（量照每秒流出幾 m³）。只給人看。 */
+function wpPour(P, out, rate) {
+  var L = wpLv(); if (!L) return;
+  var ol = Math.hypot(out[0], out[2]) || 1, n = Math.min(6, rate * 2) * L.k; WP_SRC = 'pour';
+  for (var i = 0; i < n; i++) { var u = rgW(1, 3); wsAdd(P[0], P[1], P[2], out[0] / ol * u + gsW() * 0.3, rgW(-0.5, 0.8), out[2] / ol * u + gsW() * 0.3, rgW(0.8, 1.4), rgW(0.15, 0.3), 0.7); }
+}
 /** 擦撞（31_sailing.js collide，貼著的每一步）：兩艘之間往上、往兩舷噴，量照相對速度。 */
 function wpBump(pa, pb, A, B) {
   var L = wpLv(); if (!L) return;
