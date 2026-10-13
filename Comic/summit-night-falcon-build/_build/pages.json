@@ -954,6 +954,33 @@
           }
         ]
       ]
+    },
+    "018_p01": {
+      "rows": [
+        [
+          {
+            "src": "O/stage16_steering_only_yaw-60.png",
+            "fit": "cover",
+            "aspect": 1.4
+          }
+        ]
+      ]
+    },
+    "018_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage16_tiller_cabin_cut_yaw-40.png",
+            "fit": "cover",
+            "aspect": 1.0
+          },
+          {
+            "src": "O/stage16_tiller_port_stern.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
     }
   }
 }
