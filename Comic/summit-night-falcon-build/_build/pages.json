@@ -1,0 +1,202 @@
+{
+  "note": "《夜隼號造船記》圖文版的頁圖規格：一頁幾列、一列幾格，每格一張現成的圖（可裁切）。src 前綴：O＝作品 overlays、D＝作品 design、R＝作品 references（定稿圖）、F＝旗（summit-night-falcon-01m-flag）overlays、G＝《桅頂的賭注》漫畫 RawImages（作畫：gura）。contain 格照圖的比例；cover 格照 aspect 裁。",
+  "pages": {
+    "000_p01": {
+      "rows": [
+        [
+          {
+            "src": "R/night_falcon_v1.png",
+            "crop": [
+              20,
+              40,
+              595,
+              620
+            ]
+          },
+          {
+            "src": "G/000_p06.png",
+            "crop": [
+              60,
+              55,
+              835,
+              670
+            ]
+          }
+        ]
+      ]
+    },
+    "000_p02": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet00_spec_v1.png",
+            "crop": [
+              30,
+              60,
+              530,
+              700
+            ]
+          },
+          {
+            "src": "O/stage1_shell_preview_yaw-135.png",
+            "fit": "cover",
+            "aspect": 0.78
+          }
+        ],
+        [
+          {
+            "src": "O/stage1_shell_preview_yaw45.png",
+            "fit": "cover",
+            "aspect": 2.2
+          }
+        ]
+      ]
+    },
+    "001_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet00_spec_v1.png",
+            "crop": [
+              570,
+              60,
+              1590,
+              400
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet00_spec_v1.png",
+            "crop": [
+              570,
+              420,
+              1590,
+              760
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet00_spec_v1.png",
+            "crop": [
+              570,
+              820,
+              1590,
+              890
+            ]
+          }
+        ]
+      ]
+    },
+    "002_p01": {
+      "rows": [
+        [
+          {
+            "src": "F/flag_v1_streak_x16.png"
+          },
+          {
+            "src": "F/flag_v2_eyes_x16.png"
+          },
+          {
+            "src": "F/flag_v3_x16.png"
+          }
+        ],
+        [
+          {
+            "src": "F/view_wind6.png",
+            "fit": "cover",
+            "aspect": 1.15
+          }
+        ]
+      ]
+    },
+    "002_p02": {
+      "rows": [
+        [
+          {
+            "src": "F/view_wind14.png",
+            "fit": "cover",
+            "aspect": 1.3
+          }
+        ]
+      ]
+    },
+    "003_p01": {
+      "rows": [
+        [
+          {
+            "src": "D/sheet01_lines_v1.png",
+            "crop": [
+              30,
+              55,
+              1600,
+              345
+            ]
+          }
+        ],
+        [
+          {
+            "src": "D/sheet01_lines_v1.png",
+            "crop": [
+              30,
+              350,
+              1600,
+              535
+            ]
+          }
+        ]
+      ]
+    },
+    "003_p02": {
+      "rows": [
+        [
+          {
+            "src": "O/stage1_v1_transom_step.png"
+          },
+          {
+            "src": "O/stage1_v2_transom_smooth.png"
+          }
+        ],
+        [
+          {
+            "src": "D/sheet01_lines_v1.png",
+            "crop": [
+              900,
+              570,
+              1440,
+              1005
+            ]
+          },
+          {
+            "src": "O/stage1_shell_preview_yaw0.png",
+            "fit": "cover",
+            "aspect": 1.0
+          }
+        ]
+      ]
+    },
+    "003_p03": {
+      "rows": [
+        [
+          {
+            "src": "D/compare01_concept_v1.png",
+            "crop": [
+              0,
+              40,
+              1220,
+              640
+            ]
+          }
+        ],
+        [
+          {
+            "src": "O/stage1_shell_preview_yaw135.png",
+            "fit": "cover",
+            "aspect": 2.0
+          }
+        ]
+      ]
+    }
+  }
+}
