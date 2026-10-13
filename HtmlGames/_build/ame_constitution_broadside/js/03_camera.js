@@ -37,7 +37,7 @@ function camUpdate(dt) {
     eye = add(sub(b.p, mul(vd, 9)), [0, 2.2, 0]); tgt = add(b.p, mul(vd, 25));
     CAM.eye = lerp3(CAM.eye, eye, 1 - Math.exp(-dt * 10)); CAM.look = lerp3(CAM.look || tgt, tgt, 1 - Math.exp(-dt * 10));
   } else {
-    if (CAM.mode === 2 || CAM.mode === 3) { var sh = SHIPS[CAM.mode === 2 ? 1 - PLAYER_I : PLAYER_I]; if (sh) tgt = shipCenter(sh); }
+    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = SHIPS[CAM.mode === 2 ? 1 - PLAYER_I : PLAYER_I]; if (sh) tgt = shipCenter(sh); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
     eye = [tgt[0] + Math.cos(yaw) * Math.cos(pitch) * dist, tgt[1] + Math.sin(pitch) * dist, tgt[2] + Math.sin(yaw) * Math.cos(pitch) * dist];
     if (eye[1] < 1.5) eye[1] = 1.5;
     var k = CAM.snap ? 1 : 1 - Math.exp(-dt * 6); CAM.snap = false;
@@ -50,7 +50,8 @@ function lerp3(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1])
 // 追砲彈（mode 1；Tim 2026-10-13）：只追我艦打的（觀戰也是）；追著的那顆打中或落水才換（落點停 1.2 秒，CAM.hold）。
 //   挑下一顆的時機：這輪齊射打完（最新那顆飛了 BALL_SETTLE 秒）或最舊那顆飛了 BALL_WAIT 秒（連續開火時不等到天荒地老）；
 //   挑哪顆：照現在的位置與速度往前推算（重力、打水漂同 stepBall；敵艦照現在的船速平移），會打中敵艦的優先、其中離命中最久的那顆；
-//   都不中 ⇒ 只追剛開出去的（飛不到 BALL_FRESH 秒）；連這也沒有 ⇒ 停在上一個落點等下一輪（⛔ 追一顆快落水的不中彈 ⇒ 看不到東西；⛔ 跳回自由鏡頭 ⇒ 畫面一閃）。
+//   都不中 ⇒ 只追剛開出去的（飛不到 BALL_FRESH 秒）；連這也沒有 ⇒ 落點停完就回去看我艦（CAM.follow ＝ null，鏡頭照看我艦平滑移過去），等下一輪
+//   （⛔ 追一顆快落水的不中彈 ⇒ 看不到東西；⛔ 停在落點等 ⇒ 不開砲就一直看著水面，Tim 2026-10-13）。
 //   每顆只推算一次（BALL_PRED；一次最多約 20 ms，⛔ 每一格重算會卡）。
 //   ⛔ 以前每開一砲就切到新那顆 ⇒ 齊射時鏡頭一直跳、追的那顆還沒打中就換掉；觀戰還會追到敵艦的砲彈。
 //   只在畫面這一層跑（frame），不抽 rnd()、不改狀態 ⇒ 戰局不受影響。
@@ -73,13 +74,13 @@ function ballPredict(b) {
   }
   return null;
 }
-/** 每一格（frame）：追著的那顆沒了 ⇒ 落點停 CAM.hold 秒；之後挑下一顆。debug：__game.camFollow(dt) 手動推進（預覽窗格在背景時 rAF 會停）。 */
+/** 每一格（frame）：追著的那顆沒了 ⇒ 落點停 CAM.hold 秒；之後挑下一顆，沒有就看我艦。debug：__game.camFollow(dt) 手動推進（預覽窗格在背景時 rAF 會停）。 */
 function camFollow(dt) {
   if (CAM.mode !== 1) return;
   var f = CAM.follow;
   if (f && f.alive) return;                                            // 追著的那顆還在飛 ⇒ 不換
   if (f && CAM.hold > 0) { CAM.hold -= dt; return; }                   // 落點停一下（50_sim.js 在那顆沒了的時候設）
-  var nb = pickBall(); if (nb) CAM.follow = nb;                        // 沒有值得追的 ⇒ 停在上一個落點
+  CAM.follow = pickBall();                                             // 沒有值得追的 ⇒ null（回去看我艦）
 }
 /** 下一顆要追的砲彈（還不到挑的時候 ⇒ null）。 */
 function pickBall() {
