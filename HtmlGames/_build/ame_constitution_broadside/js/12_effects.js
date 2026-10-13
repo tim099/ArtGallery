@@ -4,13 +4,17 @@ var DMAX = 45000, D = {
   life: new Float32Array(DMAX), size: new Float32Array(DMAX), col: new Uint8Array(DMAX), st: new Uint8Array(DMAX), ship: new Int8Array(DMAX)
 };
 var DINST = new Float32Array(DMAX * 9);
+// 碎木自己的亂數（轉軸、落水、落地）：⛔ 跟戰局共用 rnd() ⇒ 少生一顆碎木（物理分級），後面的亂數全部錯位、整局都變（09_phx.js）。開局跟 rs 一起重設（70_flow.js）
+var RSD0 = 0x2545F491, rsD = SEED ^ RSD0, DEB_ACC = 0, PT_ACC = 0;   // DEB_ACC／PT_ACC：照分級少生的節拍（不抽亂數）
+function rndD() { rsD |= 0; rsD = rsD + 0x6D2B79F5 | 0; var t = Math.imul(rsD ^ rsD >>> 15, 1 | rsD); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
 function spawnDebris(p, v, col, size, life) {
+  var k = DEB_KS[PHX.debris]; if (k < 1) { DEB_ACC += k; if (DEB_ACC < 1) return; DEB_ACC -= 1; }   // 物理分級：少生幾顆（呼叫端的亂數已經抽完 ⇒ 戰局不變）
   var i;
   if (D.n < DMAX) i = D.n++;
-  else { i = (rnd() * DMAX) | 0; }      // 滿了 ⇒ 隨便頂掉一顆（只影響畫面，不影響模擬判定）
+  else { i = (rndD() * DMAX) | 0; }     // 滿了 ⇒ 隨便頂掉一顆（只影響畫面，不影響模擬判定）
   D.p[i * 3] = p[0]; D.p[i * 3 + 1] = p[1]; D.p[i * 3 + 2] = p[2];
   D.v[i * 3] = v[0]; D.v[i * 3 + 1] = v[1]; D.v[i * 3 + 2] = v[2];
-  var ax = norm([rnd() - 0.5, rnd() - 0.5, rnd() - 0.5]), sp = rr(4, 18);
+  var ax = norm([rndD() - 0.5, rndD() - 0.5, rndD() - 0.5]), sp = 4 + 14 * rndD();
   D.w[i * 3] = ax[0] * sp; D.w[i * 3 + 1] = ax[1] * sp; D.w[i * 3 + 2] = ax[2] * sp;
   D.q[i * 4] = 0; D.q[i * 4 + 1] = 0; D.q[i * 4 + 2] = 0; D.q[i * 4 + 3] = 1;
   D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1;
@@ -36,7 +40,7 @@ function stepDebris(dt) {
     if (st === 1) {
       if (D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {                                    // 落水：慢慢沉
         D.st[i] = 3; D.v[o] *= 0.1; D.v[o + 1] = -0.25; D.v[o + 2] *= 0.1; D.life[i] = Math.min(D.life[i], 4);
-        if (rnd() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
+        if (rndD() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
         continue;
       }
       if (D.v[o + 1] < 0) for (var s = 0; s < SHIPS.length; s++) {       // 掉到甲板上 ⇒ 停住
@@ -44,7 +48,7 @@ function stepDebris(dt) {
         if (L[0] < 0 || L[2] < 0 || L[0] >= sh.grid.sx) continue;
         if (sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
           D.st[i] = 2; D.ship[i] = s; D.p[o] = L[0]; D.p[o + 1] = L[1]; D.p[o + 2] = Math.floor(L[2]) + 1.0 + D.size[i] * 5;
-          D.life[i] = Math.min(D.life[i], rr(25, 45)); break;
+          D.life[i] = Math.min(D.life[i], 25 + 20 * rndD()); break;
         }
       }
     }
@@ -64,6 +68,7 @@ var PMAX = 12000, PT = { n: 0, p: new Float32Array(PMAX * 3), v: new Float32Arra
   s0: new Float32Array(PMAX), s1: new Float32Array(PMAX), c: new Float32Array(PMAX * 3), a: new Float32Array(PMAX), grav: new Float32Array(PMAX), drag: new Float32Array(PMAX), ty: new Float32Array(PMAX) };
 var PBUF = new Float32Array(PMAX * 9);
 function spawnPt(p, v, life, col, a, s0, s1, grav, drag, ty) {
+  var k = FX_KS[PHX.fx]; if (k < 1) { PT_ACC += k; if (PT_ACC < 1) return; PT_ACC -= 1; }   // 物理分級：少生幾顆（參數的亂數呼叫端已經抽完）
   if (PT.n >= PMAX) return;
   var i = PT.n++;
   PT.p[i * 3] = p[0]; PT.p[i * 3 + 1] = p[1]; PT.p[i * 3 + 2] = p[2]; PT.v[i * 3] = v[0]; PT.v[i * 3 + 1] = v[1]; PT.v[i * 3 + 2] = v[2];

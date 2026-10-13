@@ -1,0 +1,32 @@
+// ───────────────────────── 物理效果分級（TASK-0526） ─────────────────────────
+// 主選單：全開／高／中／低（PHX_PRESET）；「物理設定…」頁一項一項調，跟四檔都對不上 ⇒ 主選單顯示「自訂」。
+// 管的是「給人看的物理」：帆與繩（30_rig_physics.js）、碎木（12_effects.js 的碎片）、煙與水花（粒子）。
+//   ⛔ 浪不在這裡：浪的大小改戰局（砲彈打到浪頭、船的姿態），在細節設定。之後的天氣、船周圍的水、進水粒子做好時各自加一項。
+// 戰局：
+//   · 碎木、煙與水花少生幾顆不改戰局：照固定的節拍跳過（不抽亂數）。煙與水花的參數照樣由呼叫端抽完亂數（只是不放進去）；
+//     碎木自己的亂數（轉軸、落水、落地）走另一條（rndD，12_effects.js）。⛔ 碎木以前跟戰局共用 rnd() ⇒ 少一顆碎木，後面的亂數全部錯位、整局都變。
+//   · 帆與繩：低／中／高只差布與繩的細緻度（迭代次數、帆幾步走一次、垂繩上限），不碰 rnd()、不改命中；
+//     關 ⇒ 帆停在雕刻作品那一刻、帆桁不追風 —— 帆桁的角度會改到打中帆桁的那幾下（30_rig_physics.js），跟以前「關掉物理」一樣。
+// 網址：?phx=full|high|mid|low，單項 ?p_rig= ?p_debris= ?p_fx=（第幾檔，從 0 起）；舊的 ?phys=0 ＝ 帆與繩關。
+var PHX_ITEMS = [
+  { k: 'rig', name: '帆與繩', opt: ['關（靜態）', '低', '中', '高'] },
+  { k: 'debris', name: '碎木', opt: ['20%', '45%', '70%', '100%'] },
+  { k: 'fx', name: '煙與水花', opt: ['40%', '65%', '85%', '100%'] }];
+var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3 }, high: { rig: 2, debris: 2, fx: 2 }, mid: { rig: 1, debris: 1, fx: 1 }, low: { rig: 0, debris: 0, fx: 0 } };
+var PHX_NAME = { full: '全開', high: '高', mid: '中', low: '低', custom: '自訂' }, PHX_DEFAULT = 'full';
+// 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條。高 ＝ 原本的。
+var RIG_LV = [null, { it: 2, every: 4, loose: 150 }, { it: 3, every: 2, loose: 300 }, { it: 4, every: 2, loose: 500 }];
+var DEB_KS = [0.2, 0.45, 0.7, 1], FX_KS = [0.4, 0.65, 0.85, 1];
+var PHX = {}, PHX_RIG_LAST = 3;                 // PHX_RIG_LAST：B 鍵關掉再開，回到關之前那一檔
+function phxSet(level) { var p = PHX_PRESET[level]; for (var k in p) PHX[k] = p[k]; }
+/** 現在是哪一檔（四檔都對不上 ⇒ custom）。 */
+function phxLevel() {
+  for (var l in PHX_PRESET) { var p = PHX_PRESET[l], ok = true; for (var k in p) if (PHX[k] !== p[k]) ok = false; if (ok) return l; }
+  return 'custom';
+}
+function phxText() { return PHX_ITEMS.map(function (it) { return it.name + ' ' + it.opt[PHX[it.k]].replace(/（.*$/, ''); }).join('・'); }
+function rigLv() { return RIG_LV[PHX.rig] || RIG_LV[3]; }
+phxSet(PHX_PRESET[Q.get('phx')] ? Q.get('phx') : PHX_DEFAULT);
+PHX_ITEMS.forEach(function (it) { var v = parseInt(Q.get('p_' + it.k), 10); if (isFinite(v)) PHX[it.k] = clamp(v, 0, it.opt.length - 1); });
+if (Q.get('phys') === '0' && !Q.has('p_rig')) PHX.rig = 0;
+PHYS = PHX.rig > 0;                             // 帆與繩開不開（04_state.js 的 PHYS）跟著這一項走

@@ -42,6 +42,8 @@
   #fps.on{ display:block; }
   #gfxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #gfxItems label{ width:6em; text-align:right; margin-right:6px; }
   #gfxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
+  #phxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #phxItems label{ width:6em; text-align:right; margin-right:6px; }
+  #phxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
   #nav{ left:12px; bottom:34px; width:176px; padding:6px 10px 8px; font-size:11px; line-height:1.5; }
   #navc{ position:static; inset:auto; width:150px; height:150px; display:block; margin:0 auto 2px; cursor:default; }
   /* 手機直拿：兩邊面板縮成一半並排、羅盤縮小塞進兩個面板中間（Tim 2026-10-13）、控制列換行、按鈕放大
@@ -130,7 +132,7 @@
     <div><kbd>藥</kbd> 送藥手（每一對砲一個）從甲板上的取用點（火藥桶＋彈藥）搬一份火藥與彈藥到砲旁的藥箱（每門最多 2 份）；開火後要從藥箱拿一份才開始裝填，送藥手倒了就會等（△）</div>
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
-    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）</div>
+    <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」</div>
     <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>
@@ -165,11 +167,23 @@
       <div class="row" id="gfxs">畫質
         <button data-g="low">低</button><button data-g="mid">中</button><button data-g="high">高</button><button id="gfxB">畫質設定…</button>
       </div>
+      <div class="row" id="phxs">物理效果
+        <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button><button id="phxB">物理設定…</button>
+      </div>
       <div class="row"><button id="detB">細節設定…</button></div>
       <div class="row" id="detV"></div>
-      <div class="row checks"><label><input type="checkbox" id="phys"> 帆與繩的物理（帆被風吹鼓、斷掉的會垂下來擺；關掉 ＝ 靜態）</label></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
       <div id="load"></div>
+    </div>
+    <!-- 物理設定（從主選單進；TASK-0526）：每一項的檔位在 js/09_phx.js 的 PHX_ITEMS，按鈕由 js/71_input.js 生 -->
+    <div class="card panel" id="phxp" style="display:none">
+      <h2>物理設定</h2>
+      <div class="sub">給人看的物理：帆與繩、碎木、煙與水花。改了立刻生效、跟著設定存檔。<br>網址：?phx=full｜high｜mid｜low，單項 ?p_rig= ?p_debris= ?p_fx=（第幾檔，從 0 起）</div>
+      <div class="row" id="phxPre">預設 <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button>　<span id="phxLv" class="note"></span></div>
+      <div id="phxItems"></div>
+      <div class="row note">帆與繩：高 ＝ 布與繩各迭代 4 次、帆 30 Hz、垂下來的繩最多 500 條；中 3 次、30 Hz、300 條；低 2 次、15 Hz、150 條；關 ＝ 帆停在雕刻作品那一刻（B 鍵、下方「物理」按鈕也是開關這一項）。<br>
+        碎木、煙與水花少生幾顆不改戰局；帆與繩關掉時帆桁不追風，打中帆桁的那幾下會不一樣（跟以前關掉物理一樣）。浪的大小會改戰局，在「細節設定」。之後的天氣、船周圍的水、進水粒子做好時加在這裡。</div>
+      <div class="row"><button id="phxX">返回</button></div>
     </div>
     <!-- 畫質設定（從主選單進；TASK-0522）：每一項的檔位在 js/07_gfx.js 的 GFX_ITEMS，按鈕由 js/71_input.js 生 -->
     <div class="card panel" id="gfxp" style="display:none">
@@ -1320,6 +1334,39 @@ function stepWaves(sh, dt) {
   V.rv += (WV_K.r[0] * (tr - V.r) - WV_K.r[1] * V.rv) * dt; V.r += V.rv * dt;
   sh.wl = hm; sh.bob = V.h - hm; sh.pitchW = V.p; sh.rollW = V.r;
 }
+// ── js/09_phx.js ──
+// ───────────────────────── 物理效果分級（TASK-0526） ─────────────────────────
+// 主選單：全開／高／中／低（PHX_PRESET）；「物理設定…」頁一項一項調，跟四檔都對不上 ⇒ 主選單顯示「自訂」。
+// 管的是「給人看的物理」：帆與繩（30_rig_physics.js）、碎木（12_effects.js 的碎片）、煙與水花（粒子）。
+//   ⛔ 浪不在這裡：浪的大小改戰局（砲彈打到浪頭、船的姿態），在細節設定。之後的天氣、船周圍的水、進水粒子做好時各自加一項。
+// 戰局：
+//   · 碎木、煙與水花少生幾顆不改戰局：照固定的節拍跳過（不抽亂數）。煙與水花的參數照樣由呼叫端抽完亂數（只是不放進去）；
+//     碎木自己的亂數（轉軸、落水、落地）走另一條（rndD，12_effects.js）。⛔ 碎木以前跟戰局共用 rnd() ⇒ 少一顆碎木，後面的亂數全部錯位、整局都變。
+//   · 帆與繩：低／中／高只差布與繩的細緻度（迭代次數、帆幾步走一次、垂繩上限），不碰 rnd()、不改命中；
+//     關 ⇒ 帆停在雕刻作品那一刻、帆桁不追風 —— 帆桁的角度會改到打中帆桁的那幾下（30_rig_physics.js），跟以前「關掉物理」一樣。
+// 網址：?phx=full|high|mid|low，單項 ?p_rig= ?p_debris= ?p_fx=（第幾檔，從 0 起）；舊的 ?phys=0 ＝ 帆與繩關。
+var PHX_ITEMS = [
+  { k: 'rig', name: '帆與繩', opt: ['關（靜態）', '低', '中', '高'] },
+  { k: 'debris', name: '碎木', opt: ['20%', '45%', '70%', '100%'] },
+  { k: 'fx', name: '煙與水花', opt: ['40%', '65%', '85%', '100%'] }];
+var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3 }, high: { rig: 2, debris: 2, fx: 2 }, mid: { rig: 1, debris: 1, fx: 1 }, low: { rig: 0, debris: 0, fx: 0 } };
+var PHX_NAME = { full: '全開', high: '高', mid: '中', low: '低', custom: '自訂' }, PHX_DEFAULT = 'full';
+// 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條。高 ＝ 原本的。
+var RIG_LV = [null, { it: 2, every: 4, loose: 150 }, { it: 3, every: 2, loose: 300 }, { it: 4, every: 2, loose: 500 }];
+var DEB_KS = [0.2, 0.45, 0.7, 1], FX_KS = [0.4, 0.65, 0.85, 1];
+var PHX = {}, PHX_RIG_LAST = 3;                 // PHX_RIG_LAST：B 鍵關掉再開，回到關之前那一檔
+function phxSet(level) { var p = PHX_PRESET[level]; for (var k in p) PHX[k] = p[k]; }
+/** 現在是哪一檔（四檔都對不上 ⇒ custom）。 */
+function phxLevel() {
+  for (var l in PHX_PRESET) { var p = PHX_PRESET[l], ok = true; for (var k in p) if (PHX[k] !== p[k]) ok = false; if (ok) return l; }
+  return 'custom';
+}
+function phxText() { return PHX_ITEMS.map(function (it) { return it.name + ' ' + it.opt[PHX[it.k]].replace(/（.*$/, ''); }).join('・'); }
+function rigLv() { return RIG_LV[PHX.rig] || RIG_LV[3]; }
+phxSet(PHX_PRESET[Q.get('phx')] ? Q.get('phx') : PHX_DEFAULT);
+PHX_ITEMS.forEach(function (it) { var v = parseInt(Q.get('p_' + it.k), 10); if (isFinite(v)) PHX[it.k] = clamp(v, 0, it.opt.length - 1); });
+if (Q.get('phys') === '0' && !Q.has('p_rig')) PHX.rig = 0;
+PHYS = PHX.rig > 0;                             // 帆與繩開不開（04_state.js 的 PHYS）跟著這一項走
 // ── js/10_ship.js ──
 // ───────────────────────── 船 ─────────────────────────
 function shipBaseMatrix(T) {  // 格 → 船體（公尺）：(x, y, z) ⇒ (S(x−cx), S(z−zw), −S(y−cy))
@@ -1635,13 +1682,17 @@ var DMAX = 45000, D = {
   life: new Float32Array(DMAX), size: new Float32Array(DMAX), col: new Uint8Array(DMAX), st: new Uint8Array(DMAX), ship: new Int8Array(DMAX)
 };
 var DINST = new Float32Array(DMAX * 9);
+// 碎木自己的亂數（轉軸、落水、落地）：⛔ 跟戰局共用 rnd() ⇒ 少生一顆碎木（物理分級），後面的亂數全部錯位、整局都變（09_phx.js）。開局跟 rs 一起重設（70_flow.js）
+var RSD0 = 0x2545F491, rsD = SEED ^ RSD0, DEB_ACC = 0, PT_ACC = 0;   // DEB_ACC／PT_ACC：照分級少生的節拍（不抽亂數）
+function rndD() { rsD |= 0; rsD = rsD + 0x6D2B79F5 | 0; var t = Math.imul(rsD ^ rsD >>> 15, 1 | rsD); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
 function spawnDebris(p, v, col, size, life) {
+  var k = DEB_KS[PHX.debris]; if (k < 1) { DEB_ACC += k; if (DEB_ACC < 1) return; DEB_ACC -= 1; }   // 物理分級：少生幾顆（呼叫端的亂數已經抽完 ⇒ 戰局不變）
   var i;
   if (D.n < DMAX) i = D.n++;
-  else { i = (rnd() * DMAX) | 0; }      // 滿了 ⇒ 隨便頂掉一顆（只影響畫面，不影響模擬判定）
+  else { i = (rndD() * DMAX) | 0; }     // 滿了 ⇒ 隨便頂掉一顆（只影響畫面，不影響模擬判定）
   D.p[i * 3] = p[0]; D.p[i * 3 + 1] = p[1]; D.p[i * 3 + 2] = p[2];
   D.v[i * 3] = v[0]; D.v[i * 3 + 1] = v[1]; D.v[i * 3 + 2] = v[2];
-  var ax = norm([rnd() - 0.5, rnd() - 0.5, rnd() - 0.5]), sp = rr(4, 18);
+  var ax = norm([rndD() - 0.5, rndD() - 0.5, rndD() - 0.5]), sp = 4 + 14 * rndD();
   D.w[i * 3] = ax[0] * sp; D.w[i * 3 + 1] = ax[1] * sp; D.w[i * 3 + 2] = ax[2] * sp;
   D.q[i * 4] = 0; D.q[i * 4 + 1] = 0; D.q[i * 4 + 2] = 0; D.q[i * 4 + 3] = 1;
   D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1;
@@ -1667,7 +1718,7 @@ function stepDebris(dt) {
     if (st === 1) {
       if (D.p[o + 1] < seaH(D.p[o], D.p[o + 2], SIMT)) {                                    // 落水：慢慢沉
         D.st[i] = 3; D.v[o] *= 0.1; D.v[o + 1] = -0.25; D.v[o + 2] *= 0.1; D.life[i] = Math.min(D.life[i], 4);
-        if (rnd() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
+        if (rndD() < 0.04) spawnPt(add([D.p[o], 0.05, D.p[o + 2]], [0, 0, 0]), [0, 1.5, 0], 0.5, [0.9, 0.95, 1], 0.6, 0.6, 0, 1);
         continue;
       }
       if (D.v[o + 1] < 0) for (var s = 0; s < SHIPS.length; s++) {       // 掉到甲板上 ⇒ 停住
@@ -1675,7 +1726,7 @@ function stepDebris(dt) {
         if (L[0] < 0 || L[2] < 0 || L[0] >= sh.grid.sx) continue;
         if (sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
           D.st[i] = 2; D.ship[i] = s; D.p[o] = L[0]; D.p[o + 1] = L[1]; D.p[o + 2] = Math.floor(L[2]) + 1.0 + D.size[i] * 5;
-          D.life[i] = Math.min(D.life[i], rr(25, 45)); break;
+          D.life[i] = Math.min(D.life[i], 25 + 20 * rndD()); break;
         }
       }
     }
@@ -1695,6 +1746,7 @@ var PMAX = 12000, PT = { n: 0, p: new Float32Array(PMAX * 3), v: new Float32Arra
   s0: new Float32Array(PMAX), s1: new Float32Array(PMAX), c: new Float32Array(PMAX * 3), a: new Float32Array(PMAX), grav: new Float32Array(PMAX), drag: new Float32Array(PMAX), ty: new Float32Array(PMAX) };
 var PBUF = new Float32Array(PMAX * 9);
 function spawnPt(p, v, life, col, a, s0, s1, grav, drag, ty) {
+  var k = FX_KS[PHX.fx]; if (k < 1) { PT_ACC += k; if (PT_ACC < 1) return; PT_ACC -= 1; }   // 物理分級：少生幾顆（參數的亂數呼叫端已經抽完）
   if (PT.n >= PMAX) return;
   var i = PT.n++;
   PT.p[i * 3] = p[0]; PT.p[i * 3 + 1] = p[1]; PT.p[i * 3 + 2] = p[2]; PT.v[i * 3] = v[0]; PT.v[i * 3 + 1] = v[1]; PT.v[i * 3 + 2] = v[2];
@@ -2544,8 +2596,7 @@ var WIND_SAIL = 10;           // 推帆的風速（m/s）；WIND 的大小是煙
 var GUST = [0.24, 0.12, 0.06], FLUTTER = 0.35, SLACK = 1.02;   // 陣風三個頻率的幅度、布上走過去的波紋（風壓 ±35%）、布比作品的形狀鬆 2%（鼓得深一點）
 var KW = 0.05;                // 風壓：加速度（格/秒²）＝ KW ×（相對風在法線上的分量）²
 var KD = 0.3, DAMP = 0.985;   // 繩的空氣阻力（1/秒）、每一步的速度保留
-var ITER_C = 4, ITER_R = 4, SEG = 6, LOOSE_MAX = 500;
-var HC = 2 * DT;              // 帆隔一步走一次（一半的帆走單數步、一半走雙數步）⇒ 30 Hz，負擔攤平
+var SEG = 6;                  // 布與繩的迭代次數、帆幾步走一次、垂繩上限照物理分級（09_phx.js rigLv：高 ＝ 4 次、隔一步（30 Hz）、500 條）
 var CACC = null, CCNT = null, PHYS_MS = 0, PROF = { cloth: 0, rope: 0, buf: 0 };
 // 帆桁追風（物理開著才轉）：方帆桁讓帆的法線落在「相對風吹去的方向」與船頭的角平分線上，最多轉離正橫 40°（再多就頂到支索與 shroud）；
 //   gaff／boom（後桅縱帆）往下風擺，帆面跟船身的夾角 ＝ (180° − 相對風角)／2，8°–80°；頂風 ±25° 內不換邊（遲滯）。每秒最多轉 8°。
@@ -2804,7 +2855,7 @@ function hitGrid(g, p, q, o) {
   if (g.get(Math.floor(p[o]), Math.floor(p[o + 1]), Math.floor(p[o + 2])) && !g.get(Math.floor(q[o]), Math.floor(q[o + 1]), Math.floor(q[o + 2]))) { p[o] = q[o]; p[o + 1] = q[o + 1]; p[o + 2] = q[o + 2]; }
 }
 function clothStep(sh, c, wl, gv) {
-  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, i, j, x;
+  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, HC = rigLv().every * DT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, i, j, x;
   A.fill(0, 0, n * 3); N.fill(0, 0, n);
   for (j = 0; j < tr.length; j += 3) {           // 風壓：每個三角形沿法線推，大小 ∝（相對風在法線上的分量）²，相對風扣掉布自己的速度
     if (c.torn && (c.brk[T.te[j]] || c.brk[T.te[j + 1]] || c.brk[T.te[j + 2]])) continue;
@@ -2826,7 +2877,7 @@ function clothStep(sh, c, wl, gv) {
     for (x = 0; x < 3; x++) { var cur = p[o + x], vel = (cur - q[o + x]) * dmp; q[o + x] = cur; p[o + x] = cur + vel + (A[o + x] * kk + gv[x]) * dt2; }
     if (c.loose) hitGrid(sh.grid, p, q, o);
   }
-  for (var it = 0; it < ITER_C; it++) { solve(T.ea, T.eb, T.rest, c.torn ? c.brk : null, p, pin, 1); if (it & 1) solve(T.ba, T.bb, T.brest, c.torn ? c.bbrk : null, p, pin, 0.5); }
+  for (var it = 0, itn = rigLv().it; it < itn; it++) { solve(T.ea, T.eb, T.rest, c.torn ? c.brk : null, p, pin, 1); if (it & 1) solve(T.ba, T.bb, T.brest, c.torn ? c.bbrk : null, p, pin, 0.5); }
 }
 /** 剛斷的繩 ⇒ 垂下來的繩：重新取樣（每段 ≤ SEG 格，原本的弧度與鬆緊照留），兩端各記著靠什麼；被打斷的從斷點分成兩段。 */
 function spawnLoose(sh, r) {
@@ -2851,7 +2902,7 @@ function spawnLoose(sh, r) {
     o.pin[0] = o.hk[0] ? 1 : 0; o.pin[n - 1] = o.hk[1] ? 1 : 0;
     ropePins(sh, o); sh.loose.push(o);
   });
-  if (sh.loose.length > LOOSE_MAX) {                                  // 太多 ⇒ 先丟已經整條鬆掉的，再丟最早的
+  if (sh.loose.length > rigLv().loose) {                                  // 太多 ⇒ 先丟已經整條鬆掉的，再丟最早的
     var drop = sh.loose.findIndex(function (o) { return !o.pin[0] && !o.pin[o.n - 1]; });
     sh.loose.splice(drop >= 0 ? drop : 0, 1);
   }
@@ -2868,7 +2919,7 @@ function ropeStep(sh, o, wl, gv) {
     for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * DAMP; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / DT)) * dt2; }
     hitGrid(sh.grid, p, q, j);
   }
-  for (var it = 0; it < ITER_R; it++) for (i = 0; i + 1 < n; i++) {
+  for (var it = 0, itn = rigLv().it; it < itn; it++) for (i = 0; i + 1 < n; i++) {
     var wa = pin[i] ? 0 : 1, wb = pin[i + 1] ? 0 : 1; if (!(wa + wb)) continue;
     var ia = i * 3, ib = ia + 3, dx = p[ib] - p[ia], dy = p[ib + 1] - p[ia + 1], dz = p[ib + 2] - p[ia + 2], l = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (l < 1e-9) continue;
@@ -2897,7 +2948,8 @@ function physStep(sh) {
     if (c.hidden || !c.p) { var keep = c.p && c.torn ? { brk: c.brk, bbrk: c.bbrk, tv: c.tv } : null; clothInit(c); c.hidden = false; if (keep) { c.brk = keep.brk; c.bbrk = keep.bbrk; c.tv = keep.tv; c.torn = true; } }   // 收帆再張：形狀重來、破洞留著
     if (chk || c.npin < 0) clothPins(sh, s, c);
     yardPins(sh, c);
-    if ((si + k + sh.i) & 1) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
+    var ev = rigLv().every;
+    if ((si + k + sh.i + 1) % ev === 0) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
     if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }
   });
   for (i = 0; i < sh.loose.length; i++) {
@@ -2913,7 +2965,8 @@ function physStep(sh) {
  *  （被斷開的那一團帶走的、一開始就不畫的除外）。關 ⇒ 回到靜態。 */
 function setPhys(on) {
   PHYS = on;
-  $('physT').classList.toggle('on', on); $('phys').checked = on;
+  if (on && !PHX.rig) PHX.rig = PHX_RIG_LAST; else if (!on && PHX.rig) { PHX_RIG_LAST = PHX.rig; PHX.rig = 0; }   // 物理分級的「帆與繩」跟著走（09_phx.js）
+  $('physT').classList.toggle('on', on); if (typeof phxShow === 'function' && $('phxB')) phxShow();
   SHIPS.forEach(function (sh) {
     sh.loose = [];
     if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); }   // 關 ⇒ 帆桁回到作品的角度
@@ -4293,7 +4346,7 @@ function checkEnd() {
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -4320,7 +4373,8 @@ function prefsSnap() {
   if (CAP_SET.some(function (k) { return k !== 'random'; })) o.cap = CAP_SET.slice();
   var gd = GFX_PRESET[GFX_DEFAULT]; if (GFX_ITEMS.some(function (it) { return GFX[it.k] !== gd[it.k]; })) { o.gfx = {}; GFX_ITEMS.forEach(function (it) { o.gfx[it.k] = GFX[it.k]; }); }   // 畫質（07_gfx.js）：跟預設不一樣 ⇒ 整組存
   put('fps', GFX_FPS, false);
-  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('phys', PHYS, true); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
+  var xd = PHX_PRESET[PHX_DEFAULT]; if (PHX_ITEMS.some(function (it) { return PHX[it.k] !== xd[it.k]; })) { o.phx = {}; PHX_ITEMS.forEach(function (it) { o.phx[it.k] = PHX[it.k]; }); }   // 物理效果（09_phx.js）：跟預設不一樣 ⇒ 整組存
+  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
   if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
   return o;
 }
@@ -4360,7 +4414,10 @@ function prefsApply(p) {
   }
   if (!Q.has('cap') && Array.isArray(p.cap)) p.cap.forEach(function (w, i) { if (i < 2 && (w === 'random' || Object.prototype.hasOwnProperty.call(CAPTAINS, w))) CAP_SET[i] = w; });
   var a = num(p.ammo, [0, AMMO.length - 1], true); if (a !== undefined) AMMO_I = a;
-  if (!Q.has('phys') && typeof p.phys === 'boolean') PHYS = p.phys;
+  var qx = Q.has('phx') || Q.has('phys') || PHX_ITEMS.some(function (it) { return Q.has('p_' + it.k); });   // 網址指定了物理 ⇒ 存檔的那份不套
+  if (!qx && p.phx && typeof p.phx === 'object') PHX_ITEMS.forEach(function (it) { var x = num(p.phx[it.k], [0, it.opt.length - 1], true); if (x !== undefined) PHX[it.k] = x; });
+  else if (!qx && p.phys === false) PHX.rig = 0;                     // 舊格式（只存了帆與繩的開關）
+  PHYS = PHX.rig > 0;
   if (p.gfx && typeof p.gfx === 'object' && !Q.has('gfx')) GFX_ITEMS.forEach(function (it) { var x = num(p.gfx[it.k], [0, it.opt.length - 1], true); if (x !== undefined && !Q.has('g_' + it.k)) GFX[it.k] = x; });
   if (typeof p.fps === 'boolean') GFX_FPS = p.fps;
   if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
@@ -4404,7 +4461,7 @@ function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
 // ───────────────────────── 開局 ─────────────────────────
 function reset() {
   END_AT = 0;
-  rs = SEED;
+  rs = SEED; rsD = SEED ^ RSD0; DEB_ACC = PT_ACC = 0;              // 碎木的亂數、少生的節拍跟著重設（12_effects.js）
   SHIPS.forEach(function (sh) { sh.rs.dispose(); });
   PIECES.forEach(function (pc) { pc.rs.dispose(); });
   SHIPS = []; PIECES = []; BALLS = []; EVENTS = []; FLY = []; BOOMS = []; D.n = 0; PT.n = 0; SIMT = 0; OVER = false; PAUSED = false;   // 彈種（AMMO_I）重開時保留（Tim 2026-10-12）
@@ -4551,7 +4608,6 @@ $('camT').onclick = function () { setCamTrack(!CAM.track); };
 $('physT').onclick = function () { setPhys(!PHYS); };
 $('restartB').onclick = function () { if (RUNNING) start(); };
 $('endA').onclick = start;
-$('phys').onchange = function () { setPhys($('phys').checked); };
 [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.onclick = function () { AMMO_I = +s.dataset.a; }; });
 [].forEach.call(document.querySelectorAll('#modes button'), function (b) { b.onclick = function () { MODE = b.dataset.m; [].forEach.call(document.querySelectorAll('#modes button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
 /** 選單：滑桿的上下限從 LIM 來；數值只在使用者動了那一條時才從滑桿讀回（⛔ 一開頭就讀回 ⇒ 網址給的 0.33 被 step 吃成 0.35）。
@@ -4649,13 +4705,15 @@ function sliders() {
   cs.onchange = function () { CFG_ID = cs.value; loadHull(CFG_ID).then(function () { put(); show(); }); put(); show(); };
   [0, 1].forEach(function (i) { var s = $('ship' + i); hullOptions(s, SHIP_SET[i]); s.onchange = function () { pickShip(i, s.value); }; });   // 主選單選船
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
-  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定
+  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; $('phxp').style.display = w === 'phx' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp):not(#phxp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定、'phx' 物理設定
   [].forEach.call(document.querySelectorAll('#plays button'), function (b) { b.onclick = function () { setPlay(b.dataset.p); show(); }; });   // 主選單：玩法
   $('detB').onclick = function () { page('det'); };
   $('detX').onclick = function () { page(''); };
   $('gfxB').onclick = function () { page('gfx'); };
   $('gfxX').onclick = function () { page(''); };
-  gfxUI();
+  $('phxB').onclick = function () { page('phx'); };
+  $('phxX').onclick = function () { page(''); };
+  gfxUI(); phxUI();
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
     SHIP_CFG = {}; Object.keys(HULLT).forEach(function (id) { var c = shipCfg(id); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? HULLT[id].ballast0 : LIM[k][2]; }); });   // 每一型回到它的預設（壓艙物 ＝ 剛好在設計水線）
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; CREW_HP = LIM.crewhp[2];
@@ -4665,7 +4723,7 @@ function sliders() {
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
     put(); show(); prefsReset();                         // 存檔跟著清（69_prefs.js：只剩主選單的選擇）
   };
-  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && ($('detail').style.display !== 'none' || $('gfxp').style.display !== 'none')) page(''); });
+  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && ($('detail').style.display !== 'none' || $('gfxp').style.display !== 'none' || $('phxp').style.display !== 'none')) page(''); });
   put(); show(); SLIDERS_SHOW = function () { put(); show(); };
 }
 /** 畫質（07_gfx.js）：主選單的低／中／高、畫質設定頁每一項的按鈕、顯示 FPS。改了立刻生效（render 每一格讀 GFX）。 */
@@ -4686,6 +4744,24 @@ function gfxShow() {
   [].forEach.call(document.querySelectorAll('#gfxItems button'), function (b) { b.className = GFX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
   $('gfxLv').textContent = '現在：' + GFX_NAME[lv]; $('gfxFps').checked = GFX_FPS; $('fps').className = GFX_FPS ? 'hud on' : 'hud';
 }
+/** 物理效果（09_phx.js）：主選單的全開／高／中／低、物理設定頁每一項的按鈕。帆與繩換到「關」或從「關」換出來 ⇒ setPhys（跟 B 鍵同一支）。 */
+function phxUI() {
+  var box = $('phxItems');
+  box.innerHTML = PHX_ITEMS.map(function (it) {
+    return '<div class="row"><label>' + it.name + '</label>' + it.opt.map(function (o, v) { return '<button data-k="' + it.k + '" data-v="' + v + '">' + o + '</button>'; }).join('') + '</div>';
+  }).join('');
+  [].forEach.call(box.querySelectorAll('button'), function (b) { b.onclick = function () { PHX[b.dataset.k] = +b.dataset.v; phxSync(); }; });
+  [].forEach.call(document.querySelectorAll('#phxs button[data-x], #phxPre button'), function (b) { b.onclick = function () { phxSet(b.dataset.x); phxSync(); }; });
+  phxShow();
+}
+function phxSync() { if ((PHX.rig > 0) !== PHYS) setPhys(PHX.rig > 0); phxShow(); }
+function phxShow() {
+  var lv = phxLevel();
+  [].forEach.call(document.querySelectorAll('#phxs button[data-x], #phxPre button'), function (b) { b.className = b.dataset.x === lv ? 'on' : ''; });
+  var pb = $('phxB'); pb.textContent = lv === 'custom' ? '自訂（物理設定…）' : '物理設定…'; pb.className = lv === 'custom' ? 'on' : '';
+  [].forEach.call(document.querySelectorAll('#phxItems button'), function (b) { b.className = PHX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
+  $('phxLv').textContent = '現在：' + PHX_NAME[lv];
+}
 /** 玩法：娛樂／寫實（04_state.js 的 PLAY）＋主選單按鈕的亮燈。航行每一步都讀（playK）；按鈕在主選單，沒開戰時才按得到。 */
 function setPlay(p) { PLAY = p === 'real' ? 'real' : 'fun'; [].forEach.call(document.querySelectorAll('#plays button'), function (x) { x.className = x.dataset.p === PLAY ? 'on' : ''; }); }
 /** 選單列船：HULL_LIST 的每一艘。 */
@@ -4704,7 +4780,7 @@ function pickShip(i, id) {
 sliders(); setPlay(PLAY);
 [].forEach.call(document.querySelectorAll('#dists button'), function (b) { b.onclick = function () { DIST = +b.dataset.d; [].forEach.call(document.querySelectorAll('#dists button'), function (x) { x.className = x === b ? 'on' : ''; }); }; });
 [].forEach.call(document.querySelectorAll('#sails button'), function (b) { b.onclick = function () { setSailMode(b.dataset.s); }; });
-setSailMode(SAIL); setCamTrack(true); $('physT').classList.toggle('on', PHYS); $('phys').checked = PHYS;
+setSailMode(SAIL); setCamTrack(true); $('physT').classList.toggle('on', PHYS);
 $('go').onclick = start;
 $('endC').onclick = function () { $('end').className = ''; };
 $('endR').onclick = function () { RUNNING = false; $('end').className = ''; $('cover').style.display = ''; };
@@ -4749,6 +4825,8 @@ if (DEBUG) window.__game = {
   predict: function (b) { return ballPredict(b); },
   cam: function (o) { for (var k in o) CAM[k] = o[k]; CAM.snap = true; camUpdate(1); render(); },
   phys: function (on) { if (on !== undefined) setPhys(!!on); return PHYS; },
+  /** 物理效果（09_phx.js）：給 level（full／high／mid／low）或 { rig: 1, … } 就換；回傳現在的設定。 */
+  phx: function (o) { if (typeof o === 'string') phxSet(o); else if (o) for (var k in o) PHX[k] = o[k]; if (o) { if ((PHX.rig > 0) !== PHYS) setPhys(PHX.rig > 0); if ($('phxB')) phxShow(); } return { level: phxLevel(), phx: JSON.parse(JSON.stringify(PHX)), phys: PHYS, rig: rigLv(), debris: DEB_KS[PHX.debris], fx: FX_KS[PHX.fx] }; },
   /** 帆桁追風的讀數：相對風吹去的方向、每根帆桁現在離正橫幾度（作品的角度＋追風轉的）。 */
   yards: function (i) { var sh = SHIPS[i || 0]; return { psi: sh.psi === undefined ? null : +(sh.psi * 57.3).toFixed(1), side: sh.braceSide || 0, ropes: sh.yRopes.length,
     yards: sh.yards.map(function (m) { return { name: m.name, kind: m.yk, deg: +((m.r0 + m.rot) * 57.3).toFixed(1), rot: +(m.rot * 57.3).toFixed(1), alive: m.alive }; }) }; },

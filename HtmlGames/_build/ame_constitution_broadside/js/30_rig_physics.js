@@ -9,8 +9,7 @@ var WIND_SAIL = 10;           // 推帆的風速（m/s）；WIND 的大小是煙
 var GUST = [0.24, 0.12, 0.06], FLUTTER = 0.35, SLACK = 1.02;   // 陣風三個頻率的幅度、布上走過去的波紋（風壓 ±35%）、布比作品的形狀鬆 2%（鼓得深一點）
 var KW = 0.05;                // 風壓：加速度（格/秒²）＝ KW ×（相對風在法線上的分量）²
 var KD = 0.3, DAMP = 0.985;   // 繩的空氣阻力（1/秒）、每一步的速度保留
-var ITER_C = 4, ITER_R = 4, SEG = 6, LOOSE_MAX = 500;
-var HC = 2 * DT;              // 帆隔一步走一次（一半的帆走單數步、一半走雙數步）⇒ 30 Hz，負擔攤平
+var SEG = 6;                  // 布與繩的迭代次數、帆幾步走一次、垂繩上限照物理分級（09_phx.js rigLv：高 ＝ 4 次、隔一步（30 Hz）、500 條）
 var CACC = null, CCNT = null, PHYS_MS = 0, PROF = { cloth: 0, rope: 0, buf: 0 };
 // 帆桁追風（物理開著才轉）：方帆桁讓帆的法線落在「相對風吹去的方向」與船頭的角平分線上，最多轉離正橫 40°（再多就頂到支索與 shroud）；
 //   gaff／boom（後桅縱帆）往下風擺，帆面跟船身的夾角 ＝ (180° − 相對風角)／2，8°–80°；頂風 ±25° 內不換邊（遲滯）。每秒最多轉 8°。
@@ -269,7 +268,7 @@ function hitGrid(g, p, q, o) {
   if (g.get(Math.floor(p[o]), Math.floor(p[o + 1]), Math.floor(p[o + 2])) && !g.get(Math.floor(q[o]), Math.floor(q[o + 1]), Math.floor(q[o + 2]))) { p[o] = q[o]; p[o + 1] = q[o + 1]; p[o + 2] = q[o + 2]; }
 }
 function clothStep(sh, c, wl, gv) {
-  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, i, j, x;
+  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, HC = rigLv().every * DT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, i, j, x;
   A.fill(0, 0, n * 3); N.fill(0, 0, n);
   for (j = 0; j < tr.length; j += 3) {           // 風壓：每個三角形沿法線推，大小 ∝（相對風在法線上的分量）²，相對風扣掉布自己的速度
     if (c.torn && (c.brk[T.te[j]] || c.brk[T.te[j + 1]] || c.brk[T.te[j + 2]])) continue;
@@ -291,7 +290,7 @@ function clothStep(sh, c, wl, gv) {
     for (x = 0; x < 3; x++) { var cur = p[o + x], vel = (cur - q[o + x]) * dmp; q[o + x] = cur; p[o + x] = cur + vel + (A[o + x] * kk + gv[x]) * dt2; }
     if (c.loose) hitGrid(sh.grid, p, q, o);
   }
-  for (var it = 0; it < ITER_C; it++) { solve(T.ea, T.eb, T.rest, c.torn ? c.brk : null, p, pin, 1); if (it & 1) solve(T.ba, T.bb, T.brest, c.torn ? c.bbrk : null, p, pin, 0.5); }
+  for (var it = 0, itn = rigLv().it; it < itn; it++) { solve(T.ea, T.eb, T.rest, c.torn ? c.brk : null, p, pin, 1); if (it & 1) solve(T.ba, T.bb, T.brest, c.torn ? c.bbrk : null, p, pin, 0.5); }
 }
 /** 剛斷的繩 ⇒ 垂下來的繩：重新取樣（每段 ≤ SEG 格，原本的弧度與鬆緊照留），兩端各記著靠什麼；被打斷的從斷點分成兩段。 */
 function spawnLoose(sh, r) {
@@ -316,7 +315,7 @@ function spawnLoose(sh, r) {
     o.pin[0] = o.hk[0] ? 1 : 0; o.pin[n - 1] = o.hk[1] ? 1 : 0;
     ropePins(sh, o); sh.loose.push(o);
   });
-  if (sh.loose.length > LOOSE_MAX) {                                  // 太多 ⇒ 先丟已經整條鬆掉的，再丟最早的
+  if (sh.loose.length > rigLv().loose) {                                  // 太多 ⇒ 先丟已經整條鬆掉的，再丟最早的
     var drop = sh.loose.findIndex(function (o) { return !o.pin[0] && !o.pin[o.n - 1]; });
     sh.loose.splice(drop >= 0 ? drop : 0, 1);
   }
@@ -333,7 +332,7 @@ function ropeStep(sh, o, wl, gv) {
     for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * DAMP; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / DT)) * dt2; }
     hitGrid(sh.grid, p, q, j);
   }
-  for (var it = 0; it < ITER_R; it++) for (i = 0; i + 1 < n; i++) {
+  for (var it = 0, itn = rigLv().it; it < itn; it++) for (i = 0; i + 1 < n; i++) {
     var wa = pin[i] ? 0 : 1, wb = pin[i + 1] ? 0 : 1; if (!(wa + wb)) continue;
     var ia = i * 3, ib = ia + 3, dx = p[ib] - p[ia], dy = p[ib + 1] - p[ia + 1], dz = p[ib + 2] - p[ia + 2], l = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (l < 1e-9) continue;
@@ -362,7 +361,8 @@ function physStep(sh) {
     if (c.hidden || !c.p) { var keep = c.p && c.torn ? { brk: c.brk, bbrk: c.bbrk, tv: c.tv } : null; clothInit(c); c.hidden = false; if (keep) { c.brk = keep.brk; c.bbrk = keep.bbrk; c.tv = keep.tv; c.torn = true; } }   // 收帆再張：形狀重來、破洞留著
     if (chk || c.npin < 0) clothPins(sh, s, c);
     yardPins(sh, c);
-    if ((si + k + sh.i) & 1) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
+    var ev = rigLv().every;
+    if ((si + k + sh.i + 1) % ev === 0) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
     if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }
   });
   for (i = 0; i < sh.loose.length; i++) {
@@ -378,7 +378,8 @@ function physStep(sh) {
  *  （被斷開的那一團帶走的、一開始就不畫的除外）。關 ⇒ 回到靜態。 */
 function setPhys(on) {
   PHYS = on;
-  $('physT').classList.toggle('on', on); $('phys').checked = on;
+  if (on && !PHX.rig) PHX.rig = PHX_RIG_LAST; else if (!on && PHX.rig) { PHX_RIG_LAST = PHX.rig; PHX.rig = 0; }   // 物理分級的「帆與繩」跟著走（09_phx.js）
+  $('physT').classList.toggle('on', on); if (typeof phxShow === 'function' && $('phxB')) phxShow();
   SHIPS.forEach(function (sh) {
     sh.loose = [];
     if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); }   // 關 ⇒ 帆桁回到作品的角度

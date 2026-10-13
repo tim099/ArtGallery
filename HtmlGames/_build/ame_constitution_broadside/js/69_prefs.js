@@ -11,7 +11,7 @@
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['ship', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -38,7 +38,8 @@ function prefsSnap() {
   if (CAP_SET.some(function (k) { return k !== 'random'; })) o.cap = CAP_SET.slice();
   var gd = GFX_PRESET[GFX_DEFAULT]; if (GFX_ITEMS.some(function (it) { return GFX[it.k] !== gd[it.k]; })) { o.gfx = {}; GFX_ITEMS.forEach(function (it) { o.gfx[it.k] = GFX[it.k]; }); }   // 畫質（07_gfx.js）：跟預設不一樣 ⇒ 整組存
   put('fps', GFX_FPS, false);
-  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('phys', PHYS, true); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
+  var xd = PHX_PRESET[PHX_DEFAULT]; if (PHX_ITEMS.some(function (it) { return PHX[it.k] !== xd[it.k]; })) { o.phx = {}; PHX_ITEMS.forEach(function (it) { o.phx[it.k] = PHX[it.k]; }); }   // 物理效果（09_phx.js）：跟預設不一樣 ⇒ 整組存
+  put('ammo', AMMO_I, 0); put('mode', MODE, 'pve'); put('sail', SAIL, 'auto'); put('dist', DIST, 140);
   if (LAST_MODE === MODE) put('auto', AUTOFIRE, MODE === 'eve');     // 換了模式還沒開局 ⇒ 開局時會照模式重套（70_flow.js reset），這時的值不算數
   return o;
 }
@@ -78,7 +79,10 @@ function prefsApply(p) {
   }
   if (!Q.has('cap') && Array.isArray(p.cap)) p.cap.forEach(function (w, i) { if (i < 2 && (w === 'random' || Object.prototype.hasOwnProperty.call(CAPTAINS, w))) CAP_SET[i] = w; });
   var a = num(p.ammo, [0, AMMO.length - 1], true); if (a !== undefined) AMMO_I = a;
-  if (!Q.has('phys') && typeof p.phys === 'boolean') PHYS = p.phys;
+  var qx = Q.has('phx') || Q.has('phys') || PHX_ITEMS.some(function (it) { return Q.has('p_' + it.k); });   // 網址指定了物理 ⇒ 存檔的那份不套
+  if (!qx && p.phx && typeof p.phx === 'object') PHX_ITEMS.forEach(function (it) { var x = num(p.phx[it.k], [0, it.opt.length - 1], true); if (x !== undefined) PHX[it.k] = x; });
+  else if (!qx && p.phys === false) PHX.rig = 0;                     // 舊格式（只存了帆與繩的開關）
+  PHYS = PHX.rig > 0;
   if (p.gfx && typeof p.gfx === 'object' && !Q.has('gfx')) GFX_ITEMS.forEach(function (it) { var x = num(p.gfx[it.k], [0, it.opt.length - 1], true); if (x !== undefined && !Q.has('g_' + it.k)) GFX[it.k] = x; });
   if (typeof p.fps === 'boolean') GFX_FPS = p.fps;
   if (!Q.has('sail') && (p.sail === 'auto' || p.sail === 'manual' || p.sail === 'off')) SAIL = p.sail;
