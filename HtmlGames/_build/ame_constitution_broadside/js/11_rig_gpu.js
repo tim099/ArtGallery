@@ -9,29 +9,39 @@ function buildRig(owner) {          // 還綁著的繩（靜態，照雕刻作�
   owner.rigDirty = false;
 }
 /** 帆的網格（一個 owner 一份，索引畫）：頂點法線 ＝ 相鄰三角形的面積加權平均 ⇒ 布是圓的，不是一面一面的。
- *  關物理 ⇒ 位置就是雕刻作品那一刻（T.p0），只在 rigDirty 時重做；開物理 ⇒ 每一格畫面重做。 */
+ *  關物理 ⇒ 位置就是雕刻作品那一刻（T.p0），只在 rigDirty 時重做；開物理 ⇒ 每一格畫面重做。
+ *  帆的布片（34_shreds.js）接在帆後面、同一個緩衝 ⇒ 陰影、反射照帆畫。 */
 var SBV = null, SBI = null, SBN = null, SBP = null;
 function sailBuf(ow) {
-  var nv = 0, ni = 0, isShip = !!ow.crew;
+  var nv = 0, ni = 0, isShip = !!ow.crew, F = isShip && PHYS && ow.shreds && ow.shreds.length ? ow.shreds : null;
+  if (F) {                                                               // 緩衝照帆的模板配（30_rig_physics.js clothSetup）；多了布片不夠 ⇒ 加大
+    var mv = 0, mi = 0; ow.cl.forEach(function (c) { mv += c.T.n; mi += c.T.tris.length; }); F.forEach(function (f) { mv += f.n; mi += f.T.sim.tris.length; });
+    if (SBV.length < mv * 9) SBV = new Float32Array(mv * 12);
+    if (SBI.length < mi) SBI = new Uint32Array(Math.ceil(mi * 1.33));
+  }
   (ow.cl || []).forEach(function (c, k) {
     if (isShip) { var s = ow.sails[k]; if (PHYS ? (!c.p || c.hidden || c.gone) : (s.dead || s.furled)) return; }
-    var T = c.T, p = (PHYS || !isShip) && c.p ? clothFine(c, SBP) : T.p0, tr = T.tris, base = nv, col = T.col, j, i;
-    SBN.fill(0, 0, T.n * 3);
+    put((PHYS || !isShip) && c.p ? clothFine(c, SBP) : c.T.p0, c.T.n, c.T.tris, c.T.col, c.torn ? c.tv : null);
+  });
+  if (F) F.forEach(function (f) { put(f.p, f.n, f.T.sim.tris, f.col, null); });
+  function put(p, n, tr, col, tv) {                                      // tv：藏起來的細格點（撕開的洞）
+    var base = nv, j, i;
+    SBN.fill(0, 0, n * 3);
     for (j = 0; j < tr.length; j += 3) {
-      if (c.torn && (c.tv[tr[j]] || c.tv[tr[j + 1]] || c.tv[tr[j + 2]])) continue;
+      if (tv && (tv[tr[j]] || tv[tr[j + 1]] || tv[tr[j + 2]])) continue;
       var a = tr[j] * 3, b = tr[j + 1] * 3, d = tr[j + 2] * 3;
       var ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[d] - p[a], vy = p[d + 1] - p[a + 1], vz = p[d + 2] - p[a + 2];
       var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
       SBN[a] += nx; SBN[a + 1] += ny; SBN[a + 2] += nz; SBN[b] += nx; SBN[b + 1] += ny; SBN[b + 2] += nz; SBN[d] += nx; SBN[d + 1] += ny; SBN[d + 2] += nz;
       SBI[ni++] = base + tr[j]; SBI[ni++] = base + tr[j + 1]; SBI[ni++] = base + tr[j + 2];
     }
-    for (i = 0; i < T.n; i++) {
+    for (i = 0; i < n; i++) {
       var o = (base + i) * 9, q = i * 3;
       SBV[o] = p[q]; SBV[o + 1] = p[q + 1]; SBV[o + 2] = p[q + 2]; SBV[o + 3] = SBN[q]; SBV[o + 4] = SBN[q + 1]; SBV[o + 5] = SBN[q + 2];
       SBV[o + 6] = col[0]; SBV[o + 7] = col[1]; SBV[o + 8] = col[2];
     }
-    nv += T.n;
-  });
+    nv += n;
+  }
   if (!ow.sb) {
     ow.sb = { vao: gl.createVertexArray(), vbo: gl.createBuffer(), ebo: gl.createBuffer(), n: 0 };
     gl.bindVertexArray(ow.sb.vao); gl.bindBuffer(gl.ARRAY_BUFFER, ow.sb.vbo);

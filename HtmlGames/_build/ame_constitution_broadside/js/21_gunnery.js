@@ -317,7 +317,7 @@ function cutRig(sh, L, r, b) {
     var Ls = y0 && a ? rotZ(L, y0.piv, -a) : L;
     if (Ls[0] < sb[0] - rb || Ls[0] > sb[3] + rb || Ls[1] < sb[1] - rb || Ls[1] > sb[4] + rb || Ls[2] < sb[2] - rb || Ls[2] > sb[5] + rb) return;
     for (var j = 0; j < v.length; j += chain ? 9 : 3) { var dx = v[j] - Ls[0], dy = v[j + 1] - Ls[1], dz = v[j + 2] - Ls[2]; if (dx * dx + dy * dy + dz * dz < rs2) {
-      tearCloth(sh, s, L, chain ? 7 : 3); s.hp -= b.dmg * ammoK(b.ammo, VS_SAIL); (b.sails = b.sails || []).push(s);
+      tearCloth(sh, s, L, chain ? 7 : 3, b); s.hp -= b.dmg * ammoK(b.ammo, VS_SAIL); (b.sails = b.sails || []).push(s);
       if (s.hp <= 0) dropSail(sh, s, true); else if (chain) shredSail(sh, s, L);   // 歸零才掉；還撐得住 ⇒ 撕下幾片（鏈彈）、少一份推力
       changed = true; break; } }
   });
@@ -329,7 +329,7 @@ function segDist2(p, ax, ay, az, bx, by, bz) {
   return dx * dx + dy * dy + dz * dz;
 }
 /** 帆掉了：變成十來片大塊的平面布片（點精靈，不是 3D 碎屑 —— 不撞甲板、不轉四元數），飄著往下掉、碰水就沒。
- *  物理開著 ⇒ 布留著，掛在還綁著的地方擺（全鬆了就往下掉）；只有被鏈彈撕開（torn）才另外撒布片。
+ *  物理開著 ⇒ 布留著，掛在還綁著的地方擺（全鬆了就往下掉）；被打穿的那一塊已經在 tearCloth 變成真的布片（34_shreds.js）⇒ 不撒點精靈。
  *  ⛔ 亂數照抽、只是不撒 ⇒ 開或關物理，後面的亂數序列一樣（戰局不變）。 */
 function dropSail(owner, s, torn) {
   s.dead = true; owner.rigDirty = true; sailLinesDie(owner, s);
@@ -341,13 +341,15 @@ function dropSail(owner, s, torn) {
   for (var k = 0; k < n; k++) {
     var j = ((rnd() * nv) | 0) * 3, w = M4.pt(M, v[j], v[j + 1], v[j + 2]), sz = rr(1.6, 3), t = rr(0.85, 1);
     var vel = [gauss() * 1.5, rr(-0.5, 1.5), gauss() * 1.5], life = rr(5, 9);
-    if (!cl || torn) spawnPt(w, vel, life, [c[0] * t, c[1] * t, c[2] * t], 1, sz, sz * 0.85, 3, 1.2, 4);   // 終端速度 ≈ 3／1.2 ＝ 2.5 m/s，跟著風飄
+    if (!cl) spawnPt(w, vel, life, [c[0] * t, c[1] * t, c[2] * t], 1, sz, sz * 0.85, 3, 1.2, 4);   // 終端速度 ≈ 3／1.2 ＝ 2.5 m/s，跟著風飄
   }
 }
-/** 帆被打中但還撐得住：撕下幾片布（不掉）。 */
+/** 帆被打中但還撐得住：撕下幾片布（不掉）。物理開著、布在 ⇒ tearCloth 已經撕下真的布片（34_shreds.js），這裡照樣抽亂數、不放（PT_MUTE）。 */
 function shredSail(owner, s, L) {
-  var w = M4.pt(owner.M, L[0], L[1], L[2]), c = s.col || [0.95, 0.92, 0.85];
+  var w = M4.pt(owner.M, L[0], L[1], L[2]), c = s.col || [0.95, 0.92, 0.85], cl = owner.cl && owner.cl[s.k];
+  PT_MUTE = !!(PHYS && cl && cl.p);
   for (var k = 0; k < 3; k++) { var sz = rr(1.2, 2.2); spawnPt(w, [gauss() * 1.5, rr(-0.5, 1.5), gauss() * 1.5], rr(4, 7), c, 1, sz, sz * 0.85, 3, 1.2, 4); }
+  PT_MUTE = false;
 }
 function sailLinesDie(owner, s) { (s.lines || []).forEach(function (j) { owner.ropes[j].dead = true; }); owner.rigDirty = true; }
 

@@ -264,6 +264,7 @@ function render() {
   for (i = 0; i < PT.n; i++) { var f = PT.life[i] / PT.max[i], s = PT.s1[i] + (PT.s0[i] - PT.s1[i]) * f; pushPt([PT.p[i * 3], PT.p[i * 3 + 1], PT.p[i * 3 + 2]], s, [PT.c[i * 3], PT.c[i * 3 + 1], PT.c[i * 3 + 2]], PT.a[i] * Math.min(1, f * 3), PT.ty[i]); }
   wpPushSpray(pushPt);                                                   // 船邊水花的水滴（13_water.js）
   flPushJets(pushPt);                                                    // 從破口噴進來的水（33_flood.js）
+  rdPushSplash(pushPt);                                                  // 雨滴打在海面與船上的水花（14_rain.js）
   BALLS.forEach(function (b) { pushPt(b.p, 0.32, [0.08, 0.08, 0.08], 1); });
   var me = SHIPS[PLAYER_I], mWorld = m;                                   // mWorld 之後的是瞄準圈：另一批畫、不做深度測試（被船身擋住也看得到）
   if (me && me.aim && !AUTOFIRE && !STILL) {
@@ -283,6 +284,7 @@ function render() {
     if (m > mWorld) { gl.disable(gl.DEPTH_TEST); gl.drawArrays(gl.POINTS, mWorld, m - mWorld); gl.enable(gl.DEPTH_TEST); }
     gl.depthMask(true);
   }
+  rdDraw();                                                              // 3D 雨滴（14_rain.js；畫質的「雨滴（3D）」）：做深度測試、不寫深度
   // 雨（天氣 × 畫質的「雨」）：最上面一層，不做深度測試
   var rk = WX.rain * [0, 0.55, 1][GFX.rain || 0];
   if (rk > 0) {

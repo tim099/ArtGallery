@@ -19,8 +19,8 @@ var PHX_ITEMS = [
   { k: 'flood', name: '進水', opt: ['公式', '粒子 粗', '粒子 中', '粒子 細'] }];
 var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3, water: 3, flood: 3 }, high: { rig: 2, debris: 2, fx: 2, water: 2, flood: 2 }, mid: { rig: 1, debris: 1, fx: 1, water: 1, flood: 1 }, low: { rig: 0, debris: 0, fx: 0, water: 0, flood: 0 } };
 var PHX_NAME = { full: '全開', high: '高', mid: '中', low: '低', custom: '自訂' }, PHX_DEFAULT = 'full';
-// 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條。高 ＝ 原本的。
-var RIG_LV = [null, { it: 2, every: 4, loose: 150 }, { it: 3, every: 2, loose: 300 }, { it: 4, every: 2, loose: 500 }];
+// 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條、shred 帆的布片每艘最多幾片（34_shreds.js）。高 ＝ 原本的。
+var RIG_LV = [null, { it: 2, every: 4, loose: 150, shred: 40 }, { it: 3, every: 2, loose: 300, shred: 80 }, { it: 4, every: 2, loose: 500, shred: 150 }];
 var DEB_KS = [0.2, 0.45, 0.7, 1], FX_KS = [0.4, 0.65, 0.85, 1];
 var PHX = {}, PHX_RIG_LAST = 3;                 // PHX_RIG_LAST：B 鍵關掉再開，回到關之前那一檔
 function phxSet(level) { var p = PHX_PRESET[level]; for (var k in p) PHX[k] = p[k]; }
