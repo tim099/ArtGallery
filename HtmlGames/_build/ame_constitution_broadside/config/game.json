@@ -26,6 +26,7 @@
     "dmg12": [10, 300, 55],
     "dmg6": [10, 300, 40],
     "dmg3c": [10, 300, 30],
+    "dmgtr": [10, 300, 70],
     "box": [1, 8, 2],
     "carry": [1, 6, 1],
     "wind": [0.25, 3, 1],
@@ -53,7 +54,7 @@
     "chase": {"code": "18chase", "name": "18 磅追擊砲", "short": "追擊砲", "V": 165, "reload": 1, "big": false, "crew": 3, "min": 2, "mass": 2.1},
     "long4": {"code": "4l", "name": "4 磅砲", "short": "4 磅砲", "V": 165, "reload": 0.6, "big": false, "hole": 0.6, "crew": 2, "min": 1, "mass": 0.5},
     "long12": {"code": "12l", "name": "12 磅長砲", "short": "12 磅長砲", "V": 170, "reload": 0.9, "big": false, "hole": 0.85, "crew": 4, "min": 2, "mass": 1.7},
-    "long6": {"code": "6l", "name": "6 磅砲", "short": "6 磅砲", "V": 168, "reload": 0.75, "big": false, "hole": 0.7, "crew": 3, "min": 2, "mass": 1.0},
+    "long6": {"code": "6l", "name": "6 磅砲", "short": "6 磅砲", "V": 168, "reload": 0.75, "big": false, "hole": 0.7, "crew": 3, "min": 2, "mass": 1},
     "chase3": {
       "code": "3chase",
       "name": "3 磅追擊砲",
@@ -65,8 +66,22 @@
       "crew": 2,
       "min": 1,
       "mass": 0.4,
-      "burst": 6,
+      "burst": 12,
       "burstGap": 0.15
+    },
+    "trident": {
+      "code": "trident",
+      "name": "三叉戟砲（三管速射）",
+      "short": "三叉戟砲",
+      "V": 190,
+      "reload": 0.8,
+      "big": false,
+      "hole": 0.9,
+      "crew": 6,
+      "min": 3,
+      "mass": 4.5,
+      "burst": 16,
+      "burstGap": 0.06
     }
   },
   "geo0": {"spar": null, "marines": [160, 220], "center": 140, "aim": 90, "aimZ": [40, 320], "deckAim": [84, 104], "rigAim": [150, 300]},
@@ -151,7 +166,12 @@
       "work": "summit-stormkaap-01m-assembly",
       "geo": {"spar": [84, 118], "marines": [90, 110], "center": 110, "aim": 80, "aimZ": [30, 380], "deckAim": [66, 96], "rigAim": [150, 380]},
       "rooms": {"甲板-上/艙房/1": "medical", "甲板-上/艙房/2": "medical", "甲板-上/艙房/3": "medical"},
-      "cfg": {"base": 6}
+      "cfg": {"base": 6},
+      "lamps": [
+        {"at": [98.5, 130.5, 168], "r": 6, "color": 158, "rgb": [0.35, 1.0, 0.55]},
+        {"at": [100.5, 147.5, 155], "r": 4, "color": 158, "rgb": [0.35, 1.0, 0.55]},
+        {"at": [100.5, 113.5, 155], "r": 4, "color": 158, "rgb": [0.35, 1.0, 0.55]}
+      ]
     },
     {
       "id": "nightlamp",
@@ -160,6 +180,14 @@
       "vxk": "nightlamp.vxk",
       "work": "basecamp-nightlamp-01m-assembly",
       "geo": {"spar": [130, 146], "marines": [60, 330], "center": 160, "aim": 100, "aimZ": [35, 430], "deckAim": [103, 130], "rigAim": [170, 480]}
+    },
+    {
+      "id": "tridente",
+      "el": "ship-tridente",
+      "name": "三叉戟號",
+      "vxk": "tridente.vxk",
+      "work": "gura-tridente-01m-assembly",
+      "geo": {"marines": [50, 260], "center": 195, "aim": 110, "aimZ": [45, 560], "deckAim": [92, 160], "rigAim": [200, 650]}
     }
   ],
   "furniture": {

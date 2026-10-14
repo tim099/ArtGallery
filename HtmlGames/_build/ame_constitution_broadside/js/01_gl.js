@@ -40,7 +40,9 @@ var CUT_GLSL = 'uniform highp sampler2D uCutT; uniform vec4 uCut; uniform vec2 u
   '  return uCut.z>=0.0 && l.z>=texelFetch(uCutT,ivec2(clamp(int(floor(l.x)),0,int(uCutW.x)-1),int(uCut.z)),0).r; }\n';
 // 點光源（Tim 2026-10-14「點燈」：夜燈號船首像的提燈 meta kind=light、餘燼號船尾的燈籠 kind=lantern；60_render.js lampsUpdate）：
 //   最多 LAMP_N 盞（離鏡頭近的先）；uLP ＝ 世界座標＋照得到幾公尺、uLC ＝ 顏色×亮度。照亮船殼（voxFS）與模型（P.tri）：距離平方衰減到半徑為 0、朝著燈的面亮一點。⛔ 不投影子。
-var LAMP_N = 8, LAMP_GLSL = 'uniform vec4 uLP[' + LAMP_N + ']; uniform vec4 uLC[' + LAMP_N + ']; uniform int uLN;\n' +
+// 船殼上的燈（格子做的，不是模型；config/game.json ships[].lamps，Tim 2026-10-14：風暴角號船尾的燈改發綠光）：那艘船畫的時候 uVG ＝ 燈的中心（船的格座標）＋半徑、
+//   uVGC ＝ 光色＋格子的顏色代碼（rgb332）⇒ 半徑內、顏色對得上的格子發光（60_render.js drawHulls 每艘設；斷開的那一團 ⇒ 0 盞）。
+var VLAMP_N = 4, LAMP_N = 8, LAMP_GLSL = 'uniform vec4 uLP[' + LAMP_N + ']; uniform vec4 uLC[' + LAMP_N + ']; uniform int uLN; uniform vec4 uVG[' + VLAMP_N + ']; uniform vec4 uVGC[' + VLAMP_N + ']; uniform int uVGN; uniform float uVGK;\n' +
   'vec3 lampK(vec3 w, vec3 n){ vec3 s=vec3(0.0); for(int i=0;i<' + LAMP_N + ';i++){ if(i>=uLN) break; vec3 L=uLP[i].xyz-w; float d=length(L), a=clamp(1.0-d/uLP[i].w,0.0,1.0);\n' +
   ' s+=uLC[i].rgb*a*a*(0.35+0.65*max(dot(n,L/max(d,0.001)),0.0)); } return s; }\n';
 function programs() {
@@ -180,7 +182,7 @@ function setCommon(p) {
 function voxFS() {
   var s = VK.VOXEL_FS, a = 'out vec4 o;', b = 'if(vW.y<uWater){ float dd=clamp((uWater-vW.y)*0.12', c = 'float di=max(dot(n,uSun),0.0);', d = 'void main(){', e = 'vec3 c=base*(amb*0.62+vec3(1.0,0.96,0.88)*di*0.78);';
   if ([a, b, c, d, e].some(function (x) { return s.indexOf(x) < 0; })) { console.warn('VoxelKit 的體素著色器改過了：船殼不跟著浪著色、不收陰影、不吃點光源'); return s; }
-  return s.replace(e, e + ' if(uLN>0) c+=base*lampK(vW,n);').replace(a, SEA_GLSL + SHADOW_GLSL + CUT_GLSL + LAMP_GLSL + a).replace(b, 'float wy=uWater+seaH(vW.xz); if(uCut.w<0.5 && vW.y<wy){ float dd=clamp((wy-vW.y)*0.12')
+  return s.replace(e, e + ' if(uLN>0) c+=base*lampK(vW,n); if(uVGN>0){ for(int i=0;i<' + VLAMP_N + ';i++){ if(i>=uVGN) break; if(abs(float(vC)-uVGC[i].w)<0.5 && distance(vL,uVG[i].xyz)<uVG[i].w) c=mix(c,base*0.35+uVGC[i].rgb*1.15,uVGK); } }').replace(a, SEA_GLSL + SHADOW_GLSL + CUT_GLSL + LAMP_GLSL + a).replace(b, 'float wy=uWater+seaH(vW.xz); if(uCut.w<0.5 && vW.y<wy){ float dd=clamp((wy-vW.y)*0.12')
     .replace(c, 'float di=max(dot(n,uSun),0.0); if(di>0.0) di*=shadowK(vW,n*(3.0-2.0*di));').replace(d, d + ' if(vW.y<uClip) discard; if(cutOut(vL)) discard;');   // cutOut：剖面與隱藏甲板（vL ＝ 格座標）
 }
 

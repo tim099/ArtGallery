@@ -189,8 +189,8 @@ function remesh(budget) {
   PIECES.concat(SHIPS).forEach(function (o) { if (left > 0 && o.rs.dirty.size) left -= rsFlushSome(o.rs, left); });
 }
 function drawHulls(prog, near) {                                       // near(c)：只畫靠近 c 的（陰影圖用；沒給 ⇒ 全畫）
-  SHIPS.forEach(function (sh) { if (sh.sink > 40 || (near && !near(sh))) return; cutSet(prog, sh); gl.uniformMatrix4fv(prog.u.uModel, false, sh.M); sh.rs.draw(); });   // cutSet：剖面與隱藏甲板（74_cutaway.js）
-  cutSet(prog, null);
+  SHIPS.forEach(function (sh) { if (sh.sink > 40 || (near && !near(sh))) return; cutSet(prog, sh); vlampSet(prog, sh); gl.uniformMatrix4fv(prog.u.uModel, false, sh.M); sh.rs.draw(); });   // cutSet：剖面與隱藏甲板（74_cutaway.js）
+  cutSet(prog, null); vlampSet(prog, null);
   PIECES.forEach(function (pc) { if (near && !near(pc)) return; gl.uniformMatrix4fv(prog.u.uModel, false, pc.M); pc.rs.draw(); });
 }
 function drawModels(prog, near) {
@@ -219,17 +219,31 @@ function isLamp(m) { return !!(m.meta && (m.meta.kind === 'lantern' || m.meta.ki
 function lampAt(m) { return m.pts && m.pts.wick ? m.pts.wick : m.c; }
 /** 這一格的點光源（01_gl.js LAMP_GLSL）：離鏡頭近的 LAMP_N 盞；亮度跟著燈晃、天越暗越亮（跟光暈同一條）。只給人看、不抽 rnd()。 */
 var LAMPS = { n: 0, p: new Float32Array(LAMP_N * 4), c: new Float32Array(LAMP_N * 4) }, LAMP_R = 6, LAMP_I = 0.5;
+/** 船殼上的燈（格子，config ships[].lamps：at ＝ 中心（格座標）、r ＝ 半徑幾格、color ＝ 發光的那種格子（rgb332 代碼）、rgb ＝ 光色）還亮著嗎：中心旁 3×3×3 還有格子。 */
+function vlampOn(sh, L) { var x = Math.floor(L.at[0]), y = Math.floor(L.at[1]), z = Math.floor(L.at[2]); for (var dz = -1; dz <= 1; dz++) for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if (sh.grid.get(x + dx, y + dy, z + dz)) return true; return false; }
+var VLAMP_U = { p: new Float32Array(VLAMP_N * 4), c: new Float32Array(VLAMP_N * 4) };
+/** 畫這艘船的船殼前：它的燈（亮著的）給著色器；ow ＝ null（斷開的那一團、陰影那一趟）⇒ 0 盞。 */
+function vlampSet(prog, sh) {
+  if (!prog.u.uVGN) return;
+  var Ls = sh && !sh.sunk ? (sh.vlamps || []) : [], n = Math.min(VLAMP_N, Ls.length);
+  gl.uniform1i(prog.u.uVGN, n); if (!n) return;
+  for (var i = 0; i < n; i++) { var L = Ls[i]; VLAMP_U.p.set([L.at[0], L.at[1], L.at[2], L.r], i * 4); VLAMP_U.c.set([L.rgb[0], L.rgb[1], L.rgb[2], L.color], i * 4); }
+  gl.uniform4fv(prog.u.uVG, VLAMP_U.p); gl.uniform4fv(prog.u.uVGC, VLAMP_U.c); gl.uniform1f(prog.u.uVGK, 0.85 + 0.1 * Math.sin(SIMT * 1.3));
+}
 function lampsUpdate() {
   var L = [], E = CAM.eye;
   SHIPS.forEach(function (sh) {
     if (sh.sink > 40) return;
+    sh.vlamps = (sh.T.lamps || []).filter(function (V) { return vlampOn(sh, V); });   // 船殼上的燈：被打掉 ⇒ 熄（發光、點光源、光暈一起）
+    sh.vlamps.forEach(function (V, j) { var w = M4.pt(sh.M, V.at[0], V.at[1], V.at[2]); L.push({ w: w, k: 0.9 + 0.1 * Math.sin(SIMT * 1.3 + j), rgb: V.rgb, d: (w[0] - E[0]) * (w[0] - E[0]) + (w[1] - E[1]) * (w[1] - E[1]) + (w[2] - E[2]) * (w[2] - E[2]) }); });
     sh.models.forEach(function (m) { if (!m.alive || !isLamp(m)) return; var q = lampAt(m), w = M4.pt(sh.M, q[0], q[1], q[2]); L.push({ w: w, k: lanternK(m), d: (w[0] - E[0]) * (w[0] - E[0]) + (w[1] - E[1]) * (w[1] - E[1]) + (w[2] - E[2]) * (w[2] - E[2]) }); });
   });
   L.sort(function (a, b) { return a.d - b.d; });
   LAMPS.n = Math.min(LAMP_N, L.length);
   for (var i = 0; i < LAMPS.n; i++) {
     var l = L[i], I = LAMP_I * l.k * (1.6 - WX.lum);
-    LAMPS.p.set([l.w[0], l.w[1], l.w[2], LAMP_R], i * 4); LAMPS.c.set([1 * I, 0.62 * I, 0.25 * I, 0], i * 4);
+    var cl = l.rgb || [1, 0.62, 0.25];                                 // 模型的燈 ＝ 暖橘；船殼上的燈照 config 的光色
+    LAMPS.p.set([l.w[0], l.w[1], l.w[2], LAMP_R], i * 4); LAMPS.c.set([cl[0] * I, cl[1] * I, cl[2] * I, 0], i * 4);
   }
 }
 /** 燈籠／提燈：亮度 0.8–1 慢慢晃，照模擬時間與燈的編號（⛔ 不抽 rnd()：只給人看）；打飛了就熄。 */
@@ -237,6 +251,7 @@ function lanternK(m) { var t = SIMT * 1.7 + m.k * 2.39; return 0.8 + 0.1 * Math.
 function lanternHalo(push) {
   SHIPS.forEach(function (sh) {
     if (sh.sink > 40) return;
+    (sh.vlamps || []).forEach(function (V, j) { var k = 0.9 + 0.1 * Math.sin(SIMT * 1.3 + j); push(M4.pt(sh.M, V.at[0], V.at[1], V.at[2]), V.r * S * (2.4 + 0.4 * k), V.rgb, 0.18 + 0.2 * k * (1.6 - WX.lum)); });   // 船殼上的燈的光暈（照它的光色）
     sh.models.forEach(function (m) {
       if (!m.alive || !isLamp(m)) return;
       var k = lanternK(m), sz = Math.max(m.bb[3] - m.bb[0], m.bb[5] - m.bb[2]) * S, q = lampAt(m);   // 燈多大（公尺）；光暈在火焰那一點

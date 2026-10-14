@@ -347,6 +347,21 @@ def validate(cfg, prev=None):
             crew(s['crew'], p + '.crew', False)
         if 'rooms' in s:
             rooms(s['rooms'], p + '.rooms')
+        if 'lamps' in s:   # 船殼上的燈（格子做的；60_render.js vlampSet）：[{at: [x, y, z], r: 半徑幾格, color: 發光的格子 rgb332 代碼, rgb: [r, g, b] 光色 0～1}]，最多 4 盞
+            L = s['lamps']
+            if not (isinstance(L, list) and len(L) <= 4):
+                err(p + '.lamps', '最多 4 盞的清單')
+            else:
+                for j, q in enumerate(L):
+                    qp = '%s.lamps[%d]' % (p, j)
+                    if not (isinstance(q, dict) and isinstance(q.get('at'), list) and len(q['at']) == 3 and all(isnum(v) for v in q['at'])):
+                        err(qp + '.at', '[x, y, z]（船的格座標）')
+                    elif not (isnum(q.get('r')) and 0 < q['r'] <= 30):
+                        err(qp + '.r', '半徑 0～30 格')
+                    elif not (isint(q.get('color')) and 0 <= q['color'] <= 255):
+                        err(qp + '.color', '發光的格子顏色（rgb332 代碼 0～255）')
+                    elif not (isinstance(q.get('rgb'), list) and len(q['rgb']) == 3 and all(isnum(v) and 0 <= v <= 2 for v in q['rgb'])):
+                        err(qp + '.rgb', '光色 [r, g, b]，0～2')
     if prev:
         for sec in ('limits', 'menu', 'lim', 'guns', 'geo0', 'crew0'):
             for k in (prev.get(sec) or {}):

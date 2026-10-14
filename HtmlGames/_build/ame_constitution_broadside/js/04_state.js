@@ -6,6 +6,7 @@ var SHIPS = [], PIECES = [], BALLS = [], EVENTS = [], FLY = [], PLAYER_I = 0;
 //   hard flood ballast gunw speed agile upwind：船隻設定（下面 SHIP_KEYS）；cas：降旗的死傷比例
 //   gunhp sailhp crewhp powderhp：血量（砲／帆／船員／火藥桶；火藥桶拉滿上限 ＝ 不會爆）；blast：殉爆威力；blastv：每次爆炸的威力浮動 ±
 //   dmg12 dmg6 dmg3c：12 磅長砲、6 磅砲、3 磅追擊砲（風暴角號，TASK-0547；預設照彈重內插：4 磅 35、18 磅 70、24 磅 100）
+//   dmgtr：三叉戟砲（三叉戟號船頭的奇幻三管速射砲，gura 酒館 24555；一發 18 磅 ⇒ 70）
 //   dmg24 dmg32l dmg32 dmg18 dmg4：每發傷害（24 磅長砲、32 磅長砲（餘燼號）、32 磅 carronade、18 磅追擊砲、4 磅砲（夜隼號））
 //   box：砲旁藥箱放幾份；carry：送藥手一次搬幾份；wind：帆的風壓；hands：預備水手（每艘幾個人物，42_hands.js）；drown：溺水時間（秒，43_swim.js）
 //   sea：浪的大小（0 平靜、1 中浪、3 大浪）；stall：頂風失速（0 只是慢、1 寫實）；funspeed funagile funstall funpowder：娛樂加成（玩法選娛樂時再乘）
@@ -67,7 +68,7 @@ var WIND_K = qnum('wind', LIM.wind);                                // 帆的風
 function powderNever() { return POWDER_HP >= LIM.powderhp[1]; }      // 拉滿 ＝ 不會爆：兩種玩法都是（娛樂的倍率不管它）
 function powderHP() { return Math.round(POWDER_HP * playK('powder')); }   // 實際的火藥血量：娛樂再乘 FUN.powder（預設 675 ⇒ 300）
 // 每發傷害（砲種）：砲彈開火時帶著 b.dmg
-var DMG = { long12: Math.round(qnum('dmg12', LIM.dmg12)), long6: Math.round(qnum('dmg6', LIM.dmg6)), chase3: Math.round(qnum('dmg3c', LIM.dmg3c)), long: Math.round(qnum('dmg24', LIM.dmg24)), long32: Math.round(qnum('dmg32l', LIM.dmg32l)), carr: Math.round(qnum('dmg32', LIM.dmg32)), chase: Math.round(qnum('dmg18', LIM.dmg18)), long4: Math.round(qnum('dmg4', LIM.dmg4)) };
+var DMG = { long12: Math.round(qnum('dmg12', LIM.dmg12)), long6: Math.round(qnum('dmg6', LIM.dmg6)), chase3: Math.round(qnum('dmg3c', LIM.dmg3c)), trident: Math.round(qnum('dmgtr', LIM.dmgtr)), long: Math.round(qnum('dmg24', LIM.dmg24)), long32: Math.round(qnum('dmg32l', LIM.dmg32l)), carr: Math.round(qnum('dmg32', LIM.dmg32)), chase: Math.round(qnum('dmg18', LIM.dmg18)), long4: Math.round(qnum('dmg4', LIM.dmg4)) };
 // 彈種倍率（%）：列 ＝ 實心／爆裂／鏈彈，欄 ＝ 對砲（模型：砲、舵輪、火藥桶）／對帆／對人。網址 ?ammo= 九個數字（照列）
 var AMMO_LIM = CFG.ammo.lim, AMMO_K0 = CFG.ammo.k;   // config/game.json 的 ammo（上下限、預設）。爆裂對人原訂 115：量過死亡平均 42（舊版 27）⇒ 100（35，傷亡合計 62 對舊版 65）
 var AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });

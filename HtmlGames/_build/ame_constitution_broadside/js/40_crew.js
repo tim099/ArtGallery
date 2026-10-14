@@ -25,8 +25,8 @@ function blocked(x, y, z) {
   }
   return false;
 }
-function standNear(g, x, y, z0, z1, head, taken) {   // (x, y) 附近 4 格內找一個可以站、還沒人站、不在模型裡的位置
-  for (var r = 0; r <= 4; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+function standNear(g, x, y, z0, z1, head, taken, rmax) {   // (x, y) 附近 rmax 格內（沒給 ＝ 4）找一個可以站、還沒人站、不在模型裡的位置
+  for (var r = 0; r <= (rmax || 4); r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
     if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
     var k = (x + dx) + ',' + (y + dy); if (taken[k]) continue;
     var z = standZ(g, x + dx, y + dy, z0, z1, head);
@@ -60,6 +60,13 @@ function makeCrew(sh) {
       var at = standNear(g, spots[i][0], spots[i][1], z0, z1, 14, taken);
       if (!at) continue;
       add(ROLE.GUN, at, gn, 1); var c = crew[crew.length - 1]; c.deck = gunDeck(gn); c.side = gn.side; gn.spots.push({ at: at, who: c });
+    }
+    if (gn.spots.length < Math.min(n, gn.crewMin)) {                  // 站不到開得動的人數（三叉戟號船頭：6 磅砲擠在三叉戟砲旁邊，兩側被它的模型與砲班佔掉，各只站得到 1 個 ⇒ 開局就是灰的）
+      var gy = Math.floor((b[1] + b[4]) / 2);                          //   ⇒ 補到最少人數為止：以砲為中心往外找同一層站得住、沒被佔的格（放寬到 3 m）；照舊找得到的砲不走這裡 ⇒ 其他船一位元不動
+      for (i = gn.spots.length; i < n && gn.spots.length < gn.crewMin; i++) {
+        var at2 = standNear(g, cx, gy, z0, z1, 14, taken, 30); if (!at2) break;
+        add(ROLE.GUN, at2, gn, 1); var c2 = crew[crew.length - 1]; c2.deck = gunDeck(gn); c2.side = gn.side; gn.spots.push({ at: at2, who: c2 });
+      }
     }
     if (gn.spots[1]) gn.spots[1].who.rammer = true;                  // 只給畫用：裝填時拿推彈桿的那一個（41_crew_art.js 手持物）
   });
