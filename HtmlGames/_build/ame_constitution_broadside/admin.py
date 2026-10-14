@@ -4,6 +4,7 @@
 #           船的 .vxk 由 senate 從雕刻作品匯出到 VoxelKit/_cache/（不入版控），vxk_inline.py 內嵌進成品。
 # 失敗處置：設定不合法 ⇒ 列出每一格錯在哪、不寫檔；匯出／建置失敗 ⇒ 原樣印出那支工具的輸出、非零結束；
 #           重新匯入失敗 ⇒ 舊的 .vxk 不動（新的先寫到 .new，成功才換上，舊的留成 .prev）。
+#           _cache 跟指紋（config/vxk_lock.json）對不上 ⇒ 建置前從版控的成品換回，換不回就擋下（cache_guard）。
 #
 # 用法（在這個資料夾）：
 #   python -I admin.py serve [--port 8642] [--open]  開設定後台（只聽 127.0.0.1）⇒ 瀏覽器開 http://127.0.0.1:8642/（--open 自動開；已經開著 ⇒ 只開頁面）
@@ -13,7 +14,8 @@
 #   python -I admin.py import --work <雕刻作品 ID> --id <船的代號> --name <名字>   匯入新船（匯出 .vxk、登記、重建）
 #   python -I admin.py metasync --id <船的代號>   只同步 meta 與固定點（作品改了 meta、加了固定點，格子不動；TASK-0572）
 #   python -I admin.py reimport --id <船的代號> [--work <作品 ID>]                 重新匯入（換新的 .vxk、印跟上一版的差別、重建）
-#   python -I admin.py cache                      _cache/ 缺的 .vxk 從版控那份成品裡解回來（換機器、只改程式時用）
+#   python -I admin.py cache                      _cache/ 缺的、跟指紋不同的 .vxk 從版控那份成品裡解回來（換機器、只改程式時用；建置也會自己做）
+#   python -I admin.py relock --id <船的代號>     指紋改成 _cache 現在那份（手動換過 .vxk 時；平常匯入／重新匯入／metasync 會自己更新）
 #   加 --no-build：匯入／重新匯入之後不重建
 import argparse, base64, hashlib, json, math, os, re, shutil, socket, struct, subprocess, sys, urllib.request, webbrowser, zlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -27,6 +29,83 @@ VKD = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'VoxelKit'))
 CACHE = os.path.join(VKD, '_cache')
 INLINE = os.path.join(VKD, 'vxk_inline.py')
 SHIPS_A, SHIPS_B = '—— ships 開始 -->\n', '<!-- ships 結束 -->'
+
+
+# ───────────────────────── _cache 的指紋（.vxk 跟版控對得上才建） ─────────────────────────
+# _cache 不入版控、建置直接讀它 ⇒ 它落後了（別的工作區 reimport／metasync 過、只拿到版控的成品）建置不會叫，成品默默換成舊船
+#   （2026-10-14 bc1dfd9：艙房、甲板 meta 全掉）。⇒ 每艘 .vxk 的 sha1 記在 config/vxk_lock.json（入版控），建置前比：
+#   對得上 ⇒ 照建；對不上 ⇒ 版控的成品裡內嵌的那份對得上指紋就自動換回（原檔留成 .stale）；也對不上 ⇒ 擋下不建（⛔ 不猜哪一份才對）。
+#   匯入／重新匯入／metasync 寫了 .vxk 就更新指紋；要改用 _cache 現在那份（例如手動換過檔）⇒ relock。
+LOCK_P = os.path.join(HERE, 'config', 'vxk_lock.json')
+
+
+def sha1_bytes(b):
+    return hashlib.sha1(b).hexdigest()
+
+
+def lock_load():
+    if not os.path.exists(LOCK_P):
+        return {}
+    return json.load(open(LOCK_P, encoding='utf-8'))
+
+
+def lock_save(L):
+    with open(LOCK_P, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(json.dumps(L, ensure_ascii=False, indent=1, sort_keys=True) + '\n')
+
+
+def lock_put(vxk):
+    """_cache 那份 .vxk 寫好之後：指紋換成它。"""
+    L = lock_load()
+    L[vxk] = sha1_bytes(open(os.path.join(CACHE, vxk), 'rb').read())
+    lock_save(L)
+    return '  指紋 %s ← %s（config/vxk_lock.json，要跟成品一起提交）' % (vxk, L[vxk][:12])
+
+
+def built_vxk(html, el):
+    m = re.search(r'<script type="application/x-vxk" id="%s">([^<]*)</script>' % re.escape(el), html)
+    return base64.b64decode(m.group(1)) if m else None
+
+
+def cache_guard():
+    """建置前：_cache 的每艘 .vxk 對指紋（見上）。回傳要印的行；對不上又換不回 ⇒ Fail。"""
+    cfg, L, log, html, dirty = load(), lock_load(), [], None, False
+    os.makedirs(CACHE, exist_ok=True)
+    for s in cfg['ships']:
+        p, want = os.path.join(CACHE, s['vxk']), L.get(s['vxk'])
+        have = sha1_bytes(open(p, 'rb').read()) if os.path.exists(p) else None
+        if want is None:                                 # 還沒登記（這個機制之前的船）⇒ 照 _cache 現在那份登記
+            if have:
+                L[s['vxk']], dirty = have, True
+                log.append('  指紋 %s：第一次登記 %s（照 _cache 現在那份）' % (s['vxk'], have[:12]))
+            continue
+        if have == want:
+            continue
+        if html is None:
+            html = open(OUT, encoding='utf-8').read() if os.path.exists(OUT) else ''
+        b = built_vxk(html, s['el'])
+        if b is not None and sha1_bytes(b) == want:
+            if have:
+                shutil.copy2(p, p + '.stale')
+            open(p, 'wb').write(b)
+            log.append('  ↺ %s：_cache %s 跟指紋 %s 不同 ⇒ 從版控的成品換回%s' % (s['vxk'], (have or '（沒有）')[:12], want[:12], '（原檔留成 %s.stale）' % s['vxk'] if have else ''))
+            continue
+        raise Fail('%s：_cache %s 跟指紋 %s 不同，成品裡內嵌的也不是指紋那一份 ⇒ 不建（會把船換成別的版本）。\n'
+                   '  要用 _cache 現在這份 ⇒ python -I admin.py relock --id %s；要雕刻作品的最新版 ⇒ python -I admin.py reimport --id %s'
+                   % (s['vxk'], (have or '（沒有）')[:12], want[:12], s['id'], s['id']))
+    if dirty:
+        lock_save(L)
+    return log
+
+
+def act_relock(sid):
+    cfg = load()
+    s = next((x for x in cfg['ships'] if x['id'] == sid), None)
+    if not s:
+        raise Fail('沒有代號 %s 的船' % sid)
+    if not os.path.exists(os.path.join(CACHE, s['vxk'])):
+        raise Fail('_cache 沒有 ' + s['vxk'])
+    return [lock_put(s['vxk'])]
 
 MENU = {'play': ('fun', 'real'), 'mode': ('pve', 'eve', 'sandbox'), 'sail': ('auto', 'manual', 'off'),
         'gfx': ('low', 'mid', 'high'), 'phx': ('full', 'high', 'mid', 'low')}
@@ -408,6 +487,7 @@ def act_metasync(sid, build=True):
         co = zlib.compressobj(9, zlib.DEFLATED, -15)
         open(path + '.tmp', 'wb').write(co.compress(body) + co.flush())
         os.replace(path + '.tmp', path)
+        log.append(lock_put(s['vxk']))
         if build:
             log += act_build()
     return log
@@ -425,7 +505,7 @@ def act_build():
     E = validate(cfg)
     if E:
         raise Fail('設定不合法，不建置：\n' + '\n'.join('  ✗ ' + e for e in E))
-    log = ['template.html 的船標籤' + ('照設定改寫了' if sync_template(cfg) else '跟設定一致')]
+    log = cache_guard() + ['template.html 的船標籤' + ('照設定改寫了' if sync_template(cfg) else '跟設定一致')]
     miss = [s['vxk'] for s in cfg['ships'] if not os.path.exists(os.path.join(CACHE, s['vxk']))]
     if miss:
         raise Fail('VoxelKit/_cache/ 少了 %s ⇒ 先 python -I admin.py cache（從成品解回）或 reimport' % '、'.join(miss))
@@ -438,7 +518,8 @@ def act_build():
 
 def act_cache():
     """_cache/ 缺的 .vxk 從版控那份成品（內嵌的 base64）解回來。"""
-    cfg, log = load(), []
+    log = cache_guard()
+    cfg = load()
     html = open(OUT, encoding='utf-8').read() if os.path.exists(OUT) else ''
     os.makedirs(CACHE, exist_ok=True)
     for s in cfg['ships']:
@@ -476,7 +557,7 @@ def act_import(work, sid, name, build=True):
     except RuntimeError as e:
         raise Fail(str(e))
     info = vxk_info(dest)
-    log = ['✓ 匯出 %s ← %s' % (ship['vxk'], work)] + ['  %s：%s' % (n, info.get(k)) for k, n in DIFF_KEYS]
+    log = ['✓ 匯出 %s ← %s' % (ship['vxk'], work)] + ['  %s：%s' % (n, info.get(k)) for k, n in DIFF_KEYS] + [lock_put(ship['vxk'])]
     ref = vxk_info(os.path.join(CACHE, cfg['ships'][0]['vxk']))
     if ref and ref.get('meters_per_voxel') != info.get('meters_per_voxel'):
         log.append('⚠ 比例 %s 公尺／格，跟 %s 的 %s 不一樣 ⇒ 遊戲不會同時載這兩艘（模擬只吃同一個比例）' % (info.get('meters_per_voxel'), cfg['ships'][0]['name'], ref.get('meters_per_voxel')))
@@ -520,6 +601,7 @@ def act_reimport(sid, work=None, build=True):
         os.replace(dest, dest + '.prev')
     os.replace(tmp, dest)
     log.append('✓ 換上新的 .vxk（上一版留成 %s.prev）' % s['vxk'])
+    log.append(lock_put(s['vxk']))
     if s.get('work') != work:
         s['work'] = work
         save(cfg)
@@ -673,6 +755,8 @@ def main():
     s = sp.add_parser('metasync', help='只同步 meta 與固定點（格子不動）')
     s.add_argument('--id', required=True)
     s.add_argument('--no-build', action='store_true')
+    s = sp.add_parser('relock', help='指紋改成 _cache 現在那份')
+    s.add_argument('--id', required=True)
     s = sp.add_parser('reimport')
     s.add_argument('--id', required=True)
     s.add_argument('--work')
@@ -694,6 +778,8 @@ def main():
                 raise Fail('設定不合法：\n' + '\n'.join('  ✗ ' + e for e in E))
             save(cfg)
             log = ['✓ 重新排版 config/game.json']
+        elif o.op == 'relock':
+            log = act_relock(o.id)
         elif o.op == 'metasync':
             log = act_metasync(o.id, not o.no_build)
         elif o.op == 'import':
