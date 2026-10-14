@@ -154,10 +154,10 @@ function handRoute(sh, from, to, x, tx) {
   }
   return legs;
 }
-/** 開戰時：建走路格、接梯子、記各職位開戰時的人數（補到這個數），在待命那一層生 HANDS 個預備水手（彼此隔 3 點以上）。 */
+/** 開戰時：建走路格、接梯子、記各職位開戰時的人數（補到這個數），在待命那一層生 sh.cw.hands 個預備水手（彼此隔 3 點以上）。 */
 function makeHands(sh, crew, add) {
   sh.nav = null;
-  if (HANDS <= 0 && DROWN_T <= 0) return;                               // 落水的人爬回船上也要走路格（43_swim.js board）
+  if (sh.cw.hands <= 0 && DROWN_T <= 0) return;                               // 落水的人爬回船上也要走路格（43_swim.js board）
   var t0 = performance.now(), lads = shipLadders(sh.T), Ls = navLevels(sh, lads), LD = [];
   Ls.forEach(function (L) { L.N = navBuild(sh, L); });
   lads.forEach(function (l) {
@@ -179,7 +179,7 @@ function makeHands(sh, crew, add) {
     else if (c.role === ROLE.HELM) H.helm0++;
   });
   var N = Ls[home].N, used = [];
-  var NH = Math.round(HANDS * sh.T.crew.handsK);                      // 船員配置的倍率（config/game.json crew；夜隼號 ¼：小船）
+  var NH = sh.cw.hands;                                              // 船員配置（05_hull.js shipCrew：預設 ＝ HANDS × 那一型的 handsK；夜隼號 ¼：小船）
   if (N.cells.length) for (var k = 0; k < NH; k++) {
     var i = -1;
     for (var tries = 0; tries < 12; tries++) {

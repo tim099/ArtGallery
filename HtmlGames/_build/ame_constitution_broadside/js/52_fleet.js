@@ -162,6 +162,7 @@ function spawnReserve(team) {
   var sh = makeShip(SHIPS.length, team, yaw, P[1], T, P[0]); sh.name = f.name;
   SHIPS.push(sh); stepShip(sh, 0); survey(sh); pickCaptain(sh); cmdTick(); pickFoes();   // cmdTick：指揮官馬上把它排進去
   note(sh, '援軍進場' + (sh.name !== T.name ? '（' + T.name + '型）' : '') + teamTag(sh) + (RESERVE[team].length ? '（候補還有 ' + RESERVE[team].length + ' 艘）' : '（候補用完）'), true);
+  crewShortNote(sh);
   return sh;
 }
 /** 我艦出局（沉了、在沉、降旗）⇒ 自動換到友艦操控（Tim 2026-10-13：「玩家操作的船沉沒時，自動切換到友軍船艦操控」）：

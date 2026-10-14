@@ -1,5 +1,5 @@
 // ───────────────────────── 設定存檔（localStorage；Tim 2026-10-13：直接開網頁時，設定存在玩家自己的瀏覽器，下次打開自動套用） ─────────────────────────
-// 存：玩法（娛樂／寫實）、細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗、頂風失速、娛樂加成）、船隻設定（SHIP_CFG，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
+// 存：玩法（娛樂／寫實）、細節設定（血量、傷害、彈種倍率、火藥、補給、風壓、降旗、頂風失速、娛樂加成）、船隻配置頁（SHIP_CFG＋SHIP_CREW，照船型）、砲長、選了哪兩艘船、彈種、自動開砲、帆與繩的物理，
 //   以及主選單的模式、距離、航行。不存整場戰局。
 // 只存「跟預設不一樣」的那幾項：沒動過的照程式的預設走 ⇒ 之後改了預設值（例：火藥 450 → 675），沒動過的玩家也吃得到新的。
 //   壓艙物的預設跟船走（T.ballast0）⇒ 存的時候記那艘船的 checksum，船重匯過就不套（PREF_BALLAST，04_state.js）。
@@ -30,6 +30,7 @@ function prefsSnap() {
     if (Object.keys(d).length) cfg[id] = d;
   });
   if (Object.keys(cfg).length) o.cfg = cfg;
+  var cr = crewSnap(true); if (Object.keys(cr).length) o.crew = cr;          // 船員配置（TASK-0570）：跟那一型的預設不一樣的
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
   put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('wind', WIND_K, LIM.wind[2]);
   put('weather', WX_ID, 'clear'); put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, CFG.menu.play); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]); put('funpowder', FUN.powder, LIM.funpowder[2]);
@@ -54,13 +55,7 @@ function prefsApply(p) {
     if (Array.isArray(p.fleet)) p.fleet.forEach(function (L, i) { if (i < 2 && Array.isArray(L)) { L = L.filter(function (w) { return typeof w === 'string' && hullInfo(w); }); if (L.length) FLEET_SET[i] = L; } });
     fleetTrim(FLEET_SET);
   }
-  if (p.cfg && typeof p.cfg === 'object') Object.keys(p.cfg).forEach(function (id) {
-    var d = p.cfg[id]; if (!hullInfo(id) || !d || typeof d !== 'object') return;
-    var c = shipCfg(id);
-    SHIP_KEYS.forEach(function (k) { if (k !== 'ballast') set(k, d[k], LIM[k], false, function (x) { c[k] = x; }); });
-    var b = num(d.ballast, LIM.ballast, true);
-    if (b !== undefined && typeof d.chk === 'number') PREF_BALLAST[id] = { v: b, chk: d.chk };   // 船型載好、checksum 對得上才套（cfgDefault）
-  });
+  shipsApply(p);
   set('gunhp', p.gunhp, LIM.gunhp, true, function (x) { GUN_HP = x; });
   set('sailhp', p.sailhp, LIM.sailhp, true, function (x) { SAIL_HP = x; });
   set('crewhp', p.crewhp, LIM.crewhp, true, function (x) { CREW_HP = x; });
@@ -106,6 +101,47 @@ function prefsApply(p) {
   if (!Q.has('cmd') && Array.isArray(p.cmd)) p.cmd.forEach(function (w, i) { if (i < 2 && CMD_NAMES[w]) CMD_SIDE[i ? 'red' : 'blue'] = w; });   // 指揮官（TASK-0551）
   if (!Q.has('dist') && typeof p.dist === 'number' && isFinite(p.dist)) DIST = clamp(Math.round(p.dist), LIM_DIST[0], LIM_DIST[1]);   // 舊存檔的 90／140／220 照樣是合法的值
 }
+/** 船隻配置（船隻設定 cfg ＋ 船員 crew，照船型）：存檔、匯入共用這一支。每一項各自驗；網址有的那一項不套。 */
+function shipsApply(p) {
+  function num(v, lim, int) { if (typeof v !== 'number' || !isFinite(v)) return undefined; v = clamp(v, lim[0], lim[1]); return int ? Math.round(v) : v; }
+  if (p.cfg && typeof p.cfg === 'object') Object.keys(p.cfg).forEach(function (id) {
+    var d = p.cfg[id]; if (!hullInfo(id) || !d || typeof d !== 'object') return;
+    var c = shipCfg(id);
+    SHIP_KEYS.forEach(function (k) { if (k !== 'ballast' && !Q.has(k)) { var x = num(d[k], LIM[k]); if (x !== undefined) c[k] = x; } });
+    var b = num(d.ballast, LIM.ballast, true), T = HULLT[id];
+    if (b !== undefined && typeof d.chk === 'number' && !Q.has('ballast')) { PREF_BALLAST[id] = { v: b, chk: d.chk }; if (T && T.h.checksum === d.chk) c.ballast = b; }   // 船型載好、checksum 對得上才套（cfgDefault）
+  });
+  if (p.crew && typeof p.crew === 'object') Object.keys(p.crew).forEach(function (id) {
+    var d = p.crew[id]; if (!hullInfo(id) || !d || typeof d !== 'object') return;
+    var c = SHIP_CREW[id] = SHIP_CREW[id] || {};
+    CREW_ITEMS.forEach(function (it) { var x = num(d[it.k], it.lim, true); if (x !== undefined) c[it.k] = x; });
+    if (d.guns && typeof d.guns === 'object') Object.keys(d.guns).forEach(function (t) { if (!GUNS[t]) return; var x = num(d.guns[t], [GUNS[t].min, GUN_CREW_MAX], true); if (x !== undefined) (c.guns = c.guns || {})[t] = x; });
+  });
+}
+/** 船員配置：diff ＝ 只留跟那一型的預設不一樣的（存檔）；否則每一型整份（匯出）。 */
+function crewSnap(diff) {
+  var o = {};
+  HULL_LIST.forEach(function (h) {
+    var id = h.id, d = crewDefault(id), c = shipCrew(id), r = {}, g = {};
+    CREW_ITEMS.forEach(function (it) { if (!diff || c[it.k] !== d[it.k]) r[it.k] = c[it.k]; });
+    Object.keys(GUNS).forEach(function (t) { if (diff ? gunCrew(c, t) !== gunCrew(d, t) : true) g[t] = gunCrew(c, t); });
+    if (Object.keys(g).length) r.guns = g;
+    if (Object.keys(r).length) o[id] = r;
+  });
+  return o;
+}
+/** 匯出（船隻配置頁）：每一型整份的船隻設定與船員配置 ⇒ JSON 檔（換瀏覽器、換裝置再匯入；Tim 2026-10-14：編起來很花時間，要記錄）。 */
+function shipsExport() {
+  var cfg = {};
+  HULL_LIST.forEach(function (h) { var c = cfgCopy(h.id), T = HULLT[h.id]; if (c.ballast === undefined || !T) { delete c.ballast; if (PREF_BALLAST[h.id]) { c.ballast = PREF_BALLAST[h.id].v; c.chk = PREF_BALLAST[h.id].chk; } } else c.chk = T.h.checksum; cfg[h.id] = c; });
+  return { game: 'ame_constitution_broadside', kind: 'ships', v: 1, at: new Date().toISOString(), cfg: cfg, crew: crewSnap(false) };
+}
+/** 匯入：看得懂才套（game／kind 對得上）；回傳套了幾型。 */
+function shipsImport(o) {
+  if (!o || o.game !== 'ame_constitution_broadside' || o.kind !== 'ships') return -1;
+  var ids = {}; [o.cfg, o.crew].forEach(function (m) { if (m && typeof m === 'object') Object.keys(m).forEach(function (id) { if (hullInfo(id)) ids[id] = 1; }); });
+  shipsApply(o); return Object.keys(ids).length;
+}
 function prefsSave() {
   if (!PREFS.write) return;
   var o = prefsSnap(), s = JSON.stringify(o);
@@ -115,8 +151,8 @@ function prefsSave() {
     PREFS.last = s;
   } catch (e) { PREFS.write = false; PREFS.state = '存不了（' + (e && e.name || e) + '）'; }
 }
-/** 細節設定的「重設預設值」：那一頁回到預設之後馬上存（只剩主選單的選擇；全部是預設 ⇒ 刪掉那一筆），也忘掉存檔裡別的船的壓艙物。 */
-function prefsReset() { PREF_BALLAST = {}; PREFS.last = ''; prefsSave(); }
+/** 細節設定的「重設預設值」：那一頁回到預設之後馬上存（船隻配置頁的不動：TASK-0570）。 */
+function prefsReset() { PREFS.last = ''; prefsSave(); }
 (function prefsLoad() {
   if (!PREFS.read) { PREFS.state = DEMO >= 0 ? '?demo ⇒ 不讀不存' : '?prefs=0 ⇒ 不讀不存'; return; }
   var s;

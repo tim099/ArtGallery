@@ -255,7 +255,7 @@
       <div class="row" id="phxs">物理效果
         <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button><button id="phxB">物理設定…</button>
       </div>
-      <div class="row"><button id="detB">細節設定…</button></div>
+      <div class="row"><button id="shipB">船隻配置…</button><button id="detB">細節設定…</button></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
       <!-- 說明與細節設定的摘要放在開戰鈕下面（Tim 2026-10-13：手機上開戰鈕被擠到畫面外、要捲才看得到） -->
       <div class="sub">Constitution Broadside —— 兩艘 1:1 的憲法號（0.1 公尺一格）互轟，船殼一格一格被打碎、桅杆打得斷、破洞進水會沉。<br>
@@ -287,13 +287,17 @@
         <span id="gfxNote">多船時（上限 8 艘）只有視野裡離鏡頭最近的幾艘有：<b>陰影船數</b> ＝ 幾艘有自己的陰影圖（其他的船畫進一張罩住它們的全局陰影圖，比較粗；0 ＝ 全部只靠全局那一張）；<b>船艙遮罩</b> ＝ 幾艘的船艙裡不畫海水 —— 海面是一整片平面、會穿過船身（艙底在水線下），沒有遮罩的船，從艙口、砲門、被打穿的破洞、停格的拿掉甲板／剖面看進去，艙裡會有一層海水像淹了（遠處看不出來；船開始沉之後本來就不擋）。排不進去的船也沒有停格的「透視」。兩項在船數不超過那個數時都是每艘都有。</span></div>
       <div class="row"><button id="gfxX">返回</button></div>
     </div>
-    <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
-    <div class="card panel" id="detail" style="display:none">
-      <h2>細節設定</h2>
-      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?blue=我艦,友艦… ?red=敵艦,…（或 ?ship=我艦,敵艦） ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile= ?upwind=（這七個套到每一型）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?dmg4= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike= ?play=fun／real ?stall= ?funspeed= ?funagile= ?funstall= ?funpowder= ?sea=</div>
-      <h3>船隻設定</h3>
-      <div class="row slide"><label for="cfgShip">編輯</label><select id="cfgShip" aria-label="編輯哪一艘船的設定"></select></div>
-      <div class="row note">照船型套：同一型的兩艘共用這一組，不同船各自一組（壓艙物的預設 ＝ 那艘剛好浮在設計水線）。</div>
+    <!-- 船隻配置（從主選單進；TASK-0570）：一型一份；船員的項目在 js/05_hull.js 的 CREW_ITEMS，滑桿由 js/71_input.js 生；預設值在後台管理頁（config/game.json 每艘船的 cfg、crew） -->
+    <div class="card panel" id="shipp" style="display:none">
+      <h2>船隻配置</h2>
+      <div class="sub">一型船一份：同一型的船（我方、敵方、友艦、候補）都照這一份。下一場開始生效。預設值在後台管理頁設。</div>
+      <div class="row slide"><label for="cfgShip">船型</label><select id="cfgShip" aria-label="編輯哪一型船"></select></div>
+      <div class="row note" id="shipSt"></div>
+      <h3>船員</h3>
+      <div id="crewItems"></div>
+      <div class="row note" id="crewSum"></div>
+      <h3>性能</h3>
+      <div class="row note">壓艙物的預設 ＝ 那艘剛好浮在設計水線。</div>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
       <div class="row slide"><label for="flood">進水速度</label><input type="range" id="flood" step="0.05"><span id="floodV"></span></div>
       <div class="row slide"><label for="ballast">壓艙物</label><input type="range" id="ballast" step="25"><span id="ballastV"></span></div>
@@ -302,6 +306,13 @@
       <div class="row slide"><label for="speed">航速</label><input type="range" id="speed" step="0.05"><span id="speedV"></span></div>
       <div class="row slide"><label for="agile">靈活性</label><input type="range" id="agile" step="0.05"><span id="agileV"></span></div>
       <div class="row slide"><label for="upwind">逆風</label><input type="range" id="upwind" step="0.05" aria-label="逆風性能"><span id="upwindV"></span></div>
+      <div class="row"><button id="shipR">這一型回到預設</button><button id="shipE">匯出…</button><button id="shipI">匯入…</button><input type="file" id="shipF" accept=".json,application/json" style="display:none"></div>
+      <div class="row"><button id="shipX">返回</button></div>
+    </div>
+    <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
+    <div class="card panel" id="detail" style="display:none">
+      <h2>細節設定</h2>
+      <div class="sub">開戰前調好，下一場開始生效。網址參數吃同一組：?blue=我艦,友艦… ?red=敵艦,…（或 ?ship=我艦,敵艦） ?hard= ?flood= ?ballast= ?gunw= ?speed= ?agile= ?upwind= ?hands=（這八個套到每一型，在「船隻配置」）?gunhp= ?dmg24= ?dmg32l= ?dmg32= ?dmg18= ?dmg4= ?ammo=（九個數字）?sailhp= ?crewhp= ?box= ?carry= ?wind= ?powderhp= ?blast= ?cap= ?strike= ?play=fun／real ?stall= ?funspeed= ?funagile= ?funstall= ?funpowder= ?sea=</div>
       <h3>航行</h3>
       <div class="row slide"><label for="sea">浪</label><input type="range" id="sea" step="0.05" aria-label="浪的大小"><span id="seaV"></span></div>
       <div class="row note">浪是物理的一部分：船跟著浪起伏、縱搖、橫搖（長浪才搖得動整艘船），砲彈打到浪頭就落水，打低的砲會被浪擋掉；碎片、落水的人、斷開的船跟著浪浮沉。0 ＝ 平靜的海。</div>
@@ -335,7 +346,6 @@
       <div class="row note">帆與繩的物理開著時，帆被吹鼓的力道與陣風（帆桁也會跟著風轉）；只管畫面，不改航速。</div>
       <h3>船員</h3>
       <div class="row slide"><label for="crewhp">血量</label><input type="range" id="crewhp" step="10" aria-label="船員的血量"><span id="crewhpV"></span></div>
-      <div class="row slide"><label for="hands">預備水手</label><input type="range" id="hands" step="5" aria-label="每艘的預備水手人數"><span id="handsV"></span></div>
       <div class="row slide"><label for="drown">溺水時間</label><input type="range" id="drown" step="5" aria-label="落水的人撐多久會溺水（秒）"><span id="drownV"></span></div>
       <div class="row note">歸零陣亡；掉到一半以下受傷倒下；一半以上照常作戰（只閃紅）。火槍一發 40～125。</div>
       <h3>補給（火藥與彈藥）</h3>

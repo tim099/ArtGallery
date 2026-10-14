@@ -28,6 +28,7 @@ function start() {
   $('cover').style.display = 'none'; $('end').className = '';
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // 不然空白鍵會再按一次「開戰」
   reset(); RUNNING = true;
+  var seenT = {}; SHIPS.forEach(function (sh) { if (!seenT[sh.T.id]) { seenT[sh.T.id] = 1; crewShortNote(sh); } });   // 船員站不下：每一型報一次
   note(SHIPS[PLAYER_I], AUTOFIRE ? '自動開砲中（G 關掉就自己打）' : '點敵艦設瞄準點，空白鍵齊射（G 自動開砲）');
   if (WX.aim) note(SHIPS[PLAYER_I], '暴風雨：浪大、風強 —— 船晃得越兇砲越散，舵也難使');
 }

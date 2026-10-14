@@ -28,11 +28,18 @@ function newsCrew(sh, c, dead, cause) {
   var cap = c.art === ART_CAPTAIN, how = dead ? (cause === '落水' || cause === '溺水' ? cause : '陣亡') : '受傷倒下', why = cause && cause !== '落水' && cause !== '溺水' ? '（' + cause + '）' : '';
   if (cap) { note(sh, '<b style="color:var(--gold)">船長' + how + '！</b>' + why, true); return; }
   if (c.role === ROLE.OFFICER || c.role === ROLE.HELM) {
-    var left = sh.crew.filter(function (o) { return o.role === c.role && able(o); }).length, nm = ROLE_NAME[c.role];
-    note(sh, nm + how + why + (left ? '（還有 ' + left + ' 位）' : '　<b style="color:#ff9a7a">' + nm + '全倒' + (c.role === ROLE.OFFICER ? ' —— 沒人指揮，瞄準變散' : '') + '</b>'), !left);
+    var left = sh.crew.filter(function (o) { return o.role === c.role && able(o); }).length, nm = ROLE_NAME[c.role], off = c.role === ROLE.OFFICER;   // 軍官照階級報（大副、二副…；40_crew.js makeCrew）
+    note(sh, (off && c.rank !== undefined ? officerRank(c.rank) : nm) + how + why + (left ? '（還有 ' + left + ' 位' + (off ? '軍官' : '') + '）' : '　<b style="color:#ff9a7a">' + nm + '全倒' + (c.role === ROLE.OFFICER ? ' —— 沒人指揮，瞄準變散' : '') + '</b>'), !left);
     return;
   }
   var by = dead ? sh.news.kr : sh.news.wr; by[c.role] = (by[c.role] || 0) + 1;
+}
+/** 船員站不下（40_crew.js makeCrew 記的 sh.crewShort）⇒ 開戰時每一型報一行、援軍進場時報那一艘（TASK-0570：⛔ 不默默少人）。
+ *  只報船隻配置頁改過的那幾項（預設本來就站不下的每一場都報會洗版；那些照實列在船隻配置頁）。 */
+function crewShortNote(sh) {
+  var d = crewDefault(sh.T.id), cw = sh.cw;
+  var L = (sh.crewShort || []).filter(function (r) { return r[3] === 'guns' ? Object.keys(GUNS).some(function (t) { return gunCrew(cw, t) !== gunCrew(d, t); }) : cw[r[3]] !== d[r[3]]; });
+  if (L.length) note(sh, '船員站不下（' + sh.T.name + '型）：' + L.map(function (r) { return r[0] + ' ' + r[2] + '／' + r[1]; }).join('、'));
 }
 /** 落水的水手（43_swim.js）：爬回船上、爬上友艦、被敵艦撈走、撈起別艘的 ⇒ 記著，第一件起算 NEWS_WIN 秒那一艘報一行（Tim 2026-10-14：⛔ 一個一個報會洗版）。 */
 var SWIM_TXT = { back: '爬回船上', ally: '爬上友艦', foe: '被敵艦撈走', gotAlly: '撈起友艦水手', gotFoe: '撈起敵艦水手（加入我方）' };

@@ -112,8 +112,8 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
   var MENU = [['play', '玩法', [['fun', '娛樂'], ['real', '寫實']]], ['mode', '模式', [['pve', '對戰電腦'], ['eve', '觀戰'], ['sandbox', '沙盒']]],
     ['sail', '航行', [['auto', '自動'], ['manual', '我艦手動'], ['off', '停船']]], ['gfx', '畫質', [['low', '低'], ['mid', '中'], ['high', '高']]],
     ['phx', '物理效果', [['full', '全開'], ['high', '高'], ['mid', '中'], ['low', '低']]]];
-  var CREW = [['officers', '軍官（0–4，第一個是船長）', 1], ['helm', '舵手（0–2）', 1], ['marines', '陸戰隊最多（人）', 1], ['marineGap', '陸戰隊間隔（格）', 1],
-    ['top', '每根桅的桅頂水手', 1], ['monkeys', '送藥手（1 ＝ 每對砲一個，0 ＝ 沒有）', 1], ['handsK', '預備水手倍率', 0]];
+  var CREW = [['officers', '軍官（0–8，照順序：船長、大副、二副、三副、見習軍官）', 1], ['helm', '舵手（0–4）', 1], ['marines', '陸戰隊最多（人）', 1], ['marineGap', '陸戰隊間隔（格）', 1],
+    ['top', '每根桅的桅頂水手', 1], ['monkeys', '送藥手（每對砲幾個：0–2，0 ＝ 沒有）', 1], ['handsK', '預備水手倍率', 0]];
   var GEO = [['spar', '露天甲板站人高度 z0–z1（空白 ＝ 照 carronade 推）', 2], ['marines', '陸戰隊範圍：離船尾、離船頭（格）', 2], ['center', '船的中心高度（鏡頭）', 1], ['aim', '沒有目標時瞄的高度', 1],
     ['aimZ', '瞄準高度範圍', 2], ['deckAim', '砲長「砲甲板」瞄的高度', 2], ['rigAim', '砲長「桅」瞄的高度', 2]];
   var SHIP_CFG = [['speed', '航速'], ['agile', '靈活'], ['upwind', '逆風'], ['hard', '硬度'], ['flood', '進水'], ['gunw', '砲重']];
@@ -235,6 +235,10 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
       card.appendChild(el('h4', { text: '船員配置（空白 ＝ 上面的預設）' }));
       var g3 = el('div', { 'class': 'grid' });
       CREW.forEach(function (r) { g3.appendChild(fld(r[1], [num(P.concat('crew', r[0]), { opt: true, ph: String(C.crew0[r[0]]), after: function () { tidy(i, 'crew'); } })])); });
+      // 船隻配置頁（遊戲裡；TASK-0570）的預設：預備水手人數、各砲種的砲班滿編（空白 ＝ 基準 × 倍率／砲種表）
+      var hk = s.crew && s.crew.handsK !== undefined ? s.crew.handsK : C.crew0.handsK;
+      g3.appendChild(fld('預備水手（人；空白 ＝ 基準 × 倍率）', [num(P.concat('crew', 'hands'), { opt: true, ph: String(Math.round(C.lim.hands[2] * hk)), after: function () { tidy(i, 'crew'); } })]));
+      Object.keys(C.guns).forEach(function (t) { g3.appendChild(fld('砲班：' + C.guns[t].name + '（' + C.guns[t].min + '–8）', [num(P.concat('crew', 'guns', t), { opt: true, ph: String(C.guns[t].crew), after: function () { tidyIn(i, 'crew', 'guns'); tidy(i, 'crew'); } })])); });
       card.appendChild(g3);
       card.appendChild(el('h4', { text: '高度與範圍（空白 ＝ 上面的預設）' }));
       var g4 = el('div', { 'class': 'grid' });
@@ -249,6 +253,7 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
   }
   /** 船底下的 cfg／crew／geo 全空 ⇒ 拿掉那一塊（設定檔只寫跟預設不一樣的）。 */
   function tidy(i, k) { var o = C.ships[i][k]; if (o && !Object.keys(o).length) { delete C.ships[i][k]; touch(); } }
+  function tidyIn(i, k, k2) { var o = C.ships[i][k]; if (o && o[k2] && !Object.keys(o[k2]).length) { delete o[k2]; touch(); } }
   function say(lines, bad) { var p = $('log'); p.innerHTML = ''; lines.forEach(function (l) { var s = el('span', { text: l + '\n' }); if (bad) s.className = 'e'; p.appendChild(s); }); p.scrollTop = 0; }
   function errs(list) { var u = $('errs'); u.innerHTML = ''; (list || []).forEach(function (e) { u.appendChild(el('li', { text: e })); }); }
   function api(path, body) {

@@ -30,8 +30,10 @@ SHIPS_A, SHIPS_B = '—— ships 開始 -->\n', '<!-- ships 結束 -->'
 MENU = {'play': ('fun', 'real'), 'mode': ('pve', 'eve', 'sandbox'), 'sail': ('auto', 'manual', 'off'),
         'gfx': ('low', 'mid', 'high'), 'phx': ('full', 'high', 'mid', 'low')}
 SHIP_CFG_KEYS = ('hard', 'flood', 'gunw', 'speed', 'agile', 'upwind')          # 每艘船的船隻設定（壓艙物照船算，不在這裡）
-CREW = {'officers': (0, 4, True), 'helm': (0, 2, True), 'marines': (0, 60, True), 'marineGap': (5, 200, True),
-        'top': (0, 8, True), 'monkeys': (0, 1, True), 'handsK': (0, 4, False)}
+CREW = {'officers': (0, 8, True), 'helm': (0, 4, True), 'marines': (0, 60, True), 'marineGap': (5, 200, True),
+        'top': (0, 8, True), 'monkeys': (0, 2, True), 'handsK': (0, 4, False)}
+CREW_SHIP = {'hands': (0, 120, True)}          # 只在每艘船寫（TASK-0570 船隻配置頁的預設）：預備水手人數；沒寫 ＝ lim.hands × handsK
+GUN_CREW_MAX = 8                               # 砲班滿編上限（砲旁的站位；遊戲 05_hull.js GUN_CREW_MAX）
 GEO_PAIRS = ('marines', 'aimZ', 'deckAim', 'rigAim')
 GEO_NUMS = ('center', 'aim')
 
@@ -175,10 +177,23 @@ def validate(cfg, prev=None):
             err(p, '要是物件')
             return
         for k, v in cx.items():
-            if k not in CREW:
+            if k == 'guns' and not full:           # 每艘船的砲班滿編 { 砲種: 人 }（TASK-0570）：最少 ＝ 砲種表的 min
+                if not isinstance(v, dict):
+                    err(p + '.guns', '要是物件')
+                    continue
+                G = cfg.get('guns') if isinstance(cfg.get('guns'), dict) else {}
+                for t, n in v.items():
+                    g = G.get(t)
+                    if not isinstance(g, dict):
+                        err(p + '.guns.' + t, '不認得的砲種')
+                    elif not (isint(n) and isint(g.get('min')) and g['min'] <= n <= GUN_CREW_MAX):
+                        err(p + '.guns.' + t, '%s～%s 的整數' % (g.get('min'), GUN_CREW_MAX))
+                continue
+            spec = CREW.get(k) or (None if full else CREW_SHIP.get(k))
+            if not spec:
                 err(p + '.' + k, '不認得的鍵')
                 continue
-            lo, hi, it = CREW[k]
+            lo, hi, it = spec
             if not ((isint(v) if it else isnum(v)) and lo <= v <= hi):
                 err(p + '.' + k, '%s～%s 的%s' % (lo, hi, '整數' if it else '數字'))
         if full:

@@ -36,11 +36,12 @@ function standNear(g, x, y, z0, z1, head, taken) {   // (x, y) 附近 4 格內�
 }
 function makeCrew(sh) {
   var g = sh.T.base, CY = sh.T.cy, HULL_X0 = sh.T.hx0, HULL_X1 = sh.T.hx1, taken = {}, crew = [];
+  sh.cw = shipCrew(sh.T.id); sh.pmWant = 0;                          // 船員配置（05_hull.js：預設 ← 船隻配置頁）；pmWant：送藥手該有幾個（23_powder.js makeMonkeys 數）
   // ⛔ 以前用平面的 taken 標模型外框：長砲改成模型之後，砲甲板的砲把上面 spar deck 的站位也佔掉了；火藥桶（艙底）更把大半個平面佔掉
   CREW_BLOCK = sh.models.filter(function (m) { return m.kind !== 'powder' || m.station; });   // 取用點的桶在甲板上 ⇒ 要避
   function add(role, at, gun, face) { if (at) crew.push({ role: role, home: at, pos: at.slice(), gun: gun, face: face || 1, st: 0, t: rnd() * 10, walk: null, fireT: 0, shotT: rr(2, 6), lost: 0, hp: CREW_HP, hitT: 0 }); }
   sh.guns.forEach(function (gn) {
-    var b = gn.model.bb.map(Math.floor), z0, z1, i, n = GUNS[gn.type].crew;
+    var b = gn.model.bb.map(Math.floor), z0, z1, i, n = Math.min(gunCrew(sh.cw, gn.type), GUN_CREW_MAX);   // 砲班滿編（船隻配置；預設 ＝ 砲種表）
     if (gn.type === 'chase') { z0 = b[2] - 3; z1 = b[2] + 3; }
     else if (gn.type === 'carr') { z0 = b[2] - 6; z1 = b[2] + 3; }
     else { z0 = b[2] - 8; z1 = b[2] + 3; }                            // 長砲（24、32 磅）
@@ -54,7 +55,7 @@ function makeCrew(sh) {
       var ex = gn.ax[0] > 0 ? 1 : -1, x0 = ex > 0 ? b[0] : b[3], cyg = Math.floor((b[1] + b[4]) / 2);
       spots = [[x0 + 10 * ex, b[1] - 3], [x0 + 10 * ex, b[4] + 3], [x0 + 4 * ex, b[1] - 3], [x0 + 4 * ex, b[4] + 3], [x0 - 3 * ex, b[1] - 2], [x0 - 3 * ex, b[4] + 2], [x0 - 6 * ex, cyg], [x0 - 10 * ex, cyg - 5]];
     }
-    gn.crewFull = n; gn.crewMin = GUNS[gn.type].min; gn.spots = [];
+    gn.crewFull = n; gn.crewMin = GUNS[gn.type].min; gn.crewStd = GUNS[gn.type].crew; gn.spots = [];   // crewStd：射速照砲種表的人數算（多的人是替補，gunRate）
     for (i = 0; i < n; i++) {
       var at = standNear(g, spots[i][0], spots[i][1], z0, z1, 14, taken);
       if (!at) continue;
@@ -66,7 +67,7 @@ function makeCrew(sh) {
   makeMonkeys(sh, crew, taken, add);
   // spar deck 的高度：從 carronade 推；陸戰隊沿 S 那一舷（格 +y）的舷牆、軍官在後甲板、舵手在舵輪旁
   var carr = sh.models.filter(function (m) { return m.kind === 'carr'; }), wheel = sh.models.filter(function (m) { return m.kind === 'wheel'; })[0];
-  var GZ = sh.T.geo, CW = sh.T.crew, sz0 = carr.length ? Math.floor(carr[0].bb[2]) - 6 : GZ.spar ? GZ.spar[0] : 100, sz1 = carr.length || !GZ.spar ? sz0 + 9 : GZ.spar[1];   // 沒有 carronade ⇒ 船型給的高度（05_hull.js GEO0；夜隼號主甲板到後甲板）
+  var GZ = sh.T.geo, CW = sh.cw, sz0 = carr.length ? Math.floor(carr[0].bb[2]) - 6 : GZ.spar ? GZ.spar[0] : 100, sz1 = carr.length || !GZ.spar ? sz0 + 9 : GZ.spar[1];   // 沒有 carronade ⇒ 船型給的高度（05_hull.js GEO0；夜隼號主甲板到後甲板）
   for (var x = HULL_X0 + GZ.marines[0]; x < HULL_X1 - GZ.marines[1] && crew.filter(function (c) { return c.role === ROLE.MARINE; }).length < CW.marines; x += CW.marineGap) {   // 每 marineGap 格一個、最多 marines 個（船員配置）
     // 從中線往外走到舷牆前一格（⛔ 從外往裡掃會先碰到舷外的 channels 平台）
     var last = -1, m0 = sz0, m1 = sz1;
@@ -78,9 +79,9 @@ function makeCrew(sh) {
     if (last >= 0) add(ROLE.MARINE, standNear(g, x, last - 2, m0, m1, 14, taken), null, 1);
   }
   var qx = wheel ? Math.floor(wheel.c[0]) : HULL_X0 + 160;
-  [[qx + 22, CY + 8], [qx + 30, CY - 6], [qx + 40, CY + 14], [qx + 14, CY - 12]].slice(0, CW.officers).forEach(function (p) { add(ROLE.OFFICER, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, 1); });
-  var cap = crew.filter(function (c) { return c.role === ROLE.OFFICER; })[0]; if (cap) cap.art = ART_CAPTAIN;   // 船長：只換貼圖
-  if (wheel) { var wx = Math.floor(wheel.bb[0]) - 3; [[wx, CY + 3], [wx, CY - 3]].slice(0, CW.helm).forEach(function (p) { add(ROLE.HELM, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, -1); }); }   // 舵輪後面（⛔ 舵輪中心往後 4 格還在舵輪的外框裡 ⇒ 以前一個舵手都站不上去）
+  [[qx + 22, CY + 8], [qx + 30, CY - 6], [qx + 40, CY + 14], [qx + 14, CY - 12], [qx + 48, CY - 2], [qx + 22, CY - 20], [qx + 36, CY + 22], [qx + 56, CY + 10]].slice(0, CW.officers).forEach(function (p) { add(ROLE.OFFICER, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, 1); });   // 後四個給船隻配置頁多調的
+  crew.filter(function (c) { return c.role === ROLE.OFFICER; }).forEach(function (c, k) { c.rank = k; if (!k) c.art = ART_CAPTAIN; });   // 階級照順序：船長（換貼圖）、大副、二副、三副、見習軍官（廣播用，61_hud.js newsCrew）
+  if (wheel) { var wx = Math.floor(wheel.bb[0]) - 3; [[wx, CY + 3], [wx, CY - 3], [wx - 5, CY + 7], [wx - 5, CY - 7]].slice(0, CW.helm).forEach(function (p) { add(ROLE.HELM, standNear(g, p[0], p[1], sz0, sz1, 14, taken), null, -1); }); }   // 舵輪後面（⛔ 舵輪中心往後 4 格還在舵輪的外框裡 ⇒ 以前一個舵手都站不上去）
   // 桅頂：每根桅最低的那層平台（從那根桅最低的橫帆桁往上，第一層有 6 個以上站得住的點；沒有帆桁 meta ⇒ 從 z 200）上分散站四個人；頭頂 1.4 m 空（同一般站位）。
   //   憲法號：前桅 263、主桅 286、後桅 241（帆桁 254／276／232 ⇒ 跟以前從 200 找一樣）；夜隼號：前桅 127、主桅 137。
   //   ⛔ 從 250 找 ⇒ 跳過後桅的桅頂；⛔ 不夠四個就往上找 ⇒ 站到 377–465 的高處橫桁上；⛔ 頭頂只看 0.6 m
@@ -103,6 +104,12 @@ function makeCrew(sh) {
     }
   });
   makeHands(sh, crew, add);                                          // 預備水手：最後才生（數量 0 ⇒ 跟以前一樣，rnd() 一個都不多抽）
+  // 站不下的（船隻配置頁調多了、船小）⇒ 記著，開戰時上方廣播一行（52_fleet.js crewShortNote）；⛔ 不默默少人
+  function cnt(r) { return crew.filter(function (c) { return c.role === r; }).length; }
+  //   ⚠ 預設本來就有站不下的（憲法號陸戰隊 11／12、送藥手 26／27；夜隼號陸戰隊 2／12）：開戰只報玩家改過的那幾項（61_hud.js crewShortNote），全部照實列在船隻配置頁（CREW_SEEN）
+  sh.crewShort = [['砲班', sh.guns.reduce(function (a, gn) { return a + gn.crewFull; }, 0), cnt(ROLE.GUN), 'guns'], ['送藥手', sh.pmWant, cnt(ROLE.POWDER), 'monkeys'], ['軍官', CW.officers, cnt(ROLE.OFFICER), 'officers'],
+    ['舵手', wheel ? CW.helm : 0, cnt(ROLE.HELM), 'helm'], ['陸戰隊', CW.marines, cnt(ROLE.MARINE), 'marines'], ['桅頂水手', CW.top * sh.masts.length, cnt(ROLE.TOP), 'top'], ['預備水手', CW.hands, cnt(ROLE.HAND), 'hands']].filter(function (r) { return r[2] < r[1]; });
+  CREW_SEEN[sh.T.id] = { n: crew.length, short: sh.crewShort, sig: crewSig(CW) };
   return crew;
 }
 function able(c) { return c.st === 0; }
@@ -245,5 +252,5 @@ function musket(sh, c) {
   if (rnd() < clamp(0.05 * 100 / dist, 0.01, 0.12)) damageCrew(foe, o, rr(40, 125), '火槍');   // 血量 100 時約三成一槍斃命（跟以前的 0.3 對齊）
 }
 /** 一門砲：在崗的人數決定能不能開、裝填多快。 */
-function gunRate(g) { return g.wet ? 0 : g.manned >= g.crewMin ? Math.pow(Math.min(1, g.manned / g.crewFull), 0.85) : 0; }
+function gunRate(g) { return g.wet ? 0 : g.manned >= g.crewMin ? Math.pow(Math.min(1, g.manned / (g.crewStd || g.crewFull)), 0.85) : 0; }   // 照砲種表的人數：滿編調多 ⇒ 多的是替補、射速不再變快；調少 ⇒ 開得動但慢
 

@@ -16,10 +16,39 @@
 //   marines 陸戰隊沿舷牆站的範圍：船尾外框 + [0] 到船頭外框 − [1]；center 船的中心高度（鏡頭看哪裡）；aim 沒有目標時瞄的高度（21_gunnery.js）
 //   aimZ 瞄準點的高度夾在這段裡；deckAim 砲長「砲甲板」模式瞄的高度（51_captain.js）；rigAim 砲長「桅」模式瞄的高度
 // 船員配置（crew0 ＝ 預設，每艘船的 crew 只寫不一樣的；40_crew.js、23_powder.js、42_hands.js）：
-//   officers 軍官（0–4，第一個是船長）、helm 舵手（0–2）、marines 陸戰隊最多幾個、marineGap 陸戰隊沿舷牆每幾格一個、
-//   top 每根桅的桅頂水手、monkeys 送藥手（1 ＝ 每一對砲一個、0 ＝ 沒有）、handsK 預備水手的人數倍率（細節設定的人數 × 它；夜隼號 ¼）。砲班人數照砲種表（10_ship.js GUNS）。
+//   officers 軍官（0–8，照順序是船長、大副、二副、三副，再來是見習軍官）、helm 舵手（0–4）、marines 陸戰隊最多幾個、marineGap 陸戰隊沿舷牆每幾格一個、
+//   top 每根桅的桅頂水手、monkeys 送藥手（每一對砲幾個：0 ＝ 沒有、1、2）、hands 預備水手人數（沒寫 ⇒ 預備水手的基準人數 HANDS × handsK；夜隼號 ¼）、
+//   guns 砲班滿編 { 砲種: 人 }（沒寫的砲種 ⇒ 砲種表 10_ship.js GUNS 的 crew）。
 // 船隻清單 ＝ config/game.json 的 ships（el ＝ 內嵌 .vxk 的 id；匯入新船、重新匯入走 admin.py）；選單只列 HTML 裡真的有內嵌資料的那幾艘。
 var GEO0 = CFG.geo0, CREW0 = CFG.crew0;
+// 船隻配置頁（TASK-0570；Tim 2026-10-14：一型一份、要存檔、預設在後台管理頁設）：玩家改過的船員配置 SHIP_CREW（id → 改過的那幾項；69_prefs.js 存），
+//   跟船隻設定（SHIP_CFG，04_state.js）一起在主選單「船隻配置…」那一頁編（71_input.js）。
+//   每艘船開戰時用的 ＝ crew0 ← 那艘船的 crew（後台頁）← SHIP_CREW（shipCrew；40_crew.js makeCrew 存進 sh.cw）。
+var CREW_ITEMS = [{ k: 'officers', name: '軍官', lim: [0, 8] }, { k: 'helm', name: '舵手', lim: [0, 4] }, { k: 'marines', name: '陸戰隊', lim: [0, 40] },
+  { k: 'top', name: '桅頂水手', lim: [0, 8] }, { k: 'monkeys', name: '送藥手', lim: [0, 2] }, { k: 'hands', name: '預備水手', lim: [0, 120] }];
+var GUN_CREW_MAX = 8;                                                   // 砲旁的站位只有 8 個（40_crew.js spots）；最少 ＝ 砲種表的 min（少於它那門砲永遠開不了）
+var OFFICER_RANKS = ['船長', '大副', '二副', '三副'];                    // 照順序；第五個起 ＝ 見習軍官
+var SHIP_CREW = {};
+var CREW_SEEN = {};                                                     // id → 這一型最近一次上船的結果 { n 人數, short 站不下的, sig 那時的配置 }（40_crew.js；船隻配置頁照實列）
+function crewSig(cw) { return JSON.stringify([CREW_ITEMS.map(function (it) { return cw[it.k]; }), Object.keys(GUNS).map(function (t) { return gunCrew(cw, t); })]); }
+function officerRank(i) { return OFFICER_RANKS[i] || '見習軍官'; }
+/** 那一型的預設（crew0 ＋ 後台頁寫在那艘船的 crew）。 */
+function crewDefault(id) {
+  var h = HULL_KNOWN.filter(function (x) { return x.id === id; })[0], d = Object.assign({}, CREW0, h && h.crew);
+  if (d.hands === undefined) d.hands = Math.round(HANDS * (d.handsK === undefined ? 1 : d.handsK));
+  d.guns = Object.assign({}, d.guns);
+  return d;
+}
+/** 那一型實際用的（預設 ← 玩家改的；網址 ?hands= 蓋過每一型的預備水手）。 */
+function shipCrew(id) {
+  var c = crewDefault(id), p = SHIP_CREW[id];
+  if (p) {
+    CREW_ITEMS.forEach(function (it) { if (p[it.k] !== undefined && !(it.k === 'hands' && Q.has('hands'))) c[it.k] = p[it.k]; });
+    if (p.guns) Object.keys(p.guns).forEach(function (t) { c.guns[t] = p.guns[t]; });
+  }
+  return c;
+}
+function gunCrew(cw, type) { var n = cw.guns && cw.guns[type]; return n === undefined ? GUNS[type].crew : n; }
 // 艦名（TASK-0552；Tim 2026-10-14：參考歷史同級艦）：ships[].names ＝ 那一型的艦名池（第一個 ＝ 原名；沒給 ⇒ 只有原名），同一場照編成的順序發（52_fleet.js fleetNames）；
 //   池子用完拿公共池 names_pub，再用完 ⇒ 原名＋序號。憲法號：同級的 44 砲巡防艦（合眾國號、總統號），再來是照它們的設計造的 44 砲巡防艦；公共池：同時代美國海軍的巡防艦。
 //   餘燼號、夜隼號是 basecamp、summit 的船：她們給艦名池之前只有原名。
