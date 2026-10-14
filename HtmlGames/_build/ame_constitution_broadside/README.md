@@ -13,8 +13,9 @@
 ```bash
 # 建置：驗 config/game.json ⇒ 船標籤照船隻清單 ⇒ vxk_inline.py 內嵌成單檔
 python -I admin.py build
-# 設定後台（只聽本機）：瀏覽器開 http://127.0.0.1:8642/ —— 改設定、儲存並重建、匯入新船、重新匯入
-python -I admin.py serve
+# 設定後台（只聽本機）：http://127.0.0.1:8642/ —— 改設定、儲存並重建、匯入新船、重新匯入；--open 自動開瀏覽器，已經開著 ⇒ 只開頁面
+# 一鍵：雙擊 HtmlGames/ame_constitution_broadside_admin.cmd（＝ serve --open；關掉那個視窗就停）
+python -I admin.py serve --open
 # 匯入新船（雕刻作品 ⇒ _cache/<代號>.vxk ⇒ 登記進船隻清單 ⇒ 建置；比例要跟現有的船一樣）
 python -I admin.py import --work <雕刻作品 ID> --id <代號> --name <名字>
 # 重新匯入（作品長了）：印出跟上一版的格數、checksum、繩帆模型數與 vxk_compare.py 的內容對拍；只差匯出時間 ⇒ 不換

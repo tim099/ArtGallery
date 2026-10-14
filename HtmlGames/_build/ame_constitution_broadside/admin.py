@@ -6,14 +6,15 @@
 #           重新匯入失敗 ⇒ 舊的 .vxk 不動（新的先寫到 .new，成功才換上，舊的留成 .prev）。
 #
 # 用法（在這個資料夾）：
-#   python -I admin.py serve [--port 8642]        開設定後台（只聽 127.0.0.1）⇒ 瀏覽器開 http://127.0.0.1:8642/
+#   python -I admin.py serve [--port 8642] [--open]  開設定後台（只聽 127.0.0.1）⇒ 瀏覽器開 http://127.0.0.1:8642/（--open 自動開；已經開著 ⇒ 只開頁面）
+#     一鍵：雙擊 HtmlGames/ame_constitution_broadside_admin.cmd（＝ serve --open）
 #   python -I admin.py check                      驗 config/game.json
 #   python -I admin.py build                      照設定重建 ../../ame_constitution_broadside.html
 #   python -I admin.py import --work <雕刻作品 ID> --id <船的代號> --name <名字>   匯入新船（匯出 .vxk、登記、重建）
 #   python -I admin.py reimport --id <船的代號> [--work <作品 ID>]                 重新匯入（換新的 .vxk、印跟上一版的差別、重建）
 #   python -I admin.py cache                      _cache/ 缺的 .vxk 從版控那份成品裡解回來（換機器、只改程式時用）
 #   加 --no-build：匯入／重新匯入之後不重建
-import argparse, base64, hashlib, json, math, os, re, shutil, struct, subprocess, sys, zlib
+import argparse, base64, hashlib, json, math, os, re, shutil, socket, struct, subprocess, sys, urllib.request, webbrowser, zlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -458,7 +459,17 @@ def act_save(new):
 
 
 # ───────────────────────── 本機後台 ─────────────────────────
-def serve(port):
+class Exclusive(HTTPServer):
+    """埠被佔就綁不上。⛔ HTTPServer 預設開 SO_REUSEADDR：Windows 上那是「可以搶別人正在聽的埠」⇒ 第二次雙擊捷徑會再開一個、兩個一起聽（量過）。"""
+    allow_reuse_address = False
+
+    def server_bind(self):
+        if hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
+def serve(port, do_open=False):
     hosts = {'127.0.0.1:%d' % port, 'localhost:%d' % port}
 
     class H(BaseHTTPRequestHandler):
@@ -525,8 +536,25 @@ def serve(port):
             except Exception as e:                       # 工具本身的錯：原樣回報，伺服器不停
                 self.send(500, {'ok': False, 'log': ['%s: %s' % (type(e).__name__, e)]})
 
-    srv = HTTPServer(('127.0.0.1', port), H)            # 一次一個請求 ⇒ 存檔、建置、匯入不會同時寫
-    print('設定後台：http://127.0.0.1:%d/　（Ctrl+C 結束；只聽本機）' % port)
+    url = 'http://127.0.0.1:%d/' % port
+    try:
+        srv = Exclusive(('127.0.0.1', port), H)         # 一次一個請求 ⇒ 存檔、建置、匯入不會同時寫
+    except OSError:
+        # 埠被佔：是已經開著的設定後台 ⇒ 只開頁面（雙擊捷徑兩次不會報錯）；是別的程式 ⇒ 說清楚、換埠
+        try:
+            with urllib.request.urlopen(url + 'api/state', timeout=5) as r:
+                mine = json.loads(r.read().decode('utf-8')).get('ok') is True
+        except Exception:
+            mine = False
+        if not mine:
+            raise Fail('埠 %d 被別的程式佔了 ⇒ 帶 --port <別的埠>' % port)
+        print('設定後台已經開著：%s' % url, flush=True)
+        if do_open:
+            webbrowser.open(url)
+        return
+    print('設定後台：%s　（Ctrl+C 或關掉這個視窗就結束；只聽本機）' % url, flush=True)
+    if do_open:
+        webbrowser.open(url)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
@@ -543,6 +571,7 @@ def main():
     sp.add_parser('fmt')
     s = sp.add_parser('serve')
     s.add_argument('--port', type=int, default=8642)
+    s.add_argument('--open', action='store_true', help='開好之後用預設瀏覽器打開後台頁')
     s = sp.add_parser('import')
     s.add_argument('--work', required=True)
     s.add_argument('--id', required=True)
@@ -555,7 +584,7 @@ def main():
     o = ap.parse_args()
     try:
         if o.op == 'serve':
-            return serve(o.port)
+            return serve(o.port, o.open)
         if o.op == 'check':
             log = act_check()
         elif o.op == 'build':
