@@ -58,6 +58,7 @@ python -I admin.py reimport --id constitution
 | `31_sailing.js` | 航行：航速、操舵、帆裝、航跡、擦撞 |
 | `32_hull.js` | 進水、傾斜、沉沒、減重上浮（`hydrostatics`／`massLost`／`liftFor`）；每半秒的 `survey`（砲、桅、繩、帆、腳下、少掉的重量）與降旗 |
 | `33_flood.js` | 進水的粒子模式（TASK-0525）：船型的水格 `flType`（`T.flc[c]`）、每艘的狀態 `flNew`（`sh.fl`）、打掉一格記待重算 `floodTouch`、破口 `flHoleRedo`、粒子與水格 `floodStep`／`flTick`、該多吃水 `floodSinkT`、傾斜 `floodTilt`、艙內水面 `P.pool`（`flMesh`／`flDraw`）、噴進來的粒子 `flPushJets` |
+| `36_rooms.js` | 空艙房與功能艙（TASK-0568）：讀雕刻作品標的艙房 `hullRooms`（關聯 meta `kind=rooms`、固定點 `<房名>.min／.max`）、每一型每一間的功能 `roomFns`（設定檔 ships[].rooms ← 船隻配置頁 `SHIP_ROOMS`）、半程式化布局 `roomLayout`、家具模型 `shipRooms`（佔位的方塊網格 `furnMesh`）、能力 `roomCap`／`roomEff`、除錯外框與名字（`?rooms=1`） |
 | `34_shreds.js` | 帆的布片（物理開著）：撕開的洞切成布片 `shredCut`（`sh.shreds`）、每一步 `shredStep`（跟帆同一套 `clothStep`，風壓 ×`SH_KW`）、落水 `shredWet`、自己的亂數 `rndC`；畫在帆的緩衝後面（`sailBuf`） |
 | `40_crew.js` | 船員：站位、操砲、人手集中、血量與傷亡（`hurt`／`damageCrew`）、火槍 |
 | `42_hands.js` | 預備水手：梯子（`shipLadders`，關聯 meta `kind=ladders`）、走得到的甲板（`navLevels`）與走路格（`navBuild`，記在船型上）、找路（`navPath` BFS＋`navSmooth` 拉直）、每一步 `stepHand`（走、爬梯子、閒晃 `wander`）、點名派人 `callHands`、到了換職位 `handJoin` |
@@ -93,7 +94,12 @@ python -I admin.py reimport --id constitution
       砲班調多 ⇒ 多的是替補（射速照砲種表的人數算，`gunRate` 用 `crewStd`）；調少 ⇒ 開得動但裝填慢。軍官與舵手多出來的站位加在原本那幾個後面 ⇒ 預設的人站在同一個位置。
       **站不下**（站位不夠：預設本來就有 —— 憲法號陸戰隊 11／12、送藥手 26／27；夜隼號陸戰隊 2／12）：開戰時上方廣播「船員站不下」，只報改過的那幾項（`crewShortNote`）；配置頁照實列上一場實際上船的人數與站不下的（`CREW_SEEN`）。
     - **預設**：`config/game.json` 的 `crew0` ← 每艘船的 `crew`（後台管理頁編；新加每艘船的 `hands`、`guns`：{ 砲種: 人 }）；預備水手沒寫 ⇒ 基準人數 `HANDS`（`?hands=`、舊存檔的那一格）× `handsK`。
-    - **記錄**：改一格就存（存檔的 `cfg`、`crew`，只存跟預設不一樣的）；「這一型回到預設」要按兩下（⛔ 不用 `confirm()`：畫廊彈窗的 iframe 沒開 allow-modals）；「匯出…」把每一型整份存成 JSON 檔、「匯入…」讀回來（換瀏覽器、換裝置、畫廊彈窗存不了檔的時候）。細節設定的「重設預設值」不動這一頁。
+    - **艙房**（TASK-0568）：這一型標好的空艙房一間一列，配什麼功能（`SHIP_ROOMS[船型][房名]`；預設 ＝ 設定檔 ships[].rooms）；放不下必要件的選項不能選、寫出原因；`?roomfn=medical` ⇒ 每一間都配（量的時候用）。
+      功能與家具的清單在設定檔：`furniture`（名字、外框 [長, 寬, 高] 格、血量、間隔）、`rooms`（名字、必要件 `need`、加強件 `extra`、人手 `staff`＋每 `staffPer` 件多一人、治療 `heal` 秒、歸隊血量 `back`）。
+      **布局**（`roomLayout`）：長邊順著艙房的長邊，從離門最遠的那一角開始一排一排擺；門 ＝ 四面牆上往外連續 0.8 m 站得住的格，門口往裡 0.6 m 不擺；腳下每格站得住、頭上 1.4 m 空；先擺必要件，剩下的空間全擺加強件；沒有亂數。
+      憲法號（候選 34 間全配醫療艙量）：orlop 大艙 9 張床、3.6×3.3 m 3 張、berth 1.5×2.6 m 1 張、1.5×2.0 m 以下放不下。
+      **家具 ＝ 模型**（`kind: 'furn'`）：跟砲同一套血量、命中、飛出去；雕刻的家具還沒做（TASK-0569）⇒ 先用程式產生的方塊（床：四腳、床板、床墊、枕頭）。
+    - **記錄**：改一格就存（存檔的 `cfg`、`crew`、`rooms`，只存跟預設不一樣的）；「這一型回到預設」要按兩下（⛔ 不用 `confirm()`：畫廊彈窗的 iframe 沒開 allow-modals）；「匯出…」把每一型整份存成 JSON 檔、「匯入…」讀回來（換瀏覽器、換裝置、畫廊彈窗存不了檔的時候）。細節設定的「重設預設值」不動這一頁。
     **船型自己的預設**（設定檔每艘船的 `cfg` ⇒ `HULL_CFG0`，`cfgBase(k, id)`；沒列的 ＝ `LIM` 的預設）：Tim 2026-10-13「憲法號要比餘燼號更快更靈活」⇒ 憲法號照舊 1／1，餘燼號（兩層砲甲板、90 門砲）航速 0.85、靈活 0.7。
     娛樂、滿帆：憲法號最快約 10 節、側風轉向約 5.6°/秒；餘燼號約 8 節、3.9°/秒（細節設定頁的讀數）。網址 `?speed=`／`?agile=` 照舊套到每一型（蓋掉船型預設）。
     存檔只存跟**那一型**的預設不一樣的（量過：餘燼號 0.85 ⇒ 不存；拉到 0.9 ⇒ 存 `ember.speed`；拉回 0.85 ⇒ 那一筆刪掉）。滑桿 step 0.05，0.85／0.7 都落在格上（⛔ 不落格 ⇒ 一碰就被吃掉）。

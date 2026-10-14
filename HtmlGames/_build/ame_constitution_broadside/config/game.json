@@ -77,5 +77,19 @@
       "cfg": {"speed": 1.2, "agile": 1.6, "upwind": 1.25, "hard": 6},
       "crew": {"handsK": 0.25}
     }
-  ]
+  ],
+  "furniture": {
+    "bed": {"name": "病床", "size": [19, 8, 6], "hp": 100, "gap": 2}
+  },
+  "rooms": {
+    "medical": {
+      "name": "醫療艙",
+      "need": {"bed": 1},
+      "extra": "bed",
+      "staff": 1,
+      "staffPer": 3,
+      "heal": 40,
+      "back": 0.6
+    }
+  }
 }

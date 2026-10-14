@@ -230,6 +230,31 @@ function sliders() {
     return { guns: g, n: n, masts: T.masts.length, wheel: wheel };
   }
   function rankList(n) { var r = OFFICER_RANKS.slice(0, n); if (n > OFFICER_RANKS.length) r.push('見習軍官 ' + (n - OFFICER_RANKS.length)); return r.join('、'); }
+  // 艙房（船隻配置頁；TASK-0568）：這一型標好的空艙房一間一列 —— 配什麼功能（放不下必要件的那個選項不能選、寫出原因）、照大小排出來幾件家具
+  function roomsPut() {
+    var box = $('roomItems'), T = HULLT[CFG_ID], R = T ? hullRooms(T) : [], fns = roomFns(CFG_ID), html = '';
+    R.forEach(function (r, i) {
+      var opts = '<option value="">空著</option>' + Object.keys(ROOM_FN).map(function (k) {
+        var lay = roomLayout(T, r, k), F = ROOM_FN[k], why = '';
+        if (!lay) why = '（放不下：要 ' + Object.keys(F.need || {}).map(function (it) { return (FURN[it] ? FURN[it].name : it) + ' ' + F.need[it]; }).join('、') + '）';
+        return '<option value="' + k + '"' + (lay ? '' : ' disabled') + '>' + F.name + (lay ? '（' + FURN[(F.extra || Object.keys(F.need)[0])].name + ' ' + lay.length + '）' : why) + '</option>';
+      }).join('');
+      var sz = [0, 1].map(function (k) { return ((r.max[k] - r.min[k] + 1) * S).toFixed(1); }).join('×') + ' m';
+      html += '<div class="row slide"><label for="rm-' + i + '">' + r.name.replace(/^甲板-/, '').replace('/艙房-鏡像/', ' 左 ').replace('/艙房/', ' 右 ') + '</label><select id="rm-' + i + '" data-r="' + r.name.replace(/"/g, '') + '">' + opts + '</select><span>' + sz + '</span></div>';
+    });
+    box.innerHTML = html;
+    [].forEach.call(box.querySelectorAll('select'), function (s) {
+      s.value = fns[s.dataset.r] || '';
+      if (s.selectedOptions[0] && s.selectedOptions[0].disabled) s.value = '';
+      s.onchange = function () { (SHIP_ROOMS[CFG_ID] = SHIP_ROOMS[CFG_ID] || {})[s.dataset.r] = s.value; show(); };
+    });
+  }
+  function roomsShow() {
+    var T = HULLT[CFG_ID], R = T ? hullRooms(T) : [], fns = roomFns(CFG_ID), n = {};
+    R.forEach(function (r) { var f = fns[r.name]; if (f && roomLayout(T, r, f)) n[f] = (n[f] || 0) + 1; });
+    $('roomSum').textContent = !T ? '船型載入後列得出艙房。' : !R.length ? '這一型還沒標空艙房（造船規格 §9.2：艙房子作品的固定點 <房名>.min／.max、關聯 meta kind=rooms）。'
+      : R.length + ' 間空艙房' + (Object.keys(n).length ? '：' + Object.keys(n).map(function (f) { return ROOM_FN[f].name + ' ' + n[f] + ' 間'; }).join('、') : '，都空著') + '。家具照艙房大小排（先擺必要件、剩下的空間多擺）；門口留 0.6 m 走道。' + (ROOMFN_Q ? '　⚠ 網址 ?roomfn= 蓋過' : '');
+  }
   function crewPut() {
     var cw = shipCrew(CFG_ID), hc = hullCounts(CFG_ID);
     Object.keys(CR).forEach(function (key) { var e = CR[key]; e.el.value = e.it.gun ? gunCrew(cw, e.it.gun) : cw[e.it.k]; if (e.it.gun) e.row.style.display = !hc || hc.guns[e.it.gun] ? '' : 'none'; });
@@ -268,7 +293,7 @@ function sliders() {
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
     ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
     [0, 1].forEach(function (i) { $('cap' + i).value = CAP_SET[i]; });
-    crewPut();
+    crewPut(); roomsPut();
   }
   function show() {
     var K = C(), SPEEDK = K.speed, AGILK = K.agile, FLOOD = K.flood, HARDK = K.hard, GUNW_K = K.gunw, BALLAST_T = K.ballast !== undefined ? K.ballast : LIM.ballast[2];   // 正在編輯的那一型
@@ -306,7 +331,7 @@ function sliders() {
     $('detV').textContent = '玩法 ' + (PLAY === 'fun' ? '娛樂（航速 ×' + FUN.speed.toFixed(2) + '、靈活 ×' + FUN.agile.toFixed(2) + '、頂風失速 ' + Math.round(SK * 100) + '%）' : '寫實（頂風失速 ' + Math.round(SK * 100) + '%）') + '・天氣 ' + WX.name + '・浪 ' + (SEA_K > 0 ? SEA_K.toFixed(2) + '×' : '平靜') + '・' + fleetHulls().map(function (id) { var c = shipCfg(id), hi = hullInfo(id); return (hi ? hi.name : id) + '：硬度 ' + c.hard.toFixed(1) + '×・進水 ' + c.flood.toFixed(2) + '×・壓艙物 ' + (c.ballast !== undefined ? c.ballast + ' 噸' : '（載入後）') + '・砲重 ' + c.gunw.toFixed(2) + '×・航速 ' + c.speed.toFixed(2) + '×・靈活 ' + c.agile.toFixed(2) + '×・逆風 ' + c.upwind.toFixed(2) + '×・預備水手 ' + shipCrew(id).hands; }).join('；') + '・血量 砲 ' + GUN_HP + '／帆 ' + SAIL_HP + '／船員 ' + CREW_HP +
       '・傷害 ' + DMG.long + '／' + DMG.long32 + '／' + DMG.carr + '／' + DMG.chase + '／' + DMG.long4 + (amDef ? '' : '・彈種倍率已改') + '・藥箱 ' + BOX_N + '、一次搬 ' + CARRY_N + '・溺水 ' + (DROWN_T ? DROWN_T + ' 秒' : '關') +
       '・火藥桶 ' + (powderNever() ? '不會爆' : '血量 ' + powderHP() + '、殉爆 ' + BLAST_K.toFixed(2) + '×' + (BLAST_V > 0 ? ' ±' + Math.round(BLAST_V * 100) + '%' : '')) + '・砲長 ' + CAP_SET.map(function (k) { return CAPTAINS[k] ? CAPTAINS[k].name : '隨機'; }).join('／') + '・' + strikeText();
-    crewShow();
+    crewShow(); roomsShow();
   }
   lf.oninput = function () { C().ballast = Math.round(+lf.value); show(); };
   f.oninput = function () { C().flood = +f.value; show(); };
@@ -354,9 +379,9 @@ function sliders() {
   var rArm = 0;                                        // 這一型回到預設：按兩下（Tim：編起來很花時間 ⇒ 不要一按就沒了；⛔ 不用 confirm()：畫廊彈窗的 iframe 沒開 allow-modals，confirm 直接回 false）
   $('shipR').onclick = function () {
     var b = $('shipR'), hi = hullInfo(CFG_ID);
-    if (performance.now() - rArm > 4000) { rArm = performance.now(); b.textContent = '再按一次：' + (hi ? hi.name : CFG_ID) + '的船員與性能都回到預設'; setTimeout(function () { if (performance.now() - rArm >= 3900) b.textContent = '這一型回到預設'; }, 4000); return; }
+    if (performance.now() - rArm > 4000) { rArm = performance.now(); b.textContent = '再按一次：' + (hi ? hi.name : CFG_ID) + '的船員、艙房與性能都回到預設'; setTimeout(function () { if (performance.now() - rArm >= 3900) b.textContent = '這一型回到預設'; }, 4000); return; }
     rArm = 0; b.textContent = '這一型回到預設';
-    delete SHIP_CREW[CFG_ID]; delete PREF_BALLAST[CFG_ID];
+    delete SHIP_CREW[CFG_ID]; delete SHIP_ROOMS[CFG_ID]; delete PREF_BALLAST[CFG_ID];
     var c = C(); SHIP_KEYS.forEach(function (k) { c[k] = k === 'ballast' ? (HULLT[CFG_ID] ? HULLT[CFG_ID].ballast0 : undefined) : cfgBase(k, CFG_ID); });
     put(); show();
   };

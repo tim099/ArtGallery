@@ -73,18 +73,30 @@ def ceil_z(get, cells, zf, zmax):
     return zmax
 
 
+DOOR = 8                        # 往外連續幾格站得住才算門（遊戲 36_rooms.js ROOM_DOOR）
+
+
 def doors(get, r):
-    """長方體 r 的四面牆上、站人那一層往外還是空氣（頭上 HEAD 格空）的格 ⇒ 門洞的格數與中點。"""
+    """長方體 r 的四面牆上、往外連續 DOOR 格都站得住（腳下實心、頭上 HEAD 格空）的格 ⇒ 門洞。
+    ⛔ 只看外面那一格 ⇒ 長方體外側還有一點地板（船殼的弧度、最大內接長方形沒框到的角落）也被當成門。"""
     x0, y0, z0, x1, y1, z1 = r
+
+    def st(x, y):
+        return get(x, y, z0 - 1) and all(not get(x, y, z0 + k) for k in range(0, HEAD))
+
+    def open_(x, y, dx, dy):
+        return all(st(x + dx * k, y + dy * k) for k in range(1, DOOR + 1))
     out = []
     for x in range(x0, x1 + 1):
-        for y in (y0 - 1, y1 + 1):
-            if get(x, y, z0 - 1) and all(not get(x, y, z0 + k) for k in range(0, HEAD)):
-                out.append((x, y))
+        if open_(x, y0, 0, -1):
+            out.append((x, y0))
+        if open_(x, y1, 0, 1):
+            out.append((x, y1))
     for y in range(y0, y1 + 1):
-        for x in (x0 - 1, x1 + 1):
-            if get(x, y, z0 - 1) and all(not get(x, y, z0 + k) for k in range(0, HEAD)):
-                out.append((x, y))
+        if open_(x0, y, -1, 0):
+            out.append((x0, y))
+        if open_(x1, y, 1, 0):
+            out.append((x1, y))
     return out
 
 
