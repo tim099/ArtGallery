@@ -363,6 +363,7 @@ function navText(sh) {
 function pauseLabel() { var b = $('pauseK'), s = '<b>P</b> ' + (PAUSED ? '繼續' : '停格'); if (b && b.innerHTML !== s) b.innerHTML = s; }
 function hud(dt) {
   stepMsgs(dt);
+  if (ROOMS_DBG) roomLabels();                                                   // 空艙房的名字（36_rooms.js；?rooms=1）：每一格跟著鏡頭
   if (!SHIPS.length || (HUDN++ % 6)) return;
   var me = SHIPS[PLAYER_I];
   fleetHud(me);                                                                  // 上方：每艘一個圓形按鈕＋中間一艘的詳細資訊（TASK-0552）
