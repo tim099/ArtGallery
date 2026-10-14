@@ -16,7 +16,7 @@ function medInit(sh) {
   var F = ROOM_FN.medical || {}, rooms = [];
   sh.rooms.forEach(function (r) {
     if (r.type !== 'medical') return;
-    var lv = lvOf(NV.levels, r.min[2]); if (lv < 0 || NV.reach.indexOf(lv) < 0) return;
+    var lv = r.deck ? r.deck.i : lvOf(NV.levels, r.min[2]); if (lv < 0 || NV.reach.indexOf(lv) < 0) return;   // 房間綁在甲板上（36_rooms.js）
     var N = NV.levels[lv].N, beds = [];
     r.furn.forEach(function (m) {
       if (!m.hold) return;
@@ -97,7 +97,7 @@ function medNeeds(sh, need) {
   sh.crew.forEach(function (c) {
     if (c.st !== 1 || c.medBed || c.carriedBy) return;
     if (c.medNo) { c.medOk = false; return; }                            // 扛起來才發現走不到床（另一塊）⇒ 不再派人，照舊 12 秒
-    var lv = lvOf(NV.levels, c.pos[2]), ci = lv >= 0 && NV.reach.indexOf(lv) >= 0 ? navSnap(NV.levels[lv].N, c.pos, 4) : -1;
+    var lv = lvAt(sh, c.pos), ci = lv >= 0 && NV.reach.indexOf(lv) >= 0 ? navSnap(NV.levels[lv].N, c.pos, 4) : -1;
     c.medOk = ci >= 0;                                                   // 桅頂、落在走路格外的 ⇒ 搬不到 ⇒ 照舊 12 秒抬下去
     if (ci < 0 || !free.length) return;
     var bi = 0, bd = 1e9;

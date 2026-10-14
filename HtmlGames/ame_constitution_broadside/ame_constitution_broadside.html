@@ -1317,7 +1317,7 @@ function playK(k) { return PLAY === 'fun' ? FUN[k] : 1; }
 //   upwind 逆風性能（31_sailing.js）：風從船頭那一半（迎風、頂風）的角度照它壓縮 ⇒ 同一個角度跑得快、吃風更近（失速晚開始）、越接近頂風轉得越快（最多 ×它）；1 ＝ 照舊
 // 起始值 ＝ 網址參數（?hard= …，套到每一型）或 LIM 的預設；壓艙物網址沒給 ⇒ 存檔裡那一型的（同一份船才算，69_prefs.js）⇒ 那一型的 ballast0（船型載好才知道）。
 //   base  基底航速（節；31_sailing.js；Tim 2026-10-14：風暴角號是幽靈船、之後的蒸汽船）：額外動力帶來的航速 —— 不管風向、風速、掛幾面帆都有，
-//         跟帆的航速脫鉤（不乘 speed、玩法加成、天氣）；實際航速取帆與它比較快的那個。0 ＝ 沒有 ⇒ 照舊
+//         跟帆的航速脫鉤（不乘 speed、玩法加成、天氣）；實際航速 ＝ √(帆的航速² ＋ 它²)：兩種動力的推力相加（蒸汽帆船；阻力 ∝ 速度²、各自單獨能跑到的航速就是那份推力 ⇒ 推力相加 ＝ 平方相加）。0 ＝ 沒有 ⇒ 照舊
 var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'base'], SHIP_CFG = {};
 // 船型自己的預設（沒列的 ＝ LIM 的預設）。Tim 2026-10-13：憲法號要比餘燼號快、靈活 ⇒ 憲法號照舊 1（巡防艦），
 //   餘燼號是兩層砲甲板、90 門砲的重船 ⇒ 航速 0.85、靈活 0.7。網址參數（?speed= …）照舊套到每一型。
@@ -4346,7 +4346,7 @@ function sail(sh, dt) {
   sh.irons = nogo;
   var target = sh.sunk || stop ? 0 : VMAX * SPK * Math.sqrt(WIND_SPD) * sh.sailFrac * polar(dU) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1);   // throttle：讓開友艦砲線時放慢（52_fleet.js lineClear；平常 1）
   var BK = sh.cfg.base || 0;
-  if (BK > 0 && !sh.sunk && !stop) target = Math.max(target, BK / 1.9438 * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1));   // 基底航速（節 ⇒ m/s）：額外動力，跟帆脫鉤；進水、降旗、讓砲線照樣慢
+  if (BK > 0 && !sh.sunk && !stop) { var vb = BK / 1.9438 * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1); target = Math.sqrt(target * target + vb * vb); }   // 基底航速（節 ⇒ m/s）：額外動力，推力跟帆相加 ⇒ √(帆² ＋ 基底²)；進水、降旗、讓砲線照樣慢
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop || sh.throttle < 1 ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
@@ -5268,10 +5268,24 @@ function roomDoors(g, r) {
 }
 /** 開戰前就看得出來的「走不走得到」（船隻配置頁用）：預備水手待命那一層（最低那座梯子的下層）沿梯子走得到的甲板 ⇒ { 甲板序號: true }；沒有甲板 meta ⇒ null（不判斷）。
  *  開戰後照實際的走路格（42_hands.js：區域與斷掉的梯子）。 */
+/** 梯子兩頭各通哪一層甲板 ⇒ [foot 那層, head 那層]（甲板 meta 的物件；那一頭落不到任何一層 ⇒ null；這艘沒有甲板 meta ⇒ 回 null，照高度判）。
+ *  梯子關聯 meta 有 `<梯名>.decks`（例 "upper,forecastle"：兩層的甲板代號 deck、名字 name 或 level，逗號分隔）⇒ 直接照它接，不看其他判定（Tim 2026-10-14）；
+ *    level 低的那層接 foot。寫錯（找不到那層、兩個同一層）⇒ 主控台警告、照下面自動判。
+ *  沒有 ⇒ 兩頭各照那一欄的地板（deckAt：x 也看 —— 風暴角號後甲板與艏樓高度重疊、前後不重疊，照高度切不開；summit 2026-10-14）。 */
+function ladDecks(T, l) {
+  var D = hullDecks(T); if (!D.length) return null;
+  if (l.link !== undefined && l.link !== null && l.link !== '') {
+    var k = String(l.link).split(/[,，]/).map(function (s) { s = s.trim(); return D.filter(function (d) { return d.id === s || d.name === s || String(d.level) === s; })[0]; });
+    if (k.length === 2 && k[0] && k[1] && k[0] !== k[1]) { var r = k[0].i < k[1].i ? [k[0], k[1]] : [k[1], k[0]]; r.link = true; return r; }
+    console.warn('梯子 ' + l.name + ' 的 decks「' + l.link + '」對不上兩層甲板 ⇒ 照地板自動判');
+  }
+  var a = l.pts[0], b = l.pts[l.pts.length - 1];
+  return [deckAt(T, a[0], a[2]), deckAt(T, b[0], b[2])];
+}
 function deckReach(T) {
   var D = hullDecks(T); if (!D.length) return null;
   var E = [], home = -1;
-  shipLadders(T).forEach(function (l) { var a = l.pts[0], b = l.pts[l.pts.length - 1], da = deckAt(T, a[0], a[2]), db = deckAt(T, b[0], b[2]); if (da && db && da !== db) { E.push([da.i, db.i]); var lo = Math.min(da.i, db.i); if (home < 0 || lo < home) home = lo; } });
+  shipLadders(T).forEach(function (l) { var k = ladDecks(T, l), da = k[0], db = k[1]; if (da && db && da !== db) { E.push([da.i, db.i]); var lo = Math.min(da.i, db.i); if (home < 0 || lo < home) home = lo; } });
   var R = {}; if (home < 0) return R;
   R[home] = true; var q = [home];
   while (q.length) { var u = q.shift(); E.forEach(function (e) { var v = e[0] === u ? e[1] : e[1] === u ? e[0] : -1; if (v >= 0 && !R[v]) { R[v] = true; q.push(v); } }); }
@@ -5901,7 +5915,8 @@ var ITEMS_N = 0;                                   // 讀數：上一格畫了�
 // 一個人物 ＝ 一個預備水手（數量在細節設定，0 ＝ 沒有）；開戰時的人數算進 crew0（降旗的死傷 % 跟著算）。
 var NAV_C = 2, NAV_HEAD = 12, NAV_DZ = 3, HAND_SP = [11, 20], CLIMB_SP = [6, 9], LADDER_GAP = 0.9, HAND_PATHS = 2, HAND_ROAM = 0.25, HAND_BACK = 0.6, CLIMB_LIFT = 2;
 var NAV_DX = [1, -1, 0, 0, 1, 1, -1, -1], NAV_DY = [0, 0, 1, -1, 1, -1, 1, -1];
-/** 梯子：關聯 meta kind=ladders 的固定點 <梯名>.foot／lo／hi／head（格中心）⇒ [{ name, pts }]（站位座標：x、y 照格中心，z ＝ 腳踩的那一格；foot 在下）。 */
+/** 梯子：關聯 meta kind=ladders 的固定點 <梯名>.foot／lo／hi／head（格中心）⇒ [{ name, pts, link }]（站位座標：x、y 照格中心，z ＝ 腳踩的那一格；foot 在下）。
+ *  link ＝ 同一條關聯 meta 的 `<梯名>.decks`（直接指定通哪兩層，ladDecks）。 */
 function shipLadders(T) {
   var out = [];
   (T.h.parts || []).forEach(function (p) {
@@ -5914,12 +5929,14 @@ function shipLadders(T) {
     Object.keys(by).forEach(function (nm) {
       var b = by[nm]; if (!b.foot || !b.head) return;
       var pts = [b.foot, b.lo, b.hi, b.head].filter(Boolean); if (b.foot[2] > b.head[2]) pts.reverse();
-      out.push({ name: (p.path || '') + (nm ? '/' + nm : ''), pts: pts });
+      out.push({ name: (p.path || '') + (nm ? '/' + nm : ''), pts: pts, link: p.meta[nm ? nm + '.decks' : 'decks'] });
     });
   });
   return out;
 }
 function lvOf(Ls, z) { for (var i = 0; i < Ls.length; i++) if (z >= Ls[i].zr[0] && z <= Ls[i].zr[1]) return i; return -1; }
+/** 船上一點 p 落在哪一層：有甲板 meta ⇒ 照那一欄的地板（deckAt，x 也看；navLevels 一層甲板一層 ⇒ 第幾層 ＝ d.i）；沒有甲板 meta、或離每層地板都太遠 ⇒ 照高度（lvOf）。 */
+function lvAt(sh, p) { var d = hullDecks(sh.T).length ? deckAt(sh.T, p[0], p[2]) : null; return d ? d.i : lvOf(sh.nav.levels, p[2]); }
 /** 走得到的甲板（由下往上）：砲甲板＋梯子一頭落在砲甲板以外的高度（相差 8 格內併成一層，上下各留 5 格的舷弧，不蓋到砲甲板）。 */
 function navLevels(sh, lads) {
   var DM = hullDecks(sh.T);
@@ -6092,9 +6109,9 @@ function makeHands(sh, crew, add) {
   var t0 = performance.now(), lads = shipLadders(sh.T), Ls = navLevels(sh, lads), LD = [];
   Ls.forEach(function (L) { L.N = navBuild(sh, L); });
   lads.forEach(function (l) {
-    var a = l.pts[0], b = l.pts[l.pts.length - 1], la = lvOf(Ls, a[2]), lb = lvOf(Ls, b[2]);
+    var a = l.pts[0], b = l.pts[l.pts.length - 1], dk = ladDecks(sh.T, l), la = dk ? (dk[0] ? dk[0].i : -1) : lvOf(Ls, a[2]), lb = dk ? (dk[1] ? dk[1].i : -1) : lvOf(Ls, b[2]);   // 有甲板 meta ⇒ 照 meta 判層（36_rooms.js ladDecks）
     if (la < 0 || lb < 0 || la === lb) return;
-    var ia = navSnap(Ls[la].N, a, 5), ib = navSnap(Ls[lb].N, b, 5); if (ia < 0 || ib < 0) return;   // 兩頭接不上走路格（10 格內）⇒ 這座不用
+    var R = dk && dk.link ? 10 : 5, ia = navSnap(Ls[la].N, a, R), ib = navSnap(Ls[lb].N, b, R); if (ia < 0 || ib < 0) return;   // 兩頭接不上走路格（10 格內；直接指定的 20 格內）⇒ 這座不用
     var mid = l.pts.slice(1, -1).map(function (q) { return [q[0], q[1], q[2] + CLIMB_LIFT]; });   // lo、hi 抬 0.2 m：兩點連線會切過踏板的前緣（量過：腳在踏板裡 24／71 點 ⇒ 10）
     var steps = l.pts.slice(1, -1).map(function (q) { return [Math.floor(q[0]), Math.floor(q[1]), Math.floor(q[2]) - 1]; });   // 踏板：lo、hi 那一格底下（固定點是腳踩的那一格空氣）
     LD.push({ name: l.name, lo: la, hi: lb, ia: ia, ib: ib, ra: Ls[la].N.reg[ia], rb: Ls[lb].N.reg[ib], steps: steps, broken: false, pts: [navPos(Ls[la].N, ia), a].concat(mid, [b, navPos(Ls[lb].N, ib)]), x: (a[0] + b[0]) / 2, t0: -9, n: 0, q: 0 });
@@ -6214,7 +6231,7 @@ function callHands(sh) {
   var wheel = sh.models.filter(function (m) { return m.kind === 'wheel'; })[0], hd = sh.crew.filter(function (c) { return c.role === ROLE.HELM && !able(c) && !c.relieved; });
   var hn = Math.min(hd.length, NV.helm0 - sh.crew.filter(function (c) { return c.role === ROLE.HELM && able(c); }).length - (going.helm || 0));
   if (wheel && wheel.alive && hn > 0) {
-    var lvh = lvOf(NV.levels, hd[0].home[2]);
+    var lvh = lvAt(sh, hd[0].home);
     if (NV.reach.indexOf(lvh) >= 0) for (var j = 0; j < hn; j++) need.push({ kind: 'helm', key: '', lv: lvh, n: 1, x: hd[j].home[0], spot: hd[j].home, pri: 1, who: hd[j] });
   }
   medNeeds(sh, need);                                                  // 醫療艙的人手、等著被搬的傷員（44_medic.js）
@@ -6441,7 +6458,7 @@ function medInit(sh) {
   var F = ROOM_FN.medical || {}, rooms = [];
   sh.rooms.forEach(function (r) {
     if (r.type !== 'medical') return;
-    var lv = lvOf(NV.levels, r.min[2]); if (lv < 0 || NV.reach.indexOf(lv) < 0) return;
+    var lv = r.deck ? r.deck.i : lvOf(NV.levels, r.min[2]); if (lv < 0 || NV.reach.indexOf(lv) < 0) return;   // 房間綁在甲板上（36_rooms.js）
     var N = NV.levels[lv].N, beds = [];
     r.furn.forEach(function (m) {
       if (!m.hold) return;
@@ -6522,7 +6539,7 @@ function medNeeds(sh, need) {
   sh.crew.forEach(function (c) {
     if (c.st !== 1 || c.medBed || c.carriedBy) return;
     if (c.medNo) { c.medOk = false; return; }                            // 扛起來才發現走不到床（另一塊）⇒ 不再派人，照舊 12 秒
-    var lv = lvOf(NV.levels, c.pos[2]), ci = lv >= 0 && NV.reach.indexOf(lv) >= 0 ? navSnap(NV.levels[lv].N, c.pos, 4) : -1;
+    var lv = lvAt(sh, c.pos), ci = lv >= 0 && NV.reach.indexOf(lv) >= 0 ? navSnap(NV.levels[lv].N, c.pos, 4) : -1;
     c.medOk = ci >= 0;                                                   // 桅頂、落在走路格外的 ⇒ 搬不到 ⇒ 照舊 12 秒抬下去
     if (ci < 0 || !free.length) return;
     var bi = 0, bd = 1e9;
@@ -8520,8 +8537,8 @@ function sliders() {
     var gl = Object.keys(GUNS).filter(function (t) { return hc.guns[t]; }).map(function (t) { return (GUNS[t].short || GUNS[t].name).trim() + ' ' + hc.guns[t]; }).join('、');
     el.innerHTML = '<div class="h">' + h.name + '</div>' +
       '排水量 <b>' + Math.round(T.disp).toLocaleString() + '</b> 噸<span class="n">（設計水線）</span><br>' +
-      '航速 順風 <b>' + (kn * polar(0)).toFixed(1) + '</b>・側順風 <b>' + kn.toFixed(1) + '</b>（最快）・逆風 <b>' + Math.max(kn * polar(dz), c.base || 0).toFixed(1) + '</b> 節<br>' +
-      (c.base ? '基底航速 <b>' + (+c.base).toFixed(1) + '</b> 節<span class="n">（額外動力：不看風向與帆，頂風也走得動）</span><br>' : '') +
+      '航速 順風 <b>' + Math.hypot(kn * polar(0), +c.base || 0).toFixed(1) + '</b>・側順風 <b>' + Math.hypot(kn, +c.base || 0).toFixed(1) + '</b>（最快）・逆風 <b>' + Math.hypot(kn * polar(dz), +c.base || 0).toFixed(1) + '</b> 節<br>' +
+      (c.base ? '基底航速 <b>' + (+c.base).toFixed(1) + '</b> 節<span class="n">（額外動力，推力跟帆相加 ⇒ 上面三格 ＝ √(帆² ＋ 基底²)：不看風向與帆，頂風、收帆也走得動）</span><br>' : '') +
       '<span class="n">標準風、滿帆；逆風 ＝ 離風 ' + Math.round(stall) + '° 時（再頂就開始失速）' + (PLAY === 'fun' ? '；含娛樂玩法的加成' : '') + '</span><br>' +
       '砲 <b>' + hc.n + '</b> 門<span class="n">（' + gl + '）</span><br>' +
       '船員 約 <b>' + crewTotal(shipCrew(CFG_ID), hc) + '</b> 人<span class="n">（含預備水手 ' + shipCrew(CFG_ID).hands + '）</span><br>' +
@@ -8737,7 +8754,7 @@ function sliders() {
     var fun = PLAY === 'fun' ? '（娛樂：' : '（', SPE = SPEEDK * playK('speed'), AGE = AGILK * playK('agile');   // 娛樂 ⇒ 括號裡寫乘過加成的實際值
     $('speedV').textContent = SPEEDK.toFixed(2) + '×' + fun + '最快約 ' + (VMAX * SPE * 1.944).toFixed(0) + ' 節）';
     $('agileV').textContent = AGILK.toFixed(2) + '×' + fun + '滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGE * 57.3).toFixed(1) + '°/秒）';
-    var BKV = K.base || 0; $('baseV').textContent = BKV ? BKV.toFixed(1) + ' 節（額外動力：不看風向、風速、帆，頂風也走得動；帆跑得比它快就照帆）' : '0（沒有：照帆與風走）';
+    var BKV = K.base || 0; $('baseV').textContent = BKV ? BKV.toFixed(1) + ' 節（額外動力，推力跟帆相加：實際 ＝ √(帆² ＋ 基底²)；不看風向、風速、帆，頂風、收帆也走得動）' : '0（沒有：照帆與風走）';
     var UPK = K.upwind; $('upwindV').textContent = UPK.toFixed(2) + '×（' + (UPK === 1 ? '照舊：' : '') + '風從船頭 ' + (90 - (90 - NOGO_DEG) * UPK).toFixed(0) + '° 開始失速、' + (90 - (90 - NOGO_FULL) * UPK).toFixed(0) + '° 全失速（手動操舵）；近迎風轉向最多 ×' + UPK.toFixed(2) + '）';
     var SK = STALL_K * playK('stall'), WA = WAVES.reduce(function (a, w) { return a + w.a; }, 0) * SEA_K;   // WA：幾道浪疊在一起最高的那一下（振幅）
     $('seaV').textContent = SEA_K <= 0 ? '0（平靜）' : SEA_K.toFixed(2) + '×（浪高最多約 ' + (WA * 2).toFixed(1) + ' m，主浪週期 ' + (2 * Math.PI / WAVES[0].w).toFixed(1) + ' 秒）';

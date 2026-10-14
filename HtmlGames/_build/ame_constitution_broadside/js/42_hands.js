@@ -13,7 +13,8 @@
 // 一個人物 ＝ 一個預備水手（數量在細節設定，0 ＝ 沒有）；開戰時的人數算進 crew0（降旗的死傷 % 跟著算）。
 var NAV_C = 2, NAV_HEAD = 12, NAV_DZ = 3, HAND_SP = [11, 20], CLIMB_SP = [6, 9], LADDER_GAP = 0.9, HAND_PATHS = 2, HAND_ROAM = 0.25, HAND_BACK = 0.6, CLIMB_LIFT = 2;
 var NAV_DX = [1, -1, 0, 0, 1, 1, -1, -1], NAV_DY = [0, 0, 1, -1, 1, -1, 1, -1];
-/** 梯子：關聯 meta kind=ladders 的固定點 <梯名>.foot／lo／hi／head（格中心）⇒ [{ name, pts }]（站位座標：x、y 照格中心，z ＝ 腳踩的那一格；foot 在下）。 */
+/** 梯子：關聯 meta kind=ladders 的固定點 <梯名>.foot／lo／hi／head（格中心）⇒ [{ name, pts, link }]（站位座標：x、y 照格中心，z ＝ 腳踩的那一格；foot 在下）。
+ *  link ＝ 同一條關聯 meta 的 `<梯名>.decks`（直接指定通哪兩層，ladDecks）。 */
 function shipLadders(T) {
   var out = [];
   (T.h.parts || []).forEach(function (p) {
@@ -26,12 +27,14 @@ function shipLadders(T) {
     Object.keys(by).forEach(function (nm) {
       var b = by[nm]; if (!b.foot || !b.head) return;
       var pts = [b.foot, b.lo, b.hi, b.head].filter(Boolean); if (b.foot[2] > b.head[2]) pts.reverse();
-      out.push({ name: (p.path || '') + (nm ? '/' + nm : ''), pts: pts });
+      out.push({ name: (p.path || '') + (nm ? '/' + nm : ''), pts: pts, link: p.meta[nm ? nm + '.decks' : 'decks'] });
     });
   });
   return out;
 }
 function lvOf(Ls, z) { for (var i = 0; i < Ls.length; i++) if (z >= Ls[i].zr[0] && z <= Ls[i].zr[1]) return i; return -1; }
+/** 船上一點 p 落在哪一層：有甲板 meta ⇒ 照那一欄的地板（deckAt，x 也看；navLevels 一層甲板一層 ⇒ 第幾層 ＝ d.i）；沒有甲板 meta、或離每層地板都太遠 ⇒ 照高度（lvOf）。 */
+function lvAt(sh, p) { var d = hullDecks(sh.T).length ? deckAt(sh.T, p[0], p[2]) : null; return d ? d.i : lvOf(sh.nav.levels, p[2]); }
 /** 走得到的甲板（由下往上）：砲甲板＋梯子一頭落在砲甲板以外的高度（相差 8 格內併成一層，上下各留 5 格的舷弧，不蓋到砲甲板）。 */
 function navLevels(sh, lads) {
   var DM = hullDecks(sh.T);
@@ -204,9 +207,9 @@ function makeHands(sh, crew, add) {
   var t0 = performance.now(), lads = shipLadders(sh.T), Ls = navLevels(sh, lads), LD = [];
   Ls.forEach(function (L) { L.N = navBuild(sh, L); });
   lads.forEach(function (l) {
-    var a = l.pts[0], b = l.pts[l.pts.length - 1], la = lvOf(Ls, a[2]), lb = lvOf(Ls, b[2]);
+    var a = l.pts[0], b = l.pts[l.pts.length - 1], dk = ladDecks(sh.T, l), la = dk ? (dk[0] ? dk[0].i : -1) : lvOf(Ls, a[2]), lb = dk ? (dk[1] ? dk[1].i : -1) : lvOf(Ls, b[2]);   // 有甲板 meta ⇒ 照 meta 判層（36_rooms.js ladDecks）
     if (la < 0 || lb < 0 || la === lb) return;
-    var ia = navSnap(Ls[la].N, a, 5), ib = navSnap(Ls[lb].N, b, 5); if (ia < 0 || ib < 0) return;   // 兩頭接不上走路格（10 格內）⇒ 這座不用
+    var R = dk && dk.link ? 10 : 5, ia = navSnap(Ls[la].N, a, R), ib = navSnap(Ls[lb].N, b, R); if (ia < 0 || ib < 0) return;   // 兩頭接不上走路格（10 格內；直接指定的 20 格內）⇒ 這座不用
     var mid = l.pts.slice(1, -1).map(function (q) { return [q[0], q[1], q[2] + CLIMB_LIFT]; });   // lo、hi 抬 0.2 m：兩點連線會切過踏板的前緣（量過：腳在踏板裡 24／71 點 ⇒ 10）
     var steps = l.pts.slice(1, -1).map(function (q) { return [Math.floor(q[0]), Math.floor(q[1]), Math.floor(q[2]) - 1]; });   // 踏板：lo、hi 那一格底下（固定點是腳踩的那一格空氣）
     LD.push({ name: l.name, lo: la, hi: lb, ia: ia, ib: ib, ra: Ls[la].N.reg[ia], rb: Ls[lb].N.reg[ib], steps: steps, broken: false, pts: [navPos(Ls[la].N, ia), a].concat(mid, [b, navPos(Ls[lb].N, ib)]), x: (a[0] + b[0]) / 2, t0: -9, n: 0, q: 0 });
@@ -326,7 +329,7 @@ function callHands(sh) {
   var wheel = sh.models.filter(function (m) { return m.kind === 'wheel'; })[0], hd = sh.crew.filter(function (c) { return c.role === ROLE.HELM && !able(c) && !c.relieved; });
   var hn = Math.min(hd.length, NV.helm0 - sh.crew.filter(function (c) { return c.role === ROLE.HELM && able(c); }).length - (going.helm || 0));
   if (wheel && wheel.alive && hn > 0) {
-    var lvh = lvOf(NV.levels, hd[0].home[2]);
+    var lvh = lvAt(sh, hd[0].home);
     if (NV.reach.indexOf(lvh) >= 0) for (var j = 0; j < hn; j++) need.push({ kind: 'helm', key: '', lv: lvh, n: 1, x: hd[j].home[0], spot: hd[j].home, pri: 1, who: hd[j] });
   }
   medNeeds(sh, need);                                                  // 醫療艙的人手、等著被搬的傷員（44_medic.js）

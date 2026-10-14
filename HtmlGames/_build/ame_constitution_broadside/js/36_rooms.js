@@ -268,10 +268,24 @@ function roomDoors(g, r) {
 }
 /** 開戰前就看得出來的「走不走得到」（船隻配置頁用）：預備水手待命那一層（最低那座梯子的下層）沿梯子走得到的甲板 ⇒ { 甲板序號: true }；沒有甲板 meta ⇒ null（不判斷）。
  *  開戰後照實際的走路格（42_hands.js：區域與斷掉的梯子）。 */
+/** 梯子兩頭各通哪一層甲板 ⇒ [foot 那層, head 那層]（甲板 meta 的物件；那一頭落不到任何一層 ⇒ null；這艘沒有甲板 meta ⇒ 回 null，照高度判）。
+ *  梯子關聯 meta 有 `<梯名>.decks`（例 "upper,forecastle"：兩層的甲板代號 deck、名字 name 或 level，逗號分隔）⇒ 直接照它接，不看其他判定（Tim 2026-10-14）；
+ *    level 低的那層接 foot。寫錯（找不到那層、兩個同一層）⇒ 主控台警告、照下面自動判。
+ *  沒有 ⇒ 兩頭各照那一欄的地板（deckAt：x 也看 —— 風暴角號後甲板與艏樓高度重疊、前後不重疊，照高度切不開；summit 2026-10-14）。 */
+function ladDecks(T, l) {
+  var D = hullDecks(T); if (!D.length) return null;
+  if (l.link !== undefined && l.link !== null && l.link !== '') {
+    var k = String(l.link).split(/[,，]/).map(function (s) { s = s.trim(); return D.filter(function (d) { return d.id === s || d.name === s || String(d.level) === s; })[0]; });
+    if (k.length === 2 && k[0] && k[1] && k[0] !== k[1]) { var r = k[0].i < k[1].i ? [k[0], k[1]] : [k[1], k[0]]; r.link = true; return r; }
+    console.warn('梯子 ' + l.name + ' 的 decks「' + l.link + '」對不上兩層甲板 ⇒ 照地板自動判');
+  }
+  var a = l.pts[0], b = l.pts[l.pts.length - 1];
+  return [deckAt(T, a[0], a[2]), deckAt(T, b[0], b[2])];
+}
 function deckReach(T) {
   var D = hullDecks(T); if (!D.length) return null;
   var E = [], home = -1;
-  shipLadders(T).forEach(function (l) { var a = l.pts[0], b = l.pts[l.pts.length - 1], da = deckAt(T, a[0], a[2]), db = deckAt(T, b[0], b[2]); if (da && db && da !== db) { E.push([da.i, db.i]); var lo = Math.min(da.i, db.i); if (home < 0 || lo < home) home = lo; } });
+  shipLadders(T).forEach(function (l) { var k = ladDecks(T, l), da = k[0], db = k[1]; if (da && db && da !== db) { E.push([da.i, db.i]); var lo = Math.min(da.i, db.i); if (home < 0 || lo < home) home = lo; } });
   var R = {}; if (home < 0) return R;
   R[home] = true; var q = [home];
   while (q.length) { var u = q.shift(); E.forEach(function (e) { var v = e[0] === u ? e[1] : e[1] === u ? e[0] : -1; if (v >= 0 && !R[v]) { R[v] = true; q.push(v); } }); }
