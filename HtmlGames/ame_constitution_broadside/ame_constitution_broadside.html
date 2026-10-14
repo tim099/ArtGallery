@@ -7176,8 +7176,12 @@ window.addEventListener('keydown', function (e) {
   var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' ';
   if (k === 'escape') { e.preventDefault(); if (HELP.open) helpClose(); else if (FLX) floodClose(); else if (FLX3) xrayToggle(); else gsetToggle(); return; }   // 遊戲內的設定面板
   if (k === ' ' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
+  kbLit(k, true);
   doKey(k, e.repeat);
 });
+/** 鍵盤按著的時候，畫面上對應的按鈕也亮成按下的顏色（Tim 2026-10-14；跟手指按住同一個 .down）；方向鍵照 A／D／W／S 的按鈕。 */
+var KB_ALIAS = { arrowleft: 'a', arrowright: 'd', arrowup: 'w', arrowdown: 's' };
+function kbLit(k, on) { k = KB_ALIAS[k] || k; [].forEach.call(document.querySelectorAll('.kb[data-k]'), function (b) { if (b.dataset.k === k) b.classList.toggle('down', on); }); }
 /** 一個鍵的動作（鍵盤與畫面上的按鈕共用 ⇒ 手機也能玩）。打舵（A／D）是「按住」：這裡只按下，放開走 keyUp。 */
 function doKey(k, repeat) {
   if (!RUNNING) return;
@@ -7209,8 +7213,8 @@ function doKey(k, repeat) {
   }
 }
 function keyUp(k) { if (k === 'a' || k === 'arrowleft') KEYS.l = false; if (k === 'd' || k === 'arrowright') KEYS.r = false; }
-window.addEventListener('keyup', function (e) { keyUp(e.key.toLowerCase()); });
-window.addEventListener('blur', function () { KEYS.l = KEYS.r = false; });
+window.addEventListener('keyup', function (e) { var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' '; kbLit(k, false); keyUp(k); });
+window.addEventListener('blur', function () { KEYS.l = KEYS.r = false; [].forEach.call(document.querySelectorAll('.kb.down'), function (b) { b.classList.remove('down'); }); });   // 切走視窗 ⇒ 收不到 keyup，按下的顏色一起清掉
 // 畫面上的按鍵提示（下方控制列 .kb、說明裡的 kbd[data-k]）：點 ＝ 按那個鍵；data-hold 的（打舵）按住才算
 [].forEach.call(document.querySelectorAll('[data-k]'), function (b) {
   var k = b.dataset.k;
