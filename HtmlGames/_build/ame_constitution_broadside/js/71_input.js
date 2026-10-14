@@ -67,7 +67,7 @@ window.addEventListener('keydown', function (e) {
   if (!RUNNING) return;
   var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' ';
   if (k === 'escape') { e.preventDefault(); if (HELP.open) helpClose(); else if (FLX) floodClose(); else if (FLX3) xrayToggle(); else gsetToggle(); return; }   // 遊戲內的設定面板
-  if (k === ' ' || k === 'tab' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
+  if (k === ' ' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
   doKey(k, e.repeat);
 });
 /** 一個鍵的動作（鍵盤與畫面上的按鈕共用 ⇒ 手機也能玩）。打舵（A／D）是「按住」：這裡只按下，放開走 keyUp。 */
@@ -87,10 +87,8 @@ function doKey(k, repeat) {
   else if (k === 'm') { muted = !muted; gsetShow(); }
   else if (k === 'h' || k === '?') helpToggle();
   else if (k === 'r') { gsetClose(); helpClose(); RUNNING = false; END_AT = 0; END_WAIT = null; $('cover').style.display = ''; $('end').className = ''; }
-  else if (k === 'tab') {                                           // 航行：自動 → 手動 → 停船 → 自動（觀戰沒有手動）
-    var order = ['auto', 'manual', 'off'];
-    setSailMode(order[(order.indexOf(SAIL) + 1) % order.length]);
-  }
+  else if (k === '4' || k === '5' || k === '6') setSailMode(['auto', 'manual', 'off'][+k - 4]);   // 航行（TASK-0567，Tim 2026-10-14：不用 Tab 循環，三個鍵直接切）
+  else if (k === 'o') gsetToggle();                                    // 設定（Esc 也可以）
   else if (k === 'a' || k === 'd' || k === 'arrowleft' || k === 'arrowright') {   // 打舵：自動或停船中一碰就換手動
     if (SAIL !== 'manual') setSailMode('manual'); KEYS[k === 'a' || k === 'arrowleft' ? 'l' : 'r'] = true;
   }
@@ -118,7 +116,7 @@ var SAIL_NAMES = { auto: '自動航行', manual: '手動操舵（A／D 打舵）
 function setSailMode(m) {
   SAIL = m; KEYS.l = KEYS.r = false;
   [].forEach.call(document.querySelectorAll('[data-s]'), function (x) { x.classList.toggle('on', x.dataset.s === SAIL); });
-  if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], SAIL_NAMES[m] + '（Tab 切換）');
+  if (RUNNING && SHIPS.length) note(SHIPS[PLAYER_I], SAIL_NAMES[m] + '（4 自動／5 手動／6 停船）');
 }
 /** 自由鏡頭跟不跟著兩艘的中點走（預設跟；鏡頭「看敵艦／看我艦」本來就跟著那一艘）。 */
 function setCamTrack(on) {

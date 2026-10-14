@@ -16,8 +16,8 @@
   .panel{ background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; }
   /* 艦隊（TASK-0552）：我方的圓形按鈕沿左邊往下排、敵方沿右邊往下排（Tim 2026-10-14；排不下 ⇒ 往畫面中間再開一欄），
      中間一欄 ＝ 一艘的詳細資訊（點按鈕才有）＋ 廣播（61_hud.js fleetHud）。左邊讓出左下的羅盤。 */
-  .fleet{ top:12px; display:flex; flex-direction:column; flex-wrap:wrap; align-content:flex-start; gap:7px; max-height:calc(100vh - 300px); pointer-events:auto; }
-  #fleetL{ left:12px; } #fleetR{ right:12px; flex-wrap:wrap-reverse; align-items:flex-end; max-height:calc(100vh - 140px); }
+  .fleet{ top:12px; display:flex; flex-direction:column; flex-wrap:wrap; align-content:flex-start; gap:7px; max-height:calc(100vh - 110px); pointer-events:auto; }
+  #fleetL{ left:12px; } #fleetR{ right:12px; flex-wrap:wrap-reverse; align-items:flex-end; }
   .sb{ position:relative; width:66px; height:66px; border-radius:50%; cursor:pointer; box-shadow:0 2px 7px rgba(0,0,0,.65); transition:transform .12s, box-shadow .12s; }
   .sb:hover{ transform:scale(1.07); box-shadow:0 0 0 2px rgba(255,255,255,.55), 0 2px 9px rgba(0,0,0,.7); } .sb:active{ transform:scale(.94); }
   .sb.on{ box-shadow:0 0 0 3px var(--gold), 0 2px 10px rgba(0,0,0,.7); } .sb.out{ opacity:.75; }
@@ -37,7 +37,15 @@
   .bar{ height:5px; background:rgba(255,255,255,.15); border-radius:3px; overflow:hidden; margin:2px 0 4px; width:170px; }
   .bar i{ display:block; height:100%; background:var(--gold); }
   .bar.water i{ background:#4fb3d9; }
-  #ctl{ left:50%; bottom:12px; transform:translateX(-50%); text-align:center; white-space:nowrap; }
+  /* 下方（TASK-0567，Tim 2026-10-14；電腦與手機同一種排法）：左下 ＝ 帆與左舵（左舵最左、收帆、加帆）；右下 ＝ 開砲與右舵（單門、齊射、右舵最右）；
+     中間一欄 ＝ 羅盤＋面板：由上到下 ＝ 瞄準／鏡頭／停格／設定、砲列、彈種、航行與自動開砲（設定那一列跟彈種、航行隔著砲列 ⇒ 不會誤觸）。手機只是縮小、兩組改成直的（左舵、右舵在最下面靠角落）。 */
+  .helm{ bottom:12px; display:flex; gap:8px; pointer-events:auto; }
+  #helmL{ left:12px; } #helmR{ right:12px; }
+  .kb.hb{ width:64px; height:64px; margin:0; padding:0; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.25; font-size:12px;
+    background:rgba(14,18,24,.78); border:1px solid rgba(255,255,255,.32); box-shadow:0 2px 7px rgba(0,0,0,.6); }
+  .kb.hb b{ font-size:11px; }
+  #botC{ left:50%; bottom:12px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px; max-width:calc(100vw - 480px); }
+  #ctl{ text-align:center; max-width:100%; box-sizing:border-box; }
   #ctl b{ color:var(--gold); }
   #ammo span{ display:inline-block; margin:0 4px; padding:1px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); }
   #ammo span.on{ color:#111; background:var(--gold); border-color:var(--gold); }
@@ -49,7 +57,8 @@
   .chip{ display:inline-block; margin:2px 3px 0; padding:0 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); font-size:12px; }
   .chip.on{ color:#111; background:#9fc7ff; border-color:#9fc7ff; }
   #guns{ margin-top:4px; font-size:12px; }
-  .gr{ font-family:Consolas,monospace; font-size:12px; letter-spacing:1px; white-space:nowrap; }
+  .gr{ font-family:Consolas,monospace; font-size:12px; letter-spacing:1px; white-space:nowrap; display:inline-flex; align-items:center; vertical-align:middle; }
+  .gr .grd{ display:inline-block; text-align:left; line-height:1.25; }   /* 砲列：每層砲甲板一行、上下疊（61_hud.js gunRow） */
   .g-full{ color:#8fe388; } .g-short{ color:#f2c14e; } .g-none{ color:#7d838c; } .g-dead{ color:#e0574a; } .g-wet{ color:#7fc8ff; }
   .ico.g-full{ box-shadow:inset 0 -2px 0 #8fe388; } .ico.g-short{ box-shadow:inset 0 -2px 0 #f2c14e; } .ico.g-none{ box-shadow:inset 0 -2px 0 #7d838c; } .ico.g-dead{ box-shadow:inset 0 -2px 0 #e0574a; }
   #msg{ width:100%; font-size:14px; font-weight:700; text-align:center; line-height:1.45; }   /* 廣播：兩邊面板中間那一欄，一則一行、最多 5 行、各自淡掉（⛔ 寬到蓋住兩邊面板） */
@@ -69,23 +78,23 @@
   #gfxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
   #phxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #phxItems label{ width:6em; text-align:right; margin-right:6px; }
   #phxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
-  #nav{ left:12px; bottom:34px; padding:3px; border-radius:50%; }   /* 羅盤：只剩圓盤（TASK-0566；文字搬進詳細資訊 navText） */ #navt{ display:none; }
-  #navc{ position:static; inset:auto; width:150px; height:150px; display:block; margin:0 auto 2px; cursor:default; }
-  /* 手機直拿：兩邊面板縮成一半並排、羅盤縮小塞進兩個面板中間（Tim 2026-10-13）、控制列換行、按鈕放大
-     羅盤：面板各 147 px 寬 ⇒ 中間剩 100vw − 306 px（393 寬 87、375 寬 69、360 寬 54）⇒ 羅盤寬跟著它、夾在 44–84 px（羅盤面板比 canvas 多 8 px）；底下的文字收起來
-     （航速、帆裝、舵上面的面板都有，航向與風看羅盤）。⛔ 以前放左上面板底下：佔掉畫面左邊一整塊、廣播只好壓到畫面中間的船上 */
+  #nav{ padding:3px; border-radius:50%; }   /* 羅盤：只剩圓盤（TASK-0566；文字搬進詳細資訊 navText），在下方中間那一欄（TASK-0567） */ #navt{ display:none; }
+  #navc{ position:static; inset:auto; width:130px; height:130px; display:block; margin:0; cursor:default; }
+  /* 手機直拿：跟電腦同一種排法，只是縮小 —— 艦隊按鈕 38 px、左右兩組打舵開砲改成直的一欄、中間一欄窄一點 */
   @media (max-width:760px){
-    .fleet{ top:6px; gap:4px; max-height:calc(100vh - 230px); } #fleetL{ left:5px; } #fleetR{ right:5px; max-height:calc(100vh - 230px); } .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
+    .fleet{ top:6px; gap:4px; max-height:calc(100vh - 175px); } #fleetL{ left:5px; } #fleetR{ right:5px; }
+    .helm{ bottom:6px; gap:5px; } #helmL{ left:5px; flex-direction:column-reverse; } #helmR{ right:5px; flex-direction:column; }
+    .kb.hb{ width:46px; height:46px; font-size:10px; } .kb.hb b{ font-size:9px; }
+    #botC{ bottom:6px; width:calc(100vw - 106px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（兩邊各留 2 px；Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
     #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
-    #nav{ left:50%; top:6px; bottom:auto; width:auto; padding:3px; border-radius:50%; transform:translateX(-50%); }
-    #navc{ width:clamp(44px, calc(100vw - 322px), 84px); height:clamp(44px, calc(100vw - 322px), 84px); margin:0; } #navt{ display:none; }
-    #ctl{ white-space:normal; width:96vw; padding:6px 4px; bottom:6px; } #ctl .kb{ font-size:13px; padding:5px 9px; } #tip{ display:none; }
-    #msg{ font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：跟資訊同一欄，放在兩邊按鈕與羅盤下面（topC 的 top 由 61_hud.js 算） */
+    #navc{ width:84px; height:84px; }
+    #ctl{ width:100%; padding:5px 3px; } #ctl .kb, #ctl .chip{ font-size:12px; padding:4px 5px; margin-left:1px; margin-right:1px; } #ammo span{ margin:0 2px; padding:1px 6px; } #keys .hint{ display:none; } #guns .gr{ white-space:normal; word-break:break-all; } #tip{ display:none; }   /* 砲列在窄面板裡換行 */
+    #msg{ font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：跟資訊同一欄（頂端中間，兩邊艦隊按鈕之間） */
     .hud h3 .disp{ display:block; margin-left:0; } }                                     /* 排水量換到船名下一行（⛔ 同一行 ⇒ 面板縮半之後「現在 …」被切掉） */
   /* 手機橫拿（矮）：面板與控制列都縮 */
   @media (max-height:520px) and (min-width:761px){
     .sb{ width:50px; height:50px; } #fleetL{ max-height:calc(100vh - 170px); } #info{ transform:scale(.8); transform-origin:center top; }
-    #nav{ transform:scale(.6); transform-origin:left bottom; bottom:12px; } #ctl{ transform:translateX(-50%) scale(.82); transform-origin:center bottom; } #tip{ display:none; } }
+    #botC{ transform:translateX(-50%) scale(.82); transform-origin:center bottom; } .kb.hb{ width:52px; height:52px; } #tip{ display:none; } }
   #cover{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; background:radial-gradient(ellipse at 50% 40%, rgba(20,30,44,.80), rgba(5,8,12,.94)); }
   #cover .card{ max-width:680px; margin:auto; padding:22px 30px; text-align:center; }   /* margin:auto ⇒ 放得下就置中、放不下就從頂端開始捲（⛔ align-items:center 放不下會切掉上半） */
   #cover h1{ margin:0 0 4px; font-size:24px; letter-spacing:2px; }   /* Tim 2026-10-13：標題小一點（30 → 24；手機 24 → 19） */
@@ -152,16 +161,18 @@
   <div id="fleetL" class="hud fleet"></div>
   <div id="fleetR" class="hud fleet"></div>
   <div id="topC" class="hud"><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
-  <div id="ctl" class="hud panel">
-    <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
-    <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>
+  <div id="helmL" class="hud helm"><span class="kb hb" data-k="a" data-hold="1"><b>A</b>◀ 左舵</span><span class="kb hb" data-k="s"><b>S</b>收帆</span><span class="kb hb" data-k="w"><b>W</b>加帆</span></div>
+  <div id="helmR" class="hud helm"><span class="kb hb" data-k="f"><b>F</b>單門</span><span class="kb hb" data-k=" "><b>空白</b>齊射</span><span class="kb hb" data-k="d" data-hold="1"><b>D</b>右舵 ▶</span></div>
+  <div id="botC" class="hud"><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div></div>
+  <div id="ctl" class="panel">
+    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 停格</span><span class="kb" id="setB"><b>O</b> 設定</span></div>
     <div id="guns"></div>
-    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k=" "><b>空白</b> 齊射</span><span class="kb" data-k="f"><b>F</b> 單門</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="a" data-hold="1"><b>A</b> ◀ 左舵</span><span class="kb" data-k="d" data-hold="1">右舵 ▶ <b>D</b></span><span class="kb" data-k="w"><b>W</b> 加帆</span><span class="kb" data-k="s"><b>S</b> 收帆</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p"><b>P</b> 停格</span><span class="kb" id="setB">⚙ 設定</span></div>
-  </div>
+    <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
+    <div id="hudctl">航行 <span class="chip" data-s="auto"><b>4</b> 自動</span><span class="chip" data-s="manual"><b>5</b> 手動</span><span class="chip" data-s="off"><b>6</b> 停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>
+  </div></div>
   <div id="tip" class="hud"></div>
   <div id="fps" class="hud"></div>
   <div id="slowB" class="hud"></div>
-  <div id="nav" class="hud panel"><canvas id="navc"></canvas><div id="navt"></div></div>
   <div id="frz" class="hud panel"><span class="fzG"><span class="fz">⏸ 停格中</span><span class="chip" id="frzGo">▶ 繼續（P）</span></span><span class="fzG"><span class="fzL">進水</span><span class="chip" id="frzFlood">📊 圖表（I）</span><span class="chip" id="frzX">🔍 透視（X）</span></span><span class="fzG"><span class="fzL">船</span><span class="chip" id="frzCut">✂ 剖面（Z）</span><span class="chip" id="frzDeck">☰ 甲板（L）</span></span></div>
   <div id="floodp" class="hud panel">
     <div class="hT">進水圖表（停格中）<span class="hX" id="floodX">✕ 關閉</span></div>
@@ -188,7 +199,7 @@
     <div><kbd>帆</kbd> 預設自動航行：讓對方保持在開火那一舷、繞著彼此轉；航速看帆還剩多少與風向（頂風最慢）</div>
     <div><kbd data-k="g">G</kbd> 自動開砲：電腦替我艦瞄準、開火（觀戰預設開；關掉就自己打）</div>
     <div><kbd data-k="b">B</kbd> 帆與繩的物理：開 ＝ 帆被相對風吹鼓（轉向、頂風會往另一邊鼓），斷掉的繩與帆垂下來擺、帆被打穿的那塊布撕成碎片飄下來；關 ＝ 靜態（下方也點得到）。主選單的「物理效果」分全開／高／中／低，細項在「物理設定…」（帆與繩、碎木、煙與水花、船邊水花）</div>
-    <div><kbd data-k="tab">Tab</kbd> 航行：自動 → 手動 → 停船（下方也點得到）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
+    <div><kbd data-k="4">4</kbd> <kbd data-k="5">5</kbd> <kbd data-k="6">6</kbd> 航行：自動／手動／停船（下方也點得到）　<kbd data-k="o">O</kbd> 設定（Esc 也可以）　<kbd data-k="v">V</kbd> 鏡頭跟船／固定</div>
     <div><kbd>⚙</kbd> 下方「⚙ 設定」或 <kbd>Esc</kbd>：暫停並打開設定 —— 繼續、重新開始、回主選單、自爆（我艦的彈藥庫由小到大一間一間引爆、船斷開沉下去 —— 相當於重開，先看煙花）、說明（H）、畫質與物理效果的檔位、帆繩物理、鏡頭跟船、靜音、顯示 FPS、全螢幕（手機用；電腦直接按 F11 也行，Esc 退出）、彈藥庫殉爆時的慢動作與特寫鏡頭（各自開關）</div>
     <div><kbd data-k="a" data-hold="1">A</kbd><kbd data-k="d" data-hold="1">D</kbd> 打舵（按住；一碰就換手動）　<kbd data-k="w">W</kbd><kbd data-k="s">S</kbd> 帆裝：全收／收帆／戰鬥帆／滿帆（帆收得越多越慢、越穩；收起來的帆打不壞，除非桅斷了）</div>
     <div><kbd>羅</kbd> 左下：羅盤跟著鏡頭轉（北 ＝ 參考方向），中間是我艦、藍箭頭是風從哪吹來、紅點是敵艦、金色扇形是兩舷的射界（對得到時亮）</div>

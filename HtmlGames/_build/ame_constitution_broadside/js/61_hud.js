@@ -96,7 +96,6 @@ function panel(sh, title) {
 //   外圈 ＝ 船體（金）、內圈 ＝ 進水（水藍），中間 ＝ 那一型的側面投影（05_hull.js sideImg；我方船頭朝右、敵方朝左 ⇒ 都朝畫面中間）與艦名；
 //   ★ ＝ 我艦；沉沒、下沉、降旗寫在圖上、整顆變暗。按鈕的畫布只在讀數變了才重畫（key）。
 // 點一顆 ⇒ 中間展開那一艘的詳細資訊（panel，同時最多一艘）；點同一顆或點資訊本身 ⇒ 收回。預設全折疊、每一場開局全折疊（fleetReset，70_flow.js reset）。
-// 窄螢幕（手機直拿）：羅盤在頂端中間 ⇒ 中間那一欄（資訊＋廣播）放到羅盤下面（topC 的 top 照它的底算）。
 var INFO_SH = null, SB_EL = {};
 $('info').onclick = function () { INFO_SH = null; fleetHud(SHIPS[PLAYER_I]); };   // 點資訊本身 ⇒ 收回
 function fleetReset() { INFO_SH = null; for (var k in SB_EL) SB_EL[k].el.remove(); SB_EL = {}; [].forEach.call(document.querySelectorAll('.sbres'), function (e) { e.remove(); }); }
@@ -162,11 +161,6 @@ function fleetHud(me) {
     el.style.display = 'block'; el.style.borderLeftColor = teamIdx(o) === 0 ? 'var(--blue)' : 'var(--red)';
     gmapDraw(o);
   }
-  var tc = $('topC');
-  if (window.innerWidth <= 760) {
-    var bt = $('nav').getBoundingClientRect().bottom;
-    tc.style.top = Math.round(bt + 6) + 'px';
-  } else tc.style.top = '';
 }
 // ───────────────────────── 砲位圖（TASK-0564；Tim 2026-10-14） ─────────────────────────
 // 展開的那一艘：俯視船體（05_hull.js navImg，船頭朝上、右舷在右；Tim 2026-10-14）直接鋪在詳細資訊旁邊（沒有底框；窄螢幕排到下面），每門砲畫在它的砲口位置。
@@ -208,7 +202,7 @@ function gmapDraw(sh) {
   var bar = 10 * K; g.textBaseline = 'middle'; g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W - 6 - bar, H - 6); g.lineTo(W - 6, H - 6); g.stroke();
   g.fillStyle = 'rgba(255,255,255,.85)'; g.textAlign = 'right'; g.fillText('10 m', W - 6, H - 15); g.textAlign = 'left';
 }
-/** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
+/** 一舷的砲列（每層砲甲板一行、最上層在上；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
  *  顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀）；▶ ＝ 這一舷有砲對得到目標（我艦看瞄準點、其他看敵艦中央）。
  *  面板兩舷都列 ⇒ 觀戰也看得到、沒在用的那一舷壞了幾門也看得到。 */
 function gunRow(sh, side) {
@@ -220,10 +214,10 @@ function gunRow(sh, side) {
     if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k === 5 ? 2 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
     return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
   }
-  var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); });   // 每層砲甲板一段（由下往上）
+  var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); }).filter(function (r) { return r.length; }).reverse();   // 每層砲甲板一行，照船上的上下疊（最上層在上；Tim 2026-10-14：⛔ 以前各層用｜接成一長條）
   var foe = foeOf(sh), w = handAim(sh) ? aimPoint(sh) : foe && foe.center;
   var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
-  return '<span class="gr">' + lab + rows.map(function (r) { return r.map(cell).join(''); }).join('｜') + '</span>';
+  return '<span class="gr"><span class="grl">' + lab + '</span><span class="grd">' + rows.map(function (r) { return r.map(cell).join(''); }).join('<br>') + '</span></span>';
 }
 /** 補給一行：送藥手還能動的／全部、等火藥的砲幾門、取用點還剩幾桶。 */
 function supplyText(sh) {
@@ -275,7 +269,7 @@ function drawNav(sh) {
   g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, R, 0, 6.2832); g.stroke();
   for (var b = 0; b < 360; b += 30) line(P(dirOf(b), b % 90 ? 0.93 : 0.86), P(dirOf(b), 1), 'rgba(255,255,255,.35)', 1);
   g.font = '11px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#e8c26a';
-  var pn = P(dirOf(0), 1.17); g.fillText('北', pn[0], pn[1]);
+  var pn = P(dirOf(0), 1.17); g.fillText('N', pn[0], pn[1]);
   var F = fwd(sh.yaw), foe = foeOf(sh);
   // 射界（Tim 2026-10-13：照真的能開的砲畫）：每一門還開得動的砲（沒毀、有人）自己的砲門射界（砲軸 ±0.45 rad，跟 bears 同一個數）的聯集 ⇒ 暗；
   //   這一刻對得到敵艦的那幾門（gunTarget，跟開砲同一支）再疊一層亮的。追擊砲（船頭、餘燼號的船尾）各自的方向都畫得出來；砲打掉、沒人操作 ⇒ 那一塊消失。
