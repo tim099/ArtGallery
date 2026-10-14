@@ -461,6 +461,24 @@
   "057_p02": {"rows": [
     [{"src": "O/stage45_orlop_ladder_aft.png"}, {"src": "O/stage45_orlop_ladder_aft_orlop.png"}],
     [{"src": "E/orlop_ladder_fore.png"}, {"src": "O/stage45_orlop_ladder_fore.png"}]
+  ]},
+  "058_p01": {"rows": [
+    [{"src": "M/sheet15_yards_v1.png", "crop": [0, 0, 960, 620]}],
+    [{"src": "M/sheet15_yards_v1.png", "crop": [0, 632, 960, 952]}],
+    [{"src": "N/stage14_yards_ship.png", "fit": "cover", "aspect": 1.6}]
+  ]},
+  "058_p02": {"rows": [
+    [{"src": "M/sheet16_standing_v1.png"}],
+    [{"src": "N/stage15_standing_ship.png"}, {"src": "N/stage15_channel_main.png"}]
+  ]},
+  "059_p01": {"rows": [
+    [{"src": "M/sheet17_sails_v1.png"}],
+    [{"src": "N/stage16_sails_ship.png"}, {"src": "N/stage16_ensign.png"}]
+  ]},
+  "059_p02": {"rows": [
+    [{"src": "M/sheet18_guns_v1.png"}],
+    [{"src": "N/stage17_guns_deck.png"}, {"src": "N/stage17_guns_side.png"}],
+    [{"src": "N/stage18_profile.png", "fit": "cover", "aspect": 1.7}]
   ]}
  }
 }
