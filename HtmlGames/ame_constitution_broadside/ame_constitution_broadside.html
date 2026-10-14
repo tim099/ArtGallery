@@ -8109,7 +8109,9 @@ function cutOn() { return CUTV.half || CUTV.deck > 0; }
 function deckCut(sh) {
   var T = sh.T; if (T.cutD) return T.cutD;
   var g = T.base, CY = T.cy, W = g.sx, x, z;
-  var zMax = sh.decks.length ? sh.decks[sh.decks.length - 1].zr[1] + 3 : Math.min(g.sz - 12, T.zw + 80);
+  // 往上找到哪：水線上 12 m 與最低那個桅頂平台下 1 m 取低的（⛔ 只到最上層砲甲板 ⇒ 餘燼號的露天甲板、船尾樓上面沒有砲，一按 L 就跳到上層砲甲板；Tim 2026-10-14）
+  var top = Math.min(g.sz - 12, T.zw + 120); (T.masts || []).forEach(function (m) { if (m.z0top) top = Math.min(top, m.z0top - 10); });
+  var zMax = Math.max(sh.decks.length ? sh.decks[sh.decks.length - 1].zr[1] + 3 : 0, top);
   var FL = [];                                                            // 每一欄站得住的高度（腳下實心、頭上 1 m 空）
   for (x = 0; x < W; x++) {
     var zs = [];
@@ -8119,19 +8121,22 @@ function deckCut(sh) {
     });
     FL.push(zs);
   }
-  var xm = Math.round((T.wl0 + T.wl1) / 2), cnt = {}, ns = 0;               // 船中段 ±30 欄：每個高度出現幾欄
-  for (x = xm - 30; x <= xm + 30; x++) { ns++; FL[x].forEach(function (z) { cnt[z] = (cnt[z] || 0) + 1; }); }
+  // 每個高度出現幾欄：整條船身（頭尾各去一成）每 2 欄一數。⛔ 只數船中段 ±30 欄 ⇒ 餘燼號船腰是開的（中央彈藥庫上方），露天甲板與下層砲甲板量不到、按 L 直接跳到上層砲甲板（Tim 2026-10-14）
+  var xm = Math.round((T.wl0 + T.wl1) / 2), cnt = {}, ns = 0, xa = Math.round(T.hx0 + (T.hx1 - T.hx0) * 0.1), xb = Math.round(T.hx1 - (T.hx1 - T.hx0) * 0.1);
+  for (x = xa; x <= xb; x += 2) { ns++; FL[x].forEach(function (z) { cnt[z] = (cnt[z] || 0) + 1; }); }
   var seeds = [];                                                         // 相差 4 格內併成一層（取出現最多的那個高度），出現在兩成五的欄以上才算
   Object.keys(cnt).map(Number).sort(function (a, b) { return b - a; }).forEach(function (z) {
     var s = seeds[seeds.length - 1];
-    if (s && s.z1 - z <= 4) { s.n += cnt[z]; s.z1 = z; if (cnt[z] > s.best) { s.best = cnt[z]; s.z = z; } } else seeds.push({ z: z, z1: z, n: cnt[z], best: cnt[z] });
+    if (s && Math.abs(s.z - z) <= 4) { s.n += cnt[z]; s.z1 = z; if (cnt[z] > s.best) { s.best = cnt[z]; s.z = z; } } else seeds.push({ z: z, z1: z, n: cnt[z], best: cnt[z] });   // 跟這一層出現最多的那個高度比（⛔ 跟上一個比 ⇒ 砲架、台階的高度一格一格接起來，整條船身數下來上甲板與上層砲甲板被併成一層）
   });
-  seeds = seeds.filter(function (s) { return s.n >= ns * 0.25; });
-  var prof = seeds.map(function (s) {                                     // 往船頭、船尾一欄一欄跟著走（找不到 ⇒ 照上一欄的高度延伸）
-    var Z = new Float32Array(W).fill(s.z);
+  seeds = seeds.filter(function (s) { return s.n >= ns * 0.2; });
+  var prof = seeds.map(function (s) {                                     // 從離船中最近、量得到這一層的那一欄出發，往船頭、船尾一欄一欄跟著走（找不到 ⇒ 照上一欄的高度延伸）
+    var Z = new Float32Array(W).fill(s.z), xs = xm;
+    for (var d = 0; d < W; d++) { if ([xm + d, xm - d].some(function (x) { return x >= 0 && x < W && FL[x].some(function (z) { return Math.abs(z - s.z) <= 1; }) && (xs = x, true); })) break; }
+    s.xs = xs;
     [1, -1].forEach(function (dir) {
       var cur = s.z;
-      for (var x = xm; x >= 0 && x < W; x += dir) {
+      for (var x = xs; x >= 0 && x < W; x += dir) {
         var best = null; FL[x].forEach(function (z) { if (Math.abs(z - cur) <= 4 && (best === null || Math.abs(z - cur) < Math.abs(best - cur))) best = z; });
         if (best !== null) cur = best;
         Z[x] = cur;
@@ -8147,7 +8152,7 @@ function deckCut(sh) {
     var dep = Math.min(6, runs.length ? runs[Math.floor(runs.length * 0.9)] : 1), R = new Float32Array(W);
     for (x = 0; x < W; x++) R[x] = Math.max(prof[k + 1][x] + 12, Z[x] - dep);
     rows.push(R);
-    var zc = Z[xm], D = sh.decks.filter(function (D) { return zc >= D.zr[0] && zc <= D.zr[1]; })[0];
+    var zc = Z[seeds[k].xs], D = sh.decks.filter(function (D) { return zc >= D.zr[0] && zc <= D.zr[1]; })[0];
     names.push(D ? D.name : zc < low ? CUT_NAMES[Math.min(below++, CUT_NAMES.length - 1)] : '第 ' + (k + 1) + ' 層');
   }
   var tex = gl.createTexture(), data = new Float32Array(W * Math.max(1, n));
@@ -8156,7 +8161,7 @@ function deckCut(sh) {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, W, Math.max(1, n), 0, gl.RED, gl.FLOAT, data);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.activeTexture(gl.TEXTURE0);
-  return T.cutD = { W: W, n: n, names: names, rows: rows, tex: tex, floors: prof.map(function (Z) { return Z[xm]; }) };
+  return T.cutD = { W: W, n: n, names: names, rows: rows, tex: tex, floors: prof.map(function (Z, k) { return Z[seeds[k].xs]; }) };
 }
 /** 剖哪一邊：鏡頭在中線的哪一邊就拿掉那一邊（+1 ＝ 格 +y）。 */
 function cutSide(sh) { return toLocal(sh, CAM.eye)[1] >= sh.T.cy ? 1 : -1; }
