@@ -25,13 +25,15 @@
   .sbres{ font-size:12px; color:var(--dim); background:var(--panel); border-radius:10px; padding:2px 8px; }
   #topC{ left:50%; top:12px; transform:translateX(-50%); width:max(280px, min(900px, calc(100vw - 200px))); display:flex; flex-direction:column; align-items:center; }
   #info{ display:none; pointer-events:auto; cursor:pointer; border-left:3px solid var(--blue); margin-bottom:6px; max-width:100%; box-sizing:border-box; }
-  #info .fold{ float:right; margin-left:12px; color:var(--gold); font-size:12px; font-weight:normal; border:1px solid rgba(232,194,106,.55); border-radius:4px; padding:0 7px; }
+  #info h3::after{ content:''; display:block; clear:both; }
+  #info .bar{ max-width:100%; }   /* 血條最多跟那一欄一樣寬（⛔ 固定寬 ⇒ 窄的時候伸進右欄） */
+  #info .fold{ float:right; margin-left:12px; cursor:pointer; color:var(--gold); font-size:12px; font-weight:normal; border:1px solid rgba(232,194,106,.55); border-radius:4px; padding:0 7px; }
   #info .cls{ color:var(--dim); font-weight:normal; font-size:.85em; }
   #info .pcols{ display:flex; flex-wrap:wrap; gap:4px 20px; } #info .pc{ flex:1 1 200px; min-width:0; }   /* 橫向兩欄（TASK-0564） */
   #info .legend{ color:var(--dim); font-size:11px; margin-top:2px; }
   #irow{ display:flex; align-items:flex-start; justify-content:center; gap:8px; max-width:100%; }   /* 詳細資訊＋旁邊的砲位圖（窄螢幕排到下面） */
   #info{ flex:1 1 auto; min-width:0; }
-  #gmap{ position:static; inset:auto; display:none; flex:none; max-width:100%; height:auto; margin:0 0 6px; cursor:default; pointer-events:none; }   /* 砲位圖：直接鋪在畫面上（沒有底框；61_hud.js gmapDraw） */
+  #gmap{ position:static; inset:auto; display:none; flex:none; max-width:100%; height:auto; margin:0 0 6px; cursor:pointer; pointer-events:auto; }   /* 砲位圖：直接鋪在畫面上（沒有底框；61_hud.js gmapDraw） */
   .hud h3{ margin:0 0 2px; font-size:14px; }
   .hud h3 .disp{ color:var(--dim); font-weight:normal; font-size:.85em; margin-left:1em; }   /* 排水量（61_hud.js panel）；窄螢幕自己一行 */
   .bar{ height:5px; background:rgba(255,255,255,.15); border-radius:3px; overflow:hidden; margin:2px 0 4px; width:170px; }
@@ -70,7 +72,7 @@
   #gsetBg{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.25); z-index:5; } #gsetBg.on{ display:block; }   /* 面板外點一下就關（蓋住整個畫面，含下方的 ⚙ 設定；Tim 2026-10-13） */ #gset .gsT{ font-size:16px; color:var(--gold); margin-bottom:6px; } #gset .note{ color:var(--dim); font-size:12px; }
   #gset .gsR{ margin:9px 0; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:5px; } #gset .gsL{ color:var(--dim); font-size:13px; margin-right:2px; }
   #gset .chip{ font-size:14px; padding:4px 12px; margin:0; } #gset .chip.big{ font-size:15px; padding:6px 16px; } #gset .chip.dis{ opacity:.45; } #gset #boomB{ color:#ff9a7a; border-color:rgba(255,120,90,.55); }   /* dis：這個頁面不給全螢幕 */
-  #fps{ left:50%; top:2px; transform:translateX(-50%); font:12px Consolas,monospace; color:#bfe9ff; text-shadow:0 0 3px #000, 0 0 3px #000; display:none; z-index:5; }
+  #fps{ position:static; margin-bottom:3px; font:12px Consolas,monospace; color:#bfe9ff; text-shadow:0 0 3px #000, 0 0 3px #000; display:none; z-index:5; }
   #fps.on{ display:block; }
   #slowB{ left:50%; bottom:150px; transform:translateX(-50%); font-size:15px; font-weight:700; color:#ffd27a; letter-spacing:2px; text-shadow:0 0 4px #000, 0 0 4px #000; display:none; }   /* 殉爆的慢動作（73_slowmo.js）：放在下方操作列上面（⛔ 上方 ⇒ 殉爆那一刻廣播一次好幾則，疊在一起） */
   #slowB.on{ display:block; }
@@ -160,7 +162,7 @@
 
   <div id="fleetL" class="hud fleet"></div>
   <div id="fleetR" class="hud fleet"></div>
-  <div id="topC" class="hud"><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
+  <div id="topC" class="hud"><div id="fps" class="hud"></div><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
   <div id="helmL" class="hud helm"><span class="kb hb" data-k="a" data-hold="1"><b>A</b>◀ 左舵</span><span class="kb hb" data-k="s"><b>S</b>收帆</span><span class="kb hb" data-k="w"><b>W</b>加帆</span></div>
   <div id="helmR" class="hud helm"><span class="kb hb" data-k="f"><b>F</b>單門</span><span class="kb hb" data-k=" "><b>空白</b>齊射</span><span class="kb hb" data-k="d" data-hold="1"><b>D</b>右舵 ▶</span></div>
   <div id="botC" class="hud"><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div></div>
@@ -171,7 +173,6 @@
     <div id="hudctl">航行 <span class="chip" data-s="auto"><b>4</b> 自動</span><span class="chip" data-s="manual"><b>5</b> 手動</span><span class="chip" data-s="off"><b>6</b> 停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>
   </div></div>
   <div id="tip" class="hud"></div>
-  <div id="fps" class="hud"></div>
   <div id="slowB" class="hud"></div>
   <div id="frz" class="hud panel"><span class="fzG"><span class="fz">⏸ 停格中</span><span class="chip" id="frzGo">▶ 繼續（P）</span></span><span class="fzG"><span class="fzL">進水</span><span class="chip" id="frzFlood">📊 圖表（I）</span><span class="chip" id="frzX">🔍 透視（X）</span></span><span class="fzG"><span class="fzL">船</span><span class="chip" id="frzCut">✂ 剖面（Z）</span><span class="chip" id="frzDeck">☰ 甲板（L）</span></span></div>
   <div id="floodp" class="hud panel">
@@ -6635,7 +6636,8 @@ function panel(sh, title) {
 //   ★ ＝ 我艦；沉沒、下沉、降旗寫在圖上、整顆變暗。按鈕的畫布只在讀數變了才重畫（key）。
 // 點一顆 ⇒ 中間展開那一艘的詳細資訊（panel，同時最多一艘）；點同一顆或點資訊本身 ⇒ 收回。預設全折疊、每一場開局全折疊（fleetReset，70_flow.js reset）。
 var INFO_SH = null, SB_EL = {};
-$('info').onclick = function () { INFO_SH = null; fleetHud(SHIPS[PLAYER_I]); };   // 點資訊本身 ⇒ 收回
+// 點資訊或旁邊的砲位圖任何地方 ⇒ 收回。用 pointerdown：⛔ click 要按下、放開都落在同一個元素 —— 卡片每 6 格整個重畫（innerHTML），按下到放開之間剛好重畫 ⇒ click 不觸發（Tim：收起有時沒反應）
+['info', 'gmap'].forEach(function (id) { $(id).addEventListener('pointerdown', function (e) { e.preventDefault(); INFO_SH = null; fleetHud(SHIPS[PLAYER_I]); }); });
 function fleetReset() { INFO_SH = null; for (var k in SB_EL) SB_EL[k].el.remove(); SB_EL = {}; [].forEach.call(document.querySelectorAll('.sbres'), function (e) { e.remove(); }); }
 function sbMake(o, box) {
   var el = document.createElement('div'), cv = document.createElement('canvas'); el.className = 'sb'; el.appendChild(cv);
@@ -6695,7 +6697,7 @@ function fleetHud(me) {
     var fs = flagship(o.team), many = teamShips(o.team).length > 1 || RESERVE[o.team].length > 0;
     var who = o.i === PLAYER_I ? '我艦' : o.team === pt ? (many && o === fs ? '我方旗艦' : '友艦') : (many && o === fs ? '敵方旗艦' : '敵艦');
     var title = who + ' ' + o.name + (o.name !== o.T.name ? '<span class="cls">（' + o.T.name + '型）</span>' : '') + teamTag(o);
-    el.innerHTML = panel(o, title).replace('</h3>', '<span class="fold">▲ 收起</span></h3>');
+    el.innerHTML = panel(o, title).replace('<h3>', '<h3><span class="fold">▲ 收起</span>');   // 放在標題最前面再靠右浮動（⛔ 放最後 ⇒ 窄的時候浮到排水量那一行、壓到右欄）
     el.style.display = 'block'; el.style.borderLeftColor = teamIdx(o) === 0 ? 'var(--blue)' : 'var(--red)';
     gmapDraw(o);
   }
