@@ -135,7 +135,7 @@ function navImg(T) {
   T.navX0 = x0; T.navY0 = y0; T.navGH = H;                               // 圖上 (u, v) ⇒ 格 (x, y) ＝ ((H − y0 − v)·C, (x0 + u)·C)：砲位圖（61_hud.js gmapDraw）照它把砲放上去   // 船的中心（格的 cx, cy）在圖上的位置 ⇒ 羅盤照它對準圓心
 }
 /** 上方艦隊按鈕中間的船（TASK-0552）：從左舷看過去的側面投影（船頭朝右；每 SIDE_CELL × SIDE_CELL 格取最靠左舷那一格的顏色、越往裡越暗），
- *  帆（作品的帆面，旗不算）畫成淡的一層墊在後面 ⇒ 認得出是帆船。載入時算一次、裁到有東西的範圍；原始格子（開戰後被打掉的不跟）。 */
+ *  帆（作品的帆面，旗不算）照每面帆的顏色畫一層墊在後面 ⇒ 認得出是帆船。載入時算一次、裁到有東西的範圍；原始格子（開戰後被打掉的不跟）。 */
 var SIDE_CELL = 4;
 function sideImg(T) {
   var G = T.base, C = SIDE_CELL, W = Math.ceil(G.sx / C), H = Math.ceil(G.sz / C), near = new Int16Array(W * H).fill(0x7fff), col = new Uint8Array(W * H);
@@ -155,9 +155,10 @@ function sideImg(T) {
   }
   hg.putImageData(im, 0, 0);
   var cv = document.createElement('canvas'); cv.width = x1 - x0 + 1; cv.height = y1 - y0 + 1;
-  var g = cv.getContext('2d'); g.translate(-x0, -y0); g.fillStyle = 'rgba(236,232,220,0.78)';
+  var g = cv.getContext('2d'); g.translate(-x0, -y0);
   sails.forEach(function (s) {                                          // 一個三角形填一次（⛔ 全部放進同一條路徑 ⇒ 帆是正反兩層、繞向相反，互相抵銷成空的）
-    var P3 = s.verts, t = s.tris;
+    var P3 = s.verts, t = s.tris, sc = s.color || [0.95, 0.92, 0.85];   // 照那面帆自己的顏色（Tim 2026-10-14：餘燼號的帆在圓鈕上變成白的；預設色跟 30_rig_physics.js 同一個）
+    g.fillStyle = 'rgba(' + Math.round(sc[0] * 255) + ',' + Math.round(sc[1] * 255) + ',' + Math.round(sc[2] * 255) + ',0.85)';
     for (var j = 0; j < t.length; j += 3) { g.beginPath(); for (var q = 0; q < 3; q++) { var a = t[j + q] * 3, px = P3[a] / C, pz = H - P3[a + 2] / C; if (q) g.lineTo(px, pz); else g.moveTo(px, pz); } g.fill(); }
   });
   g.drawImage(hc, 0, 0);
