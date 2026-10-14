@@ -320,8 +320,8 @@ function solve(ea, eb, rest, brk, p, pin, k) {
 function hitGrid(g, p, q, o) {
   if (g.get(Math.floor(p[o]), Math.floor(p[o + 1]), Math.floor(p[o + 2])) && !g.get(Math.floor(q[o]), Math.floor(q[o + 1]), Math.floor(q[o + 2]))) { p[o] = q[o]; p[o + 1] = q[o + 1]; p[o + 2] = q[o + 2]; }
 }
-function clothStep(sh, c, wl, gv) {                    // c.kw：風壓倍率（帆的布片，34_shreds.js；帆 ＝ 1）
-  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, HC = rigLv().every * DT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, kw = KW * (c.kw || 1), i, j, x;
+function clothStep(sh, c, wl, gv) {                    // c.kw：風壓倍率（帆的布片，34_shreds.js；帆 ＝ 1）；c.ev：這一塊幾步走一次（遠方的船放大，physStep）
+  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, HC = (c.ev || rigLv().every) * DT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, kw = KW * (c.kw || 1), i, j, x;
   A.fill(0, 0, n * 3); N.fill(0, 0, n);
   for (j = 0; j < tr.length; j += 3) {           // 風壓：每個三角形沿法線推，大小 ∝（相對風在法線上的分量）²，相對風扣掉布自己的速度
     if (c.torn && (c.brk[T.te[j]] || c.brk[T.te[j + 1]] || c.brk[T.te[j + 2]])) continue;
@@ -377,12 +377,13 @@ function ropePins(sh, o) {
   if (o.pin[0] && !holds(sh, null, o.hk[0], o.hv[0])) o.pin[0] = 0;
   if (o.pin[o.n - 1] && !holds(sh, null, o.hk[1], o.hv[1])) o.pin[o.n - 1] = 0;
 }
-function ropeStep(sh, o, wl, gv) {
-  var p = o.p, q = o.q, n = o.n, pin = o.pin, dt2 = DT * DT, i, x;
+function ropeStep(sh, o, wl, gv, dt) {                 // dt：這一次走多久（遠方的船 ＝ 幾步一次 × DT；沒給 ＝ DT）
+  dt = dt || DT;
+  var p = o.p, q = o.q, n = o.n, pin = o.pin, dt2 = dt * dt, dmp = dt === DT ? DAMP : Math.pow(DAMP, dt / DT), i, x;
   for (i = 0; i < n; i++) {
     if (pin[i]) continue;
     var j = i * 3;
-    for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * DAMP; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / DT)) * dt2; }
+    for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * dmp; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / dt)) * dt2; }
     hitGrid(sh.grid, p, q, j);
   }
   for (var it = 0, itn = rigLv().it; it < itn; it++) for (i = 0; i + 1 < n; i++) {
@@ -396,10 +397,22 @@ function ropeStep(sh, o, wl, gv) {
 }
 function underWater(sh, p, i) { var w = M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]); return w[1] < seaH(w[0], w[2], SIMT) - 0.5; }
 /** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
+// ── 遠方的船帆與繩降速（Tim 2026-10-14：「可以設定降速模擬，特別是遠方船隻」）──
+// 物理設定「遠方帆繩」；每艘每一步照離鏡頭多遠、在不在視野裡給倍率 m（1 ＝ 照常）：
+//   布：每 every × m 步走一次（時間間隔跟著放大；最多 RIG_FAR_HC 秒 ⇒ Verlet 的布步長太大會炸開，m 照它截）；垂下來的繩：每 m 步走一次、dt ＝ m × DT。
+//   這一段本來就只管畫出來的樣子（不碰 rnd()、不改命中）⇒ 開關不改戰局。鏡頭還沒算過（快轉、無頭對拍）⇒ 照常。
+var RIG_FAR = [null, { d1: 150, m1: 2, d2: 1e9, m2: 2, off: 2 }, { d1: 100, m1: 2, d2: 200, m2: 3, off: 4 }], RIG_FAR_HC = 0.1;
+function rigFarM(sh) {
+  var F = RIG_FAR[PHX.rigfar], e = CAM.eye, vp = CAM.vp; if (!F || !e || !vp) return 1;
+  var B = sh.T.base, R = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz), c = M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), d = Math.hypot(c[0] - e[0], c[1] - e[1], c[2] - e[2]);
+  var m = d > F.d2 ? F.m2 : d > F.d1 ? F.m1 : 1, cw = vp[3] * c[0] + vp[7] * c[1] + vp[11] * c[2] + vp[15], vis = d < R;
+  if (!vis && cw > 0.1) { var k = 1 + 2 * R / cw, x = (vp[0] * c[0] + vp[4] * c[1] + vp[8] * c[2] + vp[12]) / cw, y = (vp[1] * c[0] + vp[5] * c[1] + vp[9] * c[2] + vp[13]) / cw; vis = Math.abs(x) < k && Math.abs(y) < k; }   // 外接球大概碰到畫面
+  return vis ? m : Math.max(m, F.off);
+}
 function physStep(sh) {
   var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2)) * WX.wind * WIND_SPD;   // 陣風（不用亂數）；天氣：暴風雨 ×2.2；風速會變（08_weather.js）
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
-  var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
+  var si = Math.round(SIMT / DT), chk = si % 6 === 0, i, ev = rigLv().every, m = sh.rigM = rigFarM(sh), evk = ev * Math.max(1, Math.min(m, Math.floor(RIG_FAR_HC / (ev * DT) + 1e-6)));   // evk：布幾步走一次（遠方放大）
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
   if (sh.hangs) swingHangs(sh, gv);
   for (i = 0; i < sh.ropes.length; i++) { var r = sh.ropes[i]; if (r.dead && !r.lz) { r.lz = true; if (!r.moved) spawnLoose(sh, r); } }
@@ -415,8 +428,8 @@ function physStep(sh) {
     if (c.hidden || !c.p) { var keep = c.p && c.torn ? { brk: c.brk, bbrk: c.bbrk, tv: c.tv } : null; clothInit(c); c.hidden = false; if (keep) { c.brk = keep.brk; c.bbrk = keep.bbrk; c.tv = keep.tv; c.torn = true; } }   // 收帆再張：形狀重來、破洞留著
     if (chk || c.npin < 0) clothPins(sh, s, c);
     yardPins(sh, c);
-    var ev = rigLv().every;
-    if ((si + k + sh.i + 1) % ev === 0) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
+    c.ev = evk;
+    if ((si + k + sh.i + 1) % evk === 0) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
     if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }
   });
   for (i = 0; i < sh.loose.length; i++) {
@@ -425,7 +438,8 @@ function physStep(sh) {
       ropePins(sh, o);
       if (!o.pin[0] && !o.pin[o.n - 1]) { o.free += 0.1; if (o.free > 15 || underWater(sh, o.p, 0) && underWater(sh, o.p, o.n - 1)) { sh.loose.splice(i--, 1); continue; } }
     }
-    var t1 = DEBUG ? performance.now() : 0; ropeStep(sh, o, wl, gv); if (DEBUG) PROF.rope += performance.now() - t1;
+    if (m > 1 && (si + i + sh.i) % m) continue;                          // 遠方：每 m 步走一次
+    var t1 = DEBUG ? performance.now() : 0; ropeStep(sh, o, wl, gv, m * DT); if (DEBUG) PROF.rope += performance.now() - t1;
   }
   var t2 = DEBUG ? performance.now() : 0; shredStep(sh, wl, gv, si, chk); if (DEBUG) PROF.shred += performance.now() - t2;   // 帆的布片（34_shreds.js）
 }

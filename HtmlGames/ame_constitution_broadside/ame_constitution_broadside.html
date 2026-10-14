@@ -1002,7 +1002,8 @@ function programs() {
     '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec4 iP; layout(location=3) in vec4 iQ; layout(location=4) in float iC;\n' +
     'uniform mat4 uVP; out vec3 vN; out vec3 vW; flat out float vC;\n' +
     'vec3 rq(vec4 q, vec3 v){ return v+2.0*cross(q.xyz, cross(q.xyz,v)+q.w*v); }\n' +
-    'void main(){ vec3 w=iP.xyz+rq(iQ,aP*iP.w); vW=w; vN=rq(iQ,aN); vC=iC; gl_Position=uVP*vec4(w,1.0); }\n',
+    'void main(){ float k=floor(iC/256.0); vec3 sc=k<0.5?vec3(1.0):k<1.5?vec3(3.2,1.1,0.22):k<2.5?vec3(2.3,1.5,0.22):vec3(4.6,0.8,0.25);\n' +   // DEB_SHAPES：形狀 ＝ iC 的 256 以上（12_effects.js D.sh）；片狀的碎塊長寬厚
+    ' vec3 w=iP.xyz+rq(iQ,aP*iP.w*sc); vW=w; vN=rq(iQ,aN); vC=iC-k*256.0; gl_Position=uVP*vec4(w,1.0); }\n',
     '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; flat in float vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD,uLum; out vec4 o;\n' +
     'void main(){ uint c=uint(vC+0.5); vec3 b=vec3(float((c>>5u)&7u)/7.0,float((c>>2u)&7u)/7.0,float(c&3u)/3.0); vec3 n=normalize(vN);\n' +
     ' vec3 col=b*(mix(uGround,uSky,n.y*0.5+0.5)*0.62+vec3(1.0,0.96,0.88)*max(dot(n,uSun),0.0)*0.78);\n' +
@@ -1657,6 +1658,10 @@ var GFX = {}, GFX_FPS = false;                     // GFX_FPS：畫面右上角�
 var SMOKE_LIM = [0.5, 3, 1.2], SMOKE_K = SMOKE_LIM[2];
 (function () { var v = parseFloat(Q.get('smoke')); if (isFinite(v)) SMOKE_K = clamp(v, SMOKE_LIM[0], SMOKE_LIM[1]); })();
 function smokeK() { return SMOKE_K; }
+// 碎片上限（Tim 2026-10-14）：畫質頁的滑桿，不跟低／中／高走；超過 ⇒ 先清視野外、遠處、沉在水裡的（12_effects.js debCull）。網址 ?debcap=。
+//   量過（16 艘、36,000 顆）：碎片的模擬每格 24 ms、畫碎片幾乎不花時間 ⇒ 上限主要省的是模擬。
+var DEB_LIM = [2000, 45000, 20000], DEB_CAP = DEB_LIM[2];
+(function () { var v = parseInt(Q.get('debcap'), 10); if (isFinite(v)) DEB_CAP = clamp(v, DEB_LIM[0], DEB_LIM[1]); })();
 var GFX_RES = [0.5, 0.75, 1];                      // 解析度：乘在畫布的像素上（畫布 ＝ 螢幕像素，裝置像素比最多 1.5）
 function gfxSet(level) { var p = GFX_PRESET[level]; for (var k in p) GFX[k] = p[k]; }
 /** 現在的畫質是哪一檔（三檔都對不上 ⇒ custom）。 */
@@ -1836,11 +1841,12 @@ function fract(x) { return x - Math.floor(x); }
 // 網址：?phx=full|high|mid|low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water= ?p_flood=（第幾檔，從 0 起）；舊的 ?phys=0 ＝ 帆與繩關。
 var PHX_ITEMS = [
   { k: 'rig', name: '帆與繩', opt: ['關（靜態）', '低', '中', '高'] },
+  { k: 'rigfar', name: '遠方帆繩', opt: ['照常', '遠方半速', '遠方⅓・視野外最慢'] },   // 遠處、視野外的船帆與繩少算幾步（30_rig_physics.js rigFarM；Tim 2026-10-14）
   { k: 'debris', name: '碎木', opt: ['20%', '45%', '70%', '100%'] },
   { k: 'fx', name: '煙與水花', opt: ['40%', '65%', '85%', '100%'] },
   { k: 'water', name: '船邊水花', opt: ['關（原本的）', '低', '中', '高'] },
   { k: 'flood', name: '進水', opt: ['公式', '粒子 粗', '粒子 中', '粒子 細'] }];
-var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3, water: 3, flood: 3 }, high: { rig: 2, debris: 2, fx: 2, water: 2, flood: 2 }, mid: { rig: 1, debris: 1, fx: 1, water: 1, flood: 1 }, low: { rig: 0, debris: 0, fx: 0, water: 0, flood: 0 } };
+var PHX_PRESET = { full: { rig: 3, rigfar: 1, debris: 3, fx: 3, water: 3, flood: 3 }, high: { rig: 2, rigfar: 1, debris: 2, fx: 2, water: 2, flood: 2 }, mid: { rig: 1, rigfar: 2, debris: 1, fx: 1, water: 1, flood: 1 }, low: { rig: 0, rigfar: 2, debris: 0, fx: 0, water: 0, flood: 0 } };   // rigfar：全開也是遠方半速（150 m 外看不出差別）
 var PHX_NAME = { full: '全開', high: '高', mid: '中', low: '低', custom: '自訂' }, PHX_DEFAULT = CFG.menu.phx;   // 預設檔：config/game.json 的 menu.phx
 // 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條、shred 帆的布片每艘最多幾片（34_shreds.js）。高 ＝ 原本的。
 var RIG_LV = [null, { it: 2, every: 4, loose: 150, shred: 40 }, { it: 3, every: 2, loose: 300, shred: 80 }, { it: 4, every: 2, loose: 500, shred: 150 }];
@@ -2334,13 +2340,16 @@ function upload(o, data, stride, attrs) {
 // ───────────────────────── 碎片（每格一顆小方塊，GPU instancing） ─────────────────────────
 var DMAX = 45000, D = {
   n: 0, p: new Float32Array(DMAX * 3), v: new Float32Array(DMAX * 3), q: new Float32Array(DMAX * 4), w: new Float32Array(DMAX * 3),
-  life: new Float32Array(DMAX), size: new Float32Array(DMAX), col: new Uint8Array(DMAX), st: new Uint8Array(DMAX), ship: new Int8Array(DMAX)
+  life: new Float32Array(DMAX), size: new Float32Array(DMAX), col: new Uint8Array(DMAX), st: new Uint8Array(DMAX), ship: new Int8Array(DMAX), sh: new Uint8Array(DMAX)
 };
+// 形狀 D.sh：0 ＝ 一格的小方塊；1–3 ＝ 片狀的碎塊（木板被撕下來的那種，Tim 2026-10-14）—— 長寬厚的比例在著色器（01_gl.js DEB_SHAPES），飄得慢（DEB_FLUT）、落在甲板上貼得低。
+// 上限（Tim 2026-10-14）：畫質頁的「碎片上限」DEB_CAP（不跟低／中／高走）；超過 ⇒ debCull 先清視野外、遠處、沉在水裡的（照畫面的鏡頭；只影響畫面）。DMAX 是陣列的硬上限。
+var DEB_FLUT = 0.9, DEB_THIN = [1, 0.22, 0.22, 0.25];
 var DINST = new Float32Array(DMAX * 9);
 // 碎木自己的亂數（轉軸、落水、落地）：⛔ 跟戰局共用 rnd() ⇒ 少生一顆碎木（物理分級），後面的亂數全部錯位、整局都變（09_phx.js）。開局跟 rs 一起重設（70_flow.js）
 var RSD0 = 0x2545F491, rsD = SEED ^ RSD0, DEB_ACC = 0, PT_ACC = 0;   // DEB_ACC／PT_ACC：照分級少生的節拍（不抽亂數）
 function rndD() { rsD |= 0; rsD = rsD + 0x6D2B79F5 | 0; var t = Math.imul(rsD ^ rsD >>> 15, 1 | rsD); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
-function spawnDebris(p, v, col, size, life) {
+function spawnDebris(p, v, col, size, life, shape) {
   var k = DEB_KS[PHX.debris]; if (k < 1) { DEB_ACC += k; if (DEB_ACC < 1) return; DEB_ACC -= 1; }   // 物理分級：少生幾顆（呼叫端的亂數已經抽完 ⇒ 戰局不變）
   var i;
   if (D.n < DMAX) i = D.n++;
@@ -2350,11 +2359,43 @@ function spawnDebris(p, v, col, size, life) {
   var ax = norm([rndD() - 0.5, rndD() - 0.5, rndD() - 0.5]), sp = 4 + 14 * rndD();
   D.w[i * 3] = ax[0] * sp; D.w[i * 3 + 1] = ax[1] * sp; D.w[i * 3 + 2] = ax[2] * sp;
   D.q[i * 4] = 0; D.q[i * 4 + 1] = 0; D.q[i * 4 + 2] = 0; D.q[i * 4 + 3] = 1;
-  D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1;
+  D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1; D.sh[i] = shape || 0;
+}
+function rD(a, b) { return a + (b - a) * rndD(); }                     // 碎木自己的亂數（⛔ 不用 rr：那是戰局的 rnd()）
+/** 片狀的碎塊：從 removed（x, y, z, 色 一組四個，格座標）挑幾格當起點，往 vd（世界的單位向量）噴；數量照打掉的格數（每 per 格一片、最多 max 片）。
+ *  只抽碎木自己的亂數 rndD ⇒ 戰局不變；物理分級少生照 spawnDebris。 */
+function spawnPlates(sh, removed, vd, sp, per, max) {
+  var m = removed.length / 4, k = Math.min(max, Math.floor(m / per));
+  for (var j = 0; j < k; j++) {
+    var q = ((rndD() * m) | 0) * 4, w = M4.pt(sh.M, removed[q] + 0.5, removed[q + 1] + 0.5, removed[q + 2] + 0.5);
+    var v = add(add(mul(vd, sp * rD(0.05, 0.25)), [rD(-4, 4), rD(1.5, 7), rD(-4, 4)]), sh.vel);
+    spawnDebris(w, v, removed[q + 3], rD(0.12, 0.22), rD(10, 18), 1 + ((rndD() * 3) | 0));
+  }
+}
+/** 超過上限 ⇒ 清到 DEB_CAP 的九成：分數 ＝ 離鏡頭的距離 ×（視野外 4）＋ 沉在水裡的 +1e4（最先清）；取樣找門檻，分數比門檻高的都清掉（不抽亂數）。
+ *  鏡頭還沒算過（快轉、無頭對拍）⇒ 照剩下的壽命（快散的先清）。 */
+var DSCORE = new Float32Array(DMAX), DSAMP = new Float32Array(1024);
+function debCull() {
+  var n = D.n, want = Math.floor(DEB_CAP * 0.9); if (n <= want) return;
+  var vp = CAM.vp, e = CAM.eye, i, o;
+  for (i = 0; i < n; i++) {
+    o = i * 3; var x = D.p[o], y = D.p[o + 1], z = D.p[o + 2];
+    if (D.st[i] === 2) { var hs = SHIPS[D.ship[i]]; if (hs) { var wp = M4.pt(hs.M, x, y, z); x = wp[0]; y = wp[1]; z = wp[2]; } }
+    if (!vp || !e) { DSCORE[i] = -D.life[i]; continue; }
+    var d = Math.hypot(x - e[0], y - e[1], z - e[2]), cw = vp[3] * x + vp[7] * y + vp[11] * z + vp[15], vis = false;
+    if (cw > 0.1) { var cx = (vp[0] * x + vp[4] * y + vp[8] * z + vp[12]) / cw, cy = (vp[1] * x + vp[5] * y + vp[9] * z + vp[13]) / cw; vis = cx > -1.1 && cx < 1.1 && cy > -1.1 && cy < 1.1; }
+    DSCORE[i] = d * (vis ? 1 : 4) + (D.st[i] === 3 ? 1e4 : 0);
+  }
+  var ns = Math.min(1024, n), step = n / ns;
+  for (i = 0; i < ns; i++) DSAMP[i] = DSCORE[Math.floor(i * step)];
+  var S = DSAMP.subarray(0, ns).sort(), th = S[Math.min(ns - 1, Math.max(0, Math.floor(ns * want / n)))];
+  for (i = n - 1; i >= 0; i--) if (DSCORE[i] > th) kill(i);           // 由後往前：kill 把最後一顆搬來 i，那顆已經看過、留著
+  if (D.n > want) for (i = D.n - 1; i >= 0 && D.n > want; i--) if (DSCORE[i] >= th) kill(i);   // 同分很多（全在水裡）⇒ 再清一輪
 }
 /** 碎木每一步：飛、轉、落水、落在甲板上。
  *  省時間（TASK-0531：殉爆噴一萬多顆，每步 10 ms 以上）：比最高的浪還高 ⇒ 不算 seaH；不在那艘船的格子外接球裡（格子盒的中心＋半對角線）⇒ 不換格座標查格子。結果跟全算一樣。 */
 function stepDebris(dt) {
+  if (D.n > DEB_CAP) debCull();                                          // 碎片上限（畫質頁）
   var top = SEA_K > 0 ? 1.15 * SEA_K * WX.sea : 0, sc = SHIPS.map(function (sh) { var B = sh.T.base; return { c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), r2: Math.pow(0.5 * S * Math.hypot(B.sx, B.sy, B.sz) + 1, 2) }; });
   for (var i = 0; i < D.n; i++) {
     var st = D.st[i]; if (!st) continue;
@@ -2367,7 +2408,7 @@ function stepDebris(dt) {
       var wp = M4.pt(hs.M, D.p[o], D.p[o + 1], D.p[o + 2]);
       D.p[o] = wp[0]; D.p[o + 1] = wp[1]; D.p[o + 2] = wp[2]; D.v[o] = D.v[o + 1] = D.v[o + 2] = 0; D.st[i] = st = 1;
     }
-    if (st === 1) { D.v[o + 1] -= G * dt; D.v[o] *= 1 - 0.15 * dt; D.v[o + 2] *= 1 - 0.15 * dt; }
+    if (st === 1) { D.v[o + 1] -= G * dt; var fk = D.sh[i] ? DEB_FLUT : 0.15; D.v[o] *= 1 - fk * dt; D.v[o + 2] *= 1 - fk * dt; if (D.sh[i]) D.v[o + 1] *= 1 - 0.35 * dt; }   // 片狀的：空氣阻力大、飄
     D.p[o] += D.v[o] * dt; D.p[o + 1] += D.v[o + 1] * dt; D.p[o + 2] += D.v[o + 2] * dt;
     // 轉
     var qi = i * 4, qx = D.q[qi], qy = D.q[qi + 1], qz = D.q[qi + 2], qw = D.q[qi + 3], wx = D.w[o] * dt * 0.5, wy = D.w[o + 1] * dt * 0.5, wz = D.w[o + 2] * dt * 0.5;
@@ -2385,7 +2426,7 @@ function stepDebris(dt) {
         var sh = SHIPS[s], L = M4.pt(sh.inv, D.p[o], D.p[o + 1], D.p[o + 2]);
         if (L[0] < 0 || L[2] < 0 || L[0] >= sh.grid.sx) continue;
         if (sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
-          D.st[i] = 2; D.ship[i] = s; D.p[o] = L[0]; D.p[o + 1] = L[1]; D.p[o + 2] = Math.floor(L[2]) + 1.0 + D.size[i] * 5;
+          D.st[i] = 2; D.ship[i] = s; D.p[o] = L[0]; D.p[o + 1] = L[1]; D.p[o + 2] = Math.floor(L[2]) + 1.0 + D.size[i] * 5 * DEB_THIN[D.sh[i]];
           D.life[i] = Math.min(D.life[i], 25 + 20 * rndD()); break;
         }
       }
@@ -2396,7 +2437,7 @@ function kill(i) {
   var j = D.n - 1;
   if (i !== j) {
     D.p.copyWithin(i * 3, j * 3, j * 3 + 3); D.v.copyWithin(i * 3, j * 3, j * 3 + 3); D.w.copyWithin(i * 3, j * 3, j * 3 + 3); D.q.copyWithin(i * 4, j * 4, j * 4 + 4);
-    D.life[i] = D.life[j]; D.size[i] = D.size[j]; D.col[i] = D.col[j]; D.st[i] = D.st[j]; D.ship[i] = D.ship[j];
+    D.life[i] = D.life[j]; D.size[i] = D.size[j]; D.col[i] = D.col[j]; D.st[i] = D.st[j]; D.ship[i] = D.ship[j]; D.sh[i] = D.sh[j];
   }
   D.st[j] = 0; D.n--;
 }
@@ -2812,6 +2853,7 @@ function shatter(sh, c, dirL, R, velW, debrisCap, grainK) {
     var v = add(add(mul(vd, sp * rr(0.03, 0.2)), [gauss() * 3.2, rr(0.5, 5), gauss() * 3.2]), sh.vel);
     spawnDebris(w, v, removed[j + 3], rr(0.05, 0.11), rr(6, 14));
   }
+  spawnPlates(sh, removed, vd, sp, 18, 4);                             // 片狀的碎塊（12_effects.js；只抽碎木的亂數）
   sh.impulse = add(sh.impulse, mul(vd, n));
   return { cost: cost, n: n };
 }
@@ -3134,6 +3176,7 @@ function slab(sh, L, dirL, b) {
     var w = M4.pt(sh.M, removed[j] + 0.5, removed[j + 1] + 0.5, removed[j + 2] + 0.5);
     spawnDebris(w, add(add(mul(norm(b.v), rr(4, 20)), [gauss() * 3, rr(0, 4), gauss() * 3]), sh.vel), removed[j + 3], rr(0.05, 0.11), rr(6, 12));
   }
+  spawnPlates(sh, removed, norm(b.v), len(b.v), 12, 6);                 // 鏈彈撕下來的那一條：片狀的多一點
   sh.impulse = add(sh.impulse, mul(norm(b.v), n * 2));
   return { cost: cost, n: n };
 }
@@ -3469,6 +3512,7 @@ function blastStep(J) {
     var p = M4.pt(sh.M, sample[j] + 0.5, sample[j + 1] + 0.5, sample[j + 2] + 0.5), dir = norm(sub(p, J.w));
     spawnDebris(p, add(add(mul(dir, rr(8, 40)), [0, rr(4, 22), 0]), sh.vel), sample[j + 3], rr(0.06, 0.16), rr(8, 16));
   }
+  spawnPlates(sh, sample, [0, 1, 0], 30, 3, 40);                       // 殉爆：往上噴的木板
   J.mag.removed = J.n;
   if (J.k < J.ch.length) return false;
   J.done = true;
@@ -4035,8 +4079,8 @@ function solve(ea, eb, rest, brk, p, pin, k) {
 function hitGrid(g, p, q, o) {
   if (g.get(Math.floor(p[o]), Math.floor(p[o + 1]), Math.floor(p[o + 2])) && !g.get(Math.floor(q[o]), Math.floor(q[o + 1]), Math.floor(q[o + 2]))) { p[o] = q[o]; p[o + 1] = q[o + 1]; p[o + 2] = q[o + 2]; }
 }
-function clothStep(sh, c, wl, gv) {                    // c.kw：風壓倍率（帆的布片，34_shreds.js；帆 ＝ 1）
-  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, HC = rigLv().every * DT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, kw = KW * (c.kw || 1), i, j, x;
+function clothStep(sh, c, wl, gv) {                    // c.kw：風壓倍率（帆的布片，34_shreds.js；帆 ＝ 1）；c.ev：這一塊幾步走一次（遠方的船放大，physStep）
+  var T = c.T.sim, n = T.n, p = c.p, q = c.q, pin = c.pin, tr = T.tris, A = CACC, N = CCNT, HC = (c.ev || rigLv().every) * DT, dt2 = HC * HC, inv = 1 / (3 * HC), dmp = DAMP * DAMP, kw = KW * (c.kw || 1), i, j, x;
   A.fill(0, 0, n * 3); N.fill(0, 0, n);
   for (j = 0; j < tr.length; j += 3) {           // 風壓：每個三角形沿法線推，大小 ∝（相對風在法線上的分量）²，相對風扣掉布自己的速度
     if (c.torn && (c.brk[T.te[j]] || c.brk[T.te[j + 1]] || c.brk[T.te[j + 2]])) continue;
@@ -4092,12 +4136,13 @@ function ropePins(sh, o) {
   if (o.pin[0] && !holds(sh, null, o.hk[0], o.hv[0])) o.pin[0] = 0;
   if (o.pin[o.n - 1] && !holds(sh, null, o.hk[1], o.hv[1])) o.pin[o.n - 1] = 0;
 }
-function ropeStep(sh, o, wl, gv) {
-  var p = o.p, q = o.q, n = o.n, pin = o.pin, dt2 = DT * DT, i, x;
+function ropeStep(sh, o, wl, gv, dt) {                 // dt：這一次走多久（遠方的船 ＝ 幾步一次 × DT；沒給 ＝ DT）
+  dt = dt || DT;
+  var p = o.p, q = o.q, n = o.n, pin = o.pin, dt2 = dt * dt, dmp = dt === DT ? DAMP : Math.pow(DAMP, dt / DT), i, x;
   for (i = 0; i < n; i++) {
     if (pin[i]) continue;
     var j = i * 3;
-    for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * DAMP; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / DT)) * dt2; }
+    for (x = 0; x < 3; x++) { var cur = p[j + x], vel = (cur - q[j + x]) * dmp; q[j + x] = cur; p[j + x] = cur + vel + (gv[x] + KD * (wl[x] - vel / dt)) * dt2; }
     hitGrid(sh.grid, p, q, j);
   }
   for (var it = 0, itn = rigLv().it; it < itn; it++) for (i = 0; i + 1 < n; i++) {
@@ -4111,10 +4156,22 @@ function ropeStep(sh, o, wl, gv) {
 }
 function underWater(sh, p, i) { var w = M4.pt(sh.M, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]); return w[1] < seaH(w[0], w[2], SIMT) - 0.5; }
 /** 每一步：相對風與重力換進船的格座標 → 剛斷的繩變成垂下來的繩 → 每面帆、每條垂下來的繩各走一步；每 0.1 秒量一次靠的東西還在不在。 */
+// ── 遠方的船帆與繩降速（Tim 2026-10-14：「可以設定降速模擬，特別是遠方船隻」）──
+// 物理設定「遠方帆繩」；每艘每一步照離鏡頭多遠、在不在視野裡給倍率 m（1 ＝ 照常）：
+//   布：每 every × m 步走一次（時間間隔跟著放大；最多 RIG_FAR_HC 秒 ⇒ Verlet 的布步長太大會炸開，m 照它截）；垂下來的繩：每 m 步走一次、dt ＝ m × DT。
+//   這一段本來就只管畫出來的樣子（不碰 rnd()、不改命中）⇒ 開關不改戰局。鏡頭還沒算過（快轉、無頭對拍）⇒ 照常。
+var RIG_FAR = [null, { d1: 150, m1: 2, d2: 1e9, m2: 2, off: 2 }, { d1: 100, m1: 2, d2: 200, m2: 3, off: 4 }], RIG_FAR_HC = 0.1;
+function rigFarM(sh) {
+  var F = RIG_FAR[PHX.rigfar], e = CAM.eye, vp = CAM.vp; if (!F || !e || !vp) return 1;
+  var B = sh.T.base, R = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz), c = M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), d = Math.hypot(c[0] - e[0], c[1] - e[1], c[2] - e[2]);
+  var m = d > F.d2 ? F.m2 : d > F.d1 ? F.m1 : 1, cw = vp[3] * c[0] + vp[7] * c[1] + vp[11] * c[2] + vp[15], vis = d < R;
+  if (!vis && cw > 0.1) { var k = 1 + 2 * R / cw, x = (vp[0] * c[0] + vp[4] * c[1] + vp[8] * c[2] + vp[12]) / cw, y = (vp[1] * c[0] + vp[5] * c[1] + vp[9] * c[2] + vp[13]) / cw; vis = Math.abs(x) < k && Math.abs(y) < k; }   // 外接球大概碰到畫面
+  return vis ? m : Math.max(m, F.off);
+}
 function physStep(sh) {
   var W = norm(WIND), ws = WIND_SAIL * WIND_K * (1 + GUST[0] * Math.sin(SIMT * 0.9 + sh.phase) + GUST[1] * Math.sin(SIMT * 2.7 + 1.3) + GUST[2] * Math.sin(SIMT * 6.1 + sh.phase * 2)) * WX.wind * WIND_SPD;   // 陣風（不用亂數）；天氣：暴風雨 ×2.2；風速會變（08_weather.js）
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
-  var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
+  var si = Math.round(SIMT / DT), chk = si % 6 === 0, i, ev = rigLv().every, m = sh.rigM = rigFarM(sh), evk = ev * Math.max(1, Math.min(m, Math.floor(RIG_FAR_HC / (ev * DT) + 1e-6)));   // evk：布幾步走一次（遠方放大）
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
   if (sh.hangs) swingHangs(sh, gv);
   for (i = 0; i < sh.ropes.length; i++) { var r = sh.ropes[i]; if (r.dead && !r.lz) { r.lz = true; if (!r.moved) spawnLoose(sh, r); } }
@@ -4130,8 +4187,8 @@ function physStep(sh) {
     if (c.hidden || !c.p) { var keep = c.p && c.torn ? { brk: c.brk, bbrk: c.bbrk, tv: c.tv } : null; clothInit(c); c.hidden = false; if (keep) { c.brk = keep.brk; c.bbrk = keep.bbrk; c.tv = keep.tv; c.torn = true; } }   // 收帆再張：形狀重來、破洞留著
     if (chk || c.npin < 0) clothPins(sh, s, c);
     yardPins(sh, c);
-    var ev = rigLv().every;
-    if ((si + k + sh.i + 1) % ev === 0) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
+    c.ev = evk;
+    if ((si + k + sh.i + 1) % evk === 0) { var t0 = DEBUG ? performance.now() : 0; clothStep(sh, c, wl, gv); if (DEBUG) PROF.cloth += performance.now() - t0; }
     if (chk && c.loose && !c.npin) { c.free += 0.1; if (c.free > 12 || underWater(sh, c.p, 0) && underWater(sh, c.p, c.T.sim.n >> 1)) c.gone = true; }
   });
   for (i = 0; i < sh.loose.length; i++) {
@@ -4140,7 +4197,8 @@ function physStep(sh) {
       ropePins(sh, o);
       if (!o.pin[0] && !o.pin[o.n - 1]) { o.free += 0.1; if (o.free > 15 || underWater(sh, o.p, 0) && underWater(sh, o.p, o.n - 1)) { sh.loose.splice(i--, 1); continue; } }
     }
-    var t1 = DEBUG ? performance.now() : 0; ropeStep(sh, o, wl, gv); if (DEBUG) PROF.rope += performance.now() - t1;
+    if (m > 1 && (si + i + sh.i) % m) continue;                          // 遠方：每 m 步走一次
+    var t1 = DEBUG ? performance.now() : 0; ropeStep(sh, o, wl, gv, m * DT); if (DEBUG) PROF.rope += performance.now() - t1;
   }
   var t2 = DEBUG ? performance.now() : 0; shredStep(sh, wl, gv, si, chk); if (DEBUG) PROF.shred += performance.now() - t2;   // 帆的布片（34_shreds.js）
 }
@@ -7364,7 +7422,7 @@ function render() {
     if (D.st[i] === 2) { var sh = SHIPS[D.ship[i]]; p = M4.pt(sh.M, D.p[o], D.p[o + 1], D.p[o + 2]); } else p = [D.p[o], D.p[o + 1], D.p[o + 2]];
     var k = n * 9, fade = Math.min(1, D.life[i] / 1.5);
     DINST[k] = p[0]; DINST[k + 1] = p[1]; DINST[k + 2] = p[2]; DINST[k + 3] = D.size[i] * fade;
-    DINST[k + 4] = D.q[i * 4]; DINST[k + 5] = D.q[i * 4 + 1]; DINST[k + 6] = D.q[i * 4 + 2]; DINST[k + 7] = D.q[i * 4 + 3]; DINST[k + 8] = D.col[i]; n++;
+    DINST[k + 4] = D.q[i * 4]; DINST[k + 5] = D.q[i * 4 + 1]; DINST[k + 6] = D.q[i * 4 + 2]; DINST[k + 7] = D.q[i * 4 + 3]; DINST[k + 8] = D.col[i] + D.sh[i] * 256; n++;   // 形狀放在色的 256 以上（01_gl.js P.deb）
   }
   if (n) {
     gl.useProgram(P.deb.prog); setCommon(P.deb); gl.bindVertexArray(DEBVAO); gl.bindBuffer(gl.ARRAY_BUFFER, DEBBUF); gl.bufferSubData(gl.ARRAY_BUFFER, 0, DINST, 0, n * 9);
@@ -7908,7 +7966,7 @@ function checkEnd() {
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['wdir', 'wspd', 'ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'hands', 'drown', 'heal', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'cmd', 'blue', 'red', 'slowmo', 'slowcam', 'roomfn', 'navre', 'smoke', 'pslow', 'pslowb'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_rigfar', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'cmd', 'blue', 'red', 'slowmo', 'slowcam', 'roomfn', 'navre', 'smoke', 'pslow', 'pslowb', 'debcap'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0' && !Q.has('admin'), write: false, state: '', last: '' };   // ?admin=rooms（設定後台嵌的那一份）⇒ 不讀不存
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -7930,7 +7988,7 @@ function prefsSnap() {
   var cr = crewSnap(true); if (Object.keys(cr).length) o.crew = cr;          // 船員配置（TASK-0570）：跟那一型的預設不一樣的
   var rm = roomsSnap(true); if (Object.keys(rm).length) o.rooms = rm;        // 艙房的擺法（TASK-0568）
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
-  put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('heal', HEAL_T, LIM.heal[2]); put('navre', NAV_RE, LIM.navre[2]); put('smoke', SMOKE_K, SMOKE_LIM[2]); put('wind', WIND_K, LIM.wind[2]);
+  put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('heal', HEAL_T, LIM.heal[2]); put('navre', NAV_RE, LIM.navre[2]); put('smoke', SMOKE_K, SMOKE_LIM[2]); put('debcap', DEB_CAP, DEB_LIM[2]); put('wind', WIND_K, LIM.wind[2]);
   put('weather', WX_ID, 'clear'); put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, CFG.menu.play); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]); put('funpowder', FUN.powder, LIM.funpowder[2]);
   var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
   if (Object.keys(dm).length) o.dmg = dm;
@@ -7966,6 +8024,7 @@ function prefsApply(p) {
   set('drown', p.drown, LIM.drown, true, function (x) { DROWN_T = x; });
   set('navre', p.navre, LIM.navre, false, function (x) { NAV_RE = x; });
   set('heal', p.heal, LIM.heal, true, function (x) { HEAL_T = x; });
+  set('debcap', p.debcap, DEB_LIM, true, function (x) { DEB_CAP = x; });   // 碎片上限（畫質頁；07_gfx.js）
   set('smoke', p.smoke, SMOKE_LIM, false, function (x) { SMOKE_K = Math.round(x * 10) / 10; });   // 煙消散（畫質頁；07_gfx.js）
   set('wind', p.wind, LIM.wind, false, function (x) { WIND_K = x; });
   if (!Q.has('play') && (p.play === 'fun' || p.play === 'real')) PLAY = p.play;
@@ -8708,9 +8767,11 @@ function gfxUI() {
   var box = $('gfxItems');
   box.innerHTML = GFX_ITEMS.map(function (it) {
     return '<div class="row"><label>' + it.name + '</label>' + it.opt.map(function (o, v) { return '<button data-k="' + it.k + '" data-v="' + v + '">' + o + '</button>'; }).join('') + '</div>';
-  }).join('') + '<div class="row slide"><label for="smokeR">煙消散</label><input type="range" id="smokeR" min="' + SMOKE_LIM[0] + '" max="' + SMOKE_LIM[1] + '" step="0.1" aria-label="煙散得多快（倍數；1 ＝ 原本）"><span id="smokeV"></span></div>';   // 煙：不跟三檔走（07_gfx.js SMOKE_LIM）
+  }).join('') + '<div class="row slide"><label for="smokeR">煙消散</label><input type="range" id="smokeR" min="' + SMOKE_LIM[0] + '" max="' + SMOKE_LIM[1] + '" step="0.1" aria-label="煙散得多快（倍數；1 ＝ 原本）"><span id="smokeV"></span></div>'
+    + '<div class="row slide"><label for="debR">碎片上限</label><input type="range" id="debR" min="' + DEB_LIM[0] + '" max="' + DEB_LIM[1] + '" step="1000" aria-label="畫面上最多幾顆碎片"><span id="debV"></span></div>';   // 煙：不跟三檔走（07_gfx.js SMOKE_LIM）
   [].forEach.call(box.querySelectorAll('button[data-k]'), function (b) { b.onclick = function () { GFX[b.dataset.k] = +b.dataset.v; gfxShow(); }; });
   var sr = $('smokeR'); sr.oninput = function () { SMOKE_K = Math.round(+sr.value * 10) / 10; gfxShow(); };
+  var dr2 = $('debR'); dr2.oninput = function () { DEB_CAP = Math.round(+dr2.value); gfxShow(); };
   [].forEach.call(document.querySelectorAll('#gfxs button[data-g], #gfxPre button'), function (b) { b.onclick = function () { gfxSet(b.dataset.g); gfxShow(); }; });
   var f = $('gfxFps'); f.checked = GFX_FPS; f.onchange = function () { GFX_FPS = f.checked; gfxShow(); };
   gfxShow();
@@ -8720,6 +8781,7 @@ function gfxShow() {
   [].forEach.call(document.querySelectorAll('#gfxs button[data-g], #gfxPre button'), function (b) { b.className = b.dataset.g === lv ? 'on' : ''; });
   var gb = $('gfxB'); gb.textContent = lv === 'custom' ? '自訂（畫質設定…）' : '畫質設定…'; gb.className = lv === 'custom' ? 'on' : '';
   [].forEach.call(document.querySelectorAll('#gfxItems button[data-k]'), function (b) { b.className = GFX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
+  $('debR').value = DEB_CAP; $('debV').textContent = DEB_CAP.toLocaleString() + ' 顆' + (DEB_CAP === DEB_LIM[2] ? '（預設）' : '') + '：超過時先清視野外、遠處、沉在水裡的';
   $('smokeR').value = SMOKE_K; $('smokeV').textContent = SMOKE_K.toFixed(1) + '×' + (SMOKE_K === 1 ? '（原本）' : SMOKE_K === SMOKE_LIM[2] ? '（預設）' : SMOKE_K > 1 ? '（散得快）' : '（留得久）') + '　砲煙約 ' + (2.5 / SMOKE_K).toFixed(1) + '–' + (5.5 / SMOKE_K).toFixed(1) + ' 秒';
   $('gfxLv').textContent = '現在：' + GFX_NAME[lv]; $('gfxFps').checked = GFX_FPS; $('fps').className = GFX_FPS ? 'hud on' : 'hud';
   if (typeof gsetShow === 'function') gsetShow();
@@ -9238,6 +9300,12 @@ if (DEBUG) window.__game = {
     return out;
   },
   /** 殉爆的慢動作與特寫（73_slowmo.js）：給 { on, cam } 就改設定；回現在的倍率、狀態、殉爆幾次。 */
+  /** 畫面每一塊花多少（gl.finish 連 GPU 一起算；只重畫、不走模擬）：全部、拿掉碎片、拿掉斷開的那幾團、陰影關、反射關、船員不畫 ⇒ 每格 ms。 */
+  rprof: function (k) { k = k || 3; function t() { var s = performance.now(); for (var i = 0; i < k; i++) { render(); gl.finish(); } return +((performance.now() - s) / k).toFixed(1); }
+    var pl = 0; for (var q = 0; q < D.n; q++) if (D.sh[q]) pl++;
+    var r = { debris: D.n, plates: pl, pieces: PIECES.length, pts: PT.n, ships: SHIPS.length, all: t() }, dn = D.n; D.n = 0; r.noDebris = t(); D.n = dn;
+    var pc = PIECES.splice(0, PIECES.length); r.noPieces = t(); Array.prototype.push.apply(PIECES, pc);
+    var g0 = GFX.shadow; GFX.shadow = 0; r.noShadow = t(); GFX.shadow = g0; g0 = GFX.refl; GFX.refl = 0; r.noRefl = t(); GFX.refl = g0; r.again = t(); return r; },
   pslow: function (o) { if (o && 'budget' in o) PSLOW.budget = +o.budget; if (o && 'on' in o) { PSLOW.on = !!o.on; if (!PSLOW.on) PSLOW.ts = 1; gsetShow(); } return { on: PSLOW.on, ts: +PSLOW.ts.toFixed(3), ms: +PSLOW.ms.toFixed(2), load: +(PSLOW.ms * 60 / 1000).toFixed(3), budget: PSLOW.budget, min: PSLOW_MIN }; },   // 物理減速（73_slowmo.js）
   slow: function (o) { if (o) { if ('on' in o) SLOW.on = !!o.on; if ('cam' in o) SLOW.cam = !!o.cam; gsetShow(); } return { on: SLOW.on, cam: SLOW.cam, active: SLOW.active, ts: +SLOW.ts.toFixed(3), min: SLOW.min, hold: SLOW.hold, t: +SLOW.t.toFixed(2), kicks: SLOW.kicks, camHeld: !!SLOW.camSave }; },
   /** 3D 雨滴（14_rain.js）：現在幾滴、上一格畫了幾條、水花幾個、開了以來落海與打到船幾次。{ bench: n } ⇒ 量 n 格（走一格＋填緩衝畫一次）各花幾 ms。 */

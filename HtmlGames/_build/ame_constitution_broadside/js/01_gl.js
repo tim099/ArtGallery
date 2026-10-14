@@ -47,7 +47,8 @@ function programs() {
     '#version 300 es\nlayout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec4 iP; layout(location=3) in vec4 iQ; layout(location=4) in float iC;\n' +
     'uniform mat4 uVP; out vec3 vN; out vec3 vW; flat out float vC;\n' +
     'vec3 rq(vec4 q, vec3 v){ return v+2.0*cross(q.xyz, cross(q.xyz,v)+q.w*v); }\n' +
-    'void main(){ vec3 w=iP.xyz+rq(iQ,aP*iP.w); vW=w; vN=rq(iQ,aN); vC=iC; gl_Position=uVP*vec4(w,1.0); }\n',
+    'void main(){ float k=floor(iC/256.0); vec3 sc=k<0.5?vec3(1.0):k<1.5?vec3(3.2,1.1,0.22):k<2.5?vec3(2.3,1.5,0.22):vec3(4.6,0.8,0.25);\n' +   // DEB_SHAPES：形狀 ＝ iC 的 256 以上（12_effects.js D.sh）；片狀的碎塊長寬厚
+    ' vec3 w=iP.xyz+rq(iQ,aP*iP.w*sc); vW=w; vN=rq(iQ,aN); vC=iC-k*256.0; gl_Position=uVP*vec4(w,1.0); }\n',
     '#version 300 es\nprecision highp float;\n' + SEA_GLSL + 'in vec3 vN; in vec3 vW; flat in float vC; uniform vec3 uSun,uEye,uFog,uSky,uGround; uniform float uFogD,uLum; out vec4 o;\n' +
     'void main(){ uint c=uint(vC+0.5); vec3 b=vec3(float((c>>5u)&7u)/7.0,float((c>>2u)&7u)/7.0,float(c&3u)/3.0); vec3 n=normalize(vN);\n' +
     ' vec3 col=b*(mix(uGround,uSky,n.y*0.5+0.5)*0.62+vec3(1.0,0.96,0.88)*max(dot(n,uSun),0.0)*0.78);\n' +

@@ -11,7 +11,7 @@
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
 var PREF_Q = ['wdir', 'wspd', 'ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18',
   'box', 'carry', 'hands', 'drown', 'heal', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
-  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'cmd', 'blue', 'red', 'slowmo', 'slowcam', 'roomfn', 'navre', 'smoke', 'pslow', 'pslowb'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
+  'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_rigfar', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'cmd', 'blue', 'red', 'slowmo', 'slowcam', 'roomfn', 'navre', 'smoke', 'pslow', 'pslowb', 'debcap'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4' };
 var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0' && !Q.has('admin'), write: false, state: '', last: '' };   // ?admin=rooms（設定後台嵌的那一份）⇒ 不讀不存
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
@@ -33,7 +33,7 @@ function prefsSnap() {
   var cr = crewSnap(true); if (Object.keys(cr).length) o.crew = cr;          // 船員配置（TASK-0570）：跟那一型的預設不一樣的
   var rm = roomsSnap(true); if (Object.keys(rm).length) o.rooms = rm;        // 艙房的擺法（TASK-0568）
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
-  put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('heal', HEAL_T, LIM.heal[2]); put('navre', NAV_RE, LIM.navre[2]); put('smoke', SMOKE_K, SMOKE_LIM[2]); put('wind', WIND_K, LIM.wind[2]);
+  put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('heal', HEAL_T, LIM.heal[2]); put('navre', NAV_RE, LIM.navre[2]); put('smoke', SMOKE_K, SMOKE_LIM[2]); put('debcap', DEB_CAP, DEB_LIM[2]); put('wind', WIND_K, LIM.wind[2]);
   put('weather', WX_ID, 'clear'); put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, CFG.menu.play); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]); put('funpowder', FUN.powder, LIM.funpowder[2]);
   var dm = {}; Object.keys(DMG_Q).forEach(function (t) { if (DMG[t] !== LIM[DMG_Q[t]][2]) dm[t] = DMG[t]; });
   if (Object.keys(dm).length) o.dmg = dm;
@@ -69,6 +69,7 @@ function prefsApply(p) {
   set('drown', p.drown, LIM.drown, true, function (x) { DROWN_T = x; });
   set('navre', p.navre, LIM.navre, false, function (x) { NAV_RE = x; });
   set('heal', p.heal, LIM.heal, true, function (x) { HEAL_T = x; });
+  set('debcap', p.debcap, DEB_LIM, true, function (x) { DEB_CAP = x; });   // 碎片上限（畫質頁；07_gfx.js）
   set('smoke', p.smoke, SMOKE_LIM, false, function (x) { SMOKE_K = Math.round(x * 10) / 10; });   // 煙消散（畫質頁；07_gfx.js）
   set('wind', p.wind, LIM.wind, false, function (x) { WIND_K = x; });
   if (!Q.has('play') && (p.play === 'fun' || p.play === 'real')) PLAY = p.play;

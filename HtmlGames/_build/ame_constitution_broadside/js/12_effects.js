@@ -1,13 +1,16 @@
 // ───────────────────────── 碎片（每格一顆小方塊，GPU instancing） ─────────────────────────
 var DMAX = 45000, D = {
   n: 0, p: new Float32Array(DMAX * 3), v: new Float32Array(DMAX * 3), q: new Float32Array(DMAX * 4), w: new Float32Array(DMAX * 3),
-  life: new Float32Array(DMAX), size: new Float32Array(DMAX), col: new Uint8Array(DMAX), st: new Uint8Array(DMAX), ship: new Int8Array(DMAX)
+  life: new Float32Array(DMAX), size: new Float32Array(DMAX), col: new Uint8Array(DMAX), st: new Uint8Array(DMAX), ship: new Int8Array(DMAX), sh: new Uint8Array(DMAX)
 };
+// 形狀 D.sh：0 ＝ 一格的小方塊；1–3 ＝ 片狀的碎塊（木板被撕下來的那種，Tim 2026-10-14）—— 長寬厚的比例在著色器（01_gl.js DEB_SHAPES），飄得慢（DEB_FLUT）、落在甲板上貼得低。
+// 上限（Tim 2026-10-14）：畫質頁的「碎片上限」DEB_CAP（不跟低／中／高走）；超過 ⇒ debCull 先清視野外、遠處、沉在水裡的（照畫面的鏡頭；只影響畫面）。DMAX 是陣列的硬上限。
+var DEB_FLUT = 0.9, DEB_THIN = [1, 0.22, 0.22, 0.25];
 var DINST = new Float32Array(DMAX * 9);
 // 碎木自己的亂數（轉軸、落水、落地）：⛔ 跟戰局共用 rnd() ⇒ 少生一顆碎木（物理分級），後面的亂數全部錯位、整局都變（09_phx.js）。開局跟 rs 一起重設（70_flow.js）
 var RSD0 = 0x2545F491, rsD = SEED ^ RSD0, DEB_ACC = 0, PT_ACC = 0;   // DEB_ACC／PT_ACC：照分級少生的節拍（不抽亂數）
 function rndD() { rsD |= 0; rsD = rsD + 0x6D2B79F5 | 0; var t = Math.imul(rsD ^ rsD >>> 15, 1 | rsD); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
-function spawnDebris(p, v, col, size, life) {
+function spawnDebris(p, v, col, size, life, shape) {
   var k = DEB_KS[PHX.debris]; if (k < 1) { DEB_ACC += k; if (DEB_ACC < 1) return; DEB_ACC -= 1; }   // 物理分級：少生幾顆（呼叫端的亂數已經抽完 ⇒ 戰局不變）
   var i;
   if (D.n < DMAX) i = D.n++;
@@ -17,11 +20,43 @@ function spawnDebris(p, v, col, size, life) {
   var ax = norm([rndD() - 0.5, rndD() - 0.5, rndD() - 0.5]), sp = 4 + 14 * rndD();
   D.w[i * 3] = ax[0] * sp; D.w[i * 3 + 1] = ax[1] * sp; D.w[i * 3 + 2] = ax[2] * sp;
   D.q[i * 4] = 0; D.q[i * 4 + 1] = 0; D.q[i * 4 + 2] = 0; D.q[i * 4 + 3] = 1;
-  D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1;
+  D.life[i] = life; D.size[i] = size; D.col[i] = col; D.st[i] = 1; D.ship[i] = -1; D.sh[i] = shape || 0;
+}
+function rD(a, b) { return a + (b - a) * rndD(); }                     // 碎木自己的亂數（⛔ 不用 rr：那是戰局的 rnd()）
+/** 片狀的碎塊：從 removed（x, y, z, 色 一組四個，格座標）挑幾格當起點，往 vd（世界的單位向量）噴；數量照打掉的格數（每 per 格一片、最多 max 片）。
+ *  只抽碎木自己的亂數 rndD ⇒ 戰局不變；物理分級少生照 spawnDebris。 */
+function spawnPlates(sh, removed, vd, sp, per, max) {
+  var m = removed.length / 4, k = Math.min(max, Math.floor(m / per));
+  for (var j = 0; j < k; j++) {
+    var q = ((rndD() * m) | 0) * 4, w = M4.pt(sh.M, removed[q] + 0.5, removed[q + 1] + 0.5, removed[q + 2] + 0.5);
+    var v = add(add(mul(vd, sp * rD(0.05, 0.25)), [rD(-4, 4), rD(1.5, 7), rD(-4, 4)]), sh.vel);
+    spawnDebris(w, v, removed[q + 3], rD(0.12, 0.22), rD(10, 18), 1 + ((rndD() * 3) | 0));
+  }
+}
+/** 超過上限 ⇒ 清到 DEB_CAP 的九成：分數 ＝ 離鏡頭的距離 ×（視野外 4）＋ 沉在水裡的 +1e4（最先清）；取樣找門檻，分數比門檻高的都清掉（不抽亂數）。
+ *  鏡頭還沒算過（快轉、無頭對拍）⇒ 照剩下的壽命（快散的先清）。 */
+var DSCORE = new Float32Array(DMAX), DSAMP = new Float32Array(1024);
+function debCull() {
+  var n = D.n, want = Math.floor(DEB_CAP * 0.9); if (n <= want) return;
+  var vp = CAM.vp, e = CAM.eye, i, o;
+  for (i = 0; i < n; i++) {
+    o = i * 3; var x = D.p[o], y = D.p[o + 1], z = D.p[o + 2];
+    if (D.st[i] === 2) { var hs = SHIPS[D.ship[i]]; if (hs) { var wp = M4.pt(hs.M, x, y, z); x = wp[0]; y = wp[1]; z = wp[2]; } }
+    if (!vp || !e) { DSCORE[i] = -D.life[i]; continue; }
+    var d = Math.hypot(x - e[0], y - e[1], z - e[2]), cw = vp[3] * x + vp[7] * y + vp[11] * z + vp[15], vis = false;
+    if (cw > 0.1) { var cx = (vp[0] * x + vp[4] * y + vp[8] * z + vp[12]) / cw, cy = (vp[1] * x + vp[5] * y + vp[9] * z + vp[13]) / cw; vis = cx > -1.1 && cx < 1.1 && cy > -1.1 && cy < 1.1; }
+    DSCORE[i] = d * (vis ? 1 : 4) + (D.st[i] === 3 ? 1e4 : 0);
+  }
+  var ns = Math.min(1024, n), step = n / ns;
+  for (i = 0; i < ns; i++) DSAMP[i] = DSCORE[Math.floor(i * step)];
+  var S = DSAMP.subarray(0, ns).sort(), th = S[Math.min(ns - 1, Math.max(0, Math.floor(ns * want / n)))];
+  for (i = n - 1; i >= 0; i--) if (DSCORE[i] > th) kill(i);           // 由後往前：kill 把最後一顆搬來 i，那顆已經看過、留著
+  if (D.n > want) for (i = D.n - 1; i >= 0 && D.n > want; i--) if (DSCORE[i] >= th) kill(i);   // 同分很多（全在水裡）⇒ 再清一輪
 }
 /** 碎木每一步：飛、轉、落水、落在甲板上。
  *  省時間（TASK-0531：殉爆噴一萬多顆，每步 10 ms 以上）：比最高的浪還高 ⇒ 不算 seaH；不在那艘船的格子外接球裡（格子盒的中心＋半對角線）⇒ 不換格座標查格子。結果跟全算一樣。 */
 function stepDebris(dt) {
+  if (D.n > DEB_CAP) debCull();                                          // 碎片上限（畫質頁）
   var top = SEA_K > 0 ? 1.15 * SEA_K * WX.sea : 0, sc = SHIPS.map(function (sh) { var B = sh.T.base; return { c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2), r2: Math.pow(0.5 * S * Math.hypot(B.sx, B.sy, B.sz) + 1, 2) }; });
   for (var i = 0; i < D.n; i++) {
     var st = D.st[i]; if (!st) continue;
@@ -34,7 +69,7 @@ function stepDebris(dt) {
       var wp = M4.pt(hs.M, D.p[o], D.p[o + 1], D.p[o + 2]);
       D.p[o] = wp[0]; D.p[o + 1] = wp[1]; D.p[o + 2] = wp[2]; D.v[o] = D.v[o + 1] = D.v[o + 2] = 0; D.st[i] = st = 1;
     }
-    if (st === 1) { D.v[o + 1] -= G * dt; D.v[o] *= 1 - 0.15 * dt; D.v[o + 2] *= 1 - 0.15 * dt; }
+    if (st === 1) { D.v[o + 1] -= G * dt; var fk = D.sh[i] ? DEB_FLUT : 0.15; D.v[o] *= 1 - fk * dt; D.v[o + 2] *= 1 - fk * dt; if (D.sh[i]) D.v[o + 1] *= 1 - 0.35 * dt; }   // 片狀的：空氣阻力大、飄
     D.p[o] += D.v[o] * dt; D.p[o + 1] += D.v[o + 1] * dt; D.p[o + 2] += D.v[o + 2] * dt;
     // 轉
     var qi = i * 4, qx = D.q[qi], qy = D.q[qi + 1], qz = D.q[qi + 2], qw = D.q[qi + 3], wx = D.w[o] * dt * 0.5, wy = D.w[o + 1] * dt * 0.5, wz = D.w[o + 2] * dt * 0.5;
@@ -52,7 +87,7 @@ function stepDebris(dt) {
         var sh = SHIPS[s], L = M4.pt(sh.inv, D.p[o], D.p[o + 1], D.p[o + 2]);
         if (L[0] < 0 || L[2] < 0 || L[0] >= sh.grid.sx) continue;
         if (sh.grid.get(L[0] | 0, L[1] | 0, L[2] | 0)) {
-          D.st[i] = 2; D.ship[i] = s; D.p[o] = L[0]; D.p[o + 1] = L[1]; D.p[o + 2] = Math.floor(L[2]) + 1.0 + D.size[i] * 5;
+          D.st[i] = 2; D.ship[i] = s; D.p[o] = L[0]; D.p[o + 1] = L[1]; D.p[o + 2] = Math.floor(L[2]) + 1.0 + D.size[i] * 5 * DEB_THIN[D.sh[i]];
           D.life[i] = Math.min(D.life[i], 25 + 20 * rndD()); break;
         }
       }
@@ -63,7 +98,7 @@ function kill(i) {
   var j = D.n - 1;
   if (i !== j) {
     D.p.copyWithin(i * 3, j * 3, j * 3 + 3); D.v.copyWithin(i * 3, j * 3, j * 3 + 3); D.w.copyWithin(i * 3, j * 3, j * 3 + 3); D.q.copyWithin(i * 4, j * 4, j * 4 + 4);
-    D.life[i] = D.life[j]; D.size[i] = D.size[j]; D.col[i] = D.col[j]; D.st[i] = D.st[j]; D.ship[i] = D.ship[j];
+    D.life[i] = D.life[j]; D.size[i] = D.size[j]; D.col[i] = D.col[j]; D.st[i] = D.st[j]; D.ship[i] = D.ship[j]; D.sh[i] = D.sh[j];
   }
   D.st[j] = 0; D.n--;
 }

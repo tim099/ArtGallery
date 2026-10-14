@@ -316,6 +316,7 @@ function slab(sh, L, dirL, b) {
     var w = M4.pt(sh.M, removed[j] + 0.5, removed[j + 1] + 0.5, removed[j + 2] + 0.5);
     spawnDebris(w, add(add(mul(norm(b.v), rr(4, 20)), [gauss() * 3, rr(0, 4), gauss() * 3]), sh.vel), removed[j + 3], rr(0.05, 0.11), rr(6, 12));
   }
+  spawnPlates(sh, removed, norm(b.v), len(b.v), 12, 6);                 // 鏈彈撕下來的那一條：片狀的多一點
   sh.impulse = add(sh.impulse, mul(norm(b.v), n * 2));
   return { cost: cost, n: n };
 }

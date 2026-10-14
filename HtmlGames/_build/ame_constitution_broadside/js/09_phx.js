@@ -13,11 +13,12 @@
 // 網址：?phx=full|high|mid|low，單項 ?p_rig= ?p_debris= ?p_fx= ?p_water= ?p_flood=（第幾檔，從 0 起）；舊的 ?phys=0 ＝ 帆與繩關。
 var PHX_ITEMS = [
   { k: 'rig', name: '帆與繩', opt: ['關（靜態）', '低', '中', '高'] },
+  { k: 'rigfar', name: '遠方帆繩', opt: ['照常', '遠方半速', '遠方⅓・視野外最慢'] },   // 遠處、視野外的船帆與繩少算幾步（30_rig_physics.js rigFarM；Tim 2026-10-14）
   { k: 'debris', name: '碎木', opt: ['20%', '45%', '70%', '100%'] },
   { k: 'fx', name: '煙與水花', opt: ['40%', '65%', '85%', '100%'] },
   { k: 'water', name: '船邊水花', opt: ['關（原本的）', '低', '中', '高'] },
   { k: 'flood', name: '進水', opt: ['公式', '粒子 粗', '粒子 中', '粒子 細'] }];
-var PHX_PRESET = { full: { rig: 3, debris: 3, fx: 3, water: 3, flood: 3 }, high: { rig: 2, debris: 2, fx: 2, water: 2, flood: 2 }, mid: { rig: 1, debris: 1, fx: 1, water: 1, flood: 1 }, low: { rig: 0, debris: 0, fx: 0, water: 0, flood: 0 } };
+var PHX_PRESET = { full: { rig: 3, rigfar: 1, debris: 3, fx: 3, water: 3, flood: 3 }, high: { rig: 2, rigfar: 1, debris: 2, fx: 2, water: 2, flood: 2 }, mid: { rig: 1, rigfar: 2, debris: 1, fx: 1, water: 1, flood: 1 }, low: { rig: 0, rigfar: 2, debris: 0, fx: 0, water: 0, flood: 0 } };   // rigfar：全開也是遠方半速（150 m 外看不出差別）
 var PHX_NAME = { full: '全開', high: '高', mid: '中', low: '低', custom: '自訂' }, PHX_DEFAULT = CFG.menu.phx;   // 預設檔：config/game.json 的 menu.phx
 // 帆與繩每一檔：it 布與繩的迭代次數、every 帆幾步走一次（2 ＝ 30 Hz，4 ＝ 15 Hz；一半的帆錯開一步）、loose 垂下來的繩最多幾條、shred 帆的布片每艘最多幾片（34_shreds.js）。高 ＝ 原本的。
 var RIG_LV = [null, { it: 2, every: 4, loose: 150, shred: 40 }, { it: 3, every: 2, loose: 300, shred: 80 }, { it: 4, every: 2, loose: 500, shred: 150 }];

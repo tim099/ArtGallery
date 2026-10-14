@@ -128,6 +128,12 @@ if (DEBUG) window.__game = {
     return out;
   },
   /** 殉爆的慢動作與特寫（73_slowmo.js）：給 { on, cam } 就改設定；回現在的倍率、狀態、殉爆幾次。 */
+  /** 畫面每一塊花多少（gl.finish 連 GPU 一起算；只重畫、不走模擬）：全部、拿掉碎片、拿掉斷開的那幾團、陰影關、反射關、船員不畫 ⇒ 每格 ms。 */
+  rprof: function (k) { k = k || 3; function t() { var s = performance.now(); for (var i = 0; i < k; i++) { render(); gl.finish(); } return +((performance.now() - s) / k).toFixed(1); }
+    var pl = 0; for (var q = 0; q < D.n; q++) if (D.sh[q]) pl++;
+    var r = { debris: D.n, plates: pl, pieces: PIECES.length, pts: PT.n, ships: SHIPS.length, all: t() }, dn = D.n; D.n = 0; r.noDebris = t(); D.n = dn;
+    var pc = PIECES.splice(0, PIECES.length); r.noPieces = t(); Array.prototype.push.apply(PIECES, pc);
+    var g0 = GFX.shadow; GFX.shadow = 0; r.noShadow = t(); GFX.shadow = g0; g0 = GFX.refl; GFX.refl = 0; r.noRefl = t(); GFX.refl = g0; r.again = t(); return r; },
   pslow: function (o) { if (o && 'budget' in o) PSLOW.budget = +o.budget; if (o && 'on' in o) { PSLOW.on = !!o.on; if (!PSLOW.on) PSLOW.ts = 1; gsetShow(); } return { on: PSLOW.on, ts: +PSLOW.ts.toFixed(3), ms: +PSLOW.ms.toFixed(2), load: +(PSLOW.ms * 60 / 1000).toFixed(3), budget: PSLOW.budget, min: PSLOW_MIN }; },   // 物理減速（73_slowmo.js）
   slow: function (o) { if (o) { if ('on' in o) SLOW.on = !!o.on; if ('cam' in o) SLOW.cam = !!o.cam; gsetShow(); } return { on: SLOW.on, cam: SLOW.cam, active: SLOW.active, ts: +SLOW.ts.toFixed(3), min: SLOW.min, hold: SLOW.hold, t: +SLOW.t.toFixed(2), kicks: SLOW.kicks, camHeld: !!SLOW.camSave }; },
   /** 3D 雨滴（14_rain.js）：現在幾滴、上一格畫了幾條、水花幾個、開了以來落海與打到船幾次。{ bench: n } ⇒ 量 n 格（走一格＋填緩衝畫一次）各花幾 ms。 */

@@ -130,6 +130,7 @@ function blastStep(J) {
     var p = M4.pt(sh.M, sample[j] + 0.5, sample[j + 1] + 0.5, sample[j + 2] + 0.5), dir = norm(sub(p, J.w));
     spawnDebris(p, add(add(mul(dir, rr(8, 40)), [0, rr(4, 22), 0]), sh.vel), sample[j + 3], rr(0.06, 0.16), rr(8, 16));
   }
+  spawnPlates(sh, sample, [0, 1, 0], 30, 3, 40);                       // 殉爆：往上噴的木板
   J.mag.removed = J.n;
   if (J.k < J.ch.length) return false;
   J.done = true;

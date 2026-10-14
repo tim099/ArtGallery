@@ -37,6 +37,7 @@ function shatter(sh, c, dirL, R, velW, debrisCap, grainK) {
     var v = add(add(mul(vd, sp * rr(0.03, 0.2)), [gauss() * 3.2, rr(0.5, 5), gauss() * 3.2]), sh.vel);
     spawnDebris(w, v, removed[j + 3], rr(0.05, 0.11), rr(6, 14));
   }
+  spawnPlates(sh, removed, vd, sp, 18, 4);                             // 片狀的碎塊（12_effects.js；只抽碎木的亂數）
   sh.impulse = add(sh.impulse, mul(vd, n));
   return { cost: cost, n: n };
 }
