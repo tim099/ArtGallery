@@ -102,15 +102,15 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
   });
   sh.crew.forEach(function (c) {   // 腳下 3×3 都沒了 ⇒ 掉下去（走路中的不算：途中跨過艙口邊）
     if (c.st >= 3 || c.walk || c.moving) return;
-    var x = Math.floor(c.pos[0]), y = Math.floor(c.pos[1]);
-    if (!countBox(sh.grid, x - 1, y - 1, c.pos[2] - 1, x + 1, y + 1, c.pos[2] - 1)) fall(sh, c);
+    var x = Math.floor(c.pos[0]), y = Math.floor(c.pos[1]), fz = c.inBed ? c.medBed.origin[2] : c.pos[2];   // 躺在病床上：看床底下的地板（床是模型、不是格）
+    if (!countBox(sh.grid, x - 1, y - 1, fz - 1, x + 1, y + 1, fz - 1)) fall(sh, c);
   });
   if (sh.mass0 === undefined) sh.mass0 = shipT(sh);                               // 開戰時的重量（壓艙物、砲的重量照開戰時的設定）
   if (!sh.broken && !sh.sinkingFinal && !sh.sunk) sh.liftT = liftFor(sh.T, sh.T.disp - sh.mass0 + massLost(sh)) || 0;   // 斷了、開始沉 ⇒ 不再往上浮
   if (!sh.liftSet) { sh.lift = sh.liftT; sh.liftSet = true; }                    // 開戰那一刻直接放在浮的位置（不從設計水線慢慢浮過去）
   if (sh.fl) sh.flBase = sh.T.disp - sh.mass0 + massLost(sh);                     // 粒子模式：浮力表上水以外的部分（33_flood.js floodSinkT）
   drownCheck(sh);                                                     // 船殼通海了 ⇒ 被水淹過頭的人浮上來（43_swim.js）
-  chooseSide(sh); reassign(sh); manning(sh); callHands(sh);   // callHands：預備水手補位（42_hands.js）
+  chooseSide(sh); reassign(sh); manning(sh); medTick(sh); callHands(sh);   // medTick：醫療艙治療（44_medic.js）；callHands：預備水手補位（42_hands.js）
   sh.able = sh.crew.filter(able).length;
   sh.gunsManned = sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0; }).length;
   strikeCheck(sh);

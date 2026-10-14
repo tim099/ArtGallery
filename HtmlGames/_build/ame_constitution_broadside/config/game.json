@@ -27,6 +27,7 @@
     "wind": [0.25, 3, 1],
     "hands": [0, 120, 40],
     "drown": [0, 120, 45],
+    "heal": [0, 180, 40],
     "navre": [0, 10, 2],
     "sea": [0, 3, 1],
     "stall": [0, 1, 1],
@@ -150,7 +151,6 @@
       "buffCap": {"heal": 0.6},
       "staff": 1,
       "staffPer": 3,
-      "heal": 40,
       "back": 0.6
     },
     "deck": {"name": "砲甲板", "deck": true, "items": ["keg"]}

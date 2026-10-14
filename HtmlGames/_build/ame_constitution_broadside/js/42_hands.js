@@ -324,15 +324,17 @@ function callHands(sh) {
     var lvh = lvOf(NV.levels, hd[0].home[2]);
     if (NV.reach.indexOf(lvh) >= 0) for (var j = 0; j < hn; j++) need.push({ kind: 'helm', key: '', lv: lvh, n: 1, x: hd[j].home[0], spot: hd[j].home, pri: 1, who: hd[j] });
   }
+  medNeeds(sh, need);                                                  // 醫療艙的人手、等著被搬的傷員（44_medic.js）
   need.sort(function (a, b) { return a.pri - b.pri; });
   need.forEach(function (q) {
     for (var k = 0; k < q.n && idle.length; k++) {
       var bi = -1, bd = 1e9;
       idle.forEach(function (c, i) { var d = Math.abs(c.pos[0] - q.x) + 150 * Math.abs(c.hand.lv - q.lv); if (d < bd) { bd = d; bi = i; } });
-      var c = idle[bi], H = c.hand, legs = handRoute(sh, H.lv, q.lv, c.pos[0], q.x, handReg(sh, c));
+      var c = idle[bi], H = c.hand, legs = handRoute(sh, H.lv, q.lv, c.pos[0], q.x, handReg(sh, c), q.cell !== undefined ? NV.levels[q.lv].N.reg[q.cell] : undefined);   // cell：要走到的那一點（醫療艙；照它那一塊找路）
       idle.splice(bi, 1); if (!legs) continue;
+      if (q.cell !== undefined) legs.push({ w: q.lv, to: q.cell });
       if (q.kind === 'helm') { var si = navSnap(NV.levels[q.lv].N, q.spot, 4); if (si < 0) continue; legs.push({ w: q.lv, to: si }); q.who.relieved = true; }
-      H.job = { kind: q.kind, key: q.key, deck: q.deck, side: q.side, lv: q.lv, spot: q.spot };
+      H.job = { kind: q.kind, key: q.key, deck: q.deck, side: q.side, lv: q.lv, spot: q.spot, med: q.med, who: q.who, bed: q.bed }; medTake(q);
       H.legs = legs; H.wp = null; c.moving = false; NV.called++;
     }
   });
@@ -340,6 +342,7 @@ function callHands(sh) {
 /** 到了：換成那個職位（砲班 ⇒ 下一拍 reassign 分砲；送藥手 ⇒ 接倒下那位的砲；舵手 ⇒ 站到舵輪後）。不在那一層（路斷了）⇒ 任務作廢、照常閒晃。 */
 function handJoin(sh, c) {
   var H = c.hand, J = H.job, NV = sh.nav;
+  if (J.kind === 'staff' || J.kind === 'carry') { medJoin(sh, c); return; }   // 醫療艙的人手、搬傷員（44_medic.js）
   if (H.lv !== J.lv) { H.job = null; H.wait = 1; return; }
   c.walk = null; c.moving = false; c.home = c.pos.slice(); c.hand = null; NV.joined++;
   if (J.kind === 'gun') { c.role = ROLE.GUN; c.deck = J.deck; c.side = J.side; c.gun = null; return; }

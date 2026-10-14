@@ -100,8 +100,8 @@ function smoke(p, dir, n, big) {
   for (var i = 0; i < n; i++) {
     var v = add(mul(dir, rr(2, big ? 9 : 14)), [gauss() * 1.2, rr(0.3, 1.6), gauss() * 1.2]);
     var g = rr(0.62, 0.86);
-    // 2.5–5.5 秒就散：齊射的煙不要一直擋著看砲彈落點
-    spawnPt(add(p, mul(dir, rr(0, 2))), v, rr(2.5, 5.5), [g, g, g * 0.98], rr(0.35, 0.55), rr(1.2, 2.2) * (big ? 1.6 : 1), rr(6, 11) * (big ? 1.5 : 1), -0.05, 1.1, 0);
+    // 2.5–5.5 秒就散：齊射的煙不要一直擋著看砲彈落點；÷ 畫質頁的「煙消散」倍數（07_gfx.js smokeK）
+    spawnPt(add(p, mul(dir, rr(0, 2))), v, rr(2.5, 5.5) / smokeK(), [g, g, g * 0.98], rr(0.35, 0.55), rr(1.2, 2.2) * (big ? 1.6 : 1), rr(6, 11) * (big ? 1.5 : 1), -0.05, 1.1, 0);
   }
 }
 function flash(p, dir, n, big) {

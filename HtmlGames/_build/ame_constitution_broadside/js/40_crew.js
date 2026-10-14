@@ -104,6 +104,7 @@ function makeCrew(sh) {
     }
   });
   makeHands(sh, crew, add);                                          // 預備水手：最後才生（數量 0 ⇒ 跟以前一樣，rnd() 一個都不多抽）
+  medInit(sh);                                                       // 醫療艙走得到的床、要幾個人手（44_medic.js；沒有 ⇒ sh.med ＝ null，照舊）
   // 站不下的（船隻配置頁調多了、船小）⇒ 記著，開戰時上方廣播一行（52_fleet.js crewShortNote）；⛔ 不默默少人
   function cnt(r) { return crew.filter(function (c) { return c.role === r; }).length; }
   //   ⚠ 預設本來就有站不下的（憲法號陸戰隊 11／12、送藥手 26／27；夜隼號陸戰隊 2／12）：開戰只報玩家改過的那幾項（61_hud.js crewShortNote），全部照實列在船隻配置頁（CREW_SEEN）
@@ -225,7 +226,7 @@ function stepCrew(sh, dt) {
       return;
     }
     if (c.st === 5) { stepSwim(sh, c, dt); return; }      // 在水裡（43_swim.js）
-    if (c.st === 1 && c.t > 12) { c.st = 3; return; }    // 傷者被抬下去
+    if (c.st === 1) { if (!(sh.med && medHold(sh, c)) && c.t > 12) c.st = 3; return; }   // 傷者被抬下去；有醫療艙送得到 ⇒ 等預備水手搬、被扛著跟著走（44_medic.js）
     if (c.st !== 0) return;
     if (c.role === ROLE.HAND) { stepHand(sh, c, dt); return; }   // 預備水手：走路、爬梯子、補位（42_hands.js）
     if (c.walk) {
@@ -246,7 +247,7 @@ function musket(sh, c) {
   if (!foe) return;
   var cand = foe.crew.filter(function (o) { return o.st === 0 && (o.role !== ROLE.GUN && o.role !== ROLE.POWDER && o.role !== ROLE.HAND || o.deck === foe.weatherDeck); });   // 露天的人（最上面那層砲甲板的砲班、走到那一層的預備水手也算）
   c.fireT = 0.4;
-  spawnPt(w, [WIND[0] * 0.3, 0.4, WIND[2] * 0.3], rr(1.5, 2.5), [0.85, 0.85, 0.85], 0.35, 0.3, 1.4, -0.03, 0.8);
+  spawnPt(w, [WIND[0] * 0.3, 0.4, WIND[2] * 0.3], rr(1.5, 2.5) / smokeK(), [0.85, 0.85, 0.85], 0.35, 0.3, 1.4, -0.03, 0.8);
   if (!cand.length) return;
   var o = cand[(rnd() * cand.length) | 0], ow = M4.pt(foe.M, o.pos[0], o.pos[1], o.pos[2]), dist = len(sub(ow, w));
   if (rnd() < clamp(0.05 * 100 / dist, 0.01, 0.12)) damageCrew(foe, o, rr(40, 125), '火槍');   // 血量 100 時約三成一槍斃命（跟以前的 0.3 對齊）
