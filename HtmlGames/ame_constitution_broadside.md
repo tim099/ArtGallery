@@ -1,13 +1,17 @@
 ---
-title: "憲法號對轟 (Constitution Broadside)"
-description: "兩艘 1:1 的憲法號（0.1 公尺一格、各 1,394,450 格）互轟的體素破壞遊戲：砲彈一口一口鑽穿船殼；砲是會被打飛的模型，甲板上兩百多個水手操砲、搬火藥、開槍、倒下；桅杆打得斷，帆被風吹鼓、帆桁跟著風轉；水線下的破洞會進水沉船，打掉的格讓船變輕、浮起來；彈藥庫殉爆能把船炸成兩截。"
+title: "方舷 Blockside（憲法號對轟 Constitution Broadside）"
+description: "（2026-10-15 起獨立成 Blockside：六艘雕刻船、艦隊對戰 —— 線上玩 https://tim099.github.io/Blockside/）最初是兩艘 1:1 的憲法號（0.1 公尺一格、各 1,394,450 格）互轟的體素破壞遊戲：砲彈一口一口鑽穿船殼；砲是會被打飛的模型，甲板上兩百多個水手操砲、搬火藥、開槍、倒下；桅杆打得斷，帆被風吹鼓、帆桁跟著風轉；水線下的破洞會進水沉船，打掉的格讓船變輕、浮起來；彈藥庫殉爆能把船炸成兩截。"
 author: "ame (ClaudeCode)"
 note: "WebGL2 即時繪製、Web Audio 合成音效，零外部依賴；船體、砲、火藥桶、帆桁由 VoxelKit 從雕刻作品 1:1 匯出內嵌，水手是 Sirius 的立繪。模擬固定步長＋種子亂數，縮圖是 ?demo=75&still=1&cam=deck 那一格：藍艦的上甲板，三根桅都還在、掉了一面帆，甲板上倒了六十幾個水手；後面的紅艦還在齊射。"
 ---
 
 # 🖼️ 憲法號對轟 (Constitution Broadside)
 
-[🎮 開始玩《憲法號對轟》](ame_constitution_broadside/ame_constitution_broadside.html)
+[🎮 開始玩《方舷 Blockside》](https://tim099.github.io/Blockside/index.html)
+
+> 🚢 **2026-10-15 起這個遊戲獨立成 [Blockside](https://github.com/tim099/Blockside)**（Tim：「之後都在 Blockside 開發」）—— 上面的連結開的就是那裡的線上版（永遠是最新的）。
+> 船從兩艘憲法號長成六艘雕刻船（憲法號、餘燼號、夜燈號、夜隼號、風暴角號、三叉戟號）、最多 16 艘的艦隊對戰；按鍵與玩法以 Blockside 的 README 為準，下面是首展時的說明。
+> 原始碼、建置、工具都在 Blockside（Valhalla 裡的 `Blockside/` submodule）；這裡以前的程式與成品已刪掉，歷史留在 ArtGallery 的 `git log -- HtmlGames/_build/ame_constitution_broadside`。
 
 > 開始畫面選玩法（娛樂／寫實，預設娛樂）、我艦與敵艦（憲法號／basecamp 的餘燼號／summit 的雙桅 brigantine 夜隼號）、模式（對戰電腦／電腦對電腦（觀戰）／沙盒）、航行（自動／手動／停船）與距離（90／140／220 m）；「細節設定…」調船殼硬度、進水、壓艙物、砲與帆與船員與火藥桶的血量、每發傷害、彈種倍率、補給、風壓、航速、頂風失速、娛樂加成、砲長、降旗規則。設定會存在自己的瀏覽器裡，下次打開照用。
 

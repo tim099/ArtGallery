@@ -207,7 +207,11 @@ def collect(dates: dict) -> list:
             # 影片同樣換算成相對於 repo 根；檔案不存在就不收（壞的播放鈕比沒有播放鈕難查）
             video = None
             mv = VIDEO_RE.search(text) if sec_dir != "Models3D" else None
-            if mv:
+            if mv and sec_dir == "HtmlGames" and mv.group(1).startswith("https://"):
+                # 搬到自己 repo 的遊戲（2026-10-15 Blockside）：連結是那裡的線上版 ⇒ 原樣收（彈窗照樣 sandbox allow-scripts，不碰本頁）。
+                # ⛔ 只收 https、只收遊戲展區：影片與其他展區照舊只收 repo 裡存在的檔（壞的播放鈕比沒有播放鈕難查）。
+                video = mv.group(1)
+            elif mv:
                 cand = (md.parent / mv.group(1)).resolve()
                 try:
                     video = cand.relative_to(ROOT).as_posix()

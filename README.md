@@ -124,7 +124,7 @@ last_updated: 2026-10-03
 ### 5. HTML 遊戲展區 (HTML Games) 🆕
 > 可以玩的展品。一件展品＝一份**單檔 HTML 遊戲**（WebGL2／Web Audio，零外部依賴）；用雕刻作品當素材時走共用的 [VoxelKit](VoxelKit/README.md)，1:1 不降採樣。
 
-* **作品名稱**：[憲法號對轟 (Constitution Broadside)](HtmlGames/ame_constitution_broadside.md) ⛺新展 —— 兩艘 1:1（0.1 m 一格、各 1,434,874 格）的憲法號互轟：砲彈一口一口鑽穿船殼、碎屑噴進艙裡，桅杆打得斷、斷掉的上半截連帆帶繩倒進海裡，水線下的破洞會進水、傾斜、沉沒（素材：basecamp《憲法號（組裝）》）
+* **作品名稱**：[方舷 Blockside（憲法號對轟）](HtmlGames/ame_constitution_broadside.md) ⛺新展 —— 2026-10-15 起獨立成自己的 repo [Blockside](https://github.com/tim099/Blockside)（線上玩 https://tim099.github.io/Blockside/；六艘雕刻船、最多 16 艘的艦隊對戰）。首展時是兩艘 1:1（0.1 m 一格、各 1,434,874 格）的憲法號互轟：砲彈一口一口鑽穿船殼、碎屑噴進艙裡，桅杆打得斷、斷掉的上半截連帆帶繩倒進海裡，水線下的破洞會進水、傾斜、沉沒（素材：basecamp《憲法號（組裝）》）
 * **怎麼玩**：逛展網頁點卡片 ⇒ 彈窗裡直接玩；或按「🎮 新分頁全螢幕遊玩」。
 * **製作與上架流程**：[HTML 遊戲工作流](HTML_GAME_WORKFLOW.md)
 
@@ -143,7 +143,7 @@ last_updated: 2026-10-03
 - `SculptureInterpretations/`：3D 體積雕刻轉換圖展區 (⛺新展：[深海神殿與水花](SculptureInterpretations/gura_sculpture_ocean_temple.md))
 - `ReadingReflections/`：閱讀心得展區 (⛺新展：[會動的鎧甲生態解剖：剝除詛咒幻象後的群落生機](ReadingReflections/calli_dungeon_meshi_living_armor_anatomy.md) ⛺新展、[公鹿堡陰霾下的蜂蠟微光：莫利的燭室與刺客的棲身之所](ReadingReflections/calli_royal_assassin_molly_beeswax_warmth.md) ⛺新展、[巨魔像的自走溫室：逆向工程的生態農田](ReadingReflections/apex_one_delicious_in_dungeon_golem_bio_farm.md) ⛺新展、[迷宮 SRE 的柴火燉菜：封閉系統的循環之火](ReadingReflections/apex_one_delicious_in_dungeon_sysadmin_stew.md) ⛺新展、[爐火慢烤的生命煉金：碳烤巴西立斯克](ReadingReflections/calli_dungeon_roast_basilisk.md)、[傲嬌精靈的美味臣服：瑪露希爾的大口烤雞](ReadingReflections/calli_dungeon_marcille_roast_surrender.md)、[席爾瓦的底艙豪賭](ReadingReflections/kiara_black_sails_silver_galley_gamble.md)、[弗林特船長的反叛旗幟](ReadingReflections/kiara_black_sails_flint_tyrant_speech.md)、[拿騷女王的黑市鐵腕](ReadingReflections/kiara_black_sails_eleanor_nassau_queen.md)、[底艙的殘頁與賠率](ReadingReflections/sirius_black_sails_torn_page_and_odds.md)、[人均八美元的算術兵變](ReadingReflections/sirius_black_sails_eight_dollar_mutiny.md)、[未失忠誠的失智水手](ReadingReflections/sirius_black_sails_loyalty_to_randall.md)、[帕利塞德的黃沙劇組與雙軌之夢](ReadingReflections/gura_palisade_staged_frontier.md) ⛺新展)
 - `HtmlVideos/`：HTML 影片展區（展品 `.md` ＋ 同名 `.html` 影片本體）(⛺新展：[潮與刻痕](HtmlVideos/gura_tide_and_engraving.md))
-- `HtmlGames/`：HTML 遊戲展區（這一層只放展品 `.md`；遊戲本體與附屬頁收在同名子資料夾；`_build/` 放開發用源檔）(⛺新展：[憲法號對轟](HtmlGames/ame_constitution_broadside.md))
+- `HtmlGames/`：HTML 遊戲展區（這一層只放展品 `.md`；遊戲本體與附屬頁收在同名子資料夾；`_build/` 放開發用源檔）(⛺新展：[方舷 Blockside（憲法號對轟）](HtmlGames/ame_constitution_broadside.md) —— 程式已搬到 Blockside，這裡只留展品卡)
 - `VoxelKit/`：雕刻作品進 HTML 展品的共用工具（匯出、封裝、瀏覽器端）
 - `RawImages/`：原始圖檔
 - `Models3D/`：3D 模型展區（展品 `.md`、互動 `.html`、`Assets/` 的 GLB／Blender 原檔、`Source/` 的建模來源）

@@ -7,10 +7,14 @@ related:
   - repo:ArtGallery/WORKFLOW.md | 畫廊策展與上架規範
   - repo:ArtGallery/HTML_VIDEO_WORKFLOW.md | HTML 影片（播放器、館藏圖、縮圖指令的出處）
   - repo:ArtGallery/VoxelKit/README.md | 雕刻作品進 HTML（匯出、封裝、瀏覽器端）
-  - repo:ArtGallery/HtmlGames/ame_constitution_broadside/ame_constitution_broadside.html | 首展《憲法號對轟》（本文規則的活體）
+  - https://github.com/tim099/Blockside | 首展《憲法號對轟》—— 2026-10-15 起獨立成 Blockside（本文規則的活體；程式、建置、工具都在那裡）
 ---
 
 # HTML 遊戲工作流
+
+> 📦 2026-10-15：首展《憲法號對轟》長大、獨立成自己的 repo **Blockside**（Valhalla 的 `Blockside/` submodule；線上 https://tim099.github.io/Blockside/）——
+> 它的建置、後台、工具看 Blockside 的 `src/README.md`。畫廊這邊只留展品卡（連結指到線上版：`build_gallery.py` 的 HtmlGames 展區收 https 連結）。
+> 本文的規則（零依賴、固定步長＋種子、網址參數、VoxelKit、縮圖、展品卡）照舊適用於畫廊裡的其他遊戲；下面提到 `_build/ame_constitution_broadside` 的地方是當時的例子。
 
 > **一件 HTML 遊戲展品＝一份可以玩的 HTML。** 它跟影片的差別是沒有固定的時間軸：畫面由玩家的輸入決定。
 > 所以「縮圖、驗收、觀眾看到的是同一格」這件事，要靠**固定步長的模擬＋有種子的亂數**換回來。
