@@ -69,7 +69,7 @@
   #gfxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
   #phxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #phxItems label{ width:6em; text-align:right; margin-right:6px; }
   #phxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
-  #nav{ left:12px; bottom:34px; width:176px; padding:6px 10px 8px; font-size:11px; line-height:1.5; }
+  #nav{ left:12px; bottom:34px; padding:3px; border-radius:50%; }   /* 羅盤：只剩圓盤（TASK-0566；文字搬進詳細資訊 navText） */ #navt{ display:none; }
   #navc{ position:static; inset:auto; width:150px; height:150px; display:block; margin:0 auto 2px; cursor:default; }
   /* 手機直拿：兩邊面板縮成一半並排、羅盤縮小塞進兩個面板中間（Tim 2026-10-13）、控制列換行、按鈕放大
      羅盤：面板各 147 px 寬 ⇒ 中間剩 100vw − 306 px（393 寬 87、375 寬 69、360 寬 54）⇒ 羅盤寬跟著它、夾在 44–84 px（羅盤面板比 canvas 多 8 px）；底下的文字收起來

@@ -69,7 +69,7 @@
   #gfxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
   #phxItems .row{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; font-size:14px; } #phxItems label{ width:6em; text-align:right; margin-right:6px; }
   #phxItems button{ font-size:13px; padding:4px 10px; margin:2px; }
-  #nav{ left:12px; bottom:34px; width:176px; padding:6px 10px 8px; font-size:11px; line-height:1.5; }
+  #nav{ left:12px; bottom:34px; padding:3px; border-radius:50%; }   /* 羅盤：只剩圓盤（TASK-0566；文字搬進詳細資訊 navText） */ #navt{ display:none; }
   #navc{ position:static; inset:auto; width:150px; height:150px; display:block; margin:0 auto 2px; cursor:default; }
   /* 手機直拿：兩邊面板縮成一半並排、羅盤縮小塞進兩個面板中間（Tim 2026-10-13）、控制列換行、按鈕放大
      羅盤：面板各 147 px 寬 ⇒ 中間剩 100vw − 306 px（393 寬 87、375 寬 69、360 寬 54）⇒ 羅盤寬跟著它、夾在 44–84 px（羅盤面板比 canvas 多 8 px）；底下的文字收起來
@@ -6612,7 +6612,7 @@ function panel(sh, title) {
   return '<h3>' + title + '<span class="disp">排水量 ' + disp.toLocaleString() + ' 噸・現在 ' + now.toLocaleString() + ' 噸</span>' + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3><div class="pcols"><div class="pc">船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
     '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + (sh.fl && !sh.broken ? '（艙內積水 ' + Math.round(sh.fl.vol * RHO_W).toLocaleString() + ' 噸・破口 ' + sh.fl.area.toFixed(1) + ' m²）' : '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
-    ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正')) + '</div><div class="pc">' +
+    ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正')) + '<br>' + navText(sh) + '</div><div class="pc">' +
     capText(sh) + '<br>' +
     '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）' + handsText(sh) + swimText(sh) + '　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits +
@@ -6815,10 +6815,17 @@ function drawNav(sh) {
       g.closePath(); g.fill();
     });
   });
-  // 風：從圈外吹進來的箭頭
-  var Wd = norm(WIND), from = [-Wd[0], 0, -Wd[2]], a0 = P(from, 1.2), a1 = P(from, 0.62), hd = norm([a1[0] - a0[0], 0, a1[1] - a0[1]]);
-  line(a0, a1, '#8fd3ff', 2.5);
-  g.fillStyle = '#8fd3ff'; g.beginPath(); g.moveTo(a1[0] + hd[0] * 4, a1[1] + hd[2] * 4); g.lineTo(a1[0] - hd[0] * 6 - hd[2] * 5, a1[1] - hd[2] * 6 + hd[0] * 5); g.lineTo(a1[0] - hd[0] * 6 + hd[2] * 5, a1[1] - hd[2] * 6 - hd[0] * 5); g.fill();
+  // 風：三條平行的風線從圈外吹進來（Tim 2026-10-14：一眼看出是風向），中間那條最長、尖端一個 ＞；風越強越長、越粗、越開（TASK-0566）：
+  //   長 ＝ 0.25 ＋ 節 ÷ 60（0.3–0.95 個半徑；兩邊那兩條 ×0.65）、粗 ＝ 1 ＋ 節 ÷ 30（到 3 px）、間距 4 ＋ 節 ÷ 12 px ⇒ 晴天約 14 節短細、暴風雨 50 節長到圓心附近
+  var Wd = norm(WIND), from = [-Wd[0], 0, -Wd[2]], kn = windKnots(), wl = clamp(0.25 + kn / 60, 0.3, 0.95), ww = clamp(1 + kn / 30, 1, 3), gap = clamp(4 + kn / 12, 4, 9);
+  var a0 = P(from, 1.2), a1 = P(from, 1.2 - wl), hd = norm([a1[0] - a0[0], 0, a1[1] - a0[1]]), nx = -hd[2], ny = hd[0], hs = 3 + ww * 1.5;
+  g.lineCap = 'round';
+  [[0, 1], [gap, 0.65], [-gap, 0.65]].forEach(function (q) {
+    var o0 = [a0[0] + nx * q[0], a0[1] + ny * q[0]], o1 = [o0[0] + (a1[0] - a0[0]) * q[1], o0[1] + (a1[1] - a0[1]) * q[1]];
+    line(o0, o1, '#8fd3ff', ww);
+  });
+  g.beginPath(); g.moveTo(a1[0] - hd[0] * hs + nx * hs * 0.8, a1[1] - hd[2] * hs + ny * hs * 0.8); g.lineTo(a1[0], a1[1]); g.lineTo(a1[0] - hd[0] * hs - nx * hs * 0.8, a1[1] - hd[2] * hs - ny * hs * 0.8); g.stroke();
+  g.lineCap = 'butt';
   // 其他船的方位（TASK-0537：全部畫，敵紅、友藍、沉了灰；一對一 ＝ 以前那一個紅點）
   SHIPS.forEach(function (o) {
     if (o === sh || !o.center || !sh.center) return;
@@ -6837,6 +6844,13 @@ function drawNav(sh) {
     var S2 = norm([F[2], 0, -F[0]]), tip0 = P(F, 0.42), l = P(add(mul(F, -0.32), mul(S2, 0.12)), 1), r2 = P(add(mul(F, -0.32), mul(S2, -0.12)), 1);
     g.fillStyle = tc; g.beginPath(); g.moveTo(tip0[0], tip0[1]); g.lineTo(l[0], l[1]); g.lineTo(r2[0], r2[1]); g.closePath(); g.fill();
   }
+  // 航速（TASK-0566）：從船頭往前延伸的白色箭頭，長 ＝ 節 ÷ 12 × 0.5 個半徑（最長到 1.32，圈外一點）；不到 0.3 節不畫
+  var sk = sh.spd * 1.944;
+  if (sk >= 0.3) {
+    var s0 = P(F, 0.8), s1 = P(F, Math.min(1.32, 0.8 + sk / 12 * 0.5)), sd = norm([s1[0] - s0[0], 0, s1[1] - s0[1]]);
+    g.lineCap = 'round'; line(s0, s1, '#ffffff', 2.5); g.lineCap = 'butt';
+    g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(s1[0] + sd[0] * 5, s1[1] + sd[2] * 5); g.lineTo(s1[0] - sd[2] * 4, s1[1] + sd[0] * 4); g.lineTo(s1[0] + sd[2] * 4, s1[1] - sd[0] * 4); g.closePath(); g.fill();
+  }
   // 轉向（Tim 2026-10-13：用圖示表現轉彎的方向與快慢，沿外圈畫）：從船頭的方向沿外圈畫到「照現在的轉向率，TURN_T 秒後船頭會在哪」，
   //   箭頭 ＝ 轉的方向，弧越長轉得越快（最多 120°）；幾乎直走（< 0.2°/秒）只畫船頭那一點。跟船頭在羅盤上用同一支 P(fwd(yaw)) ⇒ 弧的起點就是船頭指的方向。
   var yr = sh.yawRate || 0, span = clamp(yr * TURN_T, -2.094, 2.094), hp = P(F, 1.07);
@@ -6850,16 +6864,15 @@ function drawNav(sh) {
     var e1 = pt[nT], e0 = pt[nT - 1], tl = Math.hypot(e1[0] - e0[0], e1[1] - e0[1]) || 1, tx = (e1[0] - e0[0]) / tl, ty = (e1[1] - e0[1]) / tl;   // 箭頭：沿弧的切線
     g.beginPath(); g.moveTo(e1[0] + tx * 6, e1[1] + ty * 6); g.lineTo(e1[0] - ty * 4.5, e1[1] + tx * 4.5); g.lineTo(e1[0] + ty * 4.5, e1[1] - tx * 4.5); g.closePath(); g.fill();
   }
-  // 文字
-  var hb = bearing(F[0], F[2]), wb = bearing(from[0], from[2]), roll = (sh.rollA + (sh.rollW || 0)) * 57.2958, pitch = (sh.pitchA + (sh.pitchW || 0)) * 57.2958;
-  var hull = sh.grid.count / sh.orig * 100, fl = floodPct(sh) * 100;
-  $('navt').innerHTML =
-    '航向 ' + deg3(hb) + '（' + compassName(hb) + '）　' + (sh.spd * 1.944).toFixed(1) + ' 節<br>' +
-    '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>　' + sh.pos + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
-    '船體 ' + hull.toFixed(1) + '%　進水 ' + (sh.sunk ? '沉沒' : fl.toFixed(0) + '%') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<br>' +
-    '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°<br>' +
-    SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') +
-    (Math.abs(yr) > 0.0035 ? '　<span style="color:' + TURN_COL + '">' + (yr > 0 ? '左' : '右') + '轉 ' + (Math.abs(yr) * 57.2958).toFixed(1) + '°/秒</span>' : '');   // yawRate 正 ＝ 畫面上左轉（31_sailing.js fwd）
+  // 文字搬進詳細資訊（navText，TASK-0566：羅盤電腦版跟手機版一樣只剩圓盤）
+}
+/** 羅盤以前底下那幾行（TASK-0566 搬進詳細資訊的左欄）：航向與轉向、風（從哪吹來、節、相對位置、失速）、傾斜與縱傾。照那一艘自己的（不只我艦）。 */
+function navText(sh) {
+  var F = fwd(sh.yaw), Wd = norm(WIND), hb = bearing(F[0], F[2]), wb = bearing(-Wd[0], -Wd[2]), yr = sh.yawRate || 0;
+  var roll = (sh.rollA + (sh.rollW || 0)) * 57.2958, pitch = (sh.pitchA + (sh.pitchW || 0)) * 57.2958;
+  return '航向 ' + deg3(hb) + '（' + compassName(hb) + '）' + (Math.abs(yr) > 0.0035 ? '　<span style="color:' + TURN_COL + '">' + (yr > 0 ? '左' : '右') + '轉 ' + (Math.abs(yr) * 57.2958).toFixed(1) + '°/秒</span>' : '') + '<br>' +   // yawRate 正 ＝ 畫面上左轉（31_sailing.js fwd）
+    '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>' + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
+    '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°';
 }
 function hud(dt) {
   stepMsgs(dt);
