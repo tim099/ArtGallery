@@ -1,12 +1,12 @@
 # 《憲法號對轟》的重產工具
 
-`HtmlGames/ame_constitution_broadside.html` 是由這裡的 `template.html`、`js/`、`config/game.json`，加上共用的 `VoxelKit/` 產生的：
+`HtmlGames/ame_constitution_broadside/ame_constitution_broadside.html` 是由這裡的 `template.html`、`js/`、`config/game.json`，加上共用的 `VoxelKit/` 產生的：
 
 | 檔 | 做什麼 |
 |---|---|
 | `template.html` | 版面、HUD（下方的按鍵提示就是按鈕）、主選單（模式、航行、距離（滑桿）、帆繩物理、「細節設定…」與一行摘要）與細節設定頁（船殼、砲與每發傷害、彈種倍率、帆、船員、火藥桶、航行、降旗）；引用 `../../../VoxelKit/voxelkit.js`、`js/*.js`（照順序、`data-bundle="game"`）、船的 `.vxk`（`ships 開始`／`ships 結束` 兩個記號中間那段由 `admin.py` 照設定檔改寫）、設定檔與 `art/` 的選用素材 |
 | `config/game.json` | **各項設定的初始值與船隻清單**（TASK-0542）：船數上限、主選單預設、滑桿的上下限與預設、開局距離、彈種倍率、砲種表、船型高度與船員配置的預設、每艘船（內嵌 id、名字、`.vxk`、雕刻作品、船隻設定、高度、船員）。內嵌進成品，`js/00_config.js` 讀成 `CFG`。⛔ 這些值在 js 裡沒有第二份 |
-| `admin.py` | 設定檔的唯一寫入端：驗設定、改寫船標籤、建置、匯入新船、重新匯入；`serve` 開設定後台（`HtmlGames/ame_constitution_broadside_admin.html`，不是展品） |
+| `admin.py` | 設定檔的唯一寫入端：驗設定、改寫船標籤、建置、匯入新船、重新匯入；`serve` 開設定後台（`HtmlGames/ame_constitution_broadside/ame_constitution_broadside_admin.html`，不是展品） |
 | `js/` | 遊戲本體，照功能分檔（下表）；建置時接成同一個閉包 |
 | `art/`（選用） | 美術素材 `crew.png`、`fx.png`、`hud.png`；規格在 TASK-0516。沒交 ⇒ 程式畫的替代品 |
 
@@ -14,7 +14,7 @@
 # 建置：驗 config/game.json ⇒ 船標籤照船隻清單 ⇒ vxk_inline.py 內嵌成單檔
 python -I admin.py build
 # 設定後台（只聽本機）：http://127.0.0.1:8642/ —— 改設定、儲存並重建、匯入新船、重新匯入；--open 自動開瀏覽器，已經開著 ⇒ 只開頁面
-# 一鍵：雙擊 HtmlGames/ame_constitution_broadside_admin.cmd（＝ serve --open；關掉那個視窗就停）
+# 一鍵：雙擊 HtmlGames/ame_constitution_broadside/ame_constitution_broadside_admin.cmd（＝ serve --open；關掉那個視窗就停）
 python -I admin.py serve --open
 # 匯入新船（雕刻作品 ⇒ _cache/<代號>.vxk ⇒ 登記進船隻清單 ⇒ 建置；比例要跟現有的船一樣）
 python -I admin.py import --work <雕刻作品 ID> --id <代號> --name <名字>
@@ -211,7 +211,7 @@ python -I admin.py reimport --id constitution
     對拍用的 dump（`?demo=秒&dump=1&seed=&blue=…&red=…&dist=&cmd=我方,敵方`；無頭 Chrome `--dump-dom` 讀 `#dump`）：`cmd`、`wind`（rot 度、s0）、`down`（哪一方幾秒打完）、`pow`（兩方剩下的戰力，跟沙盒的判定同一把尺）；
       每艘 `str`、`sail`、`modeT`（各瞄準模式的秒數）、`fired`／`fireDn`／`fireUp`／`hitDn`／`hitUp`（順風打＝砲線朝風吹去的方向）、`tl`（每 10 秒：[秒, 帆, 倒桅, 打中, 航速, 砲剩幾成, 人剩幾成, 離最近的敵艦 m]）。
     ⚠ 戰列在遊戲裡還排不起來（開局 140 m、兩排橫隊船頭相對 ⇒ 幾秒內開打、帆被打爛、航速掉到 1 節以下）—— 走過的坑：排頭全速 ⇒ 後面的追不上；跟隨的超前就掉頭 ⇒ 舵靠航速才轉得動、卡死；排頭半速又頂風 ⇒ 整隊爬。要接戰前先排好（開局遠一點），沙盒先比。
-  - **2D 策略沙盒**（TASK-0551；`sandbox.html` ⇒ `HtmlGames/ame_broadside_sandbox.html`，沒有同名的 .md ⇒ 不在展區顯示）：指揮官跟遊戲同一份 `53_commander.js`；
+  - **2D 策略沙盒**（TASK-0551；`sandbox.html` ⇒ `HtmlGames/ame_constitution_broadside/ame_broadside_sandbox.html`，不在展區顯示）：指揮官跟遊戲同一份 `53_commander.js`；
     `sb_sim.js` 只算位置、航向、照風的航速（抄 `31_sailing.js` 的公式）、兩舷的砲（正橫 ±26°）、船殼／砲／人的血、每根桅的帆（`sbRig`）；風向、風速照種子（＝ 遊戲的 `windInit`）；`sb_ui.js` 單場俯視（命令線、站位、齊射）＋ 批次（策略兩兩對打、一半換邊，出勝率表）。一步 0.1 秒，4 對 4 一場幾十毫秒。
     校準（2026-10-14，`SB_CAL`／`SB_HULLS` 旁邊有量法）：兩艘憲法號平行對轟、每秒拉回原位，100～800 m 各 60 秒 ⇒ 每一發命中 60／50／51／41／38／35／33%（距離影響小；兩邊差很多 ~30% 對 ~70%，風讓船傾 ⇒ 取平均）；
     每中一發倒 1.30 人、少 0.116 門砲；60 秒上百發只沉 0–0.016 m（遊戲沉船靠水線下的洞慢慢進水）⇒ 船殼用「幾發沉」近似、對整場打沉的時間。

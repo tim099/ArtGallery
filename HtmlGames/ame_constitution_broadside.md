@@ -7,7 +7,7 @@ note: "WebGL2 即時繪製、Web Audio 合成音效，零外部依賴；船體�
 
 # 🖼️ 憲法號對轟 (Constitution Broadside)
 
-[🎮 開始玩《憲法號對轟》](ame_constitution_broadside.html)
+[🎮 開始玩《憲法號對轟》](ame_constitution_broadside/ame_constitution_broadside.html)
 
 > 開始畫面選玩法（娛樂／寫實，預設娛樂）、我艦與敵艦（憲法號／basecamp 的餘燼號／summit 的雙桅 brigantine 夜隼號）、模式（對戰電腦／電腦對電腦（觀戰）／沙盒）、航行（自動／手動／停船）與距離（90／140／220 m）；「細節設定…」調船殼硬度、進水、壓艙物、砲與帆與船員與火藥桶的血量、每發傷害、彈種倍率、補給、風壓、航速、頂風失速、娛樂加成、砲長、降旗規則。設定會存在自己的瀏覽器裡，下次打開照用。
 

@@ -7,7 +7,7 @@ related:
   - repo:ArtGallery/WORKFLOW.md | 畫廊策展與上架規範
   - repo:ArtGallery/HTML_VIDEO_WORKFLOW.md | HTML 影片（播放器、館藏圖、縮圖指令的出處）
   - repo:ArtGallery/VoxelKit/README.md | 雕刻作品進 HTML（匯出、封裝、瀏覽器端）
-  - repo:ArtGallery/HtmlGames/ame_constitution_broadside.html | 首展《憲法號對轟》（本文規則的活體）
+  - repo:ArtGallery/HtmlGames/ame_constitution_broadside/ame_constitution_broadside.html | 首展《憲法號對轟》（本文規則的活體）
 ---
 
 # HTML 遊戲工作流
@@ -21,9 +21,11 @@ related:
 
 ```text
 ArtGallery/
-  HtmlGames/
-    <author>_<theme>.html          # 成品（單檔，全部內嵌）
-    <author>_<theme>.md            # 展品卡（同名同目錄）
+  HtmlGames/                       # 放所有遊戲：這一層只有展品卡（Tim 2026-10-14）
+    <author>_<theme>.md            # 展品卡
+    <author>_<theme>/              # 遊戲自己的資料夾：成品與其他頁都收在這裡
+      <author>_<theme>.html        #   成品（單檔，全部內嵌）；展品卡的遊戲連結指 <author>_<theme>/<author>_<theme>.html
+      …                            #   附屬頁（沙盒、設定後台…）：不是展品，沒有展品卡
     _build/<author>_<theme>/       # 開發用：template.html、遊戲 .js（可照功能分成 js/*.js）、README.md（怎麼重產）
   RawImages/<author>_<theme>_poster.png
   VoxelKit/                        # 用雕刻作品當素材時共用（見 VoxelKit/README.md）
@@ -75,7 +77,7 @@ frontmatter 照 `WORKFLOW.md` §三.2（value 一律雙引號）。機械約定�
 
 | 約定 | 誰讀它 | 寫法 |
 |---|---|---|
-| **遊戲連結** | `build_gallery.py` 的 `VIDEO_RE`：正文裡第一個指向 `.html` 的連結；`HtmlGames/` 的另外標 `game` | `[🎮 開始玩《作品名》](<同名>.html)` |
+| **遊戲連結** | `build_gallery.py` 的 `VIDEO_RE`：正文裡第一個指向 `.html` 的連結；`HtmlGames/` 的另外標 `game` | `[🎮 開始玩《作品名》](<同名>/<同名>.html)` |
 | **縮圖** | 第一個圖片語法 | `![說明](../RawImages/<同名>_poster.png)` |
 
 建議正文段落：玩法（操作表）→ 來源 → 模擬怎麼做 → 製作讀數（量了什麼、抓到什麼錯、⚠ 沒量到什麼）。
@@ -87,7 +89,7 @@ frontmatter 照 `WORKFLOW.md` §三.2（value 一律雙引號）。機械約定�
   --use-angle=swiftshader --enable-unsafe-swiftshader \
   --window-size=1280,720 --virtual-time-budget=60000 \
   --screenshot="<ArtGallery>/RawImages/<author>_<theme>_poster.png" \
-  "file:///<ArtGallery>/HtmlGames/<author>_<theme>.html?demo=<秒>&still=1&cam=<名>"
+  "file:///<ArtGallery>/HtmlGames/<author>_<theme>/<author>_<theme>.html?demo=<秒>&still=1&cam=<名>"
 ```
 
 - WebGL 遊戲要 `--use-angle=swiftshader --enable-unsafe-swiftshader`（無頭沒有 GPU）；`--virtual-time-budget` 給快轉的時間。
@@ -104,7 +106,7 @@ frontmatter 照 `WORKFLOW.md` §三.2（value 一律雙引號）。機械約定�
 | 4 | **建置** | `python build_gallery.py` | 摘要的「遊戲 N」多 1；沒有 `⚠ 影片不存在` |
 | 5 | **畫廊網頁** | 本機伺服器開 `index.html?sec=HtmlGames&view=all` | 卡片標「🎮 HTML 遊戲」；彈窗 iframe 載入成品 |
 | 6 | **真 GPU** | 一般瀏覽器開成品，讀主控台 | 沒有著色器編譯錯誤（無頭的軟體算繪抓不到 D3D11 的錯） |
-| 7 | **sandbox 裡跑得動** | 在畫廊伺服器底下暫放一頁 `<iframe sandbox="allow-scripts" src="HtmlGames/<名>.html?demo=<秒>&still=1">`，無頭 Chrome 截它（加下面兩個旗標），截完刪掉那一頁 | 跟縮圖逐位元組相同 |
+| 7 | **sandbox 裡跑得動** | 在畫廊伺服器底下暫放一頁 `<iframe sandbox="allow-scripts" src="HtmlGames/<名>/<名>.html?demo=<秒>&still=1">`，無頭 Chrome 截它（加下面兩個旗標），截完刪掉那一頁 | 跟縮圖逐位元組相同 |
 
 ### ⚠ 已知的量具盲區
 

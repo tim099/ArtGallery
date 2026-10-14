@@ -7,9 +7,9 @@
 #
 # 用法（在這個資料夾）：
 #   python -I admin.py serve [--port 8642] [--open]  開設定後台（只聽 127.0.0.1）⇒ 瀏覽器開 http://127.0.0.1:8642/（--open 自動開；已經開著 ⇒ 只開頁面）
-#     一鍵：雙擊 HtmlGames/ame_constitution_broadside_admin.cmd（＝ serve --open）
+#     一鍵：雙擊 HtmlGames/ame_constitution_broadside/ame_constitution_broadside_admin.cmd（＝ serve --open）
 #   python -I admin.py check                      驗 config/game.json
-#   python -I admin.py build                      照設定重建 ../../ame_constitution_broadside.html
+#   python -I admin.py build                      照設定重建 ../../ame_constitution_broadside/ame_constitution_broadside.html
 #   python -I admin.py import --work <雕刻作品 ID> --id <船的代號> --name <名字>   匯入新船（匯出 .vxk、登記、重建）
 #   python -I admin.py reimport --id <船的代號> [--work <作品 ID>]                 重新匯入（換新的 .vxk、印跟上一版的差別、重建）
 #   python -I admin.py cache                      _cache/ 缺的 .vxk 從版控那份成品裡解回來（換機器、只改程式時用）
@@ -20,8 +20,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 HERE = os.path.dirname(os.path.abspath(__file__))
 CFG_P = os.path.join(HERE, 'config', 'game.json')
 TPL = os.path.join(HERE, 'template.html')
-OUT = os.path.normpath(os.path.join(HERE, '..', '..', 'ame_constitution_broadside.html'))
-PAGE = os.path.normpath(os.path.join(HERE, '..', '..', 'ame_constitution_broadside_admin.html'))
+OUT = os.path.normpath(os.path.join(HERE, '..', '..', 'ame_constitution_broadside', 'ame_constitution_broadside.html'))   # 成品、後台頁收在遊戲自己的資料夾（HtmlGames/ 只放展品卡 .md）
+PAGE = os.path.normpath(os.path.join(HERE, '..', '..', 'ame_constitution_broadside', 'ame_constitution_broadside_admin.html'))
 VKD = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'VoxelKit'))
 CACHE = os.path.join(VKD, '_cache')
 INLINE = os.path.join(VKD, 'vxk_inline.py')
