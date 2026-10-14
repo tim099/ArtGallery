@@ -181,7 +181,7 @@ function fleetHud(me) {
 // ───────────────────────── 砲位圖（TASK-0564；Tim 2026-10-14） ─────────────────────────
 // 展開的那一艘：俯視船體（05_hull.js navImg，船頭朝上、右舷在右；Tim 2026-10-14）直接鋪在詳細資訊旁邊（沒有底框；窄螢幕排到下面），每門砲畫在它的砲口位置。
 //   比例尺固定（電腦 GMAP_K px／公尺、手機 2.5，跟卡片並排）⇒ 小船就小；右下角一條 10 m。上下幾層的砲同一個位置 ⇒ 沿砲軸往外錯開：最上層往船內 1.4 m、往下每一層再往外 2.3 m。
-//   砲的符號與顏色跟砲列（gunRow）同一套：形狀 ＝ 裝填（● 好 ◌ 裝填中 ○ 開不了 △ 等火藥 ≈ 泡水 ✕ 毀）、顏色 ＝ 人手（綠 滿編、黃 不足、灰 沒人、紅 毀、藍 泡水）；
+//   砲的符號與顏色跟下方 HUD（gunCell）同一套：形狀 ＝ 裝填（● 好 ◌ 裝填中 ○ 開不了 △ 等火藥 ≈ 泡水 ✕ 毀）、顏色 ＝ 人手（綠 滿編、黃 不足、灰 沒人、紅 毀、藍 泡水）；
 //   對得到目標的那一舷（我艦看瞄準點、其他看目標中央）旁邊寫金色的「▶ 右舷／左舷」。
 var GMAP_K = 4, GMAP_PAD = 4.5;                                          // px／公尺；四周留白（公尺：最下層的砲畫在船殼外）
 var GMAP_COL = { full: '#7be37b', short: '#f0d264', none: '#9a9a9a', dead: '#ff5b5b', wet: '#58b7ff' };
@@ -218,22 +218,41 @@ function gmapDraw(sh) {
   var bar = 10 * K; g.textBaseline = 'middle'; g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W - 6 - bar, H - 6); g.lineTo(W - 6, H - 6); g.stroke();
   g.fillStyle = 'rgba(255,255,255,.85)'; g.textAlign = 'right'; g.fillText('10 m', W - 6, H - 15); g.textAlign = 'left';
 }
-/** 一舷的砲列（每層砲甲板一行、最上層在上；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
- *  顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀）；▶ ＝ 這一舷有砲對得到目標（我艦看瞄準點、其他看敵艦中央）。
- *  面板兩舷都列 ⇒ 觀戰也看得到、沒在用的那一舷壞了幾門也看得到。 */
-function gunRow(sh, side) {
-  function cell(g) {
-    var st = !g.alive ? 'dead' : g.wet ? 'wet' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
-    var k = !g.alive ? 3 : g.wet ? 5 : gunRate(g) <= 0 ? 2 : g.needCart && !(g.box > 0) ? 4 : g.reload > 0 ? 1 : 0;   // 4 ＝ 等火藥與彈藥（藥箱空了）
-    var hp = !g.alive ? 0 : Math.max(0, g.model.hp / g.model.hpMax), hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的血量）
-    var cls = 'g-' + st + (hurt ? ' hp' : ''), sty = hurt ? '--hp:' + Math.round(hp * 100) + '%;' : '';
-    if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k === 5 ? 2 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
-    return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
-  }
-  var rows = sh.decks.map(function (D) { return sh.guns.filter(function (x) { return x.deck === D.key && x.side === side; }); }).filter(function (r) { return r.length; }).reverse();   // 每層砲甲板一行，照船上的上下疊（最上層在上；Tim 2026-10-14：⛔ 以前各層用｜接成一長條）
-  var foe = foeOf(sh), w = handAim(sh) ? aimPoint(sh) : foe && foe.center;
-  var on = w && anyBears(sh, w, side), lab = (on ? '<b style="color:var(--gold)">▶' : '<span style="color:var(--dim)">　') + sideName(side) + (on ? '</b> ' : '</span> ');
-  return '<span class="gr"><span class="grl">' + lab + '</span><span class="grd">' + rows.map(function (r) { return r.map(cell).join(''); }).join('<br>') + '</span></span>';
+/** 一門砲的符號：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　△ 等火藥　≈ 泡水　✕ 毀），顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀、藍 泡水）；受損 ⇒ 底下一條血條。 */
+function gunCell(g) {
+  var st = !g.alive ? 'dead' : g.wet ? 'wet' : g.manned < g.crewMin ? 'none' : g.manned < g.crewFull ? 'short' : 'full';
+  var k = !g.alive ? 3 : g.wet ? 5 : gunRate(g) <= 0 ? 2 : g.needCart && !(g.box > 0) ? 4 : g.reload > 0 ? 1 : 0;   // 4 ＝ 等火藥與彈藥（藥箱空了）
+  var hp = !g.alive ? 0 : Math.max(0, g.model.hp / g.model.hpMax), hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的血量）
+  var cls = 'g-' + st + (hurt ? ' hp' : ''), sty = hurt ? '--hp:' + Math.round(hp * 100) + '%;' : '';
+  if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k === 5 ? 2 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
+  return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
+}
+/** HUD 放哪：追擊砲 ⇒ 砲軸偏船頭 'bow'、偏船尾 'stern'（⛔ 只看砲軸：憲法號、餘燼號船頭的追擊砲朝兩舷外 60–75°，會被當成側舷）；
+ *  其他砲 ⇒ 砲軸（格座標，+x ＝ 船頭）幾乎朝船頭／船尾才算，不然 ＝ 側舷 'side'。 */
+function gunDir(g) { if (g.type === 'chase') return g.ax[0] >= 0 ? 'bow' : 'stern'; return g.ax[0] > 0.7 ? 'bow' : g.ax[0] < -0.7 ? 'stern' : 'side'; }
+/** 我艦的砲（Tim 2026-10-14）：沒有字、沒有底板（符號描黑邊直接壓在畫面上）。
+ *  側舷砲貼畫面左右兩邊（#gunsL 左舷、#gunsR 右舷；從邊往內排、每層砲甲板一行、最上層在上；那一舷有砲對得到目標 ⇒ 貼邊一條金線）；
+ *  船頭砲在羅盤上面（#gunsB）、船尾砲在羅盤下面（#gunsA）—— 跟羅盤裡船頭朝上的船同一個方向；左舷的在左、對得到 ⇒ 靠羅盤那一側一條金線；沒有就藏起來。
+ *  下方面板原本那一格（#guns）只剩「⚠ 射界外」。 */
+function gunHud(me) {
+  var foe = foeOf(me), w = handAim(me) ? aimPoint(me) : foe && foe.center;
+  ['P', 'S'].forEach(function (side) {
+    var rows = me.decks.map(function (D) { return me.guns.filter(function (x) { return x.deck === D.key && x.side === side && gunDir(x) === 'side'; }); }).filter(function (r) { return r.length; }).reverse();
+    var on = w && me.guns.some(function (g) { return g.side === side && gunDir(g) === 'side' && g.alive && gunRate(g) > 0 && gunTarget(me, g, w); });
+    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + (side === 'S' ? r.slice().reverse() : r).map(gunCell).join('') + '</div>'; }).join('');   // 右舷倒過來 ⇒ 兩舷都是船頭貼邊
+    if (box.innerHTML !== h) box.innerHTML = h;
+    box.classList.toggle('on', !!on);
+  });
+  [['bow', 'gunsB'], ['stern', 'gunsA']].forEach(function (E) {
+    var L = me.guns.filter(function (g) { return gunDir(g) === E[0]; }).sort(function (a, b) { return a.ax[1] - b.ax[1]; });   // 左舷（−y）在左
+    var on = w && L.some(function (g) { return g.alive && gunRate(g) > 0 && gunTarget(me, g, w); }), box = $(E[1]), h = L.map(gunCell).join('');
+    if (box.innerHTML !== h) box.innerHTML = h;
+    box.style.display = L.length ? '' : 'none'; box.classList.toggle('on', !!on);
+  });
+  var aw = aimPoint(me), bears = anyBears(me, aw, 'S') || anyBears(me, aw, 'P');
+  var s = bears || !handAim(me) ? '' : '<b style="color:#ff9a7a">⚠ 射界外</b>', gb = $('guns');
+  if (gb.innerHTML !== s) gb.innerHTML = s;
+  gb.style.display = s ? '' : 'none';
 }
 /** 補給一行：送藥手還能動的／全部、等火藥的砲幾門、取用點還剩幾桶。 */
 function supplyText(sh) {
@@ -367,10 +386,7 @@ function hud(dt) {
   if (!SHIPS.length || (HUDN++ % 6)) return;
   var me = SHIPS[PLAYER_I];
   fleetHud(me);                                                                  // 上方：每艘一個圓形按鈕＋中間一艘的詳細資訊（TASK-0552）
-  // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
-  var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
-  var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
-  $('guns').innerHTML = gunRow(me, bs || me.side) + warn;
+  gunHud(me);                                                                   // 我艦的砲：兩舷貼左右兩邊、追擊砲與射界外警告在下方面板
   pauseLabel();
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
   // 瞄準模式＋鏡頭名稱：羅盤底下一行空心字（Tim 2026-10-14；Q 那顆按鈕只寫「瞄準」）；鏡頭名稱要常駐（Tim：拿掉之後看不出現在是哪個鏡頭）
