@@ -107,6 +107,7 @@ var GUN_CODE = {}; Object.keys(GUNS).forEach(function (k) { GUN_CODE[GUNS[k].cod
  *  每層：站人的高度範圍 zr（照那一層第一門不是追擊砲的砲：carronade 那層 −6～+3、其他 −8～+5）、名字、最上面那層 ＝ 露天（陸戰隊、砲長的「甲板人員」）。
  *  憲法號：長砲 z 82–86＋追擊砲 88 ／ carronade 105–108 ⇒ 兩層，跟以前照砲種分（長砲＋追擊砲 ／ carronade）一樣；餘燼號兩層砲甲板都是長砲 ⇒ 照種類分不出來。 */
 function gunDecks(sh) {
+  if (hullDecks(sh.T).length) return gunDecksMeta(sh);                 // 有甲板 meta（35_decks.js）⇒ 照 meta 分；沒有 ⇒ 底下照砲的高度分（舊匯出的退路）
   var side = sh.guns.filter(function (g) { return g.type !== 'chase'; }); if (!side.length) side = sh.guns;
   var zs = side.map(function (g) { return Math.floor(g.model.bb[2]); }).sort(function (a, b) { return a - b; }), G = [];
   zs.forEach(function (z) { var L = G[G.length - 1]; if (L && z - L.z1 <= 10) L.z1 = z; else G.push({ z0: z, z1: z }); });
@@ -124,6 +125,25 @@ function gunDecks(sh) {
     D.name = D.weather && decks.length > 1 ? '上甲板' : low === 1 ? '砲甲板' : low === 2 ? (i === 0 ? '下層砲甲板' : '上層砲甲板') : '第 ' + (i + 1) + ' 層砲甲板';
   });
   return decks;
+}
+/** 照甲板 meta 分砲甲板：每門砲照模型的關聯路徑（甲板-gun/…）找所在的那一層，路徑看不出來 ⇒ 照砲架底的高度（deckAt）；
+ *  有砲的那幾層由下往上排成 d0、d1…（名字照 meta），站人的高度範圍照那一層第一門不是追擊砲的砲（同舊的算法）；最上面那層 ＝ 露天（陸戰隊、砲長的「甲板人員」）。 */
+function gunDecksMeta(sh) {
+  var T = sh.T, by = {}, list = [];
+  sh.guns.forEach(function (g) {
+    var d = deckOfPath(T, g.model.path) || deckAt(T, g.model.c[0], Math.floor(g.model.bb[2])) || hullDecks(T)[0];
+    if (!by[d.i]) { by[d.i] = { meta: d, guns: [] }; list.push(by[d.i]); }
+    by[d.i].guns.push(g);
+  });
+  list.sort(function (a, b) { return a.meta.level - b.meta.level; });
+  return list.map(function (L, i) {
+    var zs = L.guns.map(function (g) { return Math.floor(g.model.bb[2]); });
+    var D = { key: 'd' + i, z0: Math.min.apply(null, zs), z1: Math.max.apply(null, zs), guns: L.guns, meta: L.meta, name: L.meta.name, weather: i === list.length - 1 };
+    L.guns.forEach(function (g) { g.deck = D.key; });
+    var main = L.guns.filter(function (g) { return g.type !== 'chase'; })[0] || L.guns[0], a = Math.floor(main.model.bb[2]);
+    D.zr = main.type === 'carr' ? [a - 6, a + 3] : [a - 8, a + 5];
+    return D;
+  });
 }
 /** 格座標 P 附近 r 格內有沒有帆桁的網格（照佔用格）⇒ 回那根帆桁的模型編號（T.rig.models 的序號 ＝ sh.models 的序號），沒有 ⇒ -1。 */
 function yardNear(T, P, r) {

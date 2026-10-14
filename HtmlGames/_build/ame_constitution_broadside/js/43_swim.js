@@ -49,7 +49,7 @@ function evacuate(sh, c) {
   if (NV.home === lv) NV.home = up;
   c.wetN = 0;
   if (H.climb || H.job || (H.legs.length && H.legs[H.legs.length - 1].w !== lv)) return;   // 已經在往上走
-  var legs = handRoute(sh, lv, up, c.pos[0], c.pos[0]);
+  var legs = handRoute(sh, lv, up, c.pos[0], c.pos[0], handReg(sh, c));
   H.wp = null; c.moving = false; H.legs = legs || []; H.wait = rr(2, 5);
 }
 /** 砲浸水（TASK-0536）：砲口連兩次在海面下 ⇒ 浸水（g.wet：不能裝填、不能開，砲班離開；藥箱的火藥濕了、裝好的要重裝）；連兩次在海面上 ⇒ 乾了（等送藥手送火藥再裝）。 */

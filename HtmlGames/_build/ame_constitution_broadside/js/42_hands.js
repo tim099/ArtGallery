@@ -34,6 +34,14 @@ function shipLadders(T) {
 function lvOf(Ls, z) { for (var i = 0; i < Ls.length; i++) if (z >= Ls[i].zr[0] && z <= Ls[i].zr[1]) return i; return -1; }
 /** 走得到的甲板（由下往上）：砲甲板＋梯子一頭落在砲甲板以外的高度（相差 8 格內併成一層，上下各留 5 格的舷弧，不蓋到砲甲板）。 */
 function navLevels(sh, lads) {
+  var DM = hullDecks(sh.T);
+  if (DM.length) {                                                        // 有甲板 meta（35_decks.js）⇒ 一層甲板一層；有砲的那幾層用砲甲板的 key（砲班、送藥手補位照它找層）
+    return DM.map(function (d, i) {                                       // 高度範圍：跟上下兩層各切在中間（頭一層往下 10 格、最上層往上 20 格）
+      var lo = i ? Math.floor((DM[i - 1].zmax + d.zmin) / 2) + 1 : d.zmin - 10, hi = i < DM.length - 1 ? Math.floor((d.zmax + DM[i + 1].zmin) / 2) : d.zmax + 20;
+      var G = sh.decks.filter(function (D) { return D.meta === d; })[0];
+      return { key: G ? G.key : 'h' + i, name: d.name, zr: [lo, hi], deck: d };
+    });
+  }
   var Ls = sh.decks.map(function (D) { return { key: D.key, name: D.name, zr: D.zr }; }), ext = [];
   lads.forEach(function (l) {
     [l.pts[0], l.pts[l.pts.length - 1]].forEach(function (p) {
@@ -59,27 +67,42 @@ function navStep(N, a, d) {
 }
 /** 一層的走路格（照船型與那一層的高度記在 T 上：兩艘同型共用、重開一場不重算）。 */
 function navBuild(sh, L) {
-  var T = sh.T, g = T.base, C = T.navC || (T.navC = {}), key = L.zr.join(',') + ':' + sh.models.length;
+  var T = sh.T, g = T.base, C = T.navC || (T.navC = {}), key = L.zr.join(',') + ':' + sh.models.length, d = L.deck;
   if (C[key]) return C[key];
   var x0 = Math.max(0, T.hx0 - 4), nx = Math.ceil((Math.min(g.sx, T.hx1 + 5) - x0) / NAV_C) + 1, ny = Math.ceil(g.sy / NAV_C), n = nx * ny, i, x, y;
-  var Z = new Int16Array(n).fill(-1);
+  var Z = new Int16Array(n).fill(-1), blk = new Uint8Array(n);
   for (y = 1; y < ny - 1; y++) for (x = 1; x < nx - 1; x++) {
     var gx = x0 + x * NAV_C, gy = y * NAV_C; if (gx >= g.sx || gy >= g.sy) continue;
-    var z = standZ(g, gx, gy, L.zr[0], L.zr[1], NAV_HEAD);
-    if (z >= 0 && !blocked(gx, gy, z)) Z[x + y * nx] = z;
+    var z = navZ(g, d, L, gx, gy);
+    if (z >= 0 && blocked(gx, gy, z)) { blk[x + y * nx] = 1; continue; }   // 站在砲、舵輪、家具裡 ⇒ 永遠不能走（動態更新時照它，⛔ 不再看 CREW_BLOCK：那是最後一艘建的船的）
+    if (z >= 0) Z[x + y * nx] = z;
   }
-  var N = { x0: x0, nx: nx, ny: ny, Z: Z }, comp = new Int32Array(n).fill(-1), q = new Int32Array(n), best = -1, bestN = 0, nc = 0;   // 連通（8 鄰）；留最大那一片
+  var N = { x0: x0, nx: nx, ny: ny, Z: Z, blk: blk };
+  navRegions(N);
+  return C[key] = N;
+}
+/** 那一點站得住的高度：有甲板 meta ⇒ 只看那一欄地板上下（−2～+3 格）；沒有 ⇒ 那一層的高度範圍裡最高那個。 */
+function navZ(g, d, L, gx, gy) {
+  if (!d) return standZ(g, gx, gy, L.zr[0], L.zr[1], NAV_HEAD);
+  var f = deckFloor(d, gx); return f === null ? -1 : standZ(g, gx, gy, f - 2, f + 3, NAV_HEAD);
+}
+var NAV_MINREG = 12;                                                      // 連通區域至少幾點才算（小於它 ⇒ 砲架頂、桶堆上那種站得住的小塊，不走）
+/** 切連通區域（8 鄰）：N.reg（每一點屬於第幾塊，−1 ＝ 不能走）、N.regs（每一塊幾點）、N.ok、N.cells（全部能走的點）、N.big（最大那一塊）。
+ *  甲板被打成兩塊以上不通 ⇒ 兩塊各自一個區域，找路只在同一塊裡找、跨塊只能走梯子（TASK-0572）。 */
+function navRegions(N) {
+  var n = N.nx * N.ny, Z = N.Z, comp = new Int32Array(n).fill(-1), q = new Int32Array(n), sizes = [], i;
   for (i = 0; i < n; i++) {
     if (Z[i] < 0 || comp[i] >= 0) continue;
-    var h = 0, t = 0; q[t++] = i; comp[i] = nc;
-    while (h < t) { var a = q[h++]; for (var d = 0; d < 8; d++) { var b = navStep(N, a, d); if (b >= 0 && comp[b] < 0) { comp[b] = nc; q[t++] = b; } } }
-    if (t > bestN) { bestN = t; best = nc; }
-    nc++;
+    var h = 0, t = 0, id = sizes.length; q[t++] = i; comp[i] = id;
+    while (h < t) { var a = q[h++]; for (var dd = 0; dd < 8; dd++) { var b = navStep(N, a, dd); if (b >= 0 && comp[b] < 0) { comp[b] = id; q[t++] = b; } } }
+    sizes.push(t);
   }
-  var ok = new Uint8Array(n), cells = new Int32Array(bestN), k = 0;
-  for (i = 0; i < n; i++) if (comp[i] === best) { ok[i] = 1; cells[k++] = i; }
-  N.ok = ok; N.cells = cells; N.parts = nc;
-  return C[key] = N;
+  var map = sizes.map(function (s) { return -1; }), regs = [], big = -1;
+  sizes.forEach(function (s, k) { if (s >= NAV_MINREG) { map[k] = regs.length; if (big < 0 || s > regs[big]) big = regs.length; regs.push(s); } });
+  var reg = new Int32Array(n).fill(-1), ok = new Uint8Array(n), cells = [];
+  for (i = 0; i < n; i++) if (comp[i] >= 0 && map[comp[i]] >= 0) { reg[i] = map[comp[i]]; ok[i] = 1; cells.push(i); }
+  N.reg = reg; N.ok = ok; N.cells = cells; N.regs = regs; N.big = big; N.parts = sizes.length;
+  N.bigCells = cells.filter(function (c) { return reg[c] === big; });
 }
 function navCell(N, p) { var x = Math.round((p[0] - 0.5 - N.x0) / NAV_C), y = Math.round((p[1] - 0.5) / NAV_C); return x < 0 || y < 0 || x >= N.nx || y >= N.ny ? -1 : x + y * N.nx; }
 function navPos(N, i) { return [N.x0 + (i % N.nx) * NAV_C + 0.5, ((i / N.nx) | 0) * NAV_C + 0.5, N.Z[i]]; }
@@ -143,17 +166,37 @@ function lvPath(H, a, b) {
 }
 /** 從 from 層（x）去 to 層（目的地 tx）的走法：每換一層 ＝ 走到梯子那一頭＋爬；梯子挑「走過去＋從那裡再走＋排在前面的人」最短的那座
  *  （L.q：路上要爬這座的人數，一個人 ＝ 等 LADDER_GAP 秒 ⇒ 換算成跑得到的格數；⛔ 不算 ⇒ 開戰第一輪 26 個人全擠後梯子，10 秒只補上 2 個）。 */
-function handRoute(sh, from, to, x, tx) {
-  var H = sh.nav, path = lvPath(H, from, to); if (!path) return null;
+function handRoute(sh, from, to, x, tx, fr, tr) {
+  var H = sh.nav, S = {}, q = [], prev = {}, goal = null, k;
+  // 節點 ＝ 「層:區域」；fr／tr 沒給 ⇒ 那一層哪一塊都可以（舊的叫法照常）。梯子斷了（踏板或兩頭的甲板被打掉）⇒ 這條邊不走
+  if (fr !== undefined && fr >= 0) q.push(from + ':' + fr); else H.levels[from].N.regs.forEach(function (s, r) { q.push(from + ':' + r); });
+  q.forEach(function (u) { prev[u] = null; });
+  for (k = 0; k < q.length && goal === null; k++) {
+    var u = q[k], ul = +u.split(':')[0], ur = +u.split(':')[1];
+    if (ul === to && (tr === undefined || tr < 0 || ur === tr)) { goal = u; break; }
+    H.ladders.forEach(function (L) {
+      if (L.broken) return;
+      var v = L.lo === ul && L.ra === ur ? L.hi + ':' + L.rb : L.hi === ul && L.rb === ur ? L.lo + ':' + L.ra : null;
+      if (v && !(v in prev)) { prev[v] = u; q.push(v); }
+    });
+  }
+  if (goal === null) return null;
+  var path = []; for (var u2 = goal; u2 !== null; u2 = prev[u2]) path.push(u2); path.reverse();
   var legs = [];
   for (var i = 0; i + 1 < path.length; i++) {
-    var a = path[i], b = path[i + 1], best = -1, bd = 1e9;
-    H.ladders.forEach(function (L, k) { if ((L.lo === a && L.hi === b) || (L.lo === b && L.hi === a)) { var d = Math.abs(x - L.x) + Math.abs(L.x - tx) + L.q * LADDER_GAP * HAND_SP[1]; if (d < bd) { bd = d; best = k; } } });
-    var L = H.ladders[best], up = L.lo === a;
-    legs.push({ w: a, to: up ? L.ia : L.ib }, { c: best, up: up }); x = L.x; L.q++;
+    var a = path[i].split(':').map(Number), b = path[i + 1].split(':').map(Number), best = -1, bd = 1e9;   // 兩塊之間有好幾座梯子 ⇒ 挑「走過去＋從那裡再走＋排在前面的人」最短的
+    H.ladders.forEach(function (L, j) {
+      if (L.broken) return;
+      var ok = (L.lo === a[0] && L.ra === a[1] && L.hi === b[0] && L.rb === b[1]) || (L.hi === a[0] && L.rb === a[1] && L.lo === b[0] && L.ra === b[1]);
+      if (ok) { var d = Math.abs(x - L.x) + Math.abs(L.x - tx) + L.q * LADDER_GAP * HAND_SP[1]; if (d < bd) { bd = d; best = j; } }
+    });
+    var L = H.ladders[best], up = L.lo === a[0];
+    legs.push({ w: a[0], to: up ? L.ia : L.ib }, { c: best, up: up }); x = L.x; L.q++;
   }
   return legs;
 }
+/** 這個預備水手現在在哪一層的哪一塊（走路格上最近的那一點；站在格外 ⇒ −1）。 */
+function handReg(sh, c) { var N = sh.nav.levels[c.hand.lv].N, i = navSnap(N, c.pos, 4); return i >= 0 ? N.reg[i] : -1; }
 /** 開戰時：建走路格、接梯子、記各職位開戰時的人數（補到這個數），在待命那一層生 sh.cw.hands 個預備水手（彼此隔 3 點以上）。 */
 function makeHands(sh, crew, add) {
   sh.nav = null;
@@ -165,25 +208,26 @@ function makeHands(sh, crew, add) {
     if (la < 0 || lb < 0 || la === lb) return;
     var ia = navSnap(Ls[la].N, a, 5), ib = navSnap(Ls[lb].N, b, 5); if (ia < 0 || ib < 0) return;   // 兩頭接不上走路格（10 格內）⇒ 這座不用
     var mid = l.pts.slice(1, -1).map(function (q) { return [q[0], q[1], q[2] + CLIMB_LIFT]; });   // lo、hi 抬 0.2 m：兩點連線會切過踏板的前緣（量過：腳在踏板裡 24／71 點 ⇒ 10）
-    LD.push({ name: l.name, lo: la, hi: lb, ia: ia, ib: ib, pts: [navPos(Ls[la].N, ia), a].concat(mid, [b, navPos(Ls[lb].N, ib)]), x: (a[0] + b[0]) / 2, t0: -9, n: 0, q: 0 });
+    var steps = l.pts.slice(1, -1).map(function (q) { return [Math.floor(q[0]), Math.floor(q[1]), Math.floor(q[2]) - 1]; });   // 踏板：lo、hi 那一格底下（固定點是腳踩的那一格空氣）
+    LD.push({ name: l.name, lo: la, hi: lb, ia: ia, ib: ib, ra: Ls[la].N.reg[ia], rb: Ls[lb].N.reg[ib], steps: steps, broken: false, pts: [navPos(Ls[la].N, ia), a].concat(mid, [b, navPos(Ls[lb].N, ib)]), x: (a[0] + b[0]) / 2, t0: -9, n: 0, q: 0 });
   });
   var home = -1;
   LD.forEach(function (L) { if (home < 0 || L.lo < home) home = L.lo; });
   if (home < 0) home = lvOf(Ls, sh.decks.length ? sh.decks[0].zr[0] : 0);
   if (home < 0) return;
-  var H = sh.nav = { levels: Ls, ladders: LD, home: home, reach: [], gun0: {}, pm0: {}, helm0: 0, called: 0, joined: 0, ms: 0 };
+  var H = sh.nav = { levels: Ls, ladders: LD, home: home, reach: [], gun0: {}, pm0: {}, helm0: 0, called: 0, joined: 0, ms: 0, dirty: false, reT: 0, log: [] };
   Ls.forEach(function (L, i) { if (lvPath(H, home, i)) H.reach.push(i); });
   crew.forEach(function (c) {
     if (c.role === ROLE.GUN) H.gun0[c.deck + c.side] = (H.gun0[c.deck + c.side] || 0) + 1;
     else if (c.role === ROLE.POWDER) H.pm0[c.deck] = (H.pm0[c.deck] || 0) + 1;
     else if (c.role === ROLE.HELM) H.helm0++;
   });
-  var N = Ls[home].N, used = [];
+  var N = Ls[home].N, used = [], C0 = N.bigCells;                   // 生在待命那一層最大的那一塊（⛔ 全部的點 ⇒ 可能生在關起來的小艙裡）
   var NH = sh.cw.hands;                                              // 船員配置（05_hull.js shipCrew：預設 ＝ HANDS × 那一型的 handsK；夜隼號 ¼：小船）
-  if (N.cells.length) for (var k = 0; k < NH; k++) {
+  if (C0.length) for (var k = 0; k < NH; k++) {
     var i = -1;
     for (var tries = 0; tries < 12; tries++) {
-      i = N.cells[(rnd() * N.cells.length) | 0];
+      i = C0[(rnd() * C0.length) | 0];
       var ix = i % N.nx, iy = (i / N.nx) | 0;
       if (!used.some(function (u) { return Math.abs(u % N.nx - ix) < 3 && Math.abs(((u / N.nx) | 0) - iy) < 3; })) break;
     }
@@ -234,7 +278,8 @@ function legStart(sh, c) {
   }
   if (sh.navN <= 0) return;
   sh.navN--;
-  var N = NV.levels[leg.w].N, a = navSnap(N, c.pos, 4), p = a >= 0 ? navPath(N, a, leg.to) : null;
+  var t0 = performance.now(), N = NV.levels[leg.w].N, a = navSnap(N, c.pos, 4), p = a >= 0 && N.reg[a] === N.reg[leg.to] ? navPath(N, a, leg.to) : null;   // 不同塊 ⇒ 不用找（甲板被打成兩塊：TASK-0572）
+  NV.pathN = (NV.pathN || 0) + 1; NV.pathMs = (NV.pathMs || 0) + performance.now() - t0;
   if (!p) { H.legs = []; H.wait = 1; return; }                          // 走不到（站在走路格外、被隔開）⇒ 放棄這一趟（有任務 ⇒ 下一拍 handJoin 照現在的層判斷）
   H.legs.shift();
   H.wp = navSmooth(N, p).map(function (i) { return navPos(N, i); }); H.k = 0;
@@ -244,7 +289,9 @@ function wander(sh, c) {
   var H = c.hand, NV = sh.nav, lv = H.lv, tl = lv;
   if (lv === NV.home) { if (NV.reach.length > 1 && rnd() < HAND_ROAM) { var o = NV.reach.filter(function (i) { return i !== NV.home; }); tl = o[(rnd() * o.length) | 0]; } }
   else if (rnd() < HAND_BACK && NV.reach.indexOf(lv) >= 0) tl = NV.home;
-  var N = NV.levels[tl].N, to = N.cells[(rnd() * N.cells.length) | 0], legs = handRoute(sh, lv, tl, c.pos[0], navPos(N, to)[0]);
+  var fr = handReg(sh, c), N = NV.levels[tl].N, to = N.cells[(rnd() * N.cells.length) | 0];
+  if (tl === lv && fr >= 0) for (var t = 0; t < 6 && N.reg[to] !== fr; t++) to = N.cells[(rnd() * N.cells.length) | 0];   // 同一層 ⇒ 挑同一塊裡的點（別塊走不到）
+  var legs = handRoute(sh, lv, tl, c.pos[0], navPos(N, to)[0], fr, tl === lv ? fr : N.reg[to]);
   H.wait = rr(3, 9);
   if (!legs) return;
   H.legs = legs.concat([{ w: tl, to: to }]);
@@ -252,6 +299,7 @@ function wander(sh, c) {
 /** 點名（每半秒，survey）：照開戰時的人數算每一格缺幾個，派最近的閒著的水手（交戰那一舷的砲班先、再來送藥手與舵手、另一舷最後）。 */
 function callHands(sh) {
   var NV = sh.nav; if (!NV || sh.struck || sh.sunk) return;
+  if (NAV_RE > 0 && NV.dirty && SIMT - NV.reT >= NAV_RE) navRefresh(sh);     // 尋路動態更新（TASK-0572）
   NV.ladders.forEach(function (L) { L.q = 0; });                       // 排隊的人數每半秒重數（倒下、放棄的路不會一直佔著）
   sh.crew.forEach(function (c) { if (c.role === ROLE.HAND && able(c)) c.hand.legs.forEach(function (l) { if (l.c !== undefined) NV.ladders[l.c].q++; }); });
   var idle = sh.crew.filter(function (c) { return c.role === ROLE.HAND && able(c) && !c.hand.job && !c.hand.climb; }); if (!idle.length) return;
@@ -281,7 +329,7 @@ function callHands(sh) {
     for (var k = 0; k < q.n && idle.length; k++) {
       var bi = -1, bd = 1e9;
       idle.forEach(function (c, i) { var d = Math.abs(c.pos[0] - q.x) + 150 * Math.abs(c.hand.lv - q.lv); if (d < bd) { bd = d; bi = i; } });
-      var c = idle[bi], H = c.hand, legs = handRoute(sh, H.lv, q.lv, c.pos[0], q.x);
+      var c = idle[bi], H = c.hand, legs = handRoute(sh, H.lv, q.lv, c.pos[0], q.x, handReg(sh, c));
       idle.splice(bi, 1); if (!legs) continue;
       if (q.kind === 'helm') { var si = navSnap(NV.levels[q.lv].N, q.spot, 4); if (si < 0) continue; legs.push({ w: q.lv, to: si }); q.who.relieved = true; }
       H.job = { kind: q.kind, key: q.key, deck: q.deck, side: q.side, lv: q.lv, spot: q.spot };
@@ -300,6 +348,46 @@ function handJoin(sh, c) {
   c.role = ROLE.POWDER; c.deck = J.deck; c.pm = { st: 'idle', t: 0 }; c.cart = false; c.guns = dead ? dead.guns : [];
   if (dead) { dead.relieved = true; c.home = dead.home.slice(); }
   c.guns.forEach(function (g) { if (!g.pm || !able(g.pm)) g.pm = c; });
+}
+// ── 尋路動態更新（TASK-0572；Tim 2026-10-14：要有開關與刷新頻率）──
+// 細節設定「尋路更新」NAV_RE 秒（0 ＝ 關：走路格只照開戰時的船，甲板打穿了照樣走過去、可以浮空移動 —— 以前的樣子）。
+// 開：打掉的格（removeVoxel）落在哪幾層的高度範圍裡 ⇒ 記那幾層「髒了」與範圍；每 NAV_RE 秒（點名那一拍）有髒的才重算：
+//   那幾層只重算髒的範圍（外擴 2 點）站不站得住、整層重切連通區域；梯子：踏板被打掉、兩頭的走路點不能走 ⇒ 斷（不再走）。
+//   走路格本來是同型的船共用（記在船型上）⇒ 第一次重算先複製一份給這艘自己。
+//   只管站在甲板上的人：落水的照舊沿外船殼爬上來（43_swim.js）；正在爬梯子、正在走的那一段照走完，下一段才照新的。
+function navDirty(sh, x, y, z) {
+  var NV = sh.nav; if (!NV) return;
+  NV.levels.forEach(function (L) {
+    if (z < L.zr[0] - 8 || z > L.zr[1] + NAV_HEAD) return;
+    var b = L.dirty; if (!b) L.dirty = [x, y, x, y]; else { if (x < b[0]) b[0] = x; if (y < b[1]) b[1] = y; if (x > b[2]) b[2] = x; if (y > b[3]) b[3] = y; }
+    NV.dirty = true;
+  });
+}
+function navRefresh(sh) {
+  var NV = sh.nav, g = sh.grid, t0 = performance.now(), ev = [];
+  NV.reT = SIMT; NV.dirty = false;
+  NV.levels.forEach(function (L, li) {
+    var b = L.dirty; if (!b) return; L.dirty = null;
+    var n0 = L.N.regs.length;
+    if (!L.own) { var O = L.N; L.N = { x0: O.x0, nx: O.nx, ny: O.ny, Z: O.Z.slice(), blk: O.blk }; L.own = true; }
+    var N = L.N;
+    var xa = Math.max(1, Math.floor((b[0] - N.x0) / NAV_C) - 2), xb = Math.min(N.nx - 2, Math.ceil((b[2] - N.x0) / NAV_C) + 2), ya = Math.max(1, Math.floor(b[1] / NAV_C) - 2), yb = Math.min(N.ny - 2, Math.ceil(b[3] / NAV_C) + 2);
+    for (var y = ya; y <= yb; y++) for (var x = xa; x <= xb; x++) {
+      var i = x + y * N.nx; if (N.blk[i]) continue;
+      var gx = N.x0 + x * NAV_C, gy = y * NAV_C; if (gx >= g.sx || gy >= g.sy) continue;
+      N.Z[i] = navZ(g, L.deck, L, gx, gy);
+    }
+    navRegions(N);
+    if (N.regs.length !== n0) ev.push(L.name + ' ' + (N.regs.length > 1 ? '分成 ' + N.regs.length + ' 塊（' + N.regs.join('／') + ' 點）' : '接回一塊'));
+  });
+  NV.ladders.forEach(function (L) {
+    var A = NV.levels[L.lo].N, B = NV.levels[L.hi].N, was = L.broken;
+    L.ra = A.reg[L.ia]; L.rb = B.reg[L.ib];
+    L.broken = L.ra < 0 || L.rb < 0 || L.steps.some(function (p) { return !g.get(p[0], p[1], p[2]); });
+    if (L.broken && !was) ev.push('梯子 ' + L.name + ' 斷了');
+  });
+  NV.refreshN = (NV.refreshN || 0) + 1; NV.refreshMs = (NV.refreshMs || 0) + performance.now() - t0;
+  ev.forEach(function (e) { NV.log.push({ t: +SIMT.toFixed(1), e: e }); });
 }
 /** HUD 一段：預備水手（閒著的／在路上補位的）。 */
 function handsText(sh) {

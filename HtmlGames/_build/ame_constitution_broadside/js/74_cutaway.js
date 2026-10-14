@@ -11,6 +11,7 @@ function cutOn() { return CUTV.half || CUTV.deck > 0; }
 /** 船型的甲板切高（記在 T 上）：{ W, n（拿得掉的層數）, names, rows（第 k 層的切高，逐欄）, tex（R32F，寬 W、高 n） }。 */
 function deckCut(sh) {
   var T = sh.T; if (T.cutD) return T.cutD;
+  if (hullDecks(T).length) return T.cutD = deckCutMeta(T);               // 有甲板 meta（35_decks.js）⇒ 照 meta；沒有 ⇒ 底下照舊量（舊匯出的退路）
   var g = T.base, CY = T.cy, W = g.sx, x, z;
   // 往上找到哪：水線上 12 m 與最低那個桅頂平台下 1 m 取低的（⛔ 只到最上層砲甲板 ⇒ 餘燼號的露天甲板、船尾樓上面沒有砲，一按 L 就跳到上層砲甲板；Tim 2026-10-14）
   var top = Math.min(g.sz - 12, T.zw + 120); (T.masts || []).forEach(function (m) { if (m.z0top) top = Math.min(top, m.z0top - 10); });
@@ -65,6 +66,29 @@ function deckCut(sh) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.activeTexture(gl.TEXTURE0);
   return T.cutD = { W: W, n: n, names: names, rows: rows, tex: tex, floors: prof.map(function (Z, k) { return Z[seeds[k].xs]; }) };
+}
+/** 照甲板 meta 的切高：由上往下第 k 次 ＝ 拿掉最上面 k 層 —— 每一欄切在「拿掉的那幾層裡、那一欄有甲板的最低那一層」的地板 − thick（樑也拿掉），
+ *  不切進下一層的頭頂 1.2 m；拿掉的那幾層在那一欄都沒有甲板（例：船尾樓只在船尾）⇒ 那一欄不切。 */
+function deckCutMeta(T) {
+  var g = T.base, W = g.sx, Ds = hullDecks(T).slice().reverse(), n = Ds.length, rows = [], names = [], x;
+  for (var k = 0; k < n; k++) {
+    var R = new Float32Array(W), below = Ds[k + 1] || null;
+    for (x = 0; x < W; x++) {
+      var r = 1e9;
+      for (var j = 0; j <= k; j++) { var f = deckFloor(Ds[j], x); if (f !== null) r = Math.min(r, f - Ds[j].thick); }
+      var bf = below ? deckFloor(below, x) : null; if (r < 1e9 && bf !== null) r = Math.max(r, bf + 12);
+      R[x] = r;
+    }
+    rows.push(R); names.push(Ds[k].name);
+  }
+  var tex = gl.createTexture(), data = new Float32Array(W * Math.max(1, n));
+  rows.forEach(function (R, k) { data.set(R, k * W); });
+  gl.activeTexture(gl.TEXTURE8); gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, W, Math.max(1, n), 0, gl.RED, gl.FLOAT, data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.activeTexture(gl.TEXTURE0);
+  var xm = Math.round((T.wl0 + T.wl1) / 2);
+  return { W: W, n: n, names: names, rows: rows, tex: tex, meta: true, floors: Ds.map(function (d) { var f = deckFloor(d, xm); return f === null ? d.zmin : f; }) };
 }
 /** 剖哪一邊：鏡頭在中線的哪一邊就拿掉那一邊（+1 ＝ 格 +y）。 */
 function cutSide(sh) { return toLocal(sh, CAM.eye)[1] >= sh.T.cy ? 1 : -1; }

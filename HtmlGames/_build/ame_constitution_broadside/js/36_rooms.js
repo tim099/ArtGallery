@@ -18,7 +18,7 @@ function hullRooms(T) {
     Object.keys(by).sort().forEach(function (nm) {
       var b = by[nm], full = (p.path || '') + '/' + nm;
       if (!b.min || !b.max) { if (b.min || b.max) bad.push(full + '：只有一個角'); return; }
-      out.push({ name: full, min: [0, 1, 2].map(function (k) { return Math.min(b.min[k], b.max[k]); }), max: [0, 1, 2].map(function (k) { return Math.max(b.min[k], b.max[k]); }), door: b.door || null });
+      out.push({ name: full, deck: deckOfPath(T, p.path || ''), min: [0, 1, 2].map(function (k) { return Math.min(b.min[k], b.max[k]); }), max: [0, 1, 2].map(function (k) { return Math.max(b.min[k], b.max[k]); }), door: b.door || null });
     });
   });
   T.rooms = out; T.roomsBad = bad;
@@ -125,11 +125,22 @@ function roomLayout(T, r, fn) {
   placed.need = need0;
   return placed;
 }
+/** 開戰前就看得出來的「走不走得到」（船隻配置頁用）：預備水手待命那一層（最低那座梯子的下層）沿梯子走得到的甲板 ⇒ { 甲板序號: true }；沒有甲板 meta ⇒ null（不判斷）。
+ *  開戰後照實際的走路格（42_hands.js：區域與斷掉的梯子）。 */
+function deckReach(T) {
+  var D = hullDecks(T); if (!D.length) return null;
+  var E = [], home = -1;
+  shipLadders(T).forEach(function (l) { var a = l.pts[0], b = l.pts[l.pts.length - 1], da = deckAt(T, a[0], a[2]), db = deckAt(T, b[0], b[2]); if (da && db && da !== db) { E.push([da.i, db.i]); var lo = Math.min(da.i, db.i); if (home < 0 || lo < home) home = lo; } });
+  var R = {}; if (home < 0) return R;
+  R[home] = true; var q = [home];
+  while (q.length) { var u = q.shift(); E.forEach(function (e) { var v = e[0] === u ? e[1] : e[1] === u ? e[0] : -1; if (v >= 0 && !R[v]) { R[v] = true; q.push(v); } }); }
+  return R;
+}
 /** 開戰時：每艘船自己一份艙房；配了功能、放得下必要件的那幾間擺上家具（加進 sh.models，跟砲同一套血量與命中）。 */
 function shipRooms(sh) {
   var fns = roomFns(sh.T.id);
   sh.rooms = hullRooms(sh.T).map(function (r) {
-    var o = { name: r.name, min: r.min, max: r.max, door: r.door, fn: null, furn: [] }, fn = fns[r.name], lay = fn ? roomLayout(sh.T, r, fn) : null;
+    var o = { name: r.name, deck: r.deck, min: r.min, max: r.max, door: r.door, fn: null, furn: [] }, fn = fns[r.name], lay = fn ? roomLayout(sh.T, r, fn) : null;
     if (!lay) return o;
     o.fn = fn;
     lay.forEach(function (p, k) {

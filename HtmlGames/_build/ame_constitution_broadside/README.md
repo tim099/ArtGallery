@@ -6,7 +6,8 @@
 |---|---|
 | `template.html` | 版面、HUD（下方的按鍵提示就是按鈕）、主選單（模式、航行、距離（滑桿）、帆繩物理、「船隻配置…」「細節設定…」與一行摘要）、船隻配置頁（每一型的船員與性能）與細節設定頁（砲與每發傷害、彈種倍率、帆、船員血量、火藥桶、航行、降旗）；引用 `../../../VoxelKit/voxelkit.js`、`js/*.js`（照順序、`data-bundle="game"`）、船的 `.vxk`（`ships 開始`／`ships 結束` 兩個記號中間那段由 `admin.py` 照設定檔改寫）、設定檔與 `art/` 的選用素材 |
 | `config/game.json` | **各項設定的初始值與船隻清單**（TASK-0542）：船數上限、主選單預設、滑桿的上下限與預設、開局距離、彈種倍率、砲種表、船型高度與船員配置的預設、每艘船（內嵌 id、名字、`.vxk`、雕刻作品、船隻設定、高度、船員）。內嵌進成品，`js/00_config.js` 讀成 `CFG`。⛔ 這些值在 js 裡沒有第二份 |
-| `admin.py` | 設定檔的唯一寫入端：驗設定、改寫船標籤、建置、匯入新船、重新匯入；`serve` 開設定後台（`HtmlGames/ame_constitution_broadside/ame_constitution_broadside_admin.html`，不是展品） |
+| `decks.py` | 量甲板的 meta（TASK-0572）：每一層甲板子作品單獨匯出 .vxk ⇒ 舷弧折線與厚度 ⇒ 印出要標在甲板關聯上的 meta（TSV，`work sub=meta file=` 直接用）。只讀 |
+| `admin.py` | 設定檔的唯一寫入端：驗設定、改寫船標籤、建置、匯入新船、重新匯入、只同步 meta 與固定點（`metasync`：格子不動）；`serve` 開設定後台（`HtmlGames/ame_constitution_broadside/ame_constitution_broadside_admin.html`，不是展品） |
 | `js/` | 遊戲本體，照功能分檔（下表）；建置時接成同一個閉包 |
 | `art/`（選用） | 美術素材 `crew.png`、`fx.png`、`hud.png`；規格在 TASK-0516。沒交 ⇒ 程式畫的替代品 |
 
@@ -58,10 +59,11 @@ python -I admin.py reimport --id constitution
 | `31_sailing.js` | 航行：航速、操舵、帆裝、航跡、擦撞 |
 | `32_hull.js` | 進水、傾斜、沉沒、減重上浮（`hydrostatics`／`massLost`／`liftFor`）；每半秒的 `survey`（砲、桅、繩、帆、腳下、少掉的重量）與降旗 |
 | `33_flood.js` | 進水的粒子模式（TASK-0525）：船型的水格 `flType`（`T.flc[c]`）、每艘的狀態 `flNew`（`sh.fl`）、打掉一格記待重算 `floodTouch`、破口 `flHoleRedo`、粒子與水格 `floodStep`／`flTick`、該多吃水 `floodSinkT`、傾斜 `floodTilt`、艙內水面 `P.pool`（`flMesh`／`flDraw`）、噴進來的粒子 `flPushJets` |
+| `35_decks.js` | 甲板（TASK-0572）：照雕刻作品的 meta 判定 `hullDecks`（甲板關聯 `kind=deck`：level、name、floor 舷弧、thick）、`deckFloor`（那一欄的地板高度）、`deckAt`（某一點站在哪一層）、`deckOfPath`（關聯路徑屬於哪一層）；沒有 meta 的舊匯出 ⇒ 各處照舊自己量 |
 | `36_rooms.js` | 空艙房與功能艙（TASK-0568）：讀雕刻作品標的艙房 `hullRooms`（關聯 meta `kind=rooms`、固定點 `<房名>.min／.max`）、每一型每一間的功能 `roomFns`（設定檔 ships[].rooms ← 船隻配置頁 `SHIP_ROOMS`）、半程式化布局 `roomLayout`、家具模型 `shipRooms`（佔位的方塊網格 `furnMesh`）、能力 `roomCap`／`roomEff`、除錯外框與名字（`?rooms=1`） |
 | `34_shreds.js` | 帆的布片（物理開著）：撕開的洞切成布片 `shredCut`（`sh.shreds`）、每一步 `shredStep`（跟帆同一套 `clothStep`，風壓 ×`SH_KW`）、落水 `shredWet`、自己的亂數 `rndC`；畫在帆的緩衝後面（`sailBuf`） |
 | `40_crew.js` | 船員：站位、操砲、人手集中、血量與傷亡（`hurt`／`damageCrew`）、火槍 |
-| `42_hands.js` | 預備水手：梯子（`shipLadders`，關聯 meta `kind=ladders`）、走得到的甲板（`navLevels`）與走路格（`navBuild`，記在船型上）、找路（`navPath` BFS＋`navSmooth` 拉直）、每一步 `stepHand`（走、爬梯子、閒晃 `wander`）、點名派人 `callHands`、到了換職位 `handJoin` |
+| `42_hands.js` | 預備水手：梯子（`shipLadders`，關聯 meta `kind=ladders`）、走得到的甲板（`navLevels`）與走路格（`navBuild`，記在船型上）、找路（`navPath` BFS＋`navSmooth` 拉直）、每一步 `stepHand`（走、爬梯子、閒晃 `wander`）、點名派人 `callHands`、到了換職位 `handJoin`；甲板 meta 版（TASK-0572）：一層甲板一層、走路格照那一欄的地板、切成連通區域（`navRegions`）、跨層在「層:區域」上找梯子（`handRoute`；斷掉的梯子不走）、尋路動態更新（細節設定「尋路更新」`NAV_RE` 秒，0 ＝ 關：打掉的格記髒區 `navDirty`，每個間隔有髒的才重算那幾層與檢查梯子 `navRefresh`） |
 | `43_swim.js` | 落水求生：被水淹過頭 `drownCheck`（每半秒）、變成在水裡 `toSwim`（c.st 5，世界座標）、每一步 `stepSwim`（浮上來、踩水、往船游）、往哪游 `boardPoint`、爬回船上 `board`、溺水 `drown` |
 | `41_crew_art.js` | 船員貼圖（單圖；程式畫的替代品／美術素材）與程式動作（`crewPose`：晃、上下、縮放、傾斜、躺倒、閃紅）；手持物（點陣圖在程式裡畫，`heldItem`） |
 | `50_sim.js` | 電腦（瞄準、開火）與固定步長的一步 `step()` |

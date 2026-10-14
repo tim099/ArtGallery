@@ -232,7 +232,7 @@ function sliders() {
   function rankList(n) { var r = OFFICER_RANKS.slice(0, n); if (n > OFFICER_RANKS.length) r.push('見習軍官 ' + (n - OFFICER_RANKS.length)); return r.join('、'); }
   // 艙房（船隻配置頁；TASK-0568）：這一型標好的空艙房一間一列 —— 配什麼功能（放不下必要件的那個選項不能選、寫出原因）、照大小排出來幾件家具
   function roomsPut() {
-    var box = $('roomItems'), T = HULLT[CFG_ID], R = T ? hullRooms(T) : [], fns = roomFns(CFG_ID), html = '';
+    var box = $('roomItems'), T = HULLT[CFG_ID], R = T ? hullRooms(T) : [], fns = roomFns(CFG_ID), html = '', reach = T ? deckReach(T) : null;
     R.forEach(function (r, i) {
       var opts = '<option value="">空著</option>' + Object.keys(ROOM_FN).map(function (k) {
         var lay = roomLayout(T, r, k), F = ROOM_FN[k], why = '';
@@ -240,7 +240,8 @@ function sliders() {
         return '<option value="' + k + '"' + (lay ? '' : ' disabled') + '>' + F.name + (lay ? '（' + FURN[(F.extra || Object.keys(F.need)[0])].name + ' ' + lay.length + '）' : why) + '</option>';
       }).join('');
       var sz = [0, 1].map(function (k) { return ((r.max[k] - r.min[k] + 1) * S).toFixed(1); }).join('×') + ' m';
-      html += '<div class="row slide"><label for="rm-' + i + '">' + r.name.replace(/^甲板-/, '').replace('/艙房-鏡像/', ' 左 ').replace('/艙房/', ' 右 ') + '</label><select id="rm-' + i + '" data-r="' + r.name.replace(/"/g, '') + '">' + opts + '</select><span>' + sz + '</span></div>';
+      var far = reach && r.deck && !reach[r.deck.i] ? '　⚠ 走不到（沒有梯子通' + r.deck.name + '：傷員送不過去）' : '';   // TASK-0572：艙房綁在甲板上
+      html += '<div class="row slide"><label for="rm-' + i + '">' + (r.deck ? r.deck.name + ' ' : '') + r.name.split('/').slice(-2).join(' ').replace('艙房-鏡像', '左').replace('艙房', '右') + '</label><select id="rm-' + i + '" data-r="' + r.name.replace(/"/g, '') + '">' + opts + '</select><span>' + sz + far + '</span></div>';
     });
     box.innerHTML = html;
     [].forEach.call(box.querySelectorAll('select'), function (s) {
@@ -288,7 +289,7 @@ function sliders() {
     lf.value = k.ballast !== undefined ? k.ballast : LIM.ballast[2]; f.value = k.flood; h.value = Math.log(k.hard / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = k.speed; ag.value = k.agile; uw.value = k.upwind;
     gh.value = GUN_HP; gw.value = k.gunw; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; bv.value = Math.round(BLAST_V * 100); ch.value = CREW_HP;
     for (var t in dm) dm[t].value = DMG[t];
-    bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K; dr.value = DROWN_T;
+    bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K; dr.value = DROWN_T; $('navre').value = NAV_RE;
     se.value = SEA_K; st.value = STALL_K; fs.value = FUN.speed; fa.value = FUN.agile; fl.value = FUN.stall; fp.value = FUN.powder;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
     ['guns', 'masts', 'officers'].forEach(function (k) { $('st-' + k).checked = STRIKE[k]; });
@@ -321,6 +322,7 @@ function sliders() {
     var r0 = MAG_R * Math.pow(BLAST_K * (1 - BLAST_V), 1 / 3) * (S || 0.1), r1 = MAG_R * Math.pow(BLAST_K * (1 + BLAST_V), 1 / 3) * (S || 0.1);
     $('blastvV').textContent = BLAST_V <= 0 ? '0（每次一樣）' : '±' + Math.round(BLAST_V * 100) + '%（前彈藥庫半徑 ' + r0.toFixed(1) + '～' + r1.toFixed(1) + ' m）';
     $('boxV').textContent = BOX_N + ' 份（開戰時裝滿）';
+    $('navreV').textContent = NAV_RE > 0 ? '每 ' + NAV_RE + ' 秒（這段時間裡有甲板、梯子被打壞才重算那幾層：打成兩塊不通 ⇒ 分開找路、梯子斷了 ⇒ 改走別座）' : '關（走路格照開戰時的船：甲板打穿了照樣走過去）';
     $('drownV').textContent = DROWN_T ? '約 ' + DROWN_T + ' 秒（浮上水面、往自己的船游，爬回來當預備水手；受傷的減半）' : '0（關：落水當場算陣亡、淹到的跟著船沉）';
     $('windV').textContent = WIND_K.toFixed(2) + '×（帆上的風約 ' + (WIND_SAIL * WIND_K).toFixed(0) + ' m/s，陣風 ±' + Math.round(GUST[0] * 100) + '%）';
     $('carryV').textContent = CARRY_N + ' 份' + (CARRY_N > BOX_N ? '（比藥箱多 ⇒ 一趟送好幾門）' : '');
@@ -350,6 +352,8 @@ function sliders() {
   bx.oninput = function () { BOX_N = Math.round(+bx.value); show(); };
   cy.oninput = function () { CARRY_N = Math.round(+cy.value); show(); };
   dr.oninput = function () { DROWN_T = Math.round(+dr.value); show(); };
+  var nr = $('navre'); nr.min = LIM.navre[0]; nr.max = LIM.navre[1];       // 尋路動態更新（TASK-0572）
+  nr.oninput = function () { NAV_RE = +nr.value; show(); };
   st.oninput = function () { STALL_K = +st.value; show(); };
   se.oninput = function () { SEA_K = +se.value; show(); };
   fs.oninput = function () { FUN.speed = +fs.value; show(); }; fa.oninput = function () { FUN.agile = +fa.value; show(); }; fl.oninput = function () { FUN.stall = +fl.value; show(); }; fp.oninput = function () { FUN.powder = +fp.value; show(); };
@@ -407,7 +411,7 @@ function sliders() {
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
     // 船隻配置頁（每一型的船員與性能）不跟著重設：那一頁有自己的「這一型回到預設」（TASK-0570：編起來很花時間）
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; BLAST_V = LIM.blastv[2]; CREW_HP = LIM.crewhp[2];
-    DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; DMG.long4 = LIM.dmg4[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2]; DROWN_T = LIM.drown[2];
+    DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; DMG.long4 = LIM.dmg4[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2]; DROWN_T = LIM.drown[2]; NAV_RE = LIM.navre[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     SEA_K = LIM.sea[2]; STALL_K = LIM.stall[2]; FUN.speed = LIM.funspeed[2]; FUN.agile = LIM.funagile[2]; FUN.stall = LIM.funstall[2]; FUN.powder = LIM.funpowder[2];
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];

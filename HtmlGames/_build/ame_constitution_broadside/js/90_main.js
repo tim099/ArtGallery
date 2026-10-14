@@ -44,6 +44,8 @@ if (DEBUG) window.__game = {
   fire: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) setAim(me, aim); return broadside(me, ammo || 0); },
   one: function (ammo, aim) { var me = SHIPS[PLAYER_I]; if (aim) setAim(me, aim); fireOne(me, ammo || 0); return BALLS.length; },
   ships: function () { return SHIPS; }, balls: function () { return BALLS; }, pieces: function () { return PIECES; },
+  dig: function (i, x, y, z, r) { var sh = SHIPS[i || 0], n = 0; for (var a = -r; a <= r; a++) for (var b = -r; b <= r; b++) for (var c = -r; c <= r; c++) if (a * a + b * b + c * c <= r * r && removeVoxel(sh, x + a, y + b, z + c, true)) n++; sh.rs.update && sh.rs.update(); return n; },   // 除錯：在格座標挖一個球（照 removeVoxel：尋路的髒區、進水照常記）
+  ladders: function (i) { var H = SHIPS[i || 0].nav; return H ? H.ladders.map(function (L) { return { name: L.name, steps: L.steps, ia: navPos(H.levels[L.lo].N, L.ia), broken: L.broken }; }) : null; },
   rooms: function (on) { if (on !== undefined) { ROOMS_DBG = !!on; if (!on) roomLabels(); } return roomsInfo(); },   // 空艙房（36_rooms.js）：讀數；給 true／false ⇒ 開關外框與名字
   shipsIO: { exp: function () { return shipsExport(); }, imp: function (o) { var n = shipsImport(o); SLIDERS_SHOW && SLIDERS_SHOW(); return n; }, crew: function (id) { return shipCrew(id); }, seen: function () { return CREW_SEEN; } },   // 船隻配置的匯出入（TASK-0570；量的時候不必真的下載檔案）
   camera: function () { return { mode: CAM.mode, follow: CAM.follow ? { age: +CAM.follow.age.toFixed(2), owner: CAM.follow.owner, alive: CAM.follow.alive } : null, pick: CAM.pick || null, track: CAM.track, yaw: CAM.yaw, dist: CAM.dist, tgt: CAM.tgt.slice(), eye: CAM.eye.slice() }; },
@@ -132,8 +134,10 @@ if (DEBUG) window.__game = {
     var hs = sh.crew.filter(function (c) { return c.role === ROLE.HAND; }), st = {}, on = {};
     hs.forEach(function (c) { var k = c.st ? 'down' : c.hand.climb ? 'climb' : c.hand.job ? 'job-' + c.hand.job.kind : c.hand.wp || c.hand.legs.length ? 'walk' : 'wait'; st[k] = (st[k] || 0) + 1; if (!c.st) { var n = H.levels[c.hand.lv].key; on[n] = (on[n] || 0) + 1; } });
     return { n: hs.length, states: st, on: on, called: H.called, joined: H.joined, ms: +H.ms.toFixed(1), home: H.levels[H.home].key, reach: H.reach.map(function (j) { return H.levels[j].key; }), gun0: H.gun0, pm0: H.pm0, helm0: H.helm0,
-      levels: H.levels.map(function (L) { return { key: L.key, name: L.name, zr: L.zr, cells: L.N.cells.length, parts: L.N.parts }; }),
-      ladders: H.ladders.map(function (L) { return { name: L.name, from: H.levels[L.lo].key, to: H.levels[L.hi].key, x: Math.round(L.x), used: L.n }; }) };
+      levels: H.levels.map(function (L) { return { key: L.key, name: L.name, zr: L.zr, meta: !!L.deck, cells: L.N.cells.length, regs: L.N.regs, own: !!L.own }; }),
+      ladders: H.ladders.map(function (L) { return { name: L.name, from: H.levels[L.lo].key + ':' + L.ra, to: H.levels[L.hi].key + ':' + L.rb, x: Math.round(L.x), used: L.n, broken: L.broken }; }),
+      path: { n: H.pathN || 0, ms: +(H.pathMs || 0).toFixed(1) },
+      refresh: { re: NAV_RE, n: H.refreshN || 0, ms: +(H.refreshMs || 0).toFixed(1), dirty: H.dirty, log: H.log } };   // 尋路動態更新（TASK-0572）
   },
   /** 落水求生的讀數（43_swim.js）：現在在水裡幾個（浮上來中／在游／在踩水／溺水沉下去中）、累計落水、救上來、溺水、被敵艦撈走／撈起敵艦的、名單上幾個人。 */
   swim: function (i) {

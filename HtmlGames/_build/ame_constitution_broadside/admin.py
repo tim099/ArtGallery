@@ -11,6 +11,7 @@
 #   python -I admin.py check                      驗 config/game.json
 #   python -I admin.py build                      照設定重建 ../../ame_constitution_broadside/ame_constitution_broadside.html
 #   python -I admin.py import --work <雕刻作品 ID> --id <船的代號> --name <名字>   匯入新船（匯出 .vxk、登記、重建）
+#   python -I admin.py metasync --id <船的代號>   只同步 meta 與固定點（作品改了 meta、加了固定點，格子不動；TASK-0572）
 #   python -I admin.py reimport --id <船的代號> [--work <作品 ID>]                 重新匯入（換新的 .vxk、印跟上一版的差別、重建）
 #   python -I admin.py cache                      _cache/ 缺的 .vxk 從版控那份成品裡解回來（換機器、只改程式時用）
 #   加 --no-build：匯入／重新匯入之後不重建
@@ -340,6 +341,55 @@ class Fail(Exception):
     pass
 
 
+def act_metasync(sid, build=True):
+    """只同步 meta 與固定點（TASK-0572）：從雕刻作品匯出部件清單，把每條關聯的 meta、points 換進 _cache 那份 .vxk 的 header（路徑對得上的才換）；
+    格子、繩、帆、模型一位元都不動 ⇒ 作品的船體改過也不會被帶進來（要換船體走 reimport）。對不上的路徑列出來（⛔ 不默默略過）。"""
+    cfg = load()
+    s = next((x for x in cfg['ships'] if x['id'] == sid), None)
+    if not s:
+        raise Fail('設定檔沒有這艘：' + sid)
+    path = os.path.join(CACHE, s['vxk'])
+    if not os.path.exists(path):
+        raise Fail('_cache 沒有 ' + s['vxk'] + '（先 python -I admin.py cache）')
+    senate = shutil.which('senate')
+    if not senate:
+        raise Fail('找不到 senate')
+    tmp = os.path.join(CACHE, '_parts_' + sid + '.json')
+    code, out = run([senate, 'cmd', 'sculpture', '--arg', 'op=export', '--arg', 'format=parts', '--arg', 'work=' + s['work'], '--arg', 'out=' + os.path.abspath(tmp)])
+    if code != 0 or not os.path.exists(tmp):
+        raise Fail('部件清單匯出失敗（exit %d）：' + chr(10) + '%s' % (code, out.strip()))
+    P = {q['path']: q for q in json.load(open(tmp, encoding='utf-8')).get('links', [])}
+    os.remove(tmp)
+    raw = zlib.decompress(open(path, 'rb').read(), -15)
+    n = struct.unpack('<I', raw[4:8])[0]
+    h = json.loads(raw[8:8 + n].decode('utf-8'))
+    ch, miss = [], []
+    for q in h.get('parts', []):
+        src = P.get(q.get('path'))
+        if not src:
+            miss.append(q.get('path'))
+            continue
+        m, pt = src.get('meta') or {}, src.get('points') or {}
+        if (q.get('meta') or {}) != m or (q.get('points') or {}) != pt:
+            ch.append(q['path'])
+            q['meta'], q['points'] = m, pt
+    new = sorted(set(P) - {q.get('path') for q in h.get('parts', [])})
+    log = ['metasync %s：%d 條關聯換了 meta／固定點%s' % (sid, len(ch), ('：' + '、'.join(ch)) if ch else '')]
+    if miss:
+        log.append('⚠ .vxk 有、作品裡沒有的關聯 %d 條（照舊）：%s' % (len(miss), '、'.join(miss)))
+    if new:
+        log.append('⚠ 作品裡新加、.vxk 還沒有的關聯 %d 條（要 reimport 才帶得進來）：%s' % (len(new), '、'.join(new)))
+    if ch:
+        hb = json.dumps(h, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        body = b'VXK1' + struct.pack('<I', len(hb)) + hb + raw[8 + n:]
+        co = zlib.compressobj(9, zlib.DEFLATED, -15)
+        open(path + '.tmp', 'wb').write(co.compress(body) + co.flush())
+        os.replace(path + '.tmp', path)
+        if build:
+            log += act_build()
+    return log
+
+
 def act_check():
     E = validate(load())
     if E:
@@ -592,6 +642,9 @@ def main():
     s.add_argument('--id', required=True)
     s.add_argument('--name', required=True)
     s.add_argument('--no-build', action='store_true')
+    s = sp.add_parser('metasync', help='只同步 meta 與固定點（格子不動）')
+    s.add_argument('--id', required=True)
+    s.add_argument('--no-build', action='store_true')
     s = sp.add_parser('reimport')
     s.add_argument('--id', required=True)
     s.add_argument('--work')
@@ -613,6 +666,8 @@ def main():
                 raise Fail('設定不合法：\n' + '\n'.join('  ✗ ' + e for e in E))
             save(cfg)
             log = ['✓ 重新排版 config/game.json']
+        elif o.op == 'metasync':
+            log = act_metasync(o.id, not o.no_build)
         elif o.op == 'import':
             log = act_import(o.work, o.id, o.name, not o.no_build)
         else:
