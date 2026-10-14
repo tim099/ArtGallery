@@ -49,14 +49,10 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
   // 程式裡的 'S'／'P' 照砲軸（+y ＝ S，跟模型名字一致）＝ 右舷／左舷（shipBaseMatrix 照雕刻引擎的手性鏡射過來）。給人看的走 sideName；A／D 照畫面的左右。
   sh.models.forEach(function (m) {
     if (!GUNS[m.kind]) return;
-    var mz = m.pts.muzzle, br = m.pts.breech, ax;
-    if (mz && br) ax = [mz[0] - br[0], mz[1] - br[1]];
-    else { var sg0 = /-P\d*$|-P$/.test(m.name) ? -1 : 1; ax = [0, sg0]; mz = [m.c[0], sg0 > 0 ? m.bb[4] - 0.5 : m.bb[1] + 0.5, m.c[2]]; }   // 沒有固定點（舊的 .vxk）⇒ 外框外緣
-    var al = Math.hypot(ax[0], ax[1]) || 1; ax = [ax[0] / al, ax[1] / al];
-    sh.guns.push(m.gun = { name: m.name, type: m.kind, side: ax[1] >= 0 ? 'S' : 'P', model: m, ax: ax,
-      muz: [mz[0] + ax[0] * 1.5, mz[1] + ax[1] * 1.5, mz[2]], alive: true, reload: rr(0, 1.2), box: BOX_N, needCart: false });   // box：砲旁藥箱裡的份數
+    var A = gunMuzzle(m);
+    sh.guns.push(m.gun = { name: m.name, type: m.kind, side: A.ax[1] >= 0 ? 'S' : 'P', model: m, ax: A.ax, muz: A.muz, alive: true, reload: rr(0, 1.2), box: BOX_N, needCart: false });   // box：砲旁藥箱裡的份數
   });
-  sh.guns.sort(function (a, b) { return b.muz[0] - a.muz[0] || a.muz[1] - b.muz[1]; });
+  sh.guns.sort(gunOrder);
   sh.decks = gunDecks(sh); sh.weatherDeck = sh.decks.length ? sh.decks[sh.decks.length - 1].key : null;   // 砲甲板（照砲的高度分層）；最上面那層 ＝ 露天
   sh.deckZ = {}; sh.decks.forEach(function (D) { sh.deckZ[D.key] = D.zr; });
   sh.mags = makeMags(sh);                                                // 彈藥庫（23_powder.js）
@@ -106,6 +102,16 @@ var GUN_CODE = {}; Object.keys(GUNS).forEach(function (k) { GUN_CODE[GUNS[k].cod
  *  追擊砲再歸到最近的那一層（⛔ 一起排：船尾追擊砲的高度落在兩層之間，會把上下兩層砲甲板接成一層）。
  *  每層：站人的高度範圍 zr（照那一層第一門不是追擊砲的砲：carronade 那層 −6～+3、其他 −8～+5）、名字、最上面那層 ＝ 露天（陸戰隊、砲長的「甲板人員」）。
  *  憲法號：長砲 z 82–86＋追擊砲 88 ／ carronade 105–108 ⇒ 兩層，跟以前照砲種分（長砲＋追擊砲 ／ carronade）一樣；餘燼號兩層砲甲板都是長砲 ⇒ 照種類分不出來。 */
+/** 砲軸（水平、單位長）與砲口（muzzle 再往外 1.5 格）：m ＝ 模型（pts、name、c、bb）。 */
+function gunMuzzle(m) {                                               // ⛔ 不叫 gunAxis：21_gunnery.js 有一個 gunAxis(sh, g)（世界座標的砲軸），同名的後面那個蓋掉前面
+  var mz = m.pts.muzzle, br = m.pts.breech, ax;
+  if (mz && br) ax = [mz[0] - br[0], mz[1] - br[1]];
+  else { var sg0 = /-P\d*$|-P$/.test(m.name) ? -1 : 1; ax = [0, sg0]; mz = [m.c[0], sg0 > 0 ? m.bb[4] - 0.5 : m.bb[1] + 0.5, m.c[2]]; }   // 沒有固定點（舊的 .vxk）⇒ 外框外緣
+  var al = Math.hypot(ax[0], ax[1]) || 1; ax = [ax[0] / al, ax[1] / al];
+  return { ax: ax, muz: [mz[0] + ax[0] * 1.5, mz[1] + ax[1] * 1.5, mz[2]] };
+}
+/** 砲的順序：船頭往船尾、同一個 x 先左舷（砲甲板的「主砲」＝ 每層第一門側舷砲 ⇒ 切高照它；送藥手的分對也照這個順序）。 */
+function gunOrder(a, b) { return b.muz[0] - a.muz[0] || a.muz[1] - b.muz[1]; }
 function gunDecks(sh) {
   if (hullDecks(sh.T).length) return gunDecksMeta(sh);                 // 有甲板 meta（35_decks.js）⇒ 照 meta 分；沒有 ⇒ 底下照砲的高度分（舊匯出的退路）
   var side = sh.guns.filter(function (g) { return g.type !== 'chase'; }); if (!side.length) side = sh.guns;

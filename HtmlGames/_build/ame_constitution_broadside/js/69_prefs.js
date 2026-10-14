@@ -31,7 +31,7 @@ function prefsSnap() {
   });
   if (Object.keys(cfg).length) o.cfg = cfg;
   var cr = crewSnap(true); if (Object.keys(cr).length) o.crew = cr;          // 船員配置（TASK-0570）：跟那一型的預設不一樣的
-  var rm = roomsSnap(true); if (Object.keys(rm).length) o.rooms = rm;        // 艙房的功能（TASK-0568）
+  var rm = roomsSnap(true); if (Object.keys(rm).length) o.rooms = rm;        // 艙房的擺法（TASK-0568）
   put('gunhp', GUN_HP, LIM.gunhp[2]); put('sailhp', SAIL_HP, LIM.sailhp[2]); put('crewhp', CREW_HP, LIM.crewhp[2]); put('powderhp', POWDER_HP, LIM.powderhp[2]);
   put('blast', BLAST_K, LIM.blast[2]); put('blastv', BLAST_V, LIM.blastv[2]); put('box', BOX_N, LIM.box[2]); put('carry', CARRY_N, LIM.carry[2]); put('hands', HANDS, LIM.hands[2]); put('drown', DROWN_T, LIM.drown[2]); put('navre', NAV_RE, LIM.navre[2]); put('wind', WIND_K, LIM.wind[2]);
   put('weather', WX_ID, 'clear'); put('sea', SEA_K, LIM.sea[2]); put('play', PLAY, CFG.menu.play); put('stall', STALL_K, LIM.stall[2]); put('funspeed', FUN.speed, LIM.funspeed[2]); put('funagile', FUN.agile, LIM.funagile[2]); put('funstall', FUN.stall, LIM.funstall[2]); put('funpowder', FUN.powder, LIM.funpowder[2]);
@@ -119,18 +119,26 @@ function shipsApply(p) {
     CREW_ITEMS.forEach(function (it) { var x = num(d[it.k], it.lim, true); if (x !== undefined) c[it.k] = x; });
     if (d.guns && typeof d.guns === 'object') Object.keys(d.guns).forEach(function (t) { if (!GUNS[t]) return; var x = num(d.guns[t], [GUNS[t].min, GUN_CREW_MAX], true); if (x !== undefined) (c.guns = c.guns || {})[t] = x; });
   });
-  if (p.rooms && typeof p.rooms === 'object') Object.keys(p.rooms).forEach(function (id) {   // 艙房的功能（房名在船型載好之前驗不了 ⇒ 照收；不認得的功能不收）
+  if (p.rooms && typeof p.rooms === 'object') Object.keys(p.rooms).forEach(function (id) {   // 艙房的擺法（房名、格子在船型載好之前驗不了 ⇒ 照收，開戰時 roomCheck 再驗；不認得的類型、物品不收）
     var d = p.rooms[id]; if (!hullInfo(id) || !d || typeof d !== 'object') return;
     var c = SHIP_ROOMS[id] = SHIP_ROOMS[id] || {};
-    Object.keys(d).forEach(function (k) { if (typeof d[k] === 'string' && (d[k] === '' || ROOM_FN[d[k]])) c[k] = d[k]; });
+    Object.keys(d).forEach(function (k) { var v = roomPlanParse(d[k]); if (v !== undefined) c[k] = v; });
   });
 }
-/** 艙房的功能 { 船型: { 房名: 功能 id 或 ''（空著）} }：diff ＝ 只留跟設定檔的預設不一樣的（存檔）；否則每一型玩家改過的全部（匯出）。 */
+/** 存檔裡的一間 ⇒ 擺法：'' ⇒ null（空著）；'medical'（舊格式：只有類型）⇒ { type }（自動擺滿）；{ type, items } ⇒ 照收看得懂的物品；看不懂 ⇒ undefined（不收）。 */
+function roomPlanParse(v) {
+  if (v === '' || v === null) return null;
+  if (typeof v === 'string') return ROOM_FN[v] ? { type: v } : undefined;
+  if (!v || typeof v !== 'object' || !ROOM_FN[v.type]) return undefined;
+  if (!Array.isArray(v.items)) return { type: v.type };
+  return { type: v.type, items: v.items.filter(function (q) { return q && FURN[q.it] && [q.x, q.y].every(function (n) { return Number.isInteger(n) && n >= 0 && n < 400; }); }).map(function (q) { return { it: q.it, x: q.x, y: q.y, r: q.r ? 1 : 0 }; }) };
+}
+/** 艙房的擺法 { 船型: { 房名: '' ＝ 空著｜{ type }（自動擺滿）｜{ type, items } } }：diff ＝ 只留跟設定檔的預設不一樣的（存檔）；否則每一型玩家改過的全部（匯出）。 */
 function roomsSnap(diff) {
   var o = {};
   Object.keys(SHIP_ROOMS).forEach(function (id) {
-    var d = roomFnsDefault(id), p = SHIP_ROOMS[id], r = {};
-    Object.keys(p).forEach(function (k) { if (!diff || (p[k] || '') !== (d[k] || '')) r[k] = p[k] || ''; });
+    var d = roomPlanDefault(id), p = SHIP_ROOMS[id], r = {};
+    Object.keys(p).forEach(function (k) { if (!diff || JSON.stringify(p[k] || null) !== JSON.stringify(d[k] || null)) r[k] = p[k] || ''; });
     if (Object.keys(r).length) o[id] = r;
   });
   return o;

@@ -180,8 +180,9 @@ var CART_K = 0.3, MONKEY_SP = 26, FILL_T = 0.8, FLASH_R = 30, FLASH_DMG = 300, F
 /** 彈藥庫叫「前／中／後」：照關聯 meta `pos=fore／mid／aft`（TASK-0539）；沒有 ⇒ 照關聯名裡的字（舊匯出），都沒有 ⇒ 後。 */
 var MAG_POS = { fore: '前', mid: '中', aft: '後' };
 function magTag(mag) { if (MAG_POS[mag.pos]) return MAG_POS[mag.pos]; return mag.name.indexOf('前') >= 0 ? '前' : mag.name.indexOf('中') >= 0 ? '中' : '後'; }
-/** 取用點：每層砲甲板（sh.decks，照砲的高度分，10_ship.js gunDecks）× 每間彈藥庫一個，放在彈藥庫正上方、中線旁一塊平的空地（9×9 格、頭上 8 格空、不碰砲）。 */
-function makeStations(sh) {
+/** 取用點：每層砲甲板（sh.decks，照砲的高度分，10_ship.js gunDecks）× 每間彈藥庫一個，放在彈藥庫正上方、中線旁一塊平的空地（9×9 格、頭上 8 格空、不碰砲）。
+ *  甲板也是一間房（36_rooms.js deckPlan；TASK-0568）：玩家在船隻配置頁擺過那一層 ⇒ 照擺的格子放（每一處 ＝ 三桶；彈藥庫 ＝ x 最近的那間）；沒擺過 ⇒ 照舊自己找（auto ＝ 只照舊找：hullDeckKit 用）。 */
+function makeStations(sh, auto) {
   var T = sh.T, BASE = T.base, CY = T.cy;
   var keg = sh.mags.length && sh.mags[0].kegs[0]; if (!keg || !T.rig.meshes[keg.mesh]) return [];
   var V = T.rig.meshes[keg.mesh].verts, mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9], j, a;
@@ -214,12 +215,23 @@ function makeStations(sh) {
     if (sh.mags.length !== 1) return [{ x: Math.round(mag.blast[0]), dir: 0, tag: magTag(mag) }];
     return [{ x: Math.round(mag.box[3]) + 16, dir: 1, tag: '前' }, { x: Math.round(mag.box[0]) - 16, dir: -1, tag: '後' }];
   }
+  function nearMag(x) { var best = sh.mags[0], bd = 1e9; sh.mags.forEach(function (m) { var d = Math.abs(m.blast[0] - x); if (d < bd) { bd = d; best = m; } }); return best; }
   sh.decks.forEach(function (D) {
-    var deck = D.key, zr = D.zr;
+    var deck = D.key, zr = D.zr, pl = auto ? null : deckPlan(T.id, deckId(D));
+    if (pl && pl.items) {                                               // 玩家擺的（驗過：格子、砲班的位置、地面）
+      var G = deckGrid(T, D), ok = roomCheck(T, { grid: G }, 'deck', pl.items).items;
+      ok.forEach(function (q, k) { var x = G.x0 + q.x * ROOM_TILE, y = G.y0 + q.y * ROOM_TILE; build(D, nearMag(x), D.name + '取用點 ' + (k + 1), [x, y, G.zt[q.x + q.y * G.nx]]); });
+      return;
+    }
     sh.mags.forEach(function (mag) { anchors(mag).forEach(function (A) {
       var spot = findSpot(A.x, A.dir, zr);
-      if (!spot) return;
-      var st = { deck: deck, mag: mag, name: D.name + A.tag + '取用點', kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
+      if (spot) build(D, mag, D.name + A.tag + '取用點', spot);
+    }); });
+  });
+  return out;
+  function build(D, mag, name, spot) {
+      var deck = D.key;
+      var st = { deck: deck, mag: mag, name: name, kegs: [], pos: [spot[0] + 4.5, spot[1] + 4.5, spot[2] + 3], flashT: -9 };
       [[0, 0], [5, 0], [0, 5]].forEach(function (o, i) {
         var org = [spot[0] + o[0], spot[1] + o[1], spot[2]], bb = [org[0] + mn[0], org[1] + mn[1], org[2] + mn[2], org[0] + mx[0], org[1] + mx[1], org[2] + mx[2]];
         var m = { T: T, k: sh.models.length, name: st.name + '-' + (i + 1), path: st.name + '/' + (i + 1), kind: 'powder', station: st, hp: powderHP(), hpMax: powderHP(), mesh: keg.mesh, origin: org, bb: bb, pts: {}, meta: { kind: 'powder', powder_lb: 100 },
@@ -234,9 +246,7 @@ function makeStations(sh) {
         return [x + 0.5, y + 0.5, z];
       }).filter(Boolean));
       out.push(st);
-    }); });
-  });
-  return out;
+  }
 }
 /** 送藥手：每一對砲（同一層、同一個 x 的兩舷）一個，站在那一對砲中間靠中線；砲記著自己的送藥手（g.pm）與放藥箱的位置（g.drop：砲尾後面）。 */
 function makeMonkeys(sh, crew, taken, add) {

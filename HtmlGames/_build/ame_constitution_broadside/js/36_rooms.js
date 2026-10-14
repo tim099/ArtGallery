@@ -24,29 +24,197 @@ function hullRooms(T) {
   T.rooms = out; T.roomsBad = bad;
   return out;
 }
-// ── 功能艙與家具（TASK-0568 第二階段）──
-// 清單在 config/game.json：furniture（家具：名字、外框 [長, 寬, 高] 格、血量、彼此間隔）、rooms（功能艙：名字、必要件 need { 家具: 件數 }、加強件 extra（空間大就多擺）、
-//   人手 staff ＋ 每 staffPer 件多一人、治療 heal 秒、歸隊時的血量比例 back）。
-// 每一型哪幾間配什麼功能：預設 ＝ config ships[].rooms { 房名: 功能 }，玩家在船隻配置頁改的存在 SHIP_ROOMS（69_prefs.js）。
-// 家具 ＝ 模型（跟砲、火藥桶同一套：有血量、被打到扣血、歸零整個飛出去）；雕刻的家具還沒做（TASK-0569）⇒ 先用程式產生的方塊模型（furnMesh）。
-var FURN = CFG.furniture || {}, ROOM_FN = CFG.rooms || {}, SHIP_ROOMS = {};
-var ROOM_AISLE = 6;                                                     // 門口往裡留幾格走道（0.6 m）
-var ROOMFN_Q = Q.get('roomfn');                                        // 量的時候：?roomfn=medical ⇒ 每一型每一間都配這個功能（放得下的才擺；蓋過存檔與設定檔）
-/** 那一型每一間配的功能（預設 ← 玩家改的；'' ＝ 空著）。 */
-function roomFnsDefault(id) { var h = HULL_KNOWN.filter(function (x) { return x.id === id; })[0]; return Object.assign({}, h && h.rooms); }
-function roomFns(id) {
-  var d = roomFnsDefault(id), p = SHIP_ROOMS[id] || {};
-  Object.keys(p).forEach(function (k) { d[k] = p[k]; });
-  if (ROOMFN_Q && ROOM_FN[ROOMFN_Q]) { var T = HULLT[id]; (T ? hullRooms(T) : []).forEach(function (r) { d[r.name] = ROOMFN_Q; }); }
-  Object.keys(d).forEach(function (k) { if (!d[k] || !ROOM_FN[d[k]]) delete d[k]; });
-  return d;
+// ── 房間與物品（TASK-0568；Tim 2026-10-14 改設計）──
+// 結構：甲板 → 房間 → 物品（床、砲）；甲板本身也是一個大房間。房間是容器：房間類型（config rooms：醫療…）決定能擺哪幾樣物品（rooms[].items；物品 furniture[].type ＝ 它屬於哪一類），
+//   玩家在船隻配置頁的俯視格子編輯器（0.5 m 一格，ROOM_TILE）直接擺、轉 90°、拿掉，或一鍵「自動擺滿」（roomAuto）。
+//   物品給 buff（furniture[].buff，例：藥箱 治療速度 +15%）：同一間加總、上限 rooms[].buffCap，套用到同一間的物品（roomBuff）；容納 hold（病床躺 1 人）。
+// 每一型一份擺法：SHIP_ROOMS[船型][房名] ＝ { type, items: [{ it, x, y, r }] }（x、y ＝ 房間裡第幾格（物品的最小角），r ＝ 1 ⇒ 轉 90°（長邊沿 y））；
+//   沒有 items ⇒ 開戰時自動擺滿；null ⇒ 空著。預設 ＝ config ships[].rooms { 房名: 類型 }（⇒ 自動擺滿；電腦的船也照這一份）。存檔、匯出入：69_prefs.js。
+// 物品 ＝ 模型（跟砲同一套血量、命中、飛出去；打壞的不再能用、不再給 buff）；雕刻的物品（TASK-0569）之前用程式產生的方塊（furnMesh）。
+var FURN = CFG.furniture || {}, ROOM_FN = CFG.rooms || {}, SHIP_ROOMS = {}, ROOM_TILE = 5, ROOM_HEAD = 14;
+var ROOM_AISLE = 6;                                                     // 門口走道：格子的中心離門 0.6 m 以內 ⇒ 不能擺（⇒ 門口往裡一格、門的兩旁各多一格；⛔ 整格碰到就算 ⇒ 往裡兩格，1.5×2 m 的房間擺不下床）
+var ROOMFN_Q = Q.get('roomfn');                                        // 量的時候：?roomfn=medical ⇒ 每一型每一間都配這個類型、自動擺滿（蓋過存檔與設定檔）
+function roomPlanDefault(id) { var h = HULL_KNOWN.filter(function (x) { return x.id === id; })[0], d = {}; Object.keys((h && h.rooms) || {}).forEach(function (k) { if (ROOM_FN[h.rooms[k]]) d[k] = { type: h.rooms[k] }; }); return d; }
+/** 那一型那一間的擺法：{ type, items? }；空著 ⇒ null。（甲板那一間走 deckPlan） */
+function roomPlan(id, name) {
+  if (ROOMFN_Q && ROOM_FN[ROOMFN_Q] && !ROOM_FN[ROOMFN_Q].deck) return { type: ROOMFN_Q };
+  var S = SHIP_ROOMS[id], p = S && Object.prototype.hasOwnProperty.call(S, name) ? S[name] : roomPlanDefault(id)[name];
+  return p && p.type && ROOM_FN[p.type] && !ROOM_FN[p.type].deck ? p : null;
 }
-/** 程式產生的家具模型（雕刻的家具到之前的佔位）：幾個方塊，網格格式跟 .vxk 的模型一樣（verts 相對外框最小角、tris、tmat → mats）。
- *  床：四根腳、床板、床墊、枕頭；ax ＝ 'x' ⇒ 長邊沿 x，'y' ⇒ 沿 y。 */
+// ── 甲板 ＝ 一間大房間（Tim 2026-10-14：火藥桶（取用點）也是物品，玩家可以擺、拿掉）──
+// 每一層砲甲板一間，房名 ＝ 那一層甲板的關聯路徑（甲板-gun…；沒有甲板 meta ⇒ d0、d1…），類型 deck（config rooms.deck：只能擺 keg）。
+//   擺法存在同一個 SHIP_ROOMS[船型][房名]；⚠ 跟艙房不一樣：沒有存 ⇒「自動」＝ 照舊的取用點（23_powder.js makeStations 找的那幾處：預設戰局不變），
+//   { type:'deck', items:[] } ＝ 那一層不放。格子：腳下站得住（站的高度跟著舷弧、一格裡差 1 格以內）、頭上 0.8 m 空；砲的外框外擴 2 格 ＝ 砲班的位置（s ＝ 3，不能擺）。
+/** 船型層級的砲甲板與預設取用點（配置頁還沒開戰也算得出來）：拿船型的模型做一艘「空殼」，跑跟開戰時同一套 gunDecks／makeMags／makeStations ⇒
+ *  { decks: [{ id, name, zr, gunsBB }], auto: { 房名: [{ name, spot, mag }] } }（spot ＝ 三桶那一塊的最小角，格座標）。 */
+function hullDeckKit(T) {
+  if (T.deckKit) return T.deckKit;
+  var models = (T.rig.models || []).map(function (m, k) { var b = m.bbox; return { T: T, k: k, name: m.name.split('/').pop(), path: m.name, kind: modelKind(m), bb: b, pts: m.points || {}, meta: m.meta || {}, mesh: m.mesh, c: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2], alive: true }; });
+  var P = { T: T, models: models, guns: [] };
+  models.forEach(function (m) { if (!GUNS[m.kind]) return; var A = gunMuzzle(m); P.guns.push({ name: m.name, type: m.kind, model: m, ax: A.ax, muz: A.muz }); });
+  P.guns.sort(gunOrder);
+  P.decks = P.guns.length ? gunDecks(P) : [];
+  P.mags = makeMags(P);
+  var auto = {}, kit = { decks: [], auto: auto };
+  P.decks.forEach(function (D) { kit.decks.push({ id: deckId(D), key: D.key, name: D.name, zr: D.zr, meta: D.meta || null }); auto[deckId(D)] = []; });
+  makeStations(P, true).forEach(function (st) { var D = P.decks.filter(function (d) { return d.key === st.deck; })[0]; auto[deckId(D)].push({ name: st.name, spot: st.kegs[0].origin.slice(), mag: st.mag.name }); });
+  kit.gunsBB = models.filter(function (m) { return GUNS[m.kind] || m.kind === 'wheel'; }).map(function (m) { return m.bb; });
+  return T.deckKit = kit;
+}
+/** 那一層砲甲板當房間時的房名（擺法的鍵）。 */
+function deckId(D) { return D.meta ? D.meta.path : D.key; }
+/** 那一層甲板的擺法：沒有存 ⇒ { type:'deck' }（自動 ＝ 照舊的取用點）。 */
+function deckPlan(id, name) { var S = SHIP_ROOMS[id], p = S && S[name]; return p && p.type === 'deck' ? p : { type: 'deck' }; }
+/** 那一層甲板照擺法擺上的取用點（格子）⇒ 跟 roomItems 同一個格式（auto ⇒ 照舊找的那幾處換成格子）。 */
+function deckItems(T, D, pl) {
+  if (!pl.items) return { type: 'deck', items: deckAutoItems(T, D), bad: [], why: '', auto: true };
+  var c = roomCheck(T, { grid: deckGrid(T, D) }, 'deck', pl.items); return { type: 'deck', items: c.items, bad: c.bad, why: '' };
+}
+/** 甲板的俯視格子（記在船型上）：跟 roomGrid 同一個格式，多 zt（每一格站的高度）；s：0 站不住、1 可以擺、3 砲班的位置。 */
+function deckGrid(T, D) {
+  T.deckG = T.deckG || {}; var id = deckId(D); if (T.deckG[id]) return T.deckG[id];
+  var g = T.base, hb = T.h.bbox, dm = D.meta, xa = dm ? dm.x0 : T.hx0, xb = dm ? dm.x1 : T.hx1, ya = Math.floor(hb[1]), yb = Math.ceil(hb[4]);
+  var nx = Math.floor((xb - xa + 1) / ROOM_TILE), ny = Math.floor((yb - ya + 1) / ROOM_TILE), G = { nx: nx, ny: ny, x0: xa, y0: ya, s: new Uint8Array(nx * ny), zt: new Int16Array(nx * ny), deck: true };
+  var BB = hullDeckKit(T).gunsBB;
+  for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
+    var x0 = xa + i * ROOM_TILE, y0 = ya + j * ROOM_TILE, z = -1, ok = 1;
+    for (var x = x0; x < x0 + ROOM_TILE && ok; x++) for (var y = y0; y < y0 + ROOM_TILE && ok; y++) {
+      var zz = standZ(g, x, y, D.zr[0], D.zr[1], 8);
+      if (zz < 0 || (z >= 0 && Math.abs(zz - z) > 1)) ok = 0; else if (z < 0) z = zz;
+    }
+    var k = i + j * nx; G.zt[k] = z;
+    if (ok && BB.some(function (b) { return x0 + ROOM_TILE + 2 > b[0] && x0 - 2 < b[3] && y0 + ROOM_TILE + 2 > b[1] && y0 - 2 < b[4] && z + 8 > b[2] && z - 3 < b[5]; })) ok = 3;
+    G.s[k] = ok;
+  }
+  return T.deckG[id] = G;
+}
+/** 自動的取用點換成格子（配置頁顯示、第一次改的時候抄下來）：最小角落在哪一格（四捨五入）。 */
+function deckAutoItems(T, D) {
+  var G = deckGrid(T, D), it = Object.keys(FURN).filter(function (k) { return FURN[k].role === 'powder'; })[0];
+  return it ? (hullDeckKit(T).auto[deckId(D)] || []).map(function (a) { return { it: it, x: Math.round((a.spot[0] - G.x0) / ROOM_TILE), y: Math.round((a.spot[1] - G.y0) / ROOM_TILE), r: 0 }; }) : [];
+}
+/** 房間的俯視格子（0.5 m 一格；第一次用到才算，記在那一間上）：{ nx, ny, x0, y0, z, s }。
+ *  s[i + j·nx]：0 ＝ 不能擺（腳下沒有地板、頭上 1.4 m 內有東西）、1 ＝ 可以擺、2 ＝ 門口走道（站得住、不能擺）。格子從最小角排起，不到一格的零頭平分在兩邊。 */
+function roomGrid(T, r) {
+  if (r.grid) return r.grid;
+  var g = T.base, X = r.max[0] - r.min[0] + 1, Y = r.max[1] - r.min[1] + 1, nx = Math.floor(X / ROOM_TILE), ny = Math.floor(Y / ROOM_TILE);
+  var G = { nx: nx, ny: ny, x0: r.min[0] + Math.floor((X - nx * ROOM_TILE) / 2), y0: r.min[1] + Math.floor((Y - ny * ROOM_TILE) / 2), z: r.min[2], s: new Uint8Array(nx * ny) };
+  var doors = roomDoors(g, r), z = G.z, head = Math.min(ROOM_HEAD, r.max[2] - z + 1);
+  for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
+    var ok = 1, cx = G.x0 + i * ROOM_TILE + (ROOM_TILE - 1) / 2, cy = G.y0 + j * ROOM_TILE + (ROOM_TILE - 1) / 2;
+    var aisle = doors.some(function (d) { return Math.abs(d[0] - cx) <= ROOM_AISLE && Math.abs(d[1] - cy) <= ROOM_AISLE; });
+    for (var x = G.x0 + i * ROOM_TILE; x < G.x0 + (i + 1) * ROOM_TILE && ok; x++) for (var y = G.y0 + j * ROOM_TILE; y < G.y0 + (j + 1) * ROOM_TILE && ok; y++) {
+      if (!g.get(x, y, z - 1)) ok = 0;
+      for (var k = 0; k < head && ok; k++) if (g.get(x, y, z + k)) ok = 0;
+    }
+    G.s[i + j * nx] = ok && aisle ? 2 : ok;
+  }
+  return r.grid = G;
+}
+/** 物品佔幾格：[x 方向, y 方向]（外框 size[0] ＝ 長邊；r ＝ 1 ⇒ 長邊沿 y）。 */
+function itemTiles(it, r) { var f = FURN[it], a = Math.ceil(f.size[0] / ROOM_TILE), b = Math.ceil(f.size[1] / ROOM_TILE); return r ? [b, a] : [a, b]; }
+/** p（{ it, x, y, r }）擺得下嗎：可以 ⇒ ''，不行 ⇒ 原因。items ＝ 這一間已經擺的（skip ＝ 不算的那一件：改位置時）。
+ *  擺上去之後每一件都要有一邊挨著從門口走得到的空格（⛔ 不檢查 ⇒ 床排滿一圈，裡面那張沒人走得到）；沒有門的房間不檢查這一項。 */
+function placeOk(G, type, items, p, skip) {
+  var f = FURN[p.it], F = ROOM_FN[type];
+  if (!f) return '不認得的物品';
+  if (F && F.items && F.items.indexOf(p.it) < 0) return '這一類房間不能擺' + f.name;
+  var t = itemTiles(p.it, p.r), i, j;
+  if (p.x < 0 || p.y < 0 || p.x + t[0] > G.nx || p.y + t[1] > G.ny) return '超出房間';
+  var occ = new Int16Array(G.nx * G.ny), all = items.filter(function (q) { return q !== skip; }).concat([p]);
+  for (i = 0; i < occ.length; i++) occ[i] = -1;
+  for (var n = 0; n < all.length; n++) {
+    var q = all[n], tq = itemTiles(q.it, q.r);
+    for (j = q.y; j < q.y + tq[1]; j++) for (i = q.x; i < q.x + tq[0]; i++) {
+      var k = i + j * G.nx;
+      if (q === p) {
+        if (!G.s[k]) return '腳下站不住（沒有地板或頭上有東西）'; if (G.s[k] === 2) return '擋到門口'; if (G.s[k] === 3) return '擋到砲（砲班的位置）';
+        if (occ[k] >= 0) return '跟' + FURN[all[occ[k]].it].name + '重疊';
+        if (G.zt && Math.abs(G.zt[k] - G.zt[p.x + p.y * G.nx]) > 1) return '地面不平';
+      }
+      occ[k] = n;
+    }
+  }
+  return roomReachAll(G, all, occ) ? '' : '會把別的物品圍住（走不到）';
+}
+/** 每一件都有一邊挨著從門口（s ＝ 2）沿空格走得到的格嗎（沒有門 ⇒ 不檢查）。 */
+function roomReachAll(G, all, occ) {
+  var seen = new Uint8Array(G.nx * G.ny), q = [], k;
+  for (k = 0; k < G.s.length; k++) if (G.s[k] === 2) { seen[k] = 1; q.push(k); }
+  if (!q.length) return true;
+  while (q.length) {
+    k = q.pop(); var i = k % G.nx, j = (k - i) / G.nx;
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var a = i + d[0], b = j + d[1], m = a + b * G.nx; if (a < 0 || b < 0 || a >= G.nx || b >= G.ny || seen[m] || !G.s[m] || occ[m] >= 0) return; seen[m] = 1; q.push(m); });
+  }
+  return all.every(function (p) {
+    var t = itemTiles(p.it, p.r);
+    for (var j = p.y - 1; j <= p.y + t[1]; j++) for (var i = p.x - 1; i <= p.x + t[0]; i++) {
+      var edge = (i === p.x - 1 || i === p.x + t[0]) !== (j === p.y - 1 || j === p.y + t[1]);   // 四邊、不含四個角
+      if (edge && i >= 0 && j >= 0 && i < G.nx && j < G.ny && seen[i + j * G.nx]) return true;
+    }
+    return false;
+  });
+}
+/** 一鍵「自動擺滿」：先擺必要件（need），再擺加強件（extra：各幾件），剩下的空間擺 fill 擺到滿 ⇒ { items, why }（放不下必要件 ⇒ items ＝ null、why ＝ 原因）。
+ *  擺法：長邊順著房間的長邊先試、不行再轉；從離門最遠的格開始找（沒有門 ⇒ 從最小角）；同一間、同一個類型每次擺出來一樣（沒有亂數）。 */
+function roomAuto(T, r, type) {
+  var F = ROOM_FN[type]; if (!F) return { items: null, why: '不認得的房間類型' };
+  r.autoC = r.autoC || {}; if (r.autoC[type]) return r.autoC[type];         // 記在那一間上（⛔ 拿回去的 items 不要改：要改先複製）
+  var G = roomGrid(T, r), items = [], cand = [], i, j, dx = 0, dy = 0, nd = 0;
+  for (i = 0; i < G.s.length; i++) if (G.s[i] === 2) { dx += i % G.nx; dy += Math.floor(i / G.nx); nd++; }
+  for (j = 0; j < G.ny; j++) for (i = 0; i < G.nx; i++) cand.push([i, j, nd ? -Math.hypot(i - dx / nd, j - dy / nd) : i + j * G.nx]);
+  cand.sort(function (a, b) { return a[2] - b[2] || a[1] - b[1] || a[0] - b[0]; });
+  var r0 = G.ny > G.nx ? 1 : 0;
+  function put(it) {
+    for (var c = 0; c < cand.length; c++) for (var k = 0; k < 2; k++) {
+      var p = { it: it, x: cand[c][0], y: cand[c][1], r: k ? 1 - r0 : r0 };
+      if (!placeOk(G, type, items, p)) { items.push(p); return true; }
+    }
+    return false;
+  }
+  var need = F.need || {}, lack = [];
+  Object.keys(need).forEach(function (it) { for (var k = 0; k < need[it]; k++) if (!FURN[it] || !put(it)) { lack.push((FURN[it] ? FURN[it].name : it) + ' ' + need[it]); break; } });
+  if (lack.length) return r.autoC[type] = { items: null, why: '放不下必要件：' + lack.join('、') + '（可以擺的地方 ' + (G.nx * ROOM_TILE * S).toFixed(1) + '×' + (G.ny * ROOM_TILE * S).toFixed(1) + ' m）' };
+  var ex = F.extra || {};
+  Object.keys(ex).forEach(function (it) { for (var k = 0; k < ex[it]; k++) if (!FURN[it] || !put(it)) break; });
+  if (F.fill && FURN[F.fill]) while (items.length < 64 && put(F.fill)) { /* 擺到滿 */ }
+  return r.autoC[type] = { items: items, why: '' };
+}
+/** 存的擺法照順序一件一件驗（房間的形狀改了、物品清單改了 ⇒ 擺不下的那幾件不擺，記在 bad）。 */
+function roomCheck(T, r, type, list) {
+  var G = roomGrid(T, r), items = [], bad = [];
+  (list || []).forEach(function (p) { var why = FURN[p.it] ? placeOk(G, type, items, p) : '不認得的物品'; if (why) bad.push((FURN[p.it] ? FURN[p.it].name : p.it) + '：' + why); else items.push(p); });
+  return { items: items, bad: bad };
+}
+/** 那一間照擺法實際擺上的物品 ⇒ { type, items, bad, why, auto }（空著 ⇒ type ＝ null）。 */
+function roomItems(T, r, plan) {
+  if (!plan) return { type: null, items: [], bad: [], why: '' };
+  if (!plan.items) { var a = roomAuto(T, r, plan.type); return { type: plan.type, items: a.items || [], bad: [], why: a.why, auto: true }; }
+  var c = roomCheck(T, r, plan.type, plan.items); return { type: plan.type, items: c.items, bad: c.bad, why: '' };
+}
+/** 擺法缺哪幾樣必要件（its：物品 id 的清單）⇒ '' ＝ 都有；否則「病床 1」。缺必要件的那一間不能用。 */
+function roomLack(type, its) {
+  var need = (ROOM_FN[type] || {}).need || {};
+  return Object.keys(need).filter(function (it) { return its.filter(function (x) { return x === it; }).length < need[it]; }).map(function (it) { return (FURN[it] ? FURN[it].name : it) + ' ' + need[it]; }).join('、');
+}
+/** 房間整合 buff：同一間裡（還在的）物品給的 buff 加總，每一種照 buffCap 封頂 ⇒ { 種類: { sum, cap, v } }。its：物品 id 的清單。 */
+var BUFF_NAMES = { heal: '治療速度' };
+function roomBuff(type, its) {
+  var F = ROOM_FN[type] || {}, cap = F.buffCap || {}, o = {};
+  its.forEach(function (it) { var b = (FURN[it] || {}).buff || {}; Object.keys(b).forEach(function (k) { (o[k] = o[k] || { sum: 0, cap: cap[k] === undefined ? Infinity : cap[k] }).sum += +b[k] || 0; }); });
+  Object.keys(o).forEach(function (k) { o[k].v = Math.min(o[k].sum, o[k].cap); });
+  return o;
+}
+/** buff 寫成一行字：「治療速度 +45%（上限 60%）」。 */
+function buffText(B) { return Object.keys(B).map(function (k) { var b = B[k]; return (BUFF_NAMES[k] || k) + ' +' + Math.round(b.v * 100) + '%' + (b.sum > b.cap ? '（加總 ' + Math.round(b.sum * 100) + '%，上限 ' + Math.round(b.cap * 100) + '%）' : isFinite(b.cap) ? '（上限 ' + Math.round(b.cap * 100) + '%）' : ''); }).join('、'); }
+/** 程式產生的物品模型（雕刻的物品到之前的佔位）：幾個方塊，網格格式跟 .vxk 的模型一樣（verts 相對外框最小角、tris、tmat → mats）。
+ *  ax ＝ 'x' ⇒ 長邊沿 x，'y' ⇒ 沿 y。 */
 function furnBoxes(item, ax) {
   var f = FURN[item], L = f.size[0], W = f.size[1], H = f.size[2], B = [];
-  if (item === 'bed') B = [[0, 0, 0, 1, 1, H - 2, 0], [L - 1, 0, 0, L, 1, H - 2, 0], [0, W - 1, 0, 1, W, H - 2, 0], [L - 1, W - 1, 0, L, W, H - 2, 0],
+  if (item === 'bed') B = [[0, 0, 0, 1, 1, H - 2, 0], [L - 1, 0, 0, L, 1, H - 2, 0], [0, W - 1, 0, 1, W, H - 2, 0], [L - 1, W - 1, 0, L, W, H - 2, 0],    // 四根腳、床板、床墊、枕頭
     [0, 0, H - 2, L, W, H - 1, 0], [1, 1, H - 1, L - 1, W - 1, H, 1], [L - 4, 1.5, H - 0.5, L - 1, W - 1.5, H + 0.5, 2]];
+  else if (item === 'table') B = [[1, 1, 0, 2, 2, H - 1, 0], [L - 2, 1, 0, L - 1, 2, H - 1, 0], [1, W - 2, 0, 2, W - 1, H - 1, 0], [L - 2, W - 2, 0, L - 1, W - 1, H - 1, 0], [0, 0, H - 1, L, W, H, 2]];   // 四根腳、檯面
+  else if (item === 'medkit') B = [[0, 0, 0, L, W, H - 1, 0], [0, 0, H - 1, L, W, H, 3]];   // 箱子、紅蓋
   else B = [[0, 0, 0, L, W, H, 0]];
   return ax === 'y' ? B.map(function (b) { return [b[1], b[0], b[2], b[4], b[3], b[5], b[6]]; }) : B;
 }
@@ -63,8 +231,8 @@ function boxMesh(boxes, mats) {
   });
   return { verts: v, tris: t, tmat: tm, mats: mats };
 }
-var FURN_MATS = [[0.42, 0.28, 0.16], [0.82, 0.78, 0.66], [0.93, 0.92, 0.88]];   // 木頭、帆布床墊、枕頭
-/** 那一型的家具網格（每種家具兩個方向各一份，第一次用到才做、接在 T.meshes 後面）⇒ 網格的索引。 */
+var FURN_MATS = [[0.42, 0.28, 0.16], [0.82, 0.78, 0.66], [0.93, 0.92, 0.88], [0.7, 0.16, 0.14]];   // 木頭、帆布床墊、枕頭（檯面）、藥箱的紅蓋
+/** 那一型的物品網格（每種物品兩個方向各一份，第一次用到才做、接在 T.meshes 後面）⇒ 網格的索引。 */
 function furnMesh(T, item, ax) {
   T.furn = T.furn || {}; var key = item + ax;
   if (T.furn[key] === undefined) {
@@ -84,47 +252,6 @@ function roomDoors(g, r) {
   for (var y = y0; y <= y1; y++) { if (open(x0, y, -1, 0)) out.push([x0, y]); if (open(x1, y, 1, 0)) out.push([x1, y]); }
   return out;
 }
-/** 半程式化布局：照艙房大小排家具 ⇒ [{ item, ax, at:[x,y,z] }]（at ＝ 外框最小角，格座標）；放不下必要件 ⇒ null。
- *  長邊順著艙房的長邊；靠牆一排一排擺（第一排貼離門最遠的那面長牆），每件之間隔 gap；門口往裡 ROOM_AISLE 格不擺；腳下每一格都要站得住、頭上要空。
- *  先擺必要件，剩下的空間全部擺加強件（Tim：加強件可以就是多擺同一樣東西）。同一間、同一個功能每次排出來一樣（沒有亂數）。 */
-function roomLayout(T, r, fn) {
-  var F = ROOM_FN[fn]; if (!F) return null;
-  var g = T.base, X = r.max[0] - r.min[0] + 1, Y = r.max[1] - r.min[1] + 1, z = r.min[2], doors = roomDoors(g, r);
-  var items = [], need = F.need || {};
-  Object.keys(need).forEach(function (it) { for (var k = 0; k < need[it]; k++) items.push({ item: it, need: true }); });
-  var placed = [], taken = {};
-  function blocked(x, y) { return doors.some(function (d) { return Math.abs(d[0] - x) <= ROOM_AISLE && Math.abs(d[1] - y) <= ROOM_AISLE; }); }
-  function fits(x0, y0, w, l) {
-    if (x0 < r.min[0] || y0 < r.min[1] || x0 + w - 1 > r.max[0] || y0 + l - 1 > r.max[1]) return false;
-    for (var x = x0; x < x0 + w; x++) for (var y = y0; y < y0 + l; y++) {
-      if (taken[x + ',' + y] || blocked(x, y) || !g.get(x, y, z - 1)) return false;
-      for (var k = 0; k < 14; k++) if (g.get(x, y, z + k)) return false;
-    }
-    return true;
-  }
-  function take(x0, y0, w, l, gap) { for (var x = x0 - gap; x < x0 + w + gap; x++) for (var y = y0 - gap; y < y0 + l + gap; y++) taken[x + ',' + y] = 1; }
-  // 掃的順序：從離門最遠的那個角開始（門在哪一邊 ⇒ 從另一邊往門那邊擺）
-  var dx = 0, dy = 0; doors.forEach(function (d) { dx += d[0] - (r.min[0] + r.max[0]) / 2; dy += d[1] - (r.min[1] + r.max[1]) / 2; });
-  function place(item) {
-    var f = FURN[item], L = f.size[0], W = f.size[1], gap = f.gap || 0;
-    var ax = Y >= X ? 'y' : 'x', w = ax === 'y' ? W : L, l = ax === 'y' ? L : W;   // w：x 方向佔幾格、l：y 方向
-    var xs = [], ys = [], x, y;
-    for (x = r.min[0]; x + w - 1 <= r.max[0]; x++) xs.push(x);
-    for (y = r.min[1]; y + l - 1 <= r.max[1]; y++) ys.push(y);
-    if (dx < 0) xs.reverse(); if (dy < 0) ys.reverse();                  // 門在 −x ⇒ 從 +x 那頭開始（門在 +x ⇒ 由小到大本來就是從另一頭）；⛔ 反過來就是貼著門擺
-    var outer = ax === 'y' ? xs : ys, inner = ax === 'y' ? ys : xs;
-    for (var i = 0; i < outer.length; i++) for (var j = 0; j < inner.length; j++) {
-      x = ax === 'y' ? outer[i] : inner[j]; y = ax === 'y' ? inner[j] : outer[i];
-      if (fits(x, y, w, l)) { take(x, y, w, l, gap); placed.push({ item: item, ax: ax, at: [x, y, z], w: w, l: l }); return true; }
-    }
-    return false;
-  }
-  for (var i = 0; i < items.length; i++) if (!place(items[i].item)) return null;
-  var need0 = placed.length;
-  if (F.extra && FURN[F.extra]) while (place(F.extra)) { if (placed.length > 64) break; }
-  placed.need = need0;
-  return placed;
-}
 /** 開戰前就看得出來的「走不走得到」（船隻配置頁用）：預備水手待命那一層（最低那座梯子的下層）沿梯子走得到的甲板 ⇒ { 甲板序號: true }；沒有甲板 meta ⇒ null（不判斷）。
  *  開戰後照實際的走路格（42_hands.js：區域與斷掉的梯子）。 */
 function deckReach(T) {
@@ -136,27 +263,32 @@ function deckReach(T) {
   while (q.length) { var u = q.shift(); E.forEach(function (e) { var v = e[0] === u ? e[1] : e[1] === u ? e[0] : -1; if (v >= 0 && !R[v]) { R[v] = true; q.push(v); } }); }
   return R;
 }
-/** 開戰時：每艘船自己一份艙房；配了功能、放得下必要件的那幾間擺上家具（加進 sh.models，跟砲同一套血量與命中）。 */
+/** 開戰時：每艘船自己一份房間；照擺法擺上物品（加進 sh.models，跟砲同一套血量與命中）。 */
 function shipRooms(sh) {
-  var fns = roomFns(sh.T.id);
-  sh.rooms = hullRooms(sh.T).map(function (r) {
-    var o = { name: r.name, deck: r.deck, min: r.min, max: r.max, door: r.door, fn: null, furn: [] }, fn = fns[r.name], lay = fn ? roomLayout(sh.T, r, fn) : null;
-    if (!lay) return o;
-    o.fn = fn;
-    lay.forEach(function (p, k) {
-      var f = FURN[p.item], mesh = furnMesh(sh.T, p.item, p.ax), bb = [p.at[0], p.at[1], p.at[2], p.at[0] + p.w, p.at[1] + p.l, p.at[2] + f.size[2] + 1];
-      var m = { T: sh.T, k: sh.models.length, name: p.item + '-' + (k + 1), path: r.name + '/' + p.item + '-' + (k + 1), kind: 'furn', item: p.item, room: o, hp: f.hp, hpMax: f.hp, mesh: mesh, origin: p.at.slice(), bb: bb, pts: {}, meta: { kind: 'furniture', item: p.item },
-        c: [(bb[0] + bb[3]) / 2, (bb[1] + bb[4]) / 2, (bb[2] + bb[5]) / 2], foot: VK.pack(Math.floor(bb[0] + 1), Math.floor(bb[1] + 1), p.at[2] - 1), alive: true, need: k < lay.need };
+  var T = sh.T;
+  sh.rooms = hullRooms(T).map(function (r) {
+    var o = { name: r.name, deck: r.deck, min: r.min, max: r.max, door: r.door, type: null, furn: [] }, R = roomItems(T, r, roomPlan(T.id, r.name));
+    if (!R.type) return o;
+    o.type = R.type;
+    var G = roomGrid(T, r);
+    R.items.forEach(function (p, k) {
+      var f = FURN[p.it], t = itemTiles(p.it, p.r), lx = p.r ? f.size[1] : f.size[0], ly = p.r ? f.size[0] : f.size[1];
+      var at = [G.x0 + p.x * ROOM_TILE + Math.floor((t[0] * ROOM_TILE - lx) / 2), G.y0 + p.y * ROOM_TILE + Math.floor((t[1] * ROOM_TILE - ly) / 2), G.z];
+      var bb = [at[0], at[1], at[2], at[0] + lx, at[1] + ly, at[2] + f.size[2] + 1], nm = p.it + '-' + (k + 1);
+      var m = { T: T, k: sh.models.length, name: nm, path: r.name + '/' + nm, kind: 'furn', item: p.it, hold: f.hold || 0, room: o, hp: f.hp, hpMax: f.hp, mesh: furnMesh(T, p.it, p.r ? 'y' : 'x'), origin: at, bb: bb, pts: {}, meta: { kind: 'furniture', item: p.it },
+        c: [(bb[0] + bb[3]) / 2, (bb[1] + bb[4]) / 2, (bb[2] + bb[5]) / 2], foot: VK.pack(Math.floor(bb[0] + 1), Math.floor(bb[1] + 1), at[2] - 1), alive: true };
       sh.models.push(m); o.furn.push(m);
     });
     return o;
   });
   sh.roomLines = null;
 }
-/** 那一間現在的能力 ＝ 還在的家具各自剩下的血量比例加起來（醫療艙 ＝ 幾張床的份量；空間大、擺得多 ⇒ 大）；之後再乘人手（第二階段）。 */
-function roomCap(o) { var s = 0; o.furn.forEach(function (m) { if (m.alive) s += m.hp / m.hpMax; }); return s; }
+/** 那一間現在的 buff（只算還在的物品）。 */
+function roomBuffNow(o) { return roomBuff(o.type, o.furn.filter(function (m) { return m.alive; }).map(function (m) { return m.item; })); }
+/** 那一間現在的能力 ＝ 還在的容納物品（病床）各自剩下的血量比例 × 容納人數加起來（醫療艙 ＝ 幾張床的份量）；之後再乘人手。 */
+function roomCap(o) { var s = 0; o.furn.forEach(function (m) { if (m.alive && m.hold) s += m.hold * m.hp / m.hpMax; }); return s; }
 /** 打壞了幾成：現在的能力 ÷ 剛擺好時（0–1）。 */
-function roomEff(o) { return o.fn && o.furn.length ? roomCap(o) / o.furn.length : 0; }
+function roomEff(o) { var n = 0; o.furn.forEach(function (m) { n += m.hold; }); return o.type && n ? roomCap(o) / n : 0; }
 /** 除錯的外框：每一間 12 條邊（格的外緣：min .. max + 1），船的座標；畫法跟繩一樣（60_render.js）。 */
 function roomLines(sh) {
   var L = [], c = [0.35, 0.95, 1];
@@ -183,14 +315,18 @@ function roomLabels() {
       if (cw <= 0.1) return;
       var sx = (cx / cw + 1) / 2 * W, sy = (1 - cy / cw) / 2 * H;
       if (sx < -50 || sx > W + 50 || sy < -20 || sy > H + 20) return;
-      html += '<span style="position:absolute;left:' + sx.toFixed(0) + 'px;top:' + sy.toFixed(0) + 'px;transform:translate(-50%,-100%)">' + r.name.split('/').slice(-2).join('/') + (r.fn ? '・' + ROOM_FN[r.fn].name + ' ' + r.furn.filter(function (m) { return m.alive; }).length + '／' + r.furn.length : '') + '</span>';
+      html += '<span style="position:absolute;left:' + sx.toFixed(0) + 'px;top:' + sy.toFixed(0) + 'px;transform:translate(-50%,-100%)">' + r.name.split('/').slice(-2).join('/') + (r.type ? '・' + ROOM_FN[r.type].name + ' ' + r.furn.filter(function (m) { return m.alive; }).length + '／' + r.furn.length : '') + '</span>';
     });
   });
   if (box.innerHTML !== html) box.innerHTML = html;
 }
-/** 讀數（__game.rooms）：每艘每一間的名字、組裝件座標、尺寸（m）。 */
+/** 讀數（__game.rooms）：每艘每一間的名字、組裝件座標、尺寸（m）、類型、物品（還在／擺上；打壞的帶 ×）、buff、能力。 */
 function roomsInfo() {
   return SHIPS.map(function (sh) {
-    return { ship: sh.name, type: sh.T.id, bad: sh.T.roomsBad, rooms: (sh.rooms || []).map(function (r) { return { name: r.name, min: r.min, max: r.max, m: [0, 1, 2].map(function (k) { return +((r.max[k] - r.min[k] + 1) * S).toFixed(2); }), fn: r.fn, furn: r.furn.length, alive: r.furn.filter(function (m) { return m.alive; }).length, cap: +roomCap(r).toFixed(2), eff: +roomEff(r).toFixed(2) }; }) };
+    return { ship: sh.name, type: sh.T.id, bad: sh.T.roomsBad, rooms: (sh.rooms || []).map(function (r) {
+      var B = r.type ? roomBuffNow(r) : {}, b = {}; Object.keys(B).forEach(function (k) { b[k] = +B[k].v.toFixed(3); });
+      return { name: r.name, min: r.min, max: r.max, m: [0, 1, 2].map(function (k) { return +((r.max[k] - r.min[k] + 1) * S).toFixed(2); }), type: r.type, furn: r.furn.length, alive: r.furn.filter(function (m) { return m.alive; }).length,
+        items: r.furn.map(function (m) { return m.item + (m.alive ? '' : '×'); }).join(' '), buff: b, cap: +roomCap(r).toFixed(2), eff: +roomEff(r).toFixed(2) };
+    }) };
   });
 }

@@ -80,17 +80,36 @@
     }
   ],
   "furniture": {
-    "bed": {"name": "病床", "size": [19, 8, 6], "hp": 100, "gap": 2}
+    "bed": {"name": "病床", "type": "medical", "size": [19, 8, 6], "hp": 100, "hold": 1},
+    "table": {
+      "name": "手術台",
+      "type": "medical",
+      "size": [18, 8, 8],
+      "hp": 150,
+      "buff": {"heal": 0.3}
+    },
+    "medkit": {
+      "name": "藥箱",
+      "type": "medical",
+      "size": [5, 4, 4],
+      "hp": 40,
+      "buff": {"heal": 0.15}
+    },
+    "keg": {"name": "火藥桶", "type": "deck", "size": [10, 10, 8], "role": "powder"}
   },
   "rooms": {
     "medical": {
       "name": "醫療艙",
+      "items": ["bed", "table", "medkit"],
       "need": {"bed": 1},
-      "extra": "bed",
+      "fill": "bed",
+      "extra": {"table": 1, "medkit": 1},
+      "buffCap": {"heal": 0.6},
       "staff": 1,
       "staffPer": 3,
       "heal": 40,
       "back": 0.6
-    }
+    },
+    "deck": {"name": "砲甲板", "deck": true, "items": ["keg"]}
   }
 }

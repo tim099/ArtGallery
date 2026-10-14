@@ -123,6 +123,11 @@
   #cover h2{ margin:0 0 4px; font-size:24px; letter-spacing:1px; }
   #cover h3{ margin:14px 0 4px; font-size:14px; color:var(--gold); border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:2px; }
   #cover .note{ color:var(--dim); font-size:12px; }
+  #roomItems .rm{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 8px; font-size:13px; margin:5px 0; } #roomItems .rm label{ min-width:10em; text-align:right; } #roomItems .rm .rs{ color:var(--dim); font-size:12px; text-align:left; max-width:30em; } #roomItems select{ max-width:9em; }   /* 艙房一間一列（TASK-0568）；⛔ 選單不限寬 ⇒ 最長那個選項（放不下的原因）把選單撐成整排、手機多出橫向捲動 */
+  #roomItems button, #roomEd button{ font-size:13px; padding:4px 10px; margin:2px; } #roomItems button.on, #roomEd button.on{ color:#111; background:var(--gold); border-color:var(--gold); }
+  #roomEd{ margin:8px auto; max-width:660px; border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:8px; } #roomEd .rt{ color:var(--gold); font-size:14px; margin-bottom:4px; } #roomEd .rn{ color:var(--dim); font-size:12px; margin:4px 0; line-height:1.5; }
+  #roomEdW{ overflow-x:auto; max-width:100%; } #deckItems .rm{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 8px; font-size:13px; margin:5px 0; } #deckItems .rm label{ min-width:10em; text-align:right; } #deckItems .rm .rs{ color:var(--dim); font-size:12px; text-align:left; max-width:30em; } #deckItems button{ font-size:13px; padding:4px 10px; margin:2px; } #deckItems button.on{ color:#111; background:var(--gold); border-color:var(--gold); }
+  #roomEd canvas{ position:static; display:block; margin:6px auto; touch-action:manipulation; cursor:crosshair; }   /* ⛔ 全域的 canvas 是 absolute（遊戲畫面）⇒ 編輯器的格子會飛到頁面外 */
   #cover table.ammo{ margin:4px auto; border-collapse:collapse; font-size:13px; }
   #cover table.ammo th, #cover table.ammo td{ padding:2px 8px; } #cover table.ammo th{ color:var(--dim); font-weight:400; }
   #cover table.ammo input{ width:62px; font:inherit; background:rgba(255,255,255,.08); color:var(--ink); border:1px solid rgba(255,255,255,.25); border-radius:4px; padding:1px 4px; text-align:right; }
@@ -296,9 +301,18 @@
       <h3>船員</h3>
       <div id="crewItems"></div>
       <div class="row note" id="crewSum"></div>
-      <h3>艙房</h3>
+      <h3>甲板與艙房</h3>
+      <div id="deckItems"></div>
       <div id="roomItems"></div>
       <div class="row note" id="roomSum"></div>
+      <div id="roomEd" style="display:none">
+        <div class="rt" id="roomEdT"></div>
+        <div class="pal" id="roomEdP"></div>
+        <div id="roomEdW"><canvas id="roomEdC"></canvas></div>
+        <div class="rn">← 船尾　船頭 →；上 ＝ 左舷、下 ＝ 右舷。綠 ＝ 可以擺、黃 ＝ 門口走道（不能擺）、深色 ＝ 站不住。物品的中心擺在點的那一格；每一件都要有一邊從門口走得到。</div>
+        <div class="rn" id="roomEdV"></div>
+        <div><button id="roomEdA">自動擺滿</button><button id="roomEdZ">清空</button><button id="roomEdX">完成</button></div>
+      </div>
       <h3>性能</h3>
       <div class="row note">壓艙物的預設 ＝ 那艘剛好浮在設計水線。</div>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>

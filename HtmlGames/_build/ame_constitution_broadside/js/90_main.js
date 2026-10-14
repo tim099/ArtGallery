@@ -46,6 +46,22 @@ if (DEBUG) window.__game = {
   ships: function () { return SHIPS; }, balls: function () { return BALLS; }, pieces: function () { return PIECES; },
   dig: function (i, x, y, z, r) { var sh = SHIPS[i || 0], n = 0; for (var a = -r; a <= r; a++) for (var b = -r; b <= r; b++) for (var c = -r; c <= r; c++) if (a * a + b * b + c * c <= r * r && removeVoxel(sh, x + a, y + b, z + c, true)) n++; sh.rs.update && sh.rs.update(); return n; },   // 除錯：在格座標挖一個球（照 removeVoxel：尋路的髒區、進水照常記）
   ladders: function (i) { var H = SHIPS[i || 0].nav; return H ? H.ladders.map(function (L) { return { name: L.name, steps: L.steps, ia: navPos(H.levels[L.lo].N, L.ia), broken: L.broken }; }) : null; },
+  /** 艙房的擺法（TASK-0568；船型要先載好）：每一間的格子（nx×ny、門口走道幾格、站不住幾格）、type ⇒ 那個類型自動擺滿的結果、now ⇒ 現在照擺法擺上的；ms ＝ 全部算一次幾毫秒（不記）。 */
+  roomPlans: function (id, type) {
+    var T = HULLT[id || CFG_ID]; if (!T) return null;
+    var t0 = performance.now(), out = hullRooms(T).map(function (r) {
+      r.autoC = null; var G = roomGrid(T, r), a = type ? roomAuto(T, r, type) : null, I = roomItems(T, r, roomPlan(T.id, r.name)), n = [0, 0, 0];
+      for (var k = 0; k < G.s.length; k++) n[G.s[k]]++;
+      function it(L) { return L.map(function (q) { return q.it + '@' + q.x + ',' + q.y + (q.r ? 'r' : ''); }).join(' '); }
+      return { name: r.name, g: G.nx + 'x' + G.ny, aisle: n[2], wall: n[0], auto: a ? (a.items ? it(a.items) : a.why) : undefined, type: I.type, now: it(I.items), bad: I.bad, buff: I.type ? buffText(roomBuff(I.type, I.items.map(function (q) { return q.it; }))) : '' };
+    });
+    return { ms: +(performance.now() - t0).toFixed(1), rooms: out };
+  },
+  /** 改一間的擺法（v：null ＝ 空著、{ type } ＝ 自動擺滿、{ type, items } ＝ 自訂）⇒ 照驗過的擺上去的結果。 */
+  roomSet: function (id, name, v) { (SHIP_ROOMS[id] = SHIP_ROOMS[id] || {})[name] = v; if (SLIDERS_SHOW) SLIDERS_SHOW(); var T = HULLT[id], r = T && hullRooms(T).filter(function (x) { return x.name === name; })[0]; return r ? roomItems(T, r, roomPlan(id, name)) : null; },
+  /** 打第 i 艘那一間的第 k 件物品 dmg 點（跟砲同一套 damageModel；歸零 ⇒ 飛出去）⇒ 那一間打完的讀數。 */
+  furnHit: function (i, name, k, dmg) { var sh = SHIPS[i], o = sh.rooms.filter(function (r) { return r.name === name; })[0], m = o.furn[k]; damageModel(sh, m, [0, 5, 0], dmg); var B = roomBuffNow(o); return { item: m.item, hp: m.hp, alive: m.alive, buff: buffText(B), cap: +roomCap(o).toFixed(2), eff: +roomEff(o).toFixed(2) }; },
+  roomPlace: function (id, name, type, items, p) { var T = HULLT[id], r = hullRooms(T).filter(function (x) { return x.name === name; })[0]; return placeOk(roomGrid(T, r), type, items, p); },
   rooms: function (on) { if (on !== undefined) { ROOMS_DBG = !!on; if (!on) roomLabels(); } return roomsInfo(); },   // 空艙房（36_rooms.js）：讀數；給 true／false ⇒ 開關外框與名字
   shipsIO: { exp: function () { return shipsExport(); }, imp: function (o) { var n = shipsImport(o); SLIDERS_SHOW && SLIDERS_SHOW(); return n; }, crew: function (id) { return shipCrew(id); }, seen: function () { return CREW_SEEN; } },   // 船隻配置的匯出入（TASK-0570；量的時候不必真的下載檔案）
   camera: function () { return { mode: CAM.mode, follow: CAM.follow ? { age: +CAM.follow.age.toFixed(2), owner: CAM.follow.owner, alive: CAM.follow.alive } : null, pick: CAM.pick || null, track: CAM.track, yaw: CAM.yaw, dist: CAM.dist, tgt: CAM.tgt.slice(), eye: CAM.eye.slice() }; },
