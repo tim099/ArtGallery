@@ -56,7 +56,7 @@ function pick(cx, cy) {
   //   點到海 ⇒ 取消瞄準（手動 ⇒ 回到預設的瞄法；自動開砲 ⇒ 回到全自動）。
   if (hit) {
     setAim(me, [hit.x + 0.5, hit.y + 0.5, hit.z + 0.5], on); me.pMode = AIM_P = 'free'; sfx('crack', null, 0.08);
-    if (!isFoe(me, on)) note(me, '瞄準友艦 ' + on.T.name + teamTag(on) + ' —— 打下去一樣會傷到它');
+    if (!isFoe(me, on)) note(me, '瞄準友艦 ' + on.name + teamTag(on) + ' —— 打下去一樣會傷到它');
     if (AUTOFIRE && !me.hand) { me.hand = true; note(me, '手動瞄準：這一舷你來打（空白鍵齊射），另一舷照樣自動 —— 點海面回到全自動'); }
   } else if (me.aim) {
     setAim(me, null);

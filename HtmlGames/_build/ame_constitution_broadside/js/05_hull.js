@@ -20,7 +20,11 @@
 //   top 每根桅的桅頂水手、monkeys 送藥手（1 ＝ 每一對砲一個、0 ＝ 沒有）、handsK 預備水手的人數倍率（細節設定的人數 × 它；夜隼號 ¼）。砲班人數照砲種表（10_ship.js GUNS）。
 // 船隻清單 ＝ config/game.json 的 ships（el ＝ 內嵌 .vxk 的 id；匯入新船、重新匯入走 admin.py）；選單只列 HTML 裡真的有內嵌資料的那幾艘。
 var GEO0 = CFG.geo0, CREW0 = CFG.crew0;
-var HULL_KNOWN = CFG.ships.map(function (s) { var h = { id: s.id, el: s.el, name: s.name, geo: s.geo, crew: s.crew }; if (s.zw0) h.zw0 = s.zw0; return h; });
+// 艦名（TASK-0552；Tim 2026-10-14：參考歷史同級艦）：ships[].names ＝ 那一型的艦名池（第一個 ＝ 原名；沒給 ⇒ 只有原名），同一場照編成的順序發（52_fleet.js fleetNames）；
+//   池子用完拿公共池 names_pub，再用完 ⇒ 原名＋序號。憲法號：同級的 44 砲巡防艦（合眾國號、總統號），再來是照它們的設計造的 44 砲巡防艦；公共池：同時代美國海軍的巡防艦。
+//   餘燼號、夜隼號是 basecamp、summit 的船：她們給艦名池之前只有原名。
+var HULL_KNOWN = CFG.ships.map(function (s) { var h = { id: s.id, el: s.el, name: s.name, geo: s.geo, crew: s.crew, names: s.names && s.names.length ? s.names : [s.name] }; if (s.zw0) h.zw0 = s.zw0; return h; });
+var SHIP_NAMES_PUB = CFG.names_pub || [];
 var HULL_LIST = HULL_KNOWN.filter(function (h) { return !!document.getElementById(h.el); });
 var HULL_DEF = (HULL_LIST[0] || HULL_KNOWN[0]).id;                      // 預設的船：清單裡第一艘有內嵌資料的
 var HULLS = {}, HULLT = {};                                             // id → 載入中的 Promise ／ 載好的船型
@@ -66,7 +70,7 @@ function buildHull(info, model, t0, C) {
     ['格子', function () { tm('grid', function () { T.base = VK.Grid.fromModel(model); }); tm('verify', function () { T.chk = VK.verify(T.base, h); }); }],   // 格子不存快取：照解出來的比 checksum
     ['模型網格', function () { tm('meshes', function () { buildMeshes(T, C && C.models); }); }],
     ['水線與浮力', function () {
-      tm('waterline', function () { waterline(T); }); tm('hullTex', function () { hullTex(T, C && C.hb); }); tm('navImg', function () { navImg(T); });
+      tm('waterline', function () { waterline(T); }); tm('hullTex', function () { hullTex(T, C && C.hb); }); tm('navImg', function () { navImg(T); sideImg(T); });
       tm('hydro', function () { if (C) { T.hyd = C.hyd; T.disp = C.disp; } else hydrostatics(T); });
     }],
     ['船體網格', function () { tm('pristine', function () { T.pristine = new VK.RegionSet(gl, T.base, QIDX); if (C) meshesFromCache(T.pristine, C.mesh); else T.pristine.buildAll(); }); }],
@@ -99,6 +103,35 @@ function navImg(T) {
   }
   g.putImageData(im, 0, 0);
   T.navImg = cv; T.navU = ((T.cy / C) | 0) - x0 + 0.5; T.navV = (H - 1 - ((T.cx / C) | 0)) - y0 + 0.5;   // 船的中心（格的 cx, cy）在圖上的位置 ⇒ 羅盤照它對準圓心
+}
+/** 上方艦隊按鈕中間的船（TASK-0552）：從左舷看過去的側面投影（船頭朝右；每 SIDE_CELL × SIDE_CELL 格取最靠左舷那一格的顏色、越往裡越暗），
+ *  帆（作品的帆面，旗不算）畫成淡的一層墊在後面 ⇒ 認得出是帆船。載入時算一次、裁到有東西的範圍；原始格子（開戰後被打掉的不跟）。 */
+var SIDE_CELL = 4;
+function sideImg(T) {
+  var G = T.base, C = SIDE_CELL, W = Math.ceil(G.sx / C), H = Math.ceil(G.sz / C), near = new Int16Array(W * H).fill(0x7fff), col = new Uint8Array(W * H);
+  G.each(function (x, y, z, c) { var i = (H - 1 - ((z / C) | 0)) * W + ((x / C) | 0); if (y < near[i]) { near[i] = y; col[i] = c; } });
+  var x0 = W, x1 = -1, y0 = H, y1 = -1, i, u, v;
+  function grow(u, v) { if (u < x0) x0 = u; if (u > x1) x1 = u; if (v < y0) y0 = v; if (v > y1) y1 = v; }
+  for (v = 0; v < H; v++) for (u = 0; u < W; u++) if (near[v * W + u] < 0x7fff) grow(u, v);
+  var sails = (T.rig.sails || []).filter(function (s) { return !isFlag(s); });
+  sails.forEach(function (s) { for (var j = 0; j < s.verts.length; j += 3) grow(clamp(Math.floor(s.verts[j] / C), 0, W - 1), clamp(H - 1 - Math.floor(s.verts[j + 2] / C), 0, H - 1)); });
+  if (x1 < 0) return;
+  var hc = document.createElement('canvas'); hc.width = W; hc.height = H;
+  var hg = hc.getContext('2d'), im = hg.createImageData(W, H), dd = im.data;
+  for (i = 0; i < W * H; i++) {
+    if (near[i] === 0x7fff) continue;
+    var c = col[i], k = 0.95 - 0.4 * clamp((near[i] - T.cy + G.sy / 2) / G.sy, 0, 1), o = i * 4;
+    dd[o] = ((c >> 5) & 7) * 255 / 7 * k; dd[o + 1] = ((c >> 2) & 7) * 255 / 7 * k; dd[o + 2] = (c & 3) * 255 / 3 * k; dd[o + 3] = 255;
+  }
+  hg.putImageData(im, 0, 0);
+  var cv = document.createElement('canvas'); cv.width = x1 - x0 + 1; cv.height = y1 - y0 + 1;
+  var g = cv.getContext('2d'); g.translate(-x0, -y0); g.fillStyle = 'rgba(236,232,220,0.78)';
+  sails.forEach(function (s) {                                          // 一個三角形填一次（⛔ 全部放進同一條路徑 ⇒ 帆是正反兩層、繞向相反，互相抵銷成空的）
+    var P3 = s.verts, t = s.tris;
+    for (var j = 0; j < t.length; j += 3) { g.beginPath(); for (var q = 0; q < 3; q++) { var a = t[j + q] * 3, px = P3[a] / C, pz = H - P3[a + 2] / C; if (q) g.lineTo(px, pz); else g.moveTo(px, pz); } g.fill(); }
+  });
+  g.drawImage(hc, 0, 0);
+  T.sideImg = cv;
 }
 /** 設計水線（格的 z）：組裝件或關聯的 meta `kind=ship, waterline_z`（跟 basecamp 提議中）；沒有 ⇒ ZW0（憲法號 63）。 */
 function hullZW(h, info) {

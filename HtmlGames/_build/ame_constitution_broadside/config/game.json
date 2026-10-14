@@ -1,6 +1,6 @@
 {
   "v": 1,
-  "limits": {"maxShips": 8, "maskNear": 4, "fleetMax": 40},
+  "limits": {"maxShips": 16, "maskNear": 4, "fleetMax": 40},
   "menu": {"play": "fun", "mode": "pve", "sail": "auto", "gfx": "mid", "phx": "full"},
   "lim": {
     "hard": [0.5, 20, 3],
@@ -48,8 +48,16 @@
   },
   "geo0": {"spar": null, "marines": [160, 220], "center": 140, "aim": 90, "aimZ": [40, 320], "deckAim": [84, 104], "rigAim": [150, 300]},
   "crew0": {"officers": 4, "helm": 2, "marines": 12, "marineGap": 37, "top": 4, "monkeys": 1, "handsK": 1},
+  "names_pub": ["星座號", "國會號", "切薩皮克號", "埃塞克斯號", "波士頓號", "紐約號", "費城號", "亞當斯號", "坎伯蘭號", "薩凡納號", "聖勞倫斯號", "拉里坦號"],
   "ships": [
-    {"id": "constitution", "el": "ship", "name": "憲法號", "vxk": "constitution.vxk", "work": "basecamp-frigate-constitution-01m-assembly"},
+    {
+      "id": "constitution",
+      "el": "ship",
+      "name": "憲法號",
+      "names": ["憲法號", "合眾國號", "總統號", "爪哇號", "哥倫比亞號", "波多馬克號"],
+      "vxk": "constitution.vxk",
+      "work": "basecamp-frigate-constitution-01m-assembly"
+    },
     {
       "id": "ember",
       "el": "ship-ember",

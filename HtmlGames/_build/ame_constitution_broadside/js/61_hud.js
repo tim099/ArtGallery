@@ -6,7 +6,7 @@ var MSGS = [], MSG_MAX = 5, MSG_LIFE = 4;
 /** imp：重要的（殉爆、斷成兩截、沉沒、降旗）⇒ 留 8 秒，滿了先擠掉不重要的。 */
 function note(sh, text, imp) {
   if (DEMO >= 0 && !RUNNING) return;
-  var who = sh.i === PLAYER_I ? '我艦' : sh.team === playerTeam() ? '友艦' : '敵艦', el = document.createElement('div');   // 多船：照陣營（一對一 ＝ 以前的我艦／敵艦）
+  var who = sh.i === PLAYER_I ? '我艦' : sh.name, el = document.createElement('div');   // 我艦照舊；其他每艘用艦名（TASK-0552：多船時分得出是哪一艘），顏色照陣營
   el.innerHTML = '<span style="color:' + (teamIdx(sh) === 0 ? 'var(--blue)' : 'var(--red)') + '">' + who + '</span>　' + text;
   $('msg').appendChild(el); MSGS.push({ el: el, t: imp ? 8 : MSG_LIFE, imp: !!imp });
   while (MSGS.length > MSG_MAX) { var j = MSGS.findIndex(function (m) { return !m.imp; }); MSGS.splice(j < 0 ? 0 : j, 1)[0].el.remove(); }
@@ -88,6 +88,82 @@ function panel(sh, title) {
     capText(sh) + '<br>' +
     '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）' + handsText(sh) + swimText(sh) + '　' + supplyText(sh) + '<br>' +
     '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
+}
+// ───────────────────────── 上方艦隊（TASK-0552；Tim 2026-10-14） ─────────────────────────
+// 場上每一艘一個圓形按鈕：我方沿左邊、敵方沿右邊往下排（照 SHIPS 的順序 ⇒ 我艦、敵方第一艘在最上面；候補還有幾艘接在最後）。
+//   外圈 ＝ 船體（金）、內圈 ＝ 進水（水藍），中間 ＝ 那一型的側面投影（05_hull.js sideImg；我方船頭朝右、敵方朝左 ⇒ 都朝畫面中間）與艦名；
+//   ★ ＝ 我艦；沉沒、下沉、降旗寫在圖上、整顆變暗。按鈕的畫布只在讀數變了才重畫（key）。
+// 點一顆 ⇒ 中間展開那一艘的詳細資訊（panel，同時最多一艘）；點同一顆或點資訊本身 ⇒ 收回。預設全折疊、每一場開局全折疊（fleetReset，70_flow.js reset）。
+// 窄螢幕（手機直拿）：羅盤在頂端中間 ⇒ 中間那一欄（資訊＋廣播）放到羅盤下面（topC 的 top 照它的底算）。
+var INFO_SH = null, SB_EL = {};
+$('info').onclick = function () { INFO_SH = null; fleetHud(SHIPS[PLAYER_I]); };   // 點資訊本身 ⇒ 收回
+function fleetReset() { INFO_SH = null; for (var k in SB_EL) SB_EL[k].el.remove(); SB_EL = {}; [].forEach.call(document.querySelectorAll('.sbres'), function (e) { e.remove(); }); }
+function sbMake(o, box) {
+  var el = document.createElement('div'), cv = document.createElement('canvas'); el.className = 'sb'; el.appendChild(cv);
+  el.onclick = function (e) { e.stopPropagation(); INFO_SH = INFO_SH === o ? null : o; fleetHud(SHIPS[PLAYER_I]); };
+  box.insertBefore(el, box.querySelector('.sbres')); return { el: el, cv: cv, box: box, key: '' };
+}
+function sbDraw(b, o, flip) {
+  var hull = o.grid.count / o.orig, fl = o.sunk ? 1 : floodPct(o), st = o.sunk ? '沉沒' : o.sinkingFinal ? '下沉' : o.struck ? '降旗' : '';
+  var dpr = window.devicePixelRatio || 1, W = Math.round(b.el.clientWidth * dpr), me = o.i === PLAYER_I;
+  var key = [hull.toFixed(3), fl.toFixed(2), st, me, W].join();
+  b.el.classList.toggle('on', INFO_SH === o); b.el.classList.toggle('out', !!st);
+  b.el.title = (me ? '我艦 ' : '') + o.name + '　船體 ' + (hull * 100).toFixed(1) + '%　進水 ' + Math.round(fl * 100) + '%' + (st ? '　' + st : '');
+  if (key === b.key || !W) return; b.key = key;
+  var cv = b.cv; cv.width = cv.height = W;
+  var g = cv.getContext('2d'), R = W / 2, tc = teamIdx(o) === 0 ? '#6f9bff' : '#ff6f6f';
+  function ring(r, w, f, col) {
+    g.lineWidth = w; g.lineCap = 'butt'; g.strokeStyle = 'rgba(255,255,255,.13)'; g.beginPath(); g.arc(R, R, r, 0, 6.2832); g.stroke();
+    if (f > 0.002) { g.strokeStyle = col; g.beginPath(); g.arc(R, R, r, -Math.PI / 2, -Math.PI / 2 + 6.2832 * Math.min(1, f)); g.stroke(); }
+  }
+  g.fillStyle = 'rgba(12,18,26,.88)'; g.beginPath(); g.arc(R, R, R - 1, 0, 6.2832); g.fill();
+  var sky = g.createLinearGradient(0, R * 0.3, 0, R * 1.7); sky.addColorStop(0, '#6f8aa3'); sky.addColorStop(0.62, '#a9bccb'); sky.addColorStop(0.63, '#3e6680'); sky.addColorStop(1, '#2a4a60');
+  g.fillStyle = sky; g.beginPath(); g.arc(R, R, R * 0.62, 0, 6.2832); g.fill();                              // 圓心：天與海（深色的船身才看得到）
+  g.lineWidth = Math.max(1, dpr); g.strokeStyle = tc; g.beginPath(); g.arc(R, R, R - 1, 0, 6.2832); g.stroke();   // 陣營色的外框
+  ring(R * 0.86, R * 0.13, hull, '#e8c26a');                                                                  // 外圈：船體
+  ring(R * 0.69, R * 0.11, fl, fl >= 0.7 ? '#ff7a6a' : '#4fb3ff');                                            // 內圈：進水（七成以上轉紅）
+  g.globalAlpha = st ? 0.4 : 1;
+  var im = o.T.sideImg;
+  if (im) {
+    var bw = R * 1.12, bh = R * 0.9, k = Math.min(bw / im.width, bh / im.height), iw = im.width * k, ih = im.height * k;
+    g.save(); g.beginPath(); g.arc(R, R, R * 0.62, 0, 6.2832); g.clip();
+    g.translate(R, R * 1.06 - ih); if (flip) g.scale(-1, 1); g.imageSmoothingEnabled = true; g.drawImage(im, -iw / 2, 0, iw, ih); g.restore();
+  }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.shadowColor = '#000'; g.shadowBlur = 3 * dpr;
+  g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(R * 0.27) + 'px "Noto Sans TC","Microsoft JhengHei",sans-serif'; g.fillText(o.name, R, R * 1.28, R * 1.1);
+  g.globalAlpha = 1;
+  if (st) { g.fillStyle = st === '降旗' ? '#fff' : '#ff9a8a'; g.font = 'bold ' + Math.round(R * 0.3) + 'px sans-serif'; g.fillText(st, R, R * 0.92); }
+  if (me) { g.fillStyle = '#e8c26a'; g.font = Math.round(R * 0.3) + 'px sans-serif'; g.fillText('★', R, R * 0.4); }
+}
+function fleetHud(me) {
+  if (!me) return;
+  var pt = playerTeam();
+  ['L', 'R'].forEach(function (s) {
+    var box = $('fleet' + s), team = s === 'L' ? pt : other(pt);
+    SHIPS.forEach(function (o) {
+      if (o.team !== team) return;
+      var b = SB_EL[o.i]; if (!b || b.box !== box) { if (b) b.el.remove(); b = SB_EL[o.i] = sbMake(o, box); }
+      sbDraw(b, o, s === 'R');
+    });
+    var n = RESERVE[team].length, rc = box.querySelector('.sbres');
+    if (n && !rc) { rc = document.createElement('div'); rc.className = 'sbres'; box.appendChild(rc); }
+    if (rc) { if (n) rc.textContent = '候補 ' + n; else rc.remove(); }
+  });
+  var el = $('info'), o = INFO_SH;
+  if (o && SHIPS.indexOf(o) < 0) o = INFO_SH = null;
+  if (!o) el.style.display = 'none';
+  else {
+    var fs = flagship(o.team), many = teamShips(o.team).length > 1 || RESERVE[o.team].length > 0;
+    var who = o.i === PLAYER_I ? '我艦' : o.team === pt ? (many && o === fs ? '我方旗艦' : '友艦') : (many && o === fs ? '敵方旗艦' : '敵艦');
+    var title = who + ' ' + o.name + (o.name !== o.T.name ? '<span class="cls">（' + o.T.name + '型）</span>' : '') + teamTag(o);
+    el.innerHTML = panel(o, title).replace('</h3>', '<span class="fold">▲ 收起</span></h3>');
+    el.style.display = 'block'; el.style.borderLeftColor = teamIdx(o) === 0 ? 'var(--blue)' : 'var(--red)';
+  }
+  var tc = $('topC');
+  if (window.innerWidth <= 760) {
+    var bt = $('nav').getBoundingClientRect().bottom;
+    tc.style.top = Math.round(bt + 6) + 'px';
+  } else tc.style.top = '';
 }
 /** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
  *  顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀）；▶ ＝ 這一舷有砲對得到目標（我艦看瞄準點、其他看敵艦中央）。
@@ -218,10 +294,8 @@ function drawNav(sh) {
 function hud(dt) {
   stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
-  var me = SHIPS[PLAYER_I], mf = flagship(playerTeam()) || me, ef = flagship(foeTeam());   // 上方兩個面板：雙方旗艦（52_fleet.js；一對一 ＝ 我艦、敵艦）
-  function resTag(team) { var n = RESERVE[team].length; return n ? '・候補 ' + n : ''; }   // 候補還有幾艘（52_fleet.js）
-  $('me').innerHTML = panel(mf, (mf === me ? '我艦 ' : '我方旗艦 ') + mf.T.name + teamTag(mf) + resTag(mf.team));
-  $('foe').innerHTML = ef ? panel(ef, (teamShips(ef.team).length > 1 || RESERVE[ef.team].length ? '敵方旗艦 ' : '敵艦 ') + ef.T.name + teamTag(ef) + resTag(ef.team)) : '';
+  var me = SHIPS[PLAYER_I];
+  fleetHud(me);                                                                  // 上方：每艘一個圓形按鈕＋中間一艘的詳細資訊（TASK-0552）
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
   var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';

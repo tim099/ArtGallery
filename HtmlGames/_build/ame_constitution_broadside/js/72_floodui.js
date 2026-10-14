@@ -32,7 +32,7 @@ function deg(a) { return (a * 57.2958).toFixed(1) + '°'; }
 function floodPanel() {
   var box = $('floodBody');
   box.innerHTML = SHIPS.map(function (sh, k) {
-    var fl = sh.fl, who = (k === PLAYER_I ? '我艦' : sh.team === playerTeam() ? '友艦' : '敵艦') + ' ' + sh.T.name, lines;
+    var fl = sh.fl, who = (k === PLAYER_I ? '我艦' : sh.team === playerTeam() ? '友艦' : '敵艦') + ' ' + sh.name, lines;
     var tilt = '橫傾 ' + deg(sh.rollA) + (sh.rollA > 0.002 ? '（往' + sideName('S') + '）' : sh.rollA < -0.002 ? '（往' + sideName('P') + '）' : '') + '・縱傾 ' + deg(sh.pitchA) + (sh.pitchA < -0.002 ? '（船頭低）' : sh.pitchA > 0.002 ? '（船尾低）' : '');
     if (!fl || sh.broken) {
       lines = '<div>' + (sh.broken ? '斷成兩截 ⇒ 照公式（一定沉）' : '公式模式（物理效果「進水」選粒子才看得到艙內的水）') + '</div>' +

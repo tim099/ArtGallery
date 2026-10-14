@@ -66,6 +66,17 @@ function teamDown(team) { var L = teamShips(team); return L.length > 0 && L.ever
 var FLEET_GAP = 70;                                                       // 同一邊並排的兩艘，中心左右隔多遠（m；船寬 13 m）
 var FLEET_DBG = null;                                                     // ?debug=1 的 __game.fleet([...])：直接給一串（蓋過主選單的編成）
 /** 主選單的編成（FLEET_SET，05_hull.js）⇒ 一串：我艦、敵方第一艘、我方其他、敵方其他（一對一 ＝ [我艦, 敵艦]，跟以前同一個順序）。 */
+/** 艦名（TASK-0552）：照編成的順序（我艦、敵方第一艘、我方其他、敵方其他；候補也在裡面）發 —— 那一型的艦名池（05_hull.js names）裡第一個還沒用的，
+ *  用完拿公共池 SHIP_NAMES_PUB，再用完 ⇒ 原名＋序號。同一場（兩邊合起來）不重名；只看編成 ⇒ 重開同一場名字不變、不抽 rnd()。 */
+function fleetNames(spec) {
+  var used = {};
+  function take(L) { for (var k = 0; k < L.length; k++) if (!used[L[k]]) return L[k]; return null; }
+  return spec.map(function (f) {
+    var H = hullInfo(f.hull) || { name: f.hull }, nm = take(H.names || [H.name]) || take(SHIP_NAMES_PUB);
+    for (var n = 2; !nm; n++) if (!used[H.name + ' ' + n]) nm = H.name + ' ' + n;
+    used[nm] = true; return { team: f.team, hull: f.hull, name: nm };
+  });
+}
 function fleetSpec() {
   if (FLEET_DBG) return FLEET_DBG;
   var b = FLEET_SET[0], r = FLEET_SET[1], L = [{ team: 'blue', hull: b[0] }, { team: 'red', hull: r[0] }];
@@ -111,7 +122,7 @@ function fieldSplit(spec) {
     act[s]++; last = s;
   }
   var k = { blue: 0, red: 0 }, field = [], reserve = { blue: [], red: [] };
-  spec.forEach(function (f) { if (k[f.team]++ < act[f.team]) field.push(f); else reserve[f.team].push(f.hull); });
+  spec.forEach(function (f) { if (k[f.team]++ < act[f.team]) field.push(f); else reserve[f.team].push(f); });   // 候補：整筆（船型＋艦名）
   return { field: field, reserve: reserve };
 }
 /** 每半秒（50_sim.js step，survey 那一拍）：有空出來的名額就照 REINF_MODE 補。 */
@@ -132,7 +143,7 @@ function reinforce() {
 }
 /** 候補的下一艘進場（位置見上面）。 */
 function spawnReserve(team) {
-  var hull = RESERVE[team].shift(), T = HULLT[hull]; if (!T) return null;
+  var f = RESERVE[team].shift(), T = f && HULLT[f.hull]; if (!T) return null;
   function mid(L) { if (!L.length) return null; var x = 0, z = 0; L.forEach(function (o) { x += o.px; z += o.pz; }); return [x / L.length, z / L.length]; }
   var afloat = SHIPS.filter(function (o) { return !o.sunk; });
   var E = mid(afloat.filter(function (o) { return o.team !== team && !isOut(o); })) || mid(afloat.filter(function (o) { return o.team !== team; })) || [0, team === 'blue' ? -DIST / 2 : DIST / 2];
@@ -148,9 +159,9 @@ function spawnReserve(team) {
   });
   if (!P) P = [E[0] + dx * (R + 150), E[1] + dz * (R + 150)];
   var hx = E[0] - P[0], hz = E[1] - P[1], yaw = Math.atan2(-hz, hx);       // 船頭對著敵方中心（fwd(yaw) ＝ [cos, 0, −sin]）
-  var sh = makeShip(SHIPS.length, team, yaw, P[1], T, P[0]);
+  var sh = makeShip(SHIPS.length, team, yaw, P[1], T, P[0]); sh.name = f.name;
   SHIPS.push(sh); stepShip(sh, 0); survey(sh); pickCaptain(sh); cmdTick(); pickFoes();   // cmdTick：指揮官馬上把它排進去
-  note(sh, '援軍進場：' + T.name + teamTag(sh) + (RESERVE[team].length ? '（候補還有 ' + RESERVE[team].length + ' 艘）' : '（候補用完）'), true);
+  note(sh, '援軍進場' + (sh.name !== T.name ? '（' + T.name + '型）' : '') + teamTag(sh) + (RESERVE[team].length ? '（候補還有 ' + RESERVE[team].length + ' 艘）' : '（候補用完）'), true);
   return sh;
 }
 /** 我艦出局（沉了、在沉、降旗）⇒ 自動換到友艦操控（Tim 2026-10-13：「玩家操作的船沉沒時，自動切換到友軍船艦操控」）：
@@ -166,11 +177,11 @@ function playerHandoff() {
   me.pMode = 'free'; me.hand = false; PLAYER_I = nw.i; nw.pMode = AIM_P; nw.hand = false;
   if (MODE === 'sandbox') { nw.reloadT = RELOAD_SANDBOX; me.reloadT = RELOAD; }
   KEYS.l = KEYS.r = false; CAM.trMe = CAM.trYaw = null;
-  note(nw, '改操控 ' + nw.T.name + teamTag(nw) + '（' + me.T.name + (me.struck && !me.sunk && !me.sinkingFinal ? '降旗了' : '沉了') + '）', true);
+  note(nw, '改操控 ' + nw.name + teamTag(nw) + '（' + me.name + (me.struck && !me.sunk && !me.sinkingFinal ? '降旗了' : '沉了') + '）', true);
   return nw;
 }
 function spawnFleet(spec) {
-  var sp = fieldSplit(spec); spec = sp.field; RESERVE = sp.reserve; REINF = { last: null, outQ: [] };
+  var sp = fieldSplit(fleetNames(spec)); spec = sp.field; RESERVE = sp.reserve; REINF = { last: null, outQ: [] };
   var n = { blue: 0, red: 0 }, k = { blue: 0, red: 0 };
   spec.forEach(function (f) { n[f.team]++; });
   function slots(m) {                                                    // 橫隊的左右位置，從中間往兩側排（第一艘 ＝ 我艦／敵方第一艘在中間）
@@ -181,7 +192,7 @@ function spawnFleet(spec) {
   spec.forEach(function (f, i) {
     var blue = f.team === 'blue', off = X[f.team][k[f.team]++];        // 兩邊第 j 艘站同一個 x ⇒ 各自對著對面那一艘
     var T = HULLT[f.hull], bow = (T.wl1 - T.cx) * S;                    // 船的原點（x ＝ T.cx）到船頭的距離
-    SHIPS.push(makeShip(i, f.team, blue ? Math.PI / 2 : -Math.PI / 2, blue ? DIST / 2 + bow : -DIST / 2 - bow, T, off));
+    var sh = makeShip(i, f.team, blue ? Math.PI / 2 : -Math.PI / 2, blue ? DIST / 2 + bow : -DIST / 2 - bow, T, off); sh.name = f.name; SHIPS.push(sh);
   });
 }
 
