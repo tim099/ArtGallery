@@ -34,6 +34,9 @@ function newsCrew(sh, c, dead, cause) {
   }
   var by = dead ? sh.news.kr : sh.news.wr; by[c.role] = (by[c.role] || 0) + 1;
 }
+/** 落水的水手（43_swim.js）：爬回船上、爬上友艦、被敵艦撈走、撈起別艘的 ⇒ 記著，第一件起算 NEWS_WIN 秒那一艘報一行（Tim 2026-10-14：⛔ 一個一個報會洗版）。 */
+var SWIM_TXT = { back: '爬回船上', ally: '爬上友艦', foe: '被敵艦撈走', gotAlly: '撈起友艦水手', gotFoe: '撈起敵艦水手（加入我方）' };
+function swimNews(sh, k) { var N = sh.news; N.sw = N.sw || {}; N.sw[k] = (N.sw[k] || 0) + 1; if (!(N.st >= 0)) N.st = SIMT; }
 function roleList(by) { var r = []; for (var k in by) r.push(ROLE_NAME[k] + ' ' + by[k]); return r.length ? '（' + r.join('、') + '）' : ''; }
 /** 每半秒（survey 那一拍）：把記著的砲併成一行；傷亡滿 NEWS_WIN 秒報一次。 */
 function newsFlush(sh) {
@@ -49,6 +52,11 @@ function newsFlush(sh) {
     N.kr = {}; N.wr = {};
     if (parts.length) note(sh, NEWS_WIN + ' 秒內 ' + parts.join('、'));   // 累計看兩邊面板（⛔ 也寫進來 ⇒ 一行太長、蓋到面板）
     N.k = sh.kills; N.w = sh.wounds; N.t = -1;
+  }
+  if (N.st >= 0 && SIMT - N.st >= NEWS_WIN) {
+    var sp = []; for (var k in SWIM_TXT) if (N.sw[k]) sp.push(SWIM_TXT[k] + ' ' + N.sw[k]);
+    if (sp.length) note(sh, NEWS_WIN + ' 秒內 落水水手 ' + sp.join('、'));
+    N.sw = {}; N.st = -1;
   }
 }
 /** 面板的一行：砲長與現在瞄哪裡（我艦手動 ⇒ 玩家的瞄準模式，砲長待命）。 */

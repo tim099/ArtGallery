@@ -81,7 +81,7 @@ function stepSwim(sh, c, dt) {
   if (!dst) { c.fv = [0, 0, 0]; return; }
   var p = boardPoint(dst, w), dx = p[0] - w[0], dz = p[2] - w[2], d = Math.hypot(dx, dz);
   if (d < SWIM_REACH && Math.abs(dst.spd) < SWIM_GRAB) {                 // 船太快 ⇒ 抓不住，跟在旁邊游（船慢下來才爬得上去）
-    if (dst === sh) { if (board(sh, c, true)) { sh.saved = (sh.saved || 0) + 1; note(sh, '一個落水的水手爬回船上了'); } else S2.no.push(sh); }
+    if (dst === sh) { if (board(sh, c, true)) { sh.saved = (sh.saved || 0) + 1; swimNews(sh, 'back'); } else S2.no.push(sh); }
     else if (!S2.xfer) { S2.xfer = true; S2.to = dst; (sh.xfer = sh.xfer || []).push(c); }   // 別艘：這一步跑完再換名單（swimXfer）
     return;
   }
@@ -119,8 +119,8 @@ function swimXfer(sh) {
     if (!foe || !board(foe, c, false)) { c.swim.no.push(foe); return; }
     sh.crew.splice(i, 1); foe.crew.push(c);
     sh.lostTo = (sh.lostTo || 0) + 1; foe.gained = (foe.gained || 0) + 1;
-    if (ally) { note(sh, '一個落水的水手爬上了友艦'); note(foe, '撈起一個友艦的落水水手'); }
-    else { note(sh, '一個落水的水手被敵艦撈走了'); note(foe, '撈起一個敵艦的落水水手（加入我方）'); }
+    if (ally) { swimNews(sh, 'ally'); swimNews(foe, 'gotAlly'); }                // 廣播：5 秒併成一行（61_hud.js swimNews／newsFlush）
+    else { swimNews(sh, 'foe'); swimNews(foe, 'gotFoe'); }
   });
 }
 /** HUD 一段：現在在水裡的（還沒溺水的）。 */
