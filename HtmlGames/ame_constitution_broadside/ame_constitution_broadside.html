@@ -7462,23 +7462,23 @@ function fleetHud(me) {
 }
 // ───────────────────────── 砲位圖（TASK-0564；Tim 2026-10-14） ─────────────────────────
 // 展開的那一艘：俯視船體（05_hull.js navImg，船頭朝上、右舷在右；Tim 2026-10-14）直接鋪在詳細資訊旁邊（沒有底框；窄螢幕排到下面），每門砲畫在它的砲口位置。
-//   比例尺固定（電腦 GMAP_K px／公尺、手機 2.5，跟卡片並排）⇒ 小船就小；右下角一條 10 m。上下幾層的砲同一個位置 ⇒ 沿砲軸往外錯開：最上層往船內 1.4 m、往下每一層再往外 2.3 m。
+//   比例尺固定（電腦 GMAP_K px／公尺、手機 2.5，跟卡片並排）⇒ 小船就小；一條 10 m 在船的下面（GMAP_FOOT：⛔ 疊在右下角會蓋到船尾的砲）。上下幾層的砲同一個位置 ⇒ 沿砲軸往外錯開：最上層往船內 1.4 m、往下每一層再往外 2.3 m。
 //   砲的符號與顏色跟下方 HUD（gunCell）同一套：形狀 ＝ 裝填（● 好 ◌ 裝填中 ○ 開不了 △ 等火藥 ≈ 泡水 ✕ 毀）、顏色 ＝ 人手（綠 滿編、黃 不足、灰 沒人、紅 毀、藍 泡水）；
-//   對得到目標的那一舷（我艦看瞄準點、其他看目標中央）旁邊寫金色的「▶ 右舷／左舷」。
-var GMAP_K = 4, GMAP_PAD = 4.5;                                          // px／公尺；四周留白（公尺：最下層的砲畫在船殼外）
+//   不寫「左舷／右舷」（Tim 2026-10-14 拿掉：船頭朝上 ⇒ 左右就是左右舷）。
+var GMAP_K = 4, GMAP_PAD = 4.5, GMAP_FOOT = 18;                                          // px／公尺；四周留白（公尺：最下層的砲畫在船殼外）
 var GMAP_COL = { full: '#7be37b', short: '#f0d264', none: '#9a9a9a', dead: '#ff5b5b', wet: '#58b7ff' };
 function gmapDraw(sh) {
   var cv = $('gmap'), T = sh && sh.T, NI = T && T.navImg;
   if (!NI) { cv.style.display = 'none'; return; }
   var narrow = window.innerWidth <= 760, K = narrow ? 2.5 : GMAP_K, dpr = window.devicePixelRatio || 1, C = NAV_CELL, s = K * S, P0 = GMAP_PAD * K;   // s：每一格幾 px；P0：留白（px）
-  var W = NI.width * C * s + 2 * P0, H = NI.height * C * s + 2 * P0;
+  var W = NI.width * C * s + 2 * P0, H = NI.height * C * s + 2 * P0 + GMAP_FOOT;
   function scr(x, y) { return [(y - T.navX0 * C) * s + P0, ((T.navGH - T.navY0) * C - x) * s + P0]; }   // 格 (x, y) ⇒ 畫面（圖上 (u, v) ＝ (y/C − x0, H − y0 − x/C)）
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = Math.round(W) + 'px'; }
   cv.style.display = 'block';
   var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
   g.save(); g.shadowColor = 'rgba(0,0,0,.75)'; g.shadowBlur = 6; g.globalAlpha = sh.sunk ? 0.45 : 0.97;
   g.drawImage(NI, P0, P0, NI.width * C * s, NI.height * C * s); g.restore();
-  var D = sh.decks, n = D.length, foe = foeOf(sh), aw = handAim(sh) ? aimPoint(sh) : foe && foe.center, R = Math.max(narrow ? 1.5 : 2.2, Math.min(4, K * 0.55));
+  var D = sh.decks, n = D.length, R = Math.max(narrow ? 1.5 : 2.2, Math.min(4, K * 0.55));
   sh.guns.forEach(function (gn) {
     var k = 0; for (var q = 0; q < n; q++) if (D[q].key === gn.deck) k = q;
     var off = (-1.4 + 2.3 * (n - 1 - k)) / S, p = scr(gn.muz[0] + gn.ax[0] * off, gn.muz[1] + gn.ax[1] * off), X = p[0], Y = p[1];
@@ -7490,15 +7490,9 @@ function gmapDraw(sh) {
     else if (sym === 4) { g.fillStyle = '#ffb35a'; g.moveTo(X, Y - R); g.lineTo(X + R, Y + R * 0.8); g.lineTo(X - R, Y + R * 0.8); g.closePath(); g.fill(); }
     else { g.arc(X, Y, R, 0, 6.2832); if (sym === 0 || sym === 5) g.fill(); else { if (sym === 2) g.setLineDash([1.5, 1.5]); g.stroke(); g.setLineDash([]); } }
   });
-  g.font = 'bold ' + (narrow ? 9 : 11) + 'px "Noto Sans TC","Microsoft JhengHei",sans-serif'; g.textBaseline = 'middle'; g.shadowColor = '#000'; g.shadowBlur = 3;
-  ['P', 'S'].forEach(function (sd) {
-    var on = aw && anyBears(sh, aw, sd), tx = (on ? (sd === 'P' ? '◀ ' : '') : '') + sideName(sd) + (on && sd === 'S' ? ' ▶' : '');
-    g.fillStyle = on ? '#e8c26a' : 'rgba(230,230,230,.75)'; g.textAlign = sd === 'P' ? 'left' : 'right';
-    g.fillText(tx, sd === 'P' ? 2 : W - 2, P0 * 0.5);                                                           // 船頭朝上 ⇒ 左舷在左上、右舷在右上（留白那一條）
-  });
-  g.textAlign = 'left';
-  var bar = 10 * K; g.textBaseline = 'middle'; g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W - 6 - bar, H - 6); g.lineTo(W - 6, H - 6); g.stroke();
-  g.fillStyle = 'rgba(255,255,255,.85)'; g.textAlign = 'right'; g.fillText('10 m', W - 6, H - 15); g.textAlign = 'left';
+  g.font = 'bold ' + (narrow ? 9 : 11) + 'px "Noto Sans TC","Microsoft JhengHei",sans-serif'; g.shadowColor = '#000'; g.shadowBlur = 3;
+  var bar = 10 * K, yb = H - 4; g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W - 6 - bar, yb); g.lineTo(W - 6, yb); g.stroke();   // 10 m：船下面那一條留白（GMAP_FOOT）
+  g.fillStyle = 'rgba(255,255,255,.85)'; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText('10 m', W - 6 - bar - 4, yb + 3); g.textAlign = 'left'; g.textBaseline = 'middle';
 }
 /** 一門砲的符號：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　△ 等火藥　≈ 泡水　✕ 毀），顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀、藍 泡水）；受損 ⇒ 底下一條血條。 */
 function gunCell(g) {
