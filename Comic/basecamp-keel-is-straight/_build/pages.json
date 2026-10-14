@@ -406,6 +406,44 @@
   ]},
   "051_p02": {"rows": [
     [{"src": "P/24422_bow_foretack_bumpkin_plan.png"}, {"src": "O/stage41_foretack.png"}]
+  ]},
+  "052_p01": {"rows": [
+    [{"src": "C/PlLI_Engelsk_Ostindiefarare.tif", "crop": [480, 800, 11600, 8160]}],
+    [{"src": "M/sheet01_lines_v1.png", "crop": [30, 85, 1540, 660]}]
+  ]},
+  "052_p02": {"rows": [
+    [{"src": "M/compare01_chapman_v1.png", "crop": [0, 0, 1770, 880]}],
+    [{"src": "M/compare01_chapman_v1.png", "crop": [1790, 0, 2817, 1020]}]
+  ]},
+  "053_p01": {"rows": [
+    [{"src": "N/stage01_keel_view.png", "fit": "cover", "aspect": 2.0}],
+    [{"src": "N/stage01_keel_vs_LI_aft.png"}, {"src": "N/stage02_posts_vs_LI_bow.png"}],
+    [{"src": "M/readings/LI_lines_A_B_trace.png"}]
+  ]},
+  "053_p02": {"rows": [
+    [{"src": "N/stage04_floors_view.png", "fit": "cover", "aspect": 1.78}],
+    [{"src": "N/stage04_floors_vs_LI_body.png"}, {"src": "N/stage05_section_r+00.png", "fit": "cover", "aspect": 1.0}],
+    [{"src": "N/stage06_ends_view.png", "fit": "cover", "aspect": 1.78}]
+  ]},
+  "054_p01": {"rows": [
+    [{"src": "N/stage07_planking_view.png", "fit": "cover", "aspect": 1.5}],
+    [{"src": "N/stage07_marks_bow_S.png"}, {"src": "N/stage07_marks_stern_S.png"}]
+  ]},
+  "054_p02": {"rows": [
+    [{"src": "V/f3v2_overview.png"}],
+    [{"src": "V/f3v2i_head_fix.png"}],
+    [{"src": "V/lantern_3.png"}],
+    [{"src": "W/final_bow_2.png"}]
+  ]},
+  "055_p01": {"rows": [
+    [{"src": "N/stage08_ports_side.png", "fit": "cover", "aspect": 2.2}],
+    [{"src": "M/readings/LI_ports_trace.png"}],
+    [{"src": "N/stage08_port6_close.png", "fit": "cover", "aspect": 1.0}, {"src": "N/stage09_interior_ports.png", "fit": "cover", "aspect": 1.0}]
+  ]},
+  "055_p02": {"rows": [
+    [{"src": "M/readings/LI_decks_trace.png"}],
+    [{"src": "N/stage09_interior_half.png", "fit": "cover", "aspect": 2.0}],
+    [{"src": "N/stage10_decks_upper.png"}, {"src": "N/stage10_decks_all.png"}]
   ]}
  }
 }

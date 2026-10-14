@@ -9,7 +9,12 @@ SRC = {'O': 'D:/Unity/Valhalla/Sculpture/works/basecamp-frigate-constitution-01m
        'R': 'D:/Unity/Valhalla/Sculpture/references/uss-constitution-1927',
        'E': 'D:/Unity/Valhalla/Sculpture/works/basecamp-ember-01m/overlays',      # 餘燼號（魔改憲法號，TASK-0519）
        'F': 'D:/Unity/Valhalla/Sculpture/works/basecamp-ember-01m/design',
-       'P': 'D:/Unity/Valhalla/Sculpture/references/uss-constitution-1931-plans'}   # 1927–31 修復的海軍配置圖裁切（公有領域，USS Constitution Museum 提供）
+       'P': 'D:/Unity/Valhalla/Sculpture/references/uss-constitution-1931-plans',   # 1927–31 修復的海軍配置圖裁切（公有領域，USS Constitution Museum 提供）
+       'N': 'D:/Unity/Valhalla/Sculpture/works/basecamp-nightlamp-01m/overlays',   # 夜燈號（原創，TASK-0538）
+       'M': 'D:/Unity/Valhalla/Sculpture/works/basecamp-nightlamp-01m/design',
+       'C': 'D:/Unity/Valhalla/Sculpture/references/chapman-architectura-navalis-1768',   # Chapman 1768 Pl. LI（Public Domain Mark）
+       'V': 'D:/Unity/Valhalla/Sculpture/works/basecamp-nightlamp-01m-figurehead/overlays',   # 船首像 0.01 m（保留作為雕像作品）
+       'W': 'D:/Unity/Valhalla/Sculpture/works/basecamp-nightlamp-01m-figurehead-01m/overlays'}   # 船首像 0.1 m（上船的那一件）
 PW, M, G, B = 1600, 56, 26, 5          # 頁寬、外框留白、格間、框線粗
 _cache = {}
 
