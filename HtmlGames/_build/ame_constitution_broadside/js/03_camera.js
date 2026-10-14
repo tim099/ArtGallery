@@ -1,5 +1,7 @@
 // ───────────────────────── 鏡頭 ─────────────────────────
-var CAM = { yaw: 2.2, pitch: 0.24, dist: 175, tgt: [0, 6, 0], eye: [0, 0, 0], vp: null, inv: null, mode: 4, follow: null, hold: 0, w: 1, h: 1, track: true, aoff: 0 };
+var CAM = { yaw: 2.2, pitch: 0.24, dist: 175, tgt: [0, 6, 0], eye: [0, 0, 0], vp: null, inv: null, mode: 4, follow: null, hold: 0, w: 1, h: 1, track: true, aoff: 0, pan: [0, 0] };
+/** 跟船的鏡頭的平移（右鍵拖曳、兩指拖曳；Tim 2026-10-14：拖完不要換成自由鏡頭）：CAM.pan ＝ [往船頭, 往右舷] 公尺，照那艘船的方向 ⇒ 船轉彎偏移跟著轉。換鏡頭（C）、重新開始 ⇒ 歸零。 */
+function camPan(sh) { if (!sh || (!CAM.pan[0] && !CAM.pan[1])) return [0, 0, 0]; var F = fwd(sh.yaw); return [F[0] * CAM.pan[0] - F[2] * CAM.pan[1], 0, F[2] * CAM.pan[0] + F[0] * CAM.pan[1]]; }
 var CAM_NAMES = ['自由鏡頭', '追砲彈', '看敵艦', '看我艦', '我艦→敵艦'];
 var CAM_ORDER = [4, 0, 1, 2, 3];                 // C 鍵循環的順序：我艦→敵艦（預設）→ 自由 → 追砲彈 → 看敵艦 → 看我艦
 function camUpdate(dt) {
@@ -8,7 +10,7 @@ function camUpdate(dt) {
   if (CAM.mode === 4 && SHIPS.length) {
     var m4 = SHIPS[PLAYER_I], f4 = foeOf(m4), c4 = m4.center || shipCenter(m4), fc = f4 && (f4.center || shipCenter(f4));
     var a4 = fc && Math.hypot(fc[0] - c4[0], fc[2] - c4[2]) > 1 ? Math.atan2(fc[2] - c4[2], fc[0] - c4[0]) : Math.atan2(-Math.sin(m4.yaw), Math.cos(m4.yaw));
-    var y4 = a4 + Math.PI + CAM.aoff, t4 = [c4[0], c4[1] + 4, c4[2]];
+    var o4 = camPan(m4), y4 = a4 + Math.PI + CAM.aoff, t4 = [c4[0] + o4[0], c4[1] + 4, c4[2] + o4[2]];
     var e4 = [t4[0] + Math.cos(y4) * Math.cos(CAM.pitch) * CAM.dist, t4[1] + Math.sin(CAM.pitch) * CAM.dist, t4[2] + Math.sin(y4) * Math.cos(CAM.pitch) * CAM.dist];
     var e4s = seaH(e4[0], e4[2], SIMT) + 1.5; if (e4[1] < e4s) e4[1] = e4s;          // 鏡頭不鑽到浪底下
     var k4 = CAM.snap ? 1 : 1 - Math.exp(-dt * 4); CAM.snap = false;
@@ -37,7 +39,7 @@ function camUpdate(dt) {
     eye = add(sub(b.p, mul(vd, 9)), [0, 2.2, 0]); tgt = add(b.p, mul(vd, 25));
     CAM.eye = lerp3(CAM.eye, eye, 1 - Math.exp(-dt * 10)); CAM.look = lerp3(CAM.look || tgt, tgt, 1 - Math.exp(-dt * 10));
   } else {
-    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = CAM.mode === 2 ? foeOf(SHIPS[PLAYER_I]) || SHIPS[PLAYER_I] : SHIPS[PLAYER_I]; if (sh) tgt = shipCenter(sh); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
+    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = CAM.mode === 2 ? foeOf(SHIPS[PLAYER_I]) || SHIPS[PLAYER_I] : SHIPS[PLAYER_I]; if (sh) tgt = add(shipCenter(sh), camPan(sh)); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
     eye = [tgt[0] + Math.cos(yaw) * Math.cos(pitch) * dist, tgt[1] + Math.sin(pitch) * dist, tgt[2] + Math.sin(yaw) * Math.cos(pitch) * dist];
     var eys = seaH(eye[0], eye[2], SIMT) + 1.5; if (eye[1] < eys) eye[1] = eys;
     var k = CAM.snap ? 1 : 1 - Math.exp(-dt * 6); CAM.snap = false;

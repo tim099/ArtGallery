@@ -206,14 +206,20 @@ function hangFalls(sh) {
     if (!m.hang) return;
     var b = m.bb; m.falls = [];
     function inBox(P) { return P[0] > b[0] - 4 && P[0] < b[3] + 4 && P[1] > b[1] - 4 && P[1] < b[4] + 4 && P[2] > b[2] - 4 && P[2] < b[5] + 4; }
+    var tops = [];
     sh.ropes.forEach(function (r, j) {
       var n = r.pts.length / 3, A = [r.pts[0], r.pts[1], r.pts[2]], Bp = [r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1]];
       var atA = r.ma === m.k || inBox(A), atB = r.mb === m.k || inBox(Bp);
       if (atA === atB) return;                                            // 兩端都不在（別的繩）或都在（小艇自己身上的繩）
-      m.falls.push(j);
+      m.falls.push(j); tops.push(atA ? Bp : A); r.pts0 = r.pts0 || r.pts;
       var top = atA ? r.b : r.a; if (top >= 0 && m.falls.length === 1) m.foot = top;
     });
-    if (!m.falls.length) m.falls = null;
+    if (!m.falls.length) { m.falls = null; return; }
+    // 擺（30_rig_physics.js swingHangs）：轉軸 ＝ 兩條吊索上端的連線（只有一條 ⇒ 沿船身），吊點 ＝ 第一條的上端，擺長 ＝ 中心到轉軸的距離
+    var ax = tops.length > 1 ? sub(tops[1], tops[0]) : [1, 0, 0]; if (len(ax) < 1) ax = [1, 0, 0];
+    var v = sub(m.c, tops[0]); ax = norm(ax); var vp = sub(v, mul(ax, dot(v, ax)));
+    m.sax = ax; m.spv = tops[0]; m.sL = Math.max(len(vp), 3); m.sw = 0; m.swA = 0; m.psi = 0; m.psiV = 0; m.pw = null;
+    (sh.hangs = sh.hangs || []).push(m);
   });
 }
 function linkRopes(T, ropes, models) {

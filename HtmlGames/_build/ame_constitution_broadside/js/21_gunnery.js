@@ -191,6 +191,7 @@ function rotZ(P, piv, a) { var c = Math.cos(a), s = Math.sin(a), x = P[0] - piv[
 function unrotL(o, L) { return rotZ(L, o.piv, -o.rot); }
 /** 模型在船的格座標裡的擺法：平移到 origin；帆桁另外繞轉軸轉 rot。 */
 function modelLocal(m) {
+  if (m.sw) { var q = m.spv; return M4.mul(M4.mul(M4.mul(trans(q[0], q[1], q[2]), rotM(m.sax, m.sw)), trans(-q[0], -q[1], -q[2])), trans(m.origin[0], m.origin[1], m.origin[2])); }   // 掛著擺的（小艇；30_rig_physics.js swingHangs）
   if (!m.rot || !m.piv) return trans(m.origin[0], m.origin[1], m.origin[2]);
   var p = m.piv;
   return M4.mul(M4.mul(M4.mul(trans(p[0], p[1], p[2]), rotM([0, 0, 1], m.rot)), trans(-p[0], -p[1], -p[2])), trans(m.origin[0], m.origin[1], m.origin[2]));

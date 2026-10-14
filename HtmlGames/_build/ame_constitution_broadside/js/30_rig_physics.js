@@ -28,6 +28,39 @@ function braceYards(sh, wl, dt) {
   });
   sh.psi = psi;
 }
+// 掛著的模型擺（Tim 2026-10-14：吊艇架上的小艇跟著繩子搖晃；物理開著才擺，跟帆桁追風一樣只管畫出來的樣子）：
+//   單擺，轉軸 ＝ 兩條吊索上端的連線（10_ship.js hangFalls）。ψ ＝ 偏離鉛直的角度：ψ'' ＝ −(g sinψ ＋ a cosψ)／L − c ψ'，
+//   a ＝ 吊點（世界）在擺動方向上的加速度（船橫搖、轉向、被打中一晃 ⇒ 擺起來）。畫出來的角度 ＝ 重力在船身座標裡的方向 ＋ ψ（船傾斜時照樣朝下）。
+//   吊索跟著轉（繞同一根軸，上端在軸上不動）。最多 ±0.6 rad（再多就撞船殼）。
+var SWING_DAMP = 0.35, SWING_MAX = 0.6;
+function rotAxis(P, q, A, ang) {
+  var c = Math.cos(ang), s = Math.sin(ang), v = sub(P, q), d = dot(A, v), x = cross(A, v);
+  return [q[0] + v[0] * c + x[0] * s + A[0] * d * (1 - c), q[1] + v[1] * c + x[1] * s + A[1] * d * (1 - c), q[2] + v[2] * c + x[2] * s + A[2] * d * (1 - c)];
+}
+function swingHangs(sh, gv) {
+  (sh.hangs || []).forEach(function (m) {
+    if (!m.alive) return;
+    var A = m.sax, e = norm(cross(A, [0, 0, -1])), gA = dot(gv, A), gp = sub(gv, mul(A, gA)), eq = Math.atan2(dot(gp, e), -gp[2]);
+    var w = M4.pt(sh.M, m.spv[0], m.spv[1], m.spv[2]), a = 0;
+    if (m.pw && m.pw2) { var ew = norm(M4.dir(sh.M, e[0], e[1], e[2])); a = clamp(dot([(w[0] - 2 * m.pw[0] + m.pw2[0]) / (DT * DT), (w[1] - 2 * m.pw[1] + m.pw2[1]) / (DT * DT), (w[2] - 2 * m.pw[2] + m.pw2[2]) / (DT * DT)], ew), -30, 30); }
+    m.pw2 = m.pw; m.pw = w;
+    var L = m.sL * S;
+    m.psiV += (-(G * Math.sin(m.psi) + a * Math.cos(m.psi)) / L - SWING_DAMP * m.psiV) * DT; m.psi += m.psiV * DT;
+    m.sw = clamp(eq + m.psi, -SWING_MAX, SWING_MAX);
+    if (Math.abs(m.sw - m.swA) > 0.004) {                                // 吊索跟著轉（上端在軸上）
+      m.swA = m.sw;
+      m.falls.forEach(function (j) {
+        var r = sh.ropes[j]; if (r.dead) return;
+        var p0 = r.pts0, out = new Float32Array(p0.length);
+        for (var k = 0; k < p0.length; k += 3) { var q = rotAxis([p0[k], p0[k + 1], p0[k + 2]], m.spv, A, m.sw); out[k] = q[0]; out[k + 1] = q[1]; out[k + 2] = q[2]; }
+        r.pts = out; r.bb = ropeBox(out);
+      });
+      sh.rigDirty = true;
+    }
+  });
+}
+/** 物理關掉 ⇒ 掛著的回到作品的位置。 */
+function unswingHangs(sh) { (sh.hangs || []).forEach(function (m) { m.sw = m.swA = m.psi = m.psiV = 0; m.pw = m.pw2 = null; m.falls.forEach(function (j) { var r = sh.ropes[j]; if (!r.dead) { r.pts = r.pts0; r.bb = ropeBox(r.pts); } }); }); }
 /** 綁在帆桁上的繩重算形狀（帆桁轉了 0.25° 以上才算；物理關掉時 rot 歸零 ⇒ 回到作品的形狀）。 */
 function yardRopes(sh, force) {
   var moved = force || sh.yards.some(function (m) { return Math.abs(m.rot - (m.rotA || 0)) > 0.004; });
@@ -368,6 +401,7 @@ function physStep(sh) {
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
   var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
+  if (sh.hangs) swingHangs(sh, gv);
   for (i = 0; i < sh.ropes.length; i++) { var r = sh.ropes[i]; if (r.dead && !r.lz) { r.lz = true; if (!r.moved) spawnLoose(sh, r); } }
   sh.sails.forEach(function (s, k) {
     var c = sh.cl[k];
@@ -403,7 +437,7 @@ function setPhys(on) {
   $('physT').classList.toggle('on', on); if (typeof phxShow === 'function' && $('phxB')) phxShow();
   SHIPS.forEach(function (sh) {
     sh.loose = []; sh.shreds = [];
-    if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); }   // 關 ⇒ 帆桁回到作品的角度
+    if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); unswingHangs(sh); }   // 關 ⇒ 帆桁回到作品的角度、小艇不擺
     sh.ropes.forEach(function (r) { r.lz = !!(r.never || r.moved); });
     sh.cl.forEach(function (c, k) { c.p = null; c.hidden = true; c.loose = false; c.torn = false; c.gone = !!c.moved; c.late = sh.sails[k].dead; });
     sh.rigDirty = true;

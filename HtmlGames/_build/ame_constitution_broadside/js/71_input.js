@@ -2,12 +2,14 @@
 var drag = null, PTRS = new Map(), PINCH = null;          // PTRS：按著的指頭（觸控）；兩指（PINCH）⇒ 張合 ＝ 縮放、一起拖 ＝ 平移（同右鍵拖曳；Tim 2026-10-13），不轉鏡頭也不瞄準
 function pinchD() { var a = Array.from(PTRS.values()); return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; }
 function pinchM() { var a = Array.from(PTRS.values()); return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 }; }
-/** 平移（右鍵拖曳、兩指拖曳）：換成自由鏡頭，從現在看的那一點開始移。dx／dy ＝ 螢幕像素。 */
+/** 平移（右鍵拖曳、兩指拖曳）：鏡頭照原本的（Tim 2026-10-14：⛔ 以前一拖就換成自由鏡頭）。dx／dy ＝ 螢幕像素。
+ *  自由鏡頭 ⇒ 移注視點；跟船的鏡頭 ⇒ 移 CAM.pan（相對那艘船的方向，03_camera.js camPan）。追砲彈正在追 ⇒ 不動。 */
 function panBy(dx, dy) {
-  if (CAM.mode === 1) CAM.mode = 0;
-  if (CAM.mode > 1) { CAM.tgt = CAM.look.slice(); CAM.mode = 0; }      // 從跟著船的鏡頭換成自由鏡頭
-  var fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), rt = [-fw[2], 0, fw[0]], k = CAM.dist * 0.0018;
-  CAM.tgt = add(CAM.tgt, add(mul(rt, -dx * k), mul(fw, dy * k)));
+  var fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), rt = [-fw[2], 0, fw[0]], k = CAM.dist * 0.0018, d = add(mul(rt, -dx * k), mul(fw, dy * k));
+  if (CAM.mode === 0) { CAM.tgt = add(CAM.tgt, d); return; }
+  if (CAM.mode === 1 && CAM.follow) return;
+  var me = SHIPS[PLAYER_I], sh = CAM.mode === 2 ? foeOf(me) || me : me; if (!sh) return;
+  var F = fwd(sh.yaw); CAM.pan[0] += d[0] * F[0] + d[2] * F[2]; CAM.pan[1] += -d[0] * F[2] + d[2] * F[0];
 }
 cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 document.addEventListener('contextmenu', function (e) { if (!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) e.preventDefault(); });   // 面板、按鈕、說明上長按也不跳選單（輸入框照常）
@@ -82,7 +84,7 @@ function doKey(k, repeat) {
   else if (k === 'f') { if (!PAUSED) fireOne(me, AMMO_I); }
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
-  else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
+  else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; CAM.pan = [0, 0]; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') { PAUSED = !PAUSED; frzShow(); pauseLabel(); }                               // 停格（72_floodui.js：停格時上方一條、進水細節頁）
   else if (k === 'i') { if (PAUSED) floodToggle(); }                 // 停格時：進水圖表／透視（72_floodui.js）
   else if (k === 'x') xrayToggle();

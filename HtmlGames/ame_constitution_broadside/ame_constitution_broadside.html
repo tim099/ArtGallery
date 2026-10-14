@@ -1146,7 +1146,9 @@ function sfx(kind, at, vol) {
 }
 // ── js/03_camera.js ──
 // ───────────────────────── 鏡頭 ─────────────────────────
-var CAM = { yaw: 2.2, pitch: 0.24, dist: 175, tgt: [0, 6, 0], eye: [0, 0, 0], vp: null, inv: null, mode: 4, follow: null, hold: 0, w: 1, h: 1, track: true, aoff: 0 };
+var CAM = { yaw: 2.2, pitch: 0.24, dist: 175, tgt: [0, 6, 0], eye: [0, 0, 0], vp: null, inv: null, mode: 4, follow: null, hold: 0, w: 1, h: 1, track: true, aoff: 0, pan: [0, 0] };
+/** 跟船的鏡頭的平移（右鍵拖曳、兩指拖曳；Tim 2026-10-14：拖完不要換成自由鏡頭）：CAM.pan ＝ [往船頭, 往右舷] 公尺，照那艘船的方向 ⇒ 船轉彎偏移跟著轉。換鏡頭（C）、重新開始 ⇒ 歸零。 */
+function camPan(sh) { if (!sh || (!CAM.pan[0] && !CAM.pan[1])) return [0, 0, 0]; var F = fwd(sh.yaw); return [F[0] * CAM.pan[0] - F[2] * CAM.pan[1], 0, F[2] * CAM.pan[0] + F[0] * CAM.pan[1]]; }
 var CAM_NAMES = ['自由鏡頭', '追砲彈', '看敵艦', '看我艦', '我艦→敵艦'];
 var CAM_ORDER = [4, 0, 1, 2, 3];                 // C 鍵循環的順序：我艦→敵艦（預設）→ 自由 → 追砲彈 → 看敵艦 → 看我艦
 function camUpdate(dt) {
@@ -1155,7 +1157,7 @@ function camUpdate(dt) {
   if (CAM.mode === 4 && SHIPS.length) {
     var m4 = SHIPS[PLAYER_I], f4 = foeOf(m4), c4 = m4.center || shipCenter(m4), fc = f4 && (f4.center || shipCenter(f4));
     var a4 = fc && Math.hypot(fc[0] - c4[0], fc[2] - c4[2]) > 1 ? Math.atan2(fc[2] - c4[2], fc[0] - c4[0]) : Math.atan2(-Math.sin(m4.yaw), Math.cos(m4.yaw));
-    var y4 = a4 + Math.PI + CAM.aoff, t4 = [c4[0], c4[1] + 4, c4[2]];
+    var o4 = camPan(m4), y4 = a4 + Math.PI + CAM.aoff, t4 = [c4[0] + o4[0], c4[1] + 4, c4[2] + o4[2]];
     var e4 = [t4[0] + Math.cos(y4) * Math.cos(CAM.pitch) * CAM.dist, t4[1] + Math.sin(CAM.pitch) * CAM.dist, t4[2] + Math.sin(y4) * Math.cos(CAM.pitch) * CAM.dist];
     var e4s = seaH(e4[0], e4[2], SIMT) + 1.5; if (e4[1] < e4s) e4[1] = e4s;          // 鏡頭不鑽到浪底下
     var k4 = CAM.snap ? 1 : 1 - Math.exp(-dt * 4); CAM.snap = false;
@@ -1184,7 +1186,7 @@ function camUpdate(dt) {
     eye = add(sub(b.p, mul(vd, 9)), [0, 2.2, 0]); tgt = add(b.p, mul(vd, 25));
     CAM.eye = lerp3(CAM.eye, eye, 1 - Math.exp(-dt * 10)); CAM.look = lerp3(CAM.look || tgt, tgt, 1 - Math.exp(-dt * 10));
   } else {
-    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = CAM.mode === 2 ? foeOf(SHIPS[PLAYER_I]) || SHIPS[PLAYER_I] : SHIPS[PLAYER_I]; if (sh) tgt = shipCenter(sh); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
+    if (CAM.mode >= 1 && CAM.mode <= 3) { var sh = CAM.mode === 2 ? foeOf(SHIPS[PLAYER_I]) || SHIPS[PLAYER_I] : SHIPS[PLAYER_I]; if (sh) tgt = add(shipCenter(sh), camPan(sh)); }   // 追砲彈沒有在追的 ⇒ 跟看我艦一樣
     eye = [tgt[0] + Math.cos(yaw) * Math.cos(pitch) * dist, tgt[1] + Math.sin(pitch) * dist, tgt[2] + Math.sin(yaw) * Math.cos(pitch) * dist];
     var eys = seaH(eye[0], eye[2], SIMT) + 1.5; if (eye[1] < eys) eye[1] = eys;
     var k = CAM.snap ? 1 : 1 - Math.exp(-dt * 6); CAM.snap = false;
@@ -2038,14 +2040,20 @@ function hangFalls(sh) {
     if (!m.hang) return;
     var b = m.bb; m.falls = [];
     function inBox(P) { return P[0] > b[0] - 4 && P[0] < b[3] + 4 && P[1] > b[1] - 4 && P[1] < b[4] + 4 && P[2] > b[2] - 4 && P[2] < b[5] + 4; }
+    var tops = [];
     sh.ropes.forEach(function (r, j) {
       var n = r.pts.length / 3, A = [r.pts[0], r.pts[1], r.pts[2]], Bp = [r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1]];
       var atA = r.ma === m.k || inBox(A), atB = r.mb === m.k || inBox(Bp);
       if (atA === atB) return;                                            // 兩端都不在（別的繩）或都在（小艇自己身上的繩）
-      m.falls.push(j);
+      m.falls.push(j); tops.push(atA ? Bp : A); r.pts0 = r.pts0 || r.pts;
       var top = atA ? r.b : r.a; if (top >= 0 && m.falls.length === 1) m.foot = top;
     });
-    if (!m.falls.length) m.falls = null;
+    if (!m.falls.length) { m.falls = null; return; }
+    // 擺（30_rig_physics.js swingHangs）：轉軸 ＝ 兩條吊索上端的連線（只有一條 ⇒ 沿船身），吊點 ＝ 第一條的上端，擺長 ＝ 中心到轉軸的距離
+    var ax = tops.length > 1 ? sub(tops[1], tops[0]) : [1, 0, 0]; if (len(ax) < 1) ax = [1, 0, 0];
+    var v = sub(m.c, tops[0]); ax = norm(ax); var vp = sub(v, mul(ax, dot(v, ax)));
+    m.sax = ax; m.spv = tops[0]; m.sL = Math.max(len(vp), 3); m.sw = 0; m.swA = 0; m.psi = 0; m.psiV = 0; m.pw = null;
+    (sh.hangs = sh.hangs || []).push(m);
   });
 }
 function linkRopes(T, ropes, models) {
@@ -2909,6 +2917,7 @@ function rotZ(P, piv, a) { var c = Math.cos(a), s = Math.sin(a), x = P[0] - piv[
 function unrotL(o, L) { return rotZ(L, o.piv, -o.rot); }
 /** 模型在船的格座標裡的擺法：平移到 origin；帆桁另外繞轉軸轉 rot。 */
 function modelLocal(m) {
+  if (m.sw) { var q = m.spv; return M4.mul(M4.mul(M4.mul(trans(q[0], q[1], q[2]), rotM(m.sax, m.sw)), trans(-q[0], -q[1], -q[2])), trans(m.origin[0], m.origin[1], m.origin[2])); }   // 掛著擺的（小艇；30_rig_physics.js swingHangs）
   if (!m.rot || !m.piv) return trans(m.origin[0], m.origin[1], m.origin[2]);
   var p = m.piv;
   return M4.mul(M4.mul(M4.mul(trans(p[0], p[1], p[2]), rotM([0, 0, 1], m.rot)), trans(-p[0], -p[1], -p[2])), trans(m.origin[0], m.origin[1], m.origin[2]));
@@ -3642,6 +3651,39 @@ function braceYards(sh, wl, dt) {
   });
   sh.psi = psi;
 }
+// 掛著的模型擺（Tim 2026-10-14：吊艇架上的小艇跟著繩子搖晃；物理開著才擺，跟帆桁追風一樣只管畫出來的樣子）：
+//   單擺，轉軸 ＝ 兩條吊索上端的連線（10_ship.js hangFalls）。ψ ＝ 偏離鉛直的角度：ψ'' ＝ −(g sinψ ＋ a cosψ)／L − c ψ'，
+//   a ＝ 吊點（世界）在擺動方向上的加速度（船橫搖、轉向、被打中一晃 ⇒ 擺起來）。畫出來的角度 ＝ 重力在船身座標裡的方向 ＋ ψ（船傾斜時照樣朝下）。
+//   吊索跟著轉（繞同一根軸，上端在軸上不動）。最多 ±0.6 rad（再多就撞船殼）。
+var SWING_DAMP = 0.35, SWING_MAX = 0.6;
+function rotAxis(P, q, A, ang) {
+  var c = Math.cos(ang), s = Math.sin(ang), v = sub(P, q), d = dot(A, v), x = cross(A, v);
+  return [q[0] + v[0] * c + x[0] * s + A[0] * d * (1 - c), q[1] + v[1] * c + x[1] * s + A[1] * d * (1 - c), q[2] + v[2] * c + x[2] * s + A[2] * d * (1 - c)];
+}
+function swingHangs(sh, gv) {
+  (sh.hangs || []).forEach(function (m) {
+    if (!m.alive) return;
+    var A = m.sax, e = norm(cross(A, [0, 0, -1])), gA = dot(gv, A), gp = sub(gv, mul(A, gA)), eq = Math.atan2(dot(gp, e), -gp[2]);
+    var w = M4.pt(sh.M, m.spv[0], m.spv[1], m.spv[2]), a = 0;
+    if (m.pw && m.pw2) { var ew = norm(M4.dir(sh.M, e[0], e[1], e[2])); a = clamp(dot([(w[0] - 2 * m.pw[0] + m.pw2[0]) / (DT * DT), (w[1] - 2 * m.pw[1] + m.pw2[1]) / (DT * DT), (w[2] - 2 * m.pw[2] + m.pw2[2]) / (DT * DT)], ew), -30, 30); }
+    m.pw2 = m.pw; m.pw = w;
+    var L = m.sL * S;
+    m.psiV += (-(G * Math.sin(m.psi) + a * Math.cos(m.psi)) / L - SWING_DAMP * m.psiV) * DT; m.psi += m.psiV * DT;
+    m.sw = clamp(eq + m.psi, -SWING_MAX, SWING_MAX);
+    if (Math.abs(m.sw - m.swA) > 0.004) {                                // 吊索跟著轉（上端在軸上）
+      m.swA = m.sw;
+      m.falls.forEach(function (j) {
+        var r = sh.ropes[j]; if (r.dead) return;
+        var p0 = r.pts0, out = new Float32Array(p0.length);
+        for (var k = 0; k < p0.length; k += 3) { var q = rotAxis([p0[k], p0[k + 1], p0[k + 2]], m.spv, A, m.sw); out[k] = q[0]; out[k + 1] = q[1]; out[k + 2] = q[2]; }
+        r.pts = out; r.bb = ropeBox(out);
+      });
+      sh.rigDirty = true;
+    }
+  });
+}
+/** 物理關掉 ⇒ 掛著的回到作品的位置。 */
+function unswingHangs(sh) { (sh.hangs || []).forEach(function (m) { m.sw = m.swA = m.psi = m.psiV = 0; m.pw = m.pw2 = null; m.falls.forEach(function (j) { var r = sh.ropes[j]; if (!r.dead) { r.pts = r.pts0; r.bb = ropeBox(r.pts); } }); }); }
 /** 綁在帆桁上的繩重算形狀（帆桁轉了 0.25° 以上才算；物理關掉時 rot 歸零 ⇒ 回到作品的形狀）。 */
 function yardRopes(sh, force) {
   var moved = force || sh.yards.some(function (m) { return Math.abs(m.rot - (m.rotA || 0)) > 0.004; });
@@ -3982,6 +4024,7 @@ function physStep(sh) {
   var wl = M4.dir(sh.inv, W[0] * ws - sh.vel[0], W[1] * ws - sh.vel[1], W[2] * ws - sh.vel[2]), gv = M4.dir(sh.inv, 0, -G, 0);
   var si = Math.round(SIMT / DT), chk = si % 6 === 0, i;
   if (sh.yards.length) { braceYards(sh, wl, DT); if (chk) yardRopes(sh); }
+  if (sh.hangs) swingHangs(sh, gv);
   for (i = 0; i < sh.ropes.length; i++) { var r = sh.ropes[i]; if (r.dead && !r.lz) { r.lz = true; if (!r.moved) spawnLoose(sh, r); } }
   sh.sails.forEach(function (s, k) {
     var c = sh.cl[k];
@@ -4017,7 +4060,7 @@ function setPhys(on) {
   $('physT').classList.toggle('on', on); if (typeof phxShow === 'function' && $('phxB')) phxShow();
   SHIPS.forEach(function (sh) {
     sh.loose = []; sh.shreds = [];
-    if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); }   // 關 ⇒ 帆桁回到作品的角度
+    if (!on) { (sh.yards || []).forEach(function (m) { m.rot = 0; }); if (sh.yRopes) yardRopes(sh, true); unswingHangs(sh); }   // 關 ⇒ 帆桁回到作品的角度、小艇不擺
     sh.ropes.forEach(function (r) { r.lz = !!(r.never || r.moved); });
     sh.cl.forEach(function (c, k) { c.p = null; c.hidden = true; c.loose = false; c.torn = false; c.gone = !!c.moved; c.late = sh.sails[k].dead; });
     sh.rigDirty = true;
@@ -7814,7 +7857,7 @@ function reset() {
   if (MODE !== LAST_MODE) { setAutoFire(MODE === 'eve'); LAST_MODE = MODE; }   // 自動開砲：換了模式才套預設（觀戰開、其他關），同一個模式重開保留（Tim 2026-10-12）
   SHIPS.forEach(function (sh) { stepShip(sh, 0); survey(sh); });
   pickCaptains();                                                    // 砲長（51_captain.js）
-  CAM.mode = 0; CAM.follow = null; CAM.trMe = CAM.trYaw = null; CAM.dist = DIST * 1.05 + 40; CAM.tgt = [0, 8, 0]; CAM.yaw = 2.2; CAM.pitch = 0.22; CAM.snap = true;
+  CAM.mode = 0; CAM.follow = null; CAM.trMe = CAM.trYaw = null; CAM.pan = [0, 0]; CAM.dist = DIST * 1.05 + 40; CAM.tgt = [0, 8, 0]; CAM.yaw = 2.2; CAM.pitch = 0.22; CAM.snap = true;
   if (!CAMQ) { CAM.mode = 4; CAM.aoff = 0.35; CAM.dist = 78; CAM.pitch = 0.2; }   // 預設：我艦→敵艦（?cam= 給了 ⇒ 那個固定機位）
   if (CAMQ === 'close') { CAM.dist = 85; CAM.tgt = [10, 9, -DIST / 2 + 12]; CAM.yaw = 1.95; CAM.pitch = 0.16; }
   if (CAMQ === 'blue') { CAM.dist = 88; CAM.tgt = [4, 12, DIST / 2 - 10]; CAM.yaw = -1.8; CAM.pitch = 0.15; }
@@ -7836,12 +7879,14 @@ function start() {
 var drag = null, PTRS = new Map(), PINCH = null;          // PTRS：按著的指頭（觸控）；兩指（PINCH）⇒ 張合 ＝ 縮放、一起拖 ＝ 平移（同右鍵拖曳；Tim 2026-10-13），不轉鏡頭也不瞄準
 function pinchD() { var a = Array.from(PTRS.values()); return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; }
 function pinchM() { var a = Array.from(PTRS.values()); return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 }; }
-/** 平移（右鍵拖曳、兩指拖曳）：換成自由鏡頭，從現在看的那一點開始移。dx／dy ＝ 螢幕像素。 */
+/** 平移（右鍵拖曳、兩指拖曳）：鏡頭照原本的（Tim 2026-10-14：⛔ 以前一拖就換成自由鏡頭）。dx／dy ＝ 螢幕像素。
+ *  自由鏡頭 ⇒ 移注視點；跟船的鏡頭 ⇒ 移 CAM.pan（相對那艘船的方向，03_camera.js camPan）。追砲彈正在追 ⇒ 不動。 */
 function panBy(dx, dy) {
-  if (CAM.mode === 1) CAM.mode = 0;
-  if (CAM.mode > 1) { CAM.tgt = CAM.look.slice(); CAM.mode = 0; }      // 從跟著船的鏡頭換成自由鏡頭
-  var fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), rt = [-fw[2], 0, fw[0]], k = CAM.dist * 0.0018;
-  CAM.tgt = add(CAM.tgt, add(mul(rt, -dx * k), mul(fw, dy * k)));
+  var fw = norm([CAM.look[0] - CAM.eye[0], 0, CAM.look[2] - CAM.eye[2]]), rt = [-fw[2], 0, fw[0]], k = CAM.dist * 0.0018, d = add(mul(rt, -dx * k), mul(fw, dy * k));
+  if (CAM.mode === 0) { CAM.tgt = add(CAM.tgt, d); return; }
+  if (CAM.mode === 1 && CAM.follow) return;
+  var me = SHIPS[PLAYER_I], sh = CAM.mode === 2 ? foeOf(me) || me : me; if (!sh) return;
+  var F = fwd(sh.yaw); CAM.pan[0] += d[0] * F[0] + d[2] * F[2]; CAM.pan[1] += -d[0] * F[2] + d[2] * F[0];
 }
 cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 document.addEventListener('contextmenu', function (e) { if (!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) e.preventDefault(); });   // 面板、按鈕、說明上長按也不跳選單（輸入框照常）
@@ -7916,7 +7961,7 @@ function doKey(k, repeat) {
   else if (k === 'f') { if (!PAUSED) fireOne(me, AMMO_I); }
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
-  else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
+  else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; CAM.pan = [0, 0]; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') { PAUSED = !PAUSED; frzShow(); pauseLabel(); }                               // 停格（72_floodui.js：停格時上方一條、進水細節頁）
   else if (k === 'i') { if (PAUSED) floodToggle(); }                 // 停格時：進水圖表／透視（72_floodui.js）
   else if (k === 'x') xrayToggle();
@@ -8824,7 +8869,7 @@ if (DEBUG) window.__game = {
   ladders: function (i) { var H = SHIPS[i || 0].nav; return H ? H.ladders.map(function (L) { return { name: L.name, steps: L.steps, ia: navPos(H.levels[L.lo].N, L.ia), broken: L.broken }; }) : null; },
   /** 第 i 艘每一門砲：名字、砲種、砲軸（格座標水平、+x 船頭）、HUD 放哪（61_hud.js gunDir：bow 羅盤上、stern 羅盤下、side 兩舷貼邊）。 */
   /** 第 i 艘沒了的模型（砲、桶以外）：名字、種類（meta kind）、腳在哪 ⇒ 抓「一開場就掉」。 */
-  hangs: function (i) { return SHIPS[i || 0].models.filter(function (m) { return m.hang; }).map(function (m) { return m.path + ' falls ' + (m.falls ? m.falls.map(function (j) { var r = SHIPS[i || 0].ropes[j]; return r.name + (r.dead ? '×' : ''); }).join(',') : '（沒有）') + (m.alive ? '' : ' 掉了'); }); },
+  hangs: function (i) { return SHIPS[i || 0].models.filter(function (m) { return m.hang; }).map(function (m) { return m.path + (m.sax ? ' 擺 ' + (m.sw * 57.3).toFixed(1) + '°（擺長 ' + (m.sL * S).toFixed(2) + ' m）' : '') + ' falls ' + (m.falls ? m.falls.map(function (j) { var r = SHIPS[i || 0].ropes[j]; return r.name + (r.dead ? '×' : ''); }).join(',') : '（沒有）') + (m.alive ? '' : ' 掉了'); }); },
   lostModels: function (i) { return SHIPS[i || 0].models.filter(function (m) { return !m.alive && !GUNS[m.kind] && m.kind !== 'powder'; }).map(function (m) { return m.path + ' ' + (m.meta.kind || m.kind) + ' foot z ' + (m.foot >> 20); }); },
   gunDirs: function (i) { return SHIPS[i || 0].guns.map(function (g) { return [g.name.split('/').pop(), g.type, g.ax.map(function (v) { return +v.toFixed(2); }), gunDir(g)]; }); },
   /** 艙房的擺法（TASK-0568；船型要先載好）：每一間的格子（nx×ny、門口走道幾格、站不住幾格）、type ⇒ 那個類型自動擺滿的結果、now ⇒ 現在照擺法擺上的；ms ＝ 全部算一次幾毫秒（不記）。 */
