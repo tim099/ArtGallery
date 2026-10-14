@@ -411,8 +411,9 @@ function dropSail(owner, s, torn) {
   s.dead = true; owner.rigDirty = true; sailLinesDie(owner, s);
   if (s.furled) return;                                              // 收在帆桁上的：跟著掉，沒有布片
   var cl = PHYS && owner.cl ? owner.cl[s.k] : null;
-  if (cl && (!cl.p || cl.gone)) cl = null;
-  if (cl) { cl.loose = true; clothPins(owner, s, cl); }
+  if (cl && cl.gone) cl = null;
+  if (cl && !cl.p) cl.late = true;                                   // 物理開著、布還沒建（開局第一步之前就掉）⇒ 下一步 physStep 照「late」建布、垂下來；⛔ 撒點精靈（那是沒物理的樣子；TASK-0579）
+  else if (cl) { cl.loose = true; clothPins(owner, s, cl); }
   var M = owner.M, v = s.verts, nv = v.length / 3, n = clamp(Math.round(nv / 90), 6, 16), c = s.col || [0.95, 0.92, 0.85];
   for (var k = 0; k < n; k++) {
     var j = ((rnd() * nv) | 0) * 3, w = M4.pt(M, v[j], v[j + 1], v[j + 2]), sz = rr(1.6, 3), t = rr(0.85, 1);
@@ -423,7 +424,7 @@ function dropSail(owner, s, torn) {
 /** 帆被打中但還撐得住：撕下幾片布（不掉）。物理開著、布在 ⇒ tearCloth 已經撕下真的布片（34_shreds.js），這裡照樣抽亂數、不放（PT_MUTE）。 */
 function shredSail(owner, s, L) {
   var w = M4.pt(owner.M, L[0], L[1], L[2]), c = s.col || [0.95, 0.92, 0.85], cl = owner.cl && owner.cl[s.k];
-  PT_MUTE = !!(PHYS && cl && cl.p);
+  PT_MUTE = !!(PHYS && cl && !cl.gone);                              // 物理開著 ⇒ 不撒點精靈（布還沒建也一樣；TASK-0579）
   for (var k = 0; k < 3; k++) { var sz = rr(1.2, 2.2); spawnPt(w, [gauss() * 1.5, rr(-0.5, 1.5), gauss() * 1.5], rr(4, 7), c, 1, sz, sz * 0.85, 3, 1.2, 4); }
   PT_MUTE = false;
 }

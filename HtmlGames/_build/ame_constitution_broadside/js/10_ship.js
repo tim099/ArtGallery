@@ -291,10 +291,13 @@ function linkRopes(T, ropes, models) {
   ropes.forEach(function (r, i) {
     if (r.a >= 0 && r.b >= 0) return;
     r.par = []; r.mods = [];
-    var n = r.pts.length / 3;
+    var n = r.pts.length / 3, onSail = false;
     [[0, r.a, 'a'], [n - 1, r.b, 'b']].forEach(function (e) {
       if (e[1] >= 0) return;
       var P = [r.pts[e[0] * 3], r.pts[e[0] * 3 + 1], r.pts[e[0] * 3 + 2]], best = -1, bd = 9;      // 0.3 公尺內
+      // 綁在帆角上（雕刻的 `sail:帆名/角`：帆腳垂在半空、只靠 sheet 拉住，例：風暴角號 spritsail）⇒ 端點就在帆的頂點上，算有靠（帆掉了它跟著斷：s.lines）
+      //   ⛔ 不認 ⇒ 開局就判「哪裡都不靠」死掉、掛在它上面的帆跟著掉（TASK-0579 量到：spritsail-sheet-P／S 開局 dead、spritsail hp 滿血就掉）
+      if (T.rig.sails.some(function (s) { var v = s.verts; for (var k = 0; k < v.length; k += 3) { var dx = v[k] - P[0], dy = v[k + 1] - P[1], dz = v[k + 2] - P[2]; if (dx * dx + dy * dy + dz * dz < 4) return true; } return false; })) onSail = true;
       var yk = yardNear(T, P, 3);                                                // 帆桁：照網格（⛔ 照外框：轉過的帆桁外框很大，桅頂附近的 ratline 都會被當成綁在帆桁上）
       if (yk >= 0) { r.mods.push(yk); r['m' + e[2]] = yk; return; }
       var mod = models.filter(function (m) { var b = m.bb; if (m.station || m.kind === 'yard') return false; return P[0] > b[0] - 4 && P[0] < b[3] + 4 && P[1] > b[1] - 4 && P[1] < b[4] + 4 && P[2] > b[2] - 4 && P[2] < b[5] + 4; })[0];
@@ -305,7 +308,7 @@ function linkRopes(T, ropes, models) {
       });
       if (best >= 0) { if (r.par.indexOf(best) < 0) r.par.push(best); r['p' + e[2]] = best; }   // 哪一端掛在哪條繩（垂下來的繩要知道是哪一端鬆了）
     });
-    if (!r.par.length && !r.mods.length) r.dead = true;     // 哪裡都不靠（格、繩、模型都沒有）⇒ 不畫
+    if (!r.par.length && !r.mods.length && !onSail) r.dead = true;     // 哪裡都不靠（格、繩、模型、帆角都沒有）⇒ 不畫
   });
 }
 /** 帆的依靠：最高那一排、最低的前角與後角各找 0.6 公尺內的實心格；找不到就掛在 0.4 公尺內最近的繩（支索）上。 */

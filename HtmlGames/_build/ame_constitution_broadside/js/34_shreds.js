@@ -37,8 +37,8 @@ function shredCut(sh, c, old, b) {
   var bv = M4.dir(sh.inv, b.v[0], b.v[1], b.v[2]), bl = len(bv) || 1, HC = lv.every * DT, col = T.col;
   grp.forEach(function (g) {
     if (!g.length) return;
-    var map = new Map(), pos = [], lt = [];
-    g.forEach(function (j) { for (var q = 0; q < 3; q++) { var f = tr[j + q], v = map.get(f); if (v === undefined) { v = pos.length; map.set(f, v); pos.push([P[f * 3], P[f * 3 + 1], P[f * 3 + 2]]); } lt.push(v); } });
+    var map = new Map(), pos = [], lt = [], fuv = T.uv ? [] : null;   // fuv：貼圖的 uv（帆有貼圖 ⇒ 布片照原處的圖畫、洞照樣透空；TASK-0579）
+    g.forEach(function (j) { for (var q = 0; q < 3; q++) { var f = tr[j + q], v = map.get(f); if (v === undefined) { v = pos.length; map.set(f, v); pos.push([P[f * 3], P[f * 3 + 1], P[f * 3 + 2]]); if (fuv) fuv.push(T.uv[f * 2], T.uv[f * 2 + 1]); } lt.push(v); } });
     var n = pos.length, cons = meshCons(pos, new Uint16Array(lt)), cx = 0, cy = 0, cz = 0;
     pos.forEach(function (w) { cx += w[0] / n; cy += w[1] / n; cz += w[2] / n; });
     var sp = rgC(1.5, chain ? 6 : 4) / S, v0 = [bv[0] / bl * sp + gsC() / S, bv[1] / bl * sp + gsC() / S, bv[2] / bl * sp + gsC() / S];
@@ -49,7 +49,7 @@ function shredCut(sh, c, old, b) {
       p[u * 3] = w[0]; p[u * 3 + 1] = w[1]; p[u * 3 + 2] = w[2]; q[u * 3] = w[0] - vx * HC; q[u * 3 + 1] = w[1] - vy * HC; q[u * 3 + 2] = w[2] - vz * HC;
     });
     if (!CACC || CACC.length < n * 3) { CACC = new Float32Array(n * 3); CCNT = new Uint8Array(n); }
-    sh.shreds.push({ T: { sim: cons }, p: p, q: q, pin: new Uint8Array(n), n: n, col: [col[0] * t, col[1] * t, col[2] * t], torn: false, loose: true, kw: SH_KW, age: 0, wet: 0 });
+    sh.shreds.push({ T: { sim: cons }, p: p, q: q, pin: new Uint8Array(n), n: n, col: [col[0] * t, col[1] * t, col[2] * t], uv: fuv ? Float32Array.from(fuv) : null, ti: T.ti, torn: false, loose: true, kw: SH_KW, age: 0, wet: 0 });
     SH_STAT.cut++; SH_STAT.tris += g.length;
   });
   var F = sh.shreds;

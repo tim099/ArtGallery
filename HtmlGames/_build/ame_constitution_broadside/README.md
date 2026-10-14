@@ -37,7 +37,7 @@ python -I admin.py reimport --id constitution
 |---|---|
 | `00_config.js` | 讀內嵌的設定檔（`#game-config` ⇒ `CFG`）；讀不到 ⇒ 停在載入畫面寫原因（不照某一份舊值跑） |
 | `00_core.js` | 網址參數（`?demo`／`?seed`／`?debug`…）、有種子的亂數、常數、向量與矩陣小工具 |
-| `01_gl.js` | WebGL 環境、著色器（體素、碎屑、模型、帆 `P.sail`、粒子、海、天、陰影圖用的只寫深度 `P.dvox`／`P.dtri`）、收陰影的 `SHADOW_GLSL`、共用 uniform（`setCommon`，`PASS` 換掉這一趟的 VP／鏡頭／裁切） |
+| `01_gl.js` | WebGL 環境、著色器（體素、碎屑、模型、帆 `P.sail`（有貼圖 ⇒ 片段照貼圖取色、透明的 discard）、粒子、海、天、陰影圖用的只寫深度 `P.dvox`／`P.dtri`／帆的 `P.dsail`（洞不投影子））、收陰影的 `SHADOW_GLSL`、共用 uniform（`setCommon`，`PASS` 換掉這一趟的 VP／鏡頭／裁切） |
 | `02_audio.js` | 音效（按下開始後才建） |
 | `03_camera.js` | 鏡頭（自由／追砲彈／看敵艦／看我艦、跟船）；追砲彈挑哪一顆（`pickBall`／`ballPredict`） |
 | `04_state.js` | 全域狀態與選單設定：`LIM`（滑桿上下限，`CFG.lim`）、硬度／進水／壓艙物／砲的重量／航速／靈活性、砲・帆・船員・火藥桶的血量、每發傷害 `DMG`、彈種倍率 `AMMO_K`、殉爆威力、降旗規則、模式、`PHYS` |
@@ -48,7 +48,7 @@ python -I admin.py reimport --id constitution
 | `08_weather.js` | 天氣：`WEATHERS`（晴／暴風雨的每個係數）、`setWeather`、開砲散布 `wxSpread`、閃電 `wxBolt`；會變的風 `stepWind`／`WIND_SPD`／`windKnots` |
 | `09_phx.js` | 物理效果分級：`PHX`（帆與繩／碎木／煙與水花／船邊水花／進水）、全開高中低四檔 `PHX_PRESET`、`phxLevel`（對不上 ⇒ 自訂）、帆與繩每一檔的細緻度 `RIG_LV`／`rigLv`、網址參數 |
 | `10_ship.js` | 開一艘船：模型（照 meta 認種類）、砲（模型＋固定點）、繩與帆的錨、桅、船員（`makeShip`）；模型照 x 分桶（`modelIndex`） |
-| `11_rig_gpu.js` | 繩與帆的 GPU 緩衝（還綁著的繩、帆的網格 `sailBuf`、垂下來的繩） |
+| `11_rig_gpu.js` | 繩與帆的 GPU 緩衝（還綁著的繩、帆的網格 `sailBuf`（頂點帶貼圖集的 uv）、垂下來的繩）；帆的貼圖集上 GPU `sailTex`（第 9 號貼圖，NEAREST） |
 | `12_effects.js` | 碎屑（每格一顆小方塊；自己的亂數 `rndD`）與粒子（煙、水花、火光）；照物理分級少生（`DEB_ACC`／`PT_ACC` 節拍）；`PT_MUTE`（船邊水花開著時原本的水花照樣抽亂數、不放） |
 | `13_water.js` | 船邊水花（TASK-0524）：水滴 `WS`、貼著浪的白沫 `WF`、船身水線一圈 `wpRing`、每步 `stepWater`／`wpShip`、砲彈落水 `wpSplash`、碎木 `wpDrop`、擦撞 `wpBump`、艙內的水往外流 `wpPour`、自己的亂數 `rndW`；白沫的著色器 `P.foam`（`wpGL`／`wpDrawFoam`） |
 | `14_rain.js` | 3D 雨滴（畫質的「雨滴（3D）」「雨滴水花」）：鏡頭前方圓柱裡的雨絲 `RD`、每格畫面 `stepRain`、打到海面與船的水花 `RS`（`rdPushSplash`）、雨絲的著色器 `P.drop`（`rdGL`／`rdDraw`）、自己的亂數 `rndR` |
@@ -56,7 +56,7 @@ python -I admin.py reimport --id constitution
 | `21_gunnery.js` | 開砲、齊射、射界、砲彈飛行與命中、模型扣血與被打飛（命中照網格的佔用格 `inMesh`）、斷繩撕帆、帆掉下來 |
 | `22_pieces.js` | 斷開的那一團：倒下、壓到人、落水；斷成兩截的半截船（翹起來、沉下去，上面的砲跟著走） |
 | `23_powder.js` | 彈藥庫與火藥桶：血量、點燃、連鎖、整間殉爆（`crater` 排好區塊、`blastStep`／`stepBlasts` 分步挖）、斷船（`breakShip`，彈坑挖完才切） |
-| `30_rig_physics.js` | 帆與繩的物理（可關） |
+| `30_rig_physics.js` | 帆與繩的物理（可關）；帆的貼圖集 `sailAtlas`（一個船型一張，alpha 照 vxk 的 `alpha_min` 二值化；TASK-0579） |
 | `31_sailing.js` | 航行：航速、操舵、帆裝、航跡、擦撞 |
 | `32_hull.js` | 進水、傾斜、沉沒、減重上浮（`hydrostatics`／`massLost`／`liftFor`）；每半秒的 `survey`（砲、桅、繩、帆、腳下、少掉的重量）與降旗 |
 | `33_flood.js` | 進水的粒子模式（TASK-0525）：船型的水格 `flType`（`T.flc[c]`）、每艘的狀態 `flNew`（`sh.fl`）、打掉一格記待重算 `floodTouch`、破口 `flHoleRedo`、粒子與水格 `floodStep`／`flTick`、該多吃水 `floodSinkT`、傾斜 `floodTilt`、艙內水面 `P.pool`（`flMesh`／`flDraw`）、噴進來的粒子 `flPushJets` |

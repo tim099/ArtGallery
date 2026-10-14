@@ -180,7 +180,7 @@ function clothTemplate(H, s) {                         // H：船型（帆的布
   });
   var foot = -1; Object.keys(clewYard).forEach(function (q) { if (clewYard[q] >= 0) foot = clewYard[q]; });
   var vcol = texColors(s.texture, n);                   // 有貼圖（旗）⇒ 每個頂點照 UV 取貼圖的顏色；整面的顏色（布片、碎布）取平均
-  return { name: s.name, col: vcol ? vcol.avg : s.color || [0.95, 0.92, 0.85], vcol: vcol ? vcol.c : null, n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
+  return { name: s.name, col: vcol ? vcol.avg : s.color || [0.95, 0.92, 0.85], vcol: vcol ? vcol.c : null, uv: vcol ? Float32Array.from(s.texture.uv.slice(0, n * 2)) : null, n: n, p0: p0, tris: new Uint16Array(T), sim: sim, mi: cg.mi, mw: cg.mw, grid: cg.kind,
     hk: hk, hv: hv, sides: sides, pins: pins, clews: clews, foot: foot };   // foot：帆腳跟著轉的帆桁（-1 ＝ 不轉；砲彈打帆照高度內插轉角用）
 }
 /** 旗的貼圖（.vxk 帆的 texture：w×h 的 RGBA、base64，uv 每個頂點一對）⇒ 前 n 個頂點（正面那一份）的顏色：每個頂點取它四周一格布寬的平均（不透明的才算）。
@@ -197,6 +197,33 @@ function texColors(tx, n) {
     c[i * 3] = r / k / 255; c[i * 3 + 1] = g / k / 255; c[i * 3 + 2] = bl / k / 255; avg[0] += c[i * 3] / n; avg[1] += c[i * 3 + 1] / n; avg[2] += c[i * 3 + 2] / n;
   }
   return { c: c, avg: avg };
+}
+/** 帆的貼圖集（一個船型一張；TASK-0579）：每面有貼圖的帆一格，四周多一圈重複邊上的像素（NEAREST 取到 u ＝ 1 不會讀到隔壁那格）；
+ *  alpha 照 vxk 的 alpha_min 先二值化（≥ ⇒ 255、< ⇒ 0）⇒ 著色器 a < 0.5 就 discard（洞）。
+ *  rect[k] ＝ 第 k 面帆在集裡的 [x, y, w, h]（不含那一圈；沒有貼圖 ⇒ null）；列優先、第 0 列 ＝ 圖的最上面（＝ uv 的 v ＝ 0），上傳不翻。
+ *  Tim 2026-10-14：透明的地方變成白色、解析度也上不去 —— 之前每個頂點只取一色（texColors），細節只到布料頂點、四周全透明就填白。 */
+var SAIL_ATLAS_W = 1024;
+function sailAtlas(sails) {
+  var rect = [], x = 0, y = 0, rowH = 0, W = 1, Hh = 1, any = false;
+  sails.forEach(function (s, k) {
+    var tx = s.texture; rect.push(null);
+    if (!tx || !tx.rgba || !tx.uv || !tx.w || !tx.h) return;
+    var w = tx.w + 2, h = tx.h + 2;
+    if (x + w > SAIL_ATLAS_W) { x = 0; y += rowH; rowH = 0; }
+    rect[k] = [x + 1, y + 1, tx.w, tx.h]; x += w; rowH = Math.max(rowH, h); W = Math.max(W, x); Hh = Math.max(Hh, y + rowH); any = true;
+  });
+  if (!any) return null;
+  var D = new Uint8Array(W * Hh * 4);
+  sails.forEach(function (s, k) {
+    var r = rect[k]; if (!r) return;
+    var tx = s.texture, b = atob(tx.rgba), am = tx.alpha_min || 0, w = tx.w, h = tx.h;
+    if (b.length < w * h * 4) { rect[k] = null; return; }
+    for (var yy = -1; yy <= h; yy++) for (var xx = -1; xx <= w; xx++) {
+      var sx = clamp(xx, 0, w - 1), sy = clamp(yy, 0, h - 1), o = (sy * w + sx) * 4, d = ((r[1] + yy) * W + r[0] + xx) * 4;
+      D[d] = b.charCodeAt(o); D[d + 1] = b.charCodeAt(o + 1); D[d + 2] = b.charCodeAt(o + 2); D[d + 3] = b.charCodeAt(o + 3) >= am ? 255 : 0;
+    }
+  });
+  return { w: W, h: Hh, data: D, rect: rect };
 }
 /** 一塊布的約束：邊（三角形的邊）＋ 跨點（同一條格線上隔一點的兩點，布不會揉成一團）；靜止長度 ＝ 雕刻作品那一刻的距離。 */
 function meshCons(pos, T) {
@@ -264,11 +291,12 @@ function coarseOf(n, T) {
 }
 function clothSetup(H, C) {                            // 船型 H 的布模板；暫存區（兩艘、各型共用）照目前最大的那一型配；C ＝ 快取的記錄（06_cache.js：rbox、cloth）
   H.rbox = C ? C.rbox : H.rig.ropes.map(function (r) { return ropeBox(r.pts); });
-  H.cloth = C ? C.cloth : H.rig.sails.map(function (s) { return clothTemplate(H, s); });
+  H.cloth = C ? C.cloth : H.rig.sails.map(function (s, k) { var t = clothTemplate(H, s); t.ti = k; return t; });   // ti：第幾面帆 ⇒ 貼圖集的哪一格（布片、斷開的那一團也認得）
+  H.sailAtlas = sailAtlas(H.rig.sails); H.sailTexGL = null;              // 貼圖集不進快取（照 vxk 現算；GL 貼圖第一次畫才建，11_rig_gpu.js sailTex）
   var mv = 1, mc = 1, sv = 0, si = 0;
   H.cloth.forEach(function (C) { mv = Math.max(mv, C.n); mc = Math.max(mc, C.sim.n); sv += C.n; si += C.tris.length; });
   if (!CACC || CACC.length < mc * 3) { CACC = new Float32Array(mc * 3); CCNT = new Uint8Array(mc); }
-  if (!SBV || SBV.length < Math.max(1, sv) * 9) SBV = new Float32Array(Math.max(1, sv) * 9);
+  if (!SBV || SBV.length < Math.max(1, sv) * SB_STRIDE) SBV = new Float32Array(Math.max(1, sv) * SB_STRIDE);
   if (!SBI || SBI.length < Math.max(1, si)) SBI = new Uint32Array(Math.max(1, si));
   if (!SBN || SBN.length < mv * 3) { SBN = new Float32Array(mv * 3); SBP = new Float32Array(mv * 3); }
 }

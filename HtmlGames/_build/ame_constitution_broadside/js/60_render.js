@@ -226,9 +226,11 @@ function lanternHalo(push) {
   });
 }
 function drawSails(prog, near) {
+  if (prog.u.uSailT) gl.uniform1i(prog.u.uSailT, SAIL_UNIT);           // 帆的貼圖集（TASK-0579；11_rig_gpu.js sailTex）：固定第 9 號
   SHIPS.concat(PIECES).forEach(function (ow) {
     if (ow.sink > 40 || !ow.sb || !ow.sb.n || (near && !near(ow))) return;
     cutSet(prog, ow); gl.uniformMatrix4fv(prog.u.uModel, false, ow.M);
+    gl.activeTexture(gl.TEXTURE0 + SAIL_UNIT); gl.bindTexture(gl.TEXTURE_2D, sailTex(ow.T)); gl.activeTexture(gl.TEXTURE0);
     gl.bindVertexArray(ow.sb.vao); gl.drawElements(gl.TRIANGLES, ow.sb.n, gl.UNSIGNED_INT, 0);
   });
 }
@@ -243,7 +245,8 @@ function shadowPass() {
     gl.bindFramebuffer(gl.FRAMEBUFFER, M.F.fb); gl.clear(gl.DEPTH_BUFFER_BIT);
     PASS.vp = M.m;
     gl.useProgram(P.dvox.prog); setCommon(P.dvox); drawHulls(P.dvox, near);
-    gl.useProgram(P.dtri.prog); setCommon(P.dtri); drawModels(P.dtri, near); drawSails(P.dtri, near);
+    gl.useProgram(P.dtri.prog); setCommon(P.dtri); drawModels(P.dtri, near);
+    gl.useProgram(P.dsail.prog); setCommon(P.dsail); drawSails(P.dsail, near);   // 帆另一支：貼圖的洞不投影子（TASK-0579）
   }
   function ball(sh) { var B = sh.T.base; return { R: sh.T.shR || (sh.T.shR = 0.5 * S * Math.hypot(B.sx, B.sy, B.sz)), c: M4.pt(sh.M, B.sx / 2, B.sy / 2, B.sz / 2) }; }
   for (var i = 0; i < SSLOTS.length; i++) (function (M, sh) {
