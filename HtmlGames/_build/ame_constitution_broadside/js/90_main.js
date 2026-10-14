@@ -48,6 +48,8 @@ if (DEBUG) window.__game = {
   ladders: function (i) { var H = SHIPS[i || 0].nav; return H ? H.ladders.map(function (L) { return { name: L.name, steps: L.steps, ia: navPos(H.levels[L.lo].N, L.ia), broken: L.broken }; }) : null; },
   /** 第 i 艘每一門砲：名字、砲種、砲軸（格座標水平、+x 船頭）、HUD 放哪（61_hud.js gunDir：bow 羅盤上、stern 羅盤下、side 兩舷貼邊）。 */
   /** 第 i 艘沒了的模型（砲、桶以外）：名字、種類（meta kind）、腳在哪 ⇒ 抓「一開場就掉」。 */
+  /** 繩的檢查（10_ship.js ropesFloating／ropeAuditStatic）：第 i 艘現在浮空的繩；static ⇒ 作品本身的讀數。 */
+  ropes: function (i, stat) { var sh = SHIPS[i || 0]; return stat ? ropeAuditStatic(sh) : ropesFloating(sh); },
   hangs: function (i) { return SHIPS[i || 0].models.filter(function (m) { return m.hang; }).map(function (m) { return m.path + (m.sax ? ' 擺 ' + (m.sw * 57.3).toFixed(1) + '°（擺長 ' + (m.sL * S).toFixed(2) + ' m）' : '') + ' falls ' + (m.falls ? m.falls.map(function (j) { var r = SHIPS[i || 0].ropes[j]; return r.name + (r.dead ? '×' : ''); }).join(',') : '（沒有）') + (m.alive ? '' : ' 掉了'); }); },
   lostModels: function (i) { return SHIPS[i || 0].models.filter(function (m) { return !m.alive && !GUNS[m.kind] && m.kind !== 'powder'; }).map(function (m) { return m.path + ' ' + (m.meta.kind || m.kind) + ' foot z ' + (m.foot >> 20); }); },
   gunDirs: function (i) { return SHIPS[i || 0].guns.map(function (g) { return [g.name.split('/').pop(), g.type, g.ax.map(function (v) { return +v.toFixed(2); }), gunDir(g)]; }); },
@@ -250,6 +252,7 @@ yieldUI().then(function () {                                        // 先讓主
     if (phys && from > 0) setPhys(false);
     // ?dump=1：每半秒記每艘的最大橫傾、開始沉／沉沒／降旗的時間，跑完寫進頁面（#dump；無頭 Chrome --dump-dom 讀，量進水模式用）
     var rec = Q.get('dump') === '1' ? SHIPS.map(function () { return { maxList: 0, maxPre: 0, maxSinkPre: 0, final: null, sunk: null, struck: null }; }) : null, downAt = { blue: null, red: null };
+    var RC = rec && Q.get('ropecheck') === '1' ? SHIPS.map(function (sh) { return { hull: sh.T.id, stat: ropeAuditStatic(sh), seen: {}, float: [] }; }) : null;   // 繩的檢查（ropecheck.py）
     for (var i = 0; i < steps; i++) {
       if (phys && i === from && from > 0) setPhys(true); step(); if (i % 30 === 29) remesh(Infinity);
       if (rec && i % 30 === 29) SHIPS.forEach(function (sh, k) { var r = rec[k]; r.maxList = Math.max(r.maxList, Math.abs(sh.rollA)); if (!sh.sinkingFinal) { r.maxPre = Math.max(r.maxPre, Math.abs(sh.rollA)); r.maxSinkPre = Math.max(r.maxSinkPre, sh.sink); r.maxPctPre = Math.max(r.maxPctPre || 0, floodPct(sh)); } if (sh.sinkingFinal && r.final === null) r.final = +SIMT.toFixed(1); if (sh.sunk && r.sunk === null) r.sunk = +SIMT.toFixed(1); if (sh.struck && r.struck === null) r.struck = +SIMT.toFixed(1); });
@@ -259,8 +262,10 @@ yieldUI().then(function () {                                        // 先讓主
         SHIPS.forEach(function (sh, k) { var nf = SHIPS.reduce(function (a, o) { return isFoe(sh, o) && !isOut(o) ? Math.min(a, Math.hypot(o.px - sh.px, o.pz - sh.pz)) : a; }, 1e9);
           (rec[k].tl = rec[k].tl || []).push([Math.round(SIMT), +sh.sailFrac.toFixed(3), sh.masts.filter(function (m) { return !m.up; }).length, sh.hits, +sh.spd.toFixed(2), +CVt[k].guns.toFixed(3), +CVt[k].crew.toFixed(3), nf < 1e9 ? Math.round(nf) : null]); }); }
       if (rec && i % 30 === 29) ['blue', 'red'].forEach(function (tm) { if (downAt[tm] === null && teamDown(tm)) downAt[tm] = +SIMT.toFixed(1); });
+      if (RC && i % 30 === 29) SHIPS.forEach(function (sh, k) { if (sh.sink > 40) return; ropesFloating(sh).forEach(function (f) { var key = f.name + '#' + f.end; if (RC[k].seen[key]) return; RC[k].seen[key] = 1; RC[k].float.push({ t: +SIMT.toFixed(1), name: f.name, end: f.end, kind: f.kind, why: f.why, P: f.P }); }); });
     }
     remesh(Infinity); RUNNING = false; $('cover').style.display = 'none';
+    if (RC) { var pre2 = document.createElement('pre'); pre2.id = 'ropecheck'; document.body.appendChild(pre2); pre2.textContent = JSON.stringify(RC.map(function (c) { return { hull: c.hull, stat: c.stat, float: c.float }; })); }
     if (rec) { var pre = document.createElement('pre'); pre.id = 'dump'; document.body.appendChild(pre);
       var CV = cmdView('blue').ships, pow = { blue: 0, red: 0 }; CV.forEach(function (v) { if (!v.out) pow[v.team] += cmdStrength(v); });
       pre.textContent = JSON.stringify({ seed: SEED, t: +SIMT.toFixed(1), flood: FLOOD_LV, wind: { rot: +(WIND_ROT * 57.2958).toFixed(1), s0: +WIND_S0.toFixed(3) }, cmd: CMD_SIDE, down: downAt, pow: { blue: +pow.blue.toFixed(3), red: +pow.red.toFixed(3) }, ships: SHIPS.map(function (sh, k) { var r = rec[k];

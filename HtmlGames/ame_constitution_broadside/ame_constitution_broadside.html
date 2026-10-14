@@ -41,13 +41,13 @@
   .bar.water i{ background:#4fb3d9; }
   /* 下方（TASK-0567，Tim 2026-10-14；電腦與手機同一種排法）：左下 ＝ 帆與左舵（左舵最左、收帆、加帆）；右下 ＝ 開砲與右舵（單門、齊射、右舵最右）；
      中間一欄 ＝ 羅盤＋面板：由上到下 ＝ 瞄準／鏡頭／停格／設定、砲列、彈種、航行與自動開砲（設定那一列跟彈種、航行隔著砲列 ⇒ 不會誤觸）。手機只是縮小、兩組改成直的（左舵、右舵在最下面靠角落）。 */
-  .helm{ bottom:12px; display:flex; gap:8px; pointer-events:auto; }
-  #helmL{ left:12px; } #helmR{ right:12px; }
+  .helm{ display:flex; gap:8px; pointer-events:auto; flex:none; }   /* 帆與舵（左）、開砲與舵（右）兩組大圓鈕：貼著中間的主面板（#ctlRow；Tim 2026-10-14：⛔ 以前貼畫面兩邊） */
+  #ctlRow{ display:flex; align-items:flex-end; justify-content:center; gap:8px; max-width:100%; }
   .kb.hb{ width:64px; height:64px; margin:0; padding:0; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.25; font-size:12px;
     background:rgba(14,18,24,.78); border:1px solid rgba(255,255,255,.32); box-shadow:0 2px 7px rgba(0,0,0,.6); }
   .kb.hb b{ font-size:11px; }
-  #botC{ left:50%; bottom:12px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px; max-width:calc(100vw - 480px); }
-  #ctl{ text-align:center; max-width:100%; box-sizing:border-box; }
+  #botC{ left:50%; bottom:12px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px; width:max-content; max-width:calc(100vw - 24px); }   /* ⛔ 不寫 width ⇒ left:50% 的絕對定位只剩半個畫面寬，主面板被兩組大圓鈕擠成一條 */
+  #ctl{ text-align:center; min-width:0; box-sizing:border-box; }
   #ctl b{ color:var(--gold); }
   #ammo span{ display:inline-block; margin:0 4px; padding:1px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); }
   #ammo span.on{ color:#111; background:var(--gold); border-color:var(--gold); }
@@ -62,11 +62,12 @@
   .chip{ display:inline-block; margin:2px 3px 0; padding:0 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); font-size:12px; }
   .chip.on{ color:#111; background:#9fc7ff; border-color:#9fc7ff; }
   #guns{ margin-top:4px; font-size:12px; }
-  /* 兩舷的砲（Tim 2026-10-14）：貼畫面左右兩邊、在帆與舵那組大圓鈕上面；沒有字、沒有底板（符號描黑邊直接壓在畫面上）；每層砲甲板一行、從邊往內排；對得到目標的那一舷貼邊一條金線 */
-  .gside{ bottom:88px; font-family:Consolas,monospace; font-size:14px; line-height:1.3; letter-spacing:1px; white-space:nowrap; pointer-events:none; padding:2px 0;
+  /* 兩舷的砲（Tim 2026-10-14）：貼著羅盤左右兩邊往外長（左舷在左、右舷在右；船頭那門靠羅盤）；沒有字、沒有底板（符號描黑邊直接壓在畫面上）；每層砲甲板一行、最上層在上；
+     對得到目標的那一舷靠羅盤那一側一條金線。掛在羅盤（#nav）上、上下置中（⛔ 放進 #botC 的排版裡 ⇒ 手機那一欄太窄，羅盤被擠小） */
+  #nav{ position:relative; } .gside{ position:absolute; top:50%; transform:translateY(-50%); font-family:Consolas,monospace; font-size:14px; line-height:1.3; letter-spacing:1px; white-space:nowrap; pointer-events:none; padding:0 4px;
     text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 3px rgba(0,0,0,.9); }
-  #gunsL{ left:0; padding-left:5px; border-left:3px solid transparent; text-align:left; } #gunsR{ right:0; padding-right:5px; border-right:3px solid transparent; text-align:right; }
-  #gunsL.on{ border-left-color:var(--gold); } #gunsR.on{ border-right-color:var(--gold); }
+  #gunsL{ right:100%; border-right:3px solid transparent; text-align:right; } #gunsR{ left:100%; border-left:3px solid transparent; text-align:left; }
+  #gunsL.on{ border-right-color:var(--gold); } #gunsR.on{ border-left-color:var(--gold); }
   .gend{ font-family:Consolas,monospace; font-size:14px; line-height:1.2; letter-spacing:2px; white-space:nowrap; margin:-3px 0; padding:0 2px;
     text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 3px rgba(0,0,0,.9); }   /* 船頭砲（羅盤上）、船尾砲（羅盤下）：同上，沒有底板 */
   #gunsB{ border-bottom:2px solid transparent; } #gunsA{ border-top:2px solid transparent; } #gunsB.on{ border-bottom-color:var(--gold); } #gunsA.on{ border-top-color:var(--gold); }
@@ -96,18 +97,18 @@
   /* 手機直拿：跟電腦同一種排法，只是縮小 —— 艦隊按鈕 38 px、左右兩組打舵開砲改成直的一欄、中間一欄窄一點 */
   @media (max-width:760px){
     .fleet{ top:6px; gap:4px; max-height:calc(100vh - 175px); } #fleetL{ left:5px; } #fleetR{ right:5px; }
-    .gside{ bottom:160px; font-size:12px; } .helm{ bottom:6px; gap:5px; } #helmL{ left:5px; flex-direction:column-reverse; } #helmR{ right:5px; flex-direction:column; }
+    .gside{ font-size:11px; letter-spacing:0; } .helm{ gap:5px; } #helmL{ flex-direction:column-reverse; } #helmR{ flex-direction:column; } #ctlRow{ gap:2px; width:100%; }
     .kb.hb{ width:46px; height:46px; font-size:10px; } .kb.hb b{ font-size:9px; }
-    #botC{ bottom:6px; width:calc(100vw - 106px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（兩邊各留 2 px；Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
+    #botC{ bottom:6px; width:calc(100vw - 6px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
     #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
     #navc{ width:84px; height:84px; } #modeT{ font-size:12px; }
-    #ctl{ width:100%; padding:5px 3px; } #ctl .kb, #ctl .chip{ font-size:12px; padding:4px 5px; margin-left:1px; margin-right:1px; } #ammo span{ margin:0 2px; padding:1px 6px; } #keys .hint{ display:none; } #guns .gr{ white-space:normal; word-break:break-all; } #tip{ display:none; }   /* 砲列在窄面板裡換行 */
+    #ctl{ flex:1; padding:5px 3px; } #ctl .kb, #ctl .chip{ font-size:12px; padding:4px 5px; margin-left:1px; margin-right:1px; } #ammo span{ margin:0 2px; padding:1px 6px; } #keys .hint{ display:none; } #guns .gr{ white-space:normal; word-break:break-all; } #tip{ display:none; }   /* 砲列在窄面板裡換行 */
     #msg{ font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：跟資訊同一欄（頂端中間，兩邊艦隊按鈕之間） */
     .hud h3 .disp{ display:block; margin-left:0; } }                                     /* 排水量換到船名下一行（⛔ 同一行 ⇒ 面板縮半之後「現在 …」被切掉） */
   /* 手機橫拿（矮）：面板與控制列都縮 */
   @media (max-height:520px) and (min-width:761px){
     .sb{ width:50px; height:50px; } #fleetL{ max-height:calc(100vh - 170px); } #info{ transform:scale(.8); transform-origin:center top; }
-    #botC{ transform:translateX(-50%) scale(.82); transform-origin:center bottom; } .kb.hb{ width:52px; height:52px; } .gside{ bottom:72px; } #tip{ display:none; } }
+    #botC{ transform:translateX(-50%) scale(.82); transform-origin:center bottom; } .kb.hb{ width:52px; height:52px; } #tip{ display:none; } }
   #cover{ position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; background:radial-gradient(ellipse at 50% 40%, rgba(20,30,44,.80), rgba(5,8,12,.94)); }
   #cover .card{ max-width:680px; margin:auto; padding:22px 30px; text-align:center; }   /* margin:auto ⇒ 放得下就置中、放不下就從頂端開始捲（⛔ align-items:center 放不下會切掉上半） */
   #cover h1{ margin:0 0 4px; font-size:24px; letter-spacing:2px; }   /* Tim 2026-10-13：標題小一點（30 → 24；手機 24 → 19） */
@@ -183,16 +184,13 @@
   <div id="fleetL" class="hud fleet"></div>
   <div id="fleetR" class="hud fleet"></div>
   <div id="topC" class="hud"><div id="fps" class="hud"></div><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
-  <div id="gunsL" class="hud gside"></div><div id="gunsR" class="hud gside"></div>
-  <div id="helmL" class="hud helm"><span class="kb hb" data-k="a" data-hold="1"><b>A</b>◀ 左舵</span><span class="kb hb" data-k="s"><b>S</b>收帆</span><span class="kb hb" data-k="w"><b>W</b>加帆</span></div>
-  <div id="helmR" class="hud helm"><span class="kb hb" data-k="f"><b>F</b>單門</span><span class="kb hb" data-k=" "><b>空白</b>齊射</span><span class="kb hb" data-k="d" data-hold="1"><b>D</b>右舵 ▶</span></div>
-  <div id="botC" class="hud"><div id="gunsB" class="gend"></div><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div></div><div id="gunsA" class="gend"></div><div id="modeT"></div>
-  <div id="ctl" class="panel">
+  <div id="botC" class="hud"><div id="gunsB" class="gend"></div><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div><div id="gunsL" class="gside"></div><div id="gunsR" class="gside"></div></div><div id="gunsA" class="gend"></div><div id="modeT"></div>
+  <div id="ctlRow"><div id="helmL" class="helm"><span class="kb hb" data-k="a" data-hold="1"><b>A</b>◀ 左舵</span><span class="kb hb" data-k="s"><b>S</b>收帆</span><span class="kb hb" data-k="w"><b>W</b>加帆</span></div><div id="ctl" class="panel">
     <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p" id="pauseK"><b>P</b> 停格</span><span class="kb" id="setB"><b>O</b> 設定</span></div>
     <div id="guns"></div>
     <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
     <div id="hudctl">航行 <span class="chip" data-s="auto"><b>4</b> 自動</span><span class="chip" data-s="manual"><b>5</b> 手動</span><span class="chip" data-s="off"><b>6</b> 停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>
-  </div></div>
+  </div><div id="helmR" class="helm"><span class="kb hb" data-k="f"><b>F</b>單門</span><span class="kb hb" data-k=" "><b>空白</b>齊射</span><span class="kb hb" data-k="d" data-hold="1"><b>D</b>右舵 ▶</span></div></div></div>
   <div id="tip" class="hud"></div>
   <div id="slowB" class="hud"></div>
   <div id="frz" class="hud panel"><span class="fzG"><span class="fz">⏸ 停格中</span><span class="chip" id="frzGo">▶ 繼續（P）</span></span><span class="fzG"><span class="fzL">進水</span><span class="chip" id="frzFlood">📊 圖表（I）</span><span class="chip" id="frzX">🔍 透視（X）</span></span><span class="fzG"><span class="fzL">船</span><span class="chip" id="frzCut">✂ 剖面（Z）</span><span class="chip" id="frzDeck">☰ 甲板（L）</span></span></div>
@@ -1903,7 +1901,7 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
     sh.ropes.push({ pts: r.pts, col: r.color, bb: ropeBox(r.pts), a: anchorNear(T, r.pts[0], r.pts[1], r.pts[2], 5), b: anchorNear(T, r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1], 5), name: r.name, meta: r.meta || null });
   });
   linkRopes(T, sh.ropes, sh.models);
-  hangFalls(sh);
+  hangFalls(sh); sh.rbin = new Set();
   T.rig.sails.forEach(function (s) {
     var vz = -1e9, ax = 0, ay = 0, az = 0, k = 0, j;
     for (j = 2; j < s.verts.length; j += 3) vz = Math.max(vz, s.verts[j]);
@@ -2055,6 +2053,70 @@ function hangFalls(sh) {
     m.sax = ax; m.spv = tops[0]; m.sL = Math.max(len(vp), 3); m.sw = 0; m.swA = 0; m.psi = 0; m.psiV = 0; m.pw = null;
     (sh.hangs = sh.hangs || []).push(m);
   });
+}
+// ── 繩的檢查（Tim 2026-10-14：破壞後有浮空的纜線；?ropecheck=1 ＋ ?dump=1 記進 #dump、ropecheck.py 跑很多局寫報告）──
+// 浮空 ＝ 繩還活著（沒斷、沒被帶走），可是有一端撐它的東西已經沒了：
+//   格：端點附近（作品裡端點到錨的距離 d0 ＋ 1 格，至少 2 格）已經沒有實心格 —— ⛔ 只看錨那一格不夠：錨是端點 0.5 m 內最近的實心格，常常是隔壁的結構
+//   模型：那個模型沒了（飛出去、被斷開的那一截帶走）；帆桁（端點在帆桁的網格上，T.ropeYard：帆桁轉、它跟著轉）：同模型；
+//   繩：靠的那條繩斷了、或它自己也浮空。
+/** 繩 r 的一端（e：0 ＝ 起點、1 ＝ 終點）靠什麼：{ k: 'yard'|'grid'|'model'|'rope'|'none', a（帆桁或模型序號／錨格／繩序號）, d0（端點到錨格中心，格）, P（端點）}。記在繩上。
+ *  ⚠ 帆桁優先：端點在帆桁上的繩，錨（0.5 m 內最近的實心格）常常抓到桅 ⇒ 帆桁飛了、被帶走，錨還在 ⇒ 以前不斷（浮空的主因之一）。 */
+function ropeEnd(r, e) {
+  r.ends = r.ends || [];
+  if (r.ends[e]) return r.ends[e];
+  var src = r.pts0 || r.pts, n = src.length / 3, i = e ? n - 1 : 0, P = [src[i * 3], src[i * 3 + 1], src[i * 3 + 2]], an = e ? r.b : r.a, o;
+  var yk = e ? r.yb : r.ya;
+  if (yk >= 0) o = { k: 'yard', a: yk, P: P };
+  else if (an >= 0) o = { k: 'grid', a: an, d0: Math.hypot((an & 1023) + 0.5 - P[0], ((an >> 10) & 1023) + 0.5 - P[1], (an >> 20) + 0.5 - P[2]), P: P };
+  else if ((e ? r.mb : r.ma) !== undefined) o = { k: 'model', a: e ? r.mb : r.ma, P: P };
+  else if ((e ? r.pb : r.pa) !== undefined) o = { k: 'rope', a: e ? r.pb : r.pa, P: P };
+  else o = { k: 'none', a: -1, P: P };
+  return r.ends[e] = o;
+}
+/** 8 格一塊（打掉的格記在哪一塊：sh.rbin）。 */
+function ropeBin(x, y, z) { return (x >> 3) | ((y >> 3) << 8) | ((z >> 3) << 16); }
+/** 那一端現在撐不撐得住：撐得住 ⇒ ''，撐不住 ⇒ 原因。depth：沿著繩往上追幾層（繩掛在繩上）。
+ *  near（survey 用）：最近打掉的格所在的塊（含旁邊一圈）⇒ 格那一端只在端點落在裡面時才量（⛔ 每次全量：兩艘約 3 ms，八艘一格卡 12 ms）；不給 ⇒ 全量（讀數）。 */
+function ropeEndWhy(sh, r, e, depth, near) {
+  var E = ropeEnd(r, e), n = r.pts.length / 3, i = e ? n - 1 : 0, P = [r.pts[i * 3], r.pts[i * 3 + 1], r.pts[i * 3 + 2]];   // 端點照現在的形狀（帆桁轉了、小艇擺了）
+  if (E.k === 'grid') {
+    if (near !== undefined && (!near || !near.has(ropeBin(Math.floor(P[0]), Math.floor(P[1]), Math.floor(P[2]))))) return '';
+    if (!gp(sh.grid, E.a)) return '錨格被打掉（應該已經斷）';
+    var R = Math.max(2, E.d0 + 1), x0 = Math.floor(P[0]), y0 = Math.floor(P[1]), z0 = Math.floor(P[2]), Ri = Math.ceil(R), dx, dy, dz;
+    for (dz = -1; dz <= 1; dz++) for (dy = -1; dy <= 1; dy++) for (dx = -1; dx <= 1; dx++) if (sh.grid.get(x0 + dx, y0 + dy, z0 + dz)) return '';   // 先看貼著的（大多數繩端埋在格裡）
+    for (dz = -Ri; dz <= Ri; dz++) for (dy = -Ri; dy <= Ri; dy++) for (dx = -Ri; dx <= Ri; dx++) {
+      if (dx * dx + dy * dy + dz * dz > R * R) continue;
+      if (sh.grid.get(x0 + dx, y0 + dy, z0 + dz)) return '';
+    }
+    return '端點周圍 ' + R.toFixed(1) + ' 格內沒有格了（錨在 ' + E.d0.toFixed(1) + ' 格外、還在）';
+  }
+  if (E.k === 'model' || E.k === 'yard') { var m = sh.models[E.a]; return !m ? '模型不見了' : m.moved ? '綁的模型被斷開的那一截帶走了（' + m.name + '）' : !m.alive ? '綁的模型沒了（' + m.name + '）' : ''; }
+  if (E.k === 'rope') { var q = sh.ropes[E.a]; if (!q || q.dead) return '靠的繩斷了（' + (q ? q.name : E.a) + '）'; return depth > 0 && ropeFloat(sh, q, depth - 1) ? '靠的繩浮空（' + q.name + '）' : ''; }
+  return '';
+}
+/** 繩 r 浮空嗎 ⇒ null 或 { end, why }。 */
+function ropeFloat(sh, r, depth, near) {
+  if (r.dead || r.moved) return null;
+  for (var e = 0; e < 2; e++) { var w = ropeEndWhy(sh, r, e, depth === undefined ? 4 : depth, near); if (w) return { end: e, why: w }; }
+  return null;
+}
+/** 這艘現在浮空的繩：[{ j, name, end, why, kind, P }]。 */
+function ropesFloating(sh) {
+  var out = [];
+  sh.ropes.forEach(function (r, j) { var f = ropeFloat(sh, r); if (f) { var E = ropeEnd(r, f.end); out.push({ j: j, name: r.name, end: f.end, why: f.why, kind: E.k, P: E.P.map(function (v) { return Math.round(v); }) }); } });
+  return out;
+}
+/** 作品本身（開戰那一刻、還沒打）：每一端靠什麼、端點到錨幾格；遠的（> 2 格）與哪裡都不靠的列出來 ⇒ 雕刻那邊可以把繩端拉到碰到東西。 */
+function ropeAuditStatic(sh) {
+  var kinds = { yard: 0, grid: 0, model: 0, rope: 0, none: 0 }, far = [], none = [];
+  sh.ropes.forEach(function (r, j) {
+    [0, 1].forEach(function (e) {
+      var E = ropeEnd(r, e); kinds[E.k]++;
+      if (E.k === 'grid' && E.d0 > 2) far.push({ name: r.name, end: e, d0: +E.d0.toFixed(1), P: E.P.map(Math.round) });
+      if (E.k === 'none') none.push({ name: r.name, end: e, P: E.P.map(Math.round) });
+    });
+  });
+  return { ropes: sh.ropes.length, ends: kinds, far: far, none: none, floatAtStart: ropesFloating(sh).map(function (f) { return f.name + '#' + f.end + '：' + f.why; }) };
 }
 function linkRopes(T, ropes, models) {
   ropes.forEach(function (r, i) {
@@ -2690,7 +2752,8 @@ function removeVoxel(sh, x, y, z, seeds) {
   sh.rs.touch(x, y, z); sh.lost++;
   if (z < sh.T.sz) { sh.flood[z * 3]++; sh.flood[z * 3 + 1] += y > sh.T.cy ? 1 : -1; sh.flood[z * 3 + 2] += x > sh.T.cx ? 1 : -1; }
   if (sh.fl) floodTouch(sh, x, y, z);                                   // 粒子模式：水格與破口待重算（33_flood.js）
-  if (NAV_RE > 0 && sh.nav) navDirty(sh, x, y, z);                       // 尋路動態更新：那幾層記成髒了（42_hands.js；TASK-0572）
+  if (NAV_RE > 0 && sh.nav) navDirty(sh, x, y, z);
+  if (sh.rbin) sh.rbin.add(ropeBin(x, y, z));                             // 繩的檢查只看打掉的格附近（32_hull.js survey、10_ship.js ropeFloat）                       // 尋路動態更新：那幾層記成髒了（42_hands.js；TASK-0572）
   if (seeds) { var s = sh.seeds; s.push(VK.pack(x + 1, y, z), VK.pack(x - 1, y, z), VK.pack(x, y + 1, z), VK.pack(x, y - 1, z), VK.pack(x, y, z + 1), VK.pack(x, y, z - 1)); }
   return c;
 }
@@ -4320,6 +4383,15 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
   sh.mastsUp = up;
   sh.ropes.forEach(function (r) { if (r.dead) return; if ((r.a >= 0 && !gp(sh.grid, r.a)) || (r.b >= 0 && !gp(sh.grid, r.b))) { r.dead = true; sh.rigDirty = true; } });
   sh.ropes.forEach(function (r) { if (!r.dead && r.par && r.par.some(function (j) { return sh.ropes[j].dead; })) { r.dead = true; sh.rigDirty = true; } });
+  // 浮空的繩（Tim 2026-10-14：破壞後有浮空的纜線；判斷在 10_ship.js ropeFloat）：綁的帆桁／模型沒了或被帶走、端點附近的格全被打掉（錨是另一格、還在）⇒ 斷
+  //   （物理開著 ⇒ 從還綁著的那一端垂下來）。繩掛在繩上 ⇒ 同一次一路斷到底（⛔ 只走一遍 ⇒ 一層等半秒，量到一串 36 條浮空 1–2 秒）。
+  //   格那一端只量最近打掉的格附近（sh.rbin：8 格一塊，含旁邊一圈；20_shatter.js removeVoxel 記）。
+  var near = null;
+  if (sh.rbin && sh.rbin.size) { near = new Set(); sh.rbin.forEach(function (k) { for (var dz = -1; dz <= 1; dz++) for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) near.add(k + dx + (dy << 8) + (dz << 16)); }); sh.rbin.clear(); }
+  for (var again = true, pass = 0; again && pass < 8; pass++) {
+    again = false;
+    sh.ropes.forEach(function (r) { if (!r.dead && !r.moved && ropeFloat(sh, r, 0, near)) { r.dead = true; sh.rigDirty = true; again = true; } });
+  }
   sh.sails.forEach(function (s) {
     if (!s.dead && !s.furled && (s.as.some(function (a) { return !gp(sh.grid, a); }) || s.par.some(function (j) { return sh.ropes[j].dead; }) ||
         (s.yards || []).some(function (y) { return !y.alive && !y.moved; }))) dropSail(sh, s);   // 掛它的帆桁被打斷或掉了 ⇒ 帆掉
@@ -7441,7 +7513,7 @@ function gunCell(g) {
  *  其他砲 ⇒ 砲軸（格座標，+x ＝ 船頭）幾乎朝船頭／船尾才算，不然 ＝ 側舷 'side'。 */
 function gunDir(g) { if (g.type === 'chase') return g.ax[0] >= 0 ? 'bow' : 'stern'; return g.ax[0] > 0.7 ? 'bow' : g.ax[0] < -0.7 ? 'stern' : 'side'; }
 /** 我艦的砲（Tim 2026-10-14）：沒有字、沒有底板（符號描黑邊直接壓在畫面上）。
- *  側舷砲貼畫面左右兩邊（#gunsL 左舷、#gunsR 右舷；從邊往內排、每層砲甲板一行、最上層在上；那一舷有砲對得到目標 ⇒ 貼邊一條金線）；
+ *  側舷砲貼著羅盤左右兩邊往外長（#gunsL 左舷、#gunsR 右舷；船頭那門靠羅盤、每層砲甲板一行、最上層在上；那一舷有砲對得到目標 ⇒ 靠羅盤那一側一條金線）；
  *  船頭砲在羅盤上面（#gunsB）、船尾砲在羅盤下面（#gunsA）—— 跟羅盤裡船頭朝上的船同一個方向；左舷的在左、對得到 ⇒ 靠羅盤那一側一條金線；沒有就藏起來。
  *  下方面板原本那一格（#guns）只剩「⚠ 射界外」。 */
 function gunHud(me) {
@@ -7449,7 +7521,7 @@ function gunHud(me) {
   ['P', 'S'].forEach(function (side) {
     var rows = me.decks.map(function (D) { return me.guns.filter(function (x) { return x.deck === D.key && x.side === side && gunDir(x) === 'side'; }); }).filter(function (r) { return r.length; }).reverse();
     var on = w && me.guns.some(function (g) { return g.side === side && gunDir(g) === 'side' && g.alive && gunRate(g) > 0 && gunTarget(me, g, w); });
-    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + (side === 'S' ? r.slice().reverse() : r).map(gunCell).join('') + '</div>'; }).join('');   // 右舷倒過來 ⇒ 兩舷都是船頭貼邊
+    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + (side === 'P' ? r.slice().reverse() : r).map(gunCell).join('') + '</div>'; }).join('');   // 左舷倒過來 ⇒ 兩舷都是船頭靠羅盤
     if (box.innerHTML !== h) box.innerHTML = h;
     box.classList.toggle('on', !!on);
   });
@@ -8869,6 +8941,8 @@ if (DEBUG) window.__game = {
   ladders: function (i) { var H = SHIPS[i || 0].nav; return H ? H.ladders.map(function (L) { return { name: L.name, steps: L.steps, ia: navPos(H.levels[L.lo].N, L.ia), broken: L.broken }; }) : null; },
   /** 第 i 艘每一門砲：名字、砲種、砲軸（格座標水平、+x 船頭）、HUD 放哪（61_hud.js gunDir：bow 羅盤上、stern 羅盤下、side 兩舷貼邊）。 */
   /** 第 i 艘沒了的模型（砲、桶以外）：名字、種類（meta kind）、腳在哪 ⇒ 抓「一開場就掉」。 */
+  /** 繩的檢查（10_ship.js ropesFloating／ropeAuditStatic）：第 i 艘現在浮空的繩；static ⇒ 作品本身的讀數。 */
+  ropes: function (i, stat) { var sh = SHIPS[i || 0]; return stat ? ropeAuditStatic(sh) : ropesFloating(sh); },
   hangs: function (i) { return SHIPS[i || 0].models.filter(function (m) { return m.hang; }).map(function (m) { return m.path + (m.sax ? ' 擺 ' + (m.sw * 57.3).toFixed(1) + '°（擺長 ' + (m.sL * S).toFixed(2) + ' m）' : '') + ' falls ' + (m.falls ? m.falls.map(function (j) { var r = SHIPS[i || 0].ropes[j]; return r.name + (r.dead ? '×' : ''); }).join(',') : '（沒有）') + (m.alive ? '' : ' 掉了'); }); },
   lostModels: function (i) { return SHIPS[i || 0].models.filter(function (m) { return !m.alive && !GUNS[m.kind] && m.kind !== 'powder'; }).map(function (m) { return m.path + ' ' + (m.meta.kind || m.kind) + ' foot z ' + (m.foot >> 20); }); },
   gunDirs: function (i) { return SHIPS[i || 0].guns.map(function (g) { return [g.name.split('/').pop(), g.type, g.ax.map(function (v) { return +v.toFixed(2); }), gunDir(g)]; }); },
@@ -9071,6 +9145,7 @@ yieldUI().then(function () {                                        // 先讓主
     if (phys && from > 0) setPhys(false);
     // ?dump=1：每半秒記每艘的最大橫傾、開始沉／沉沒／降旗的時間，跑完寫進頁面（#dump；無頭 Chrome --dump-dom 讀，量進水模式用）
     var rec = Q.get('dump') === '1' ? SHIPS.map(function () { return { maxList: 0, maxPre: 0, maxSinkPre: 0, final: null, sunk: null, struck: null }; }) : null, downAt = { blue: null, red: null };
+    var RC = rec && Q.get('ropecheck') === '1' ? SHIPS.map(function (sh) { return { hull: sh.T.id, stat: ropeAuditStatic(sh), seen: {}, float: [] }; }) : null;   // 繩的檢查（ropecheck.py）
     for (var i = 0; i < steps; i++) {
       if (phys && i === from && from > 0) setPhys(true); step(); if (i % 30 === 29) remesh(Infinity);
       if (rec && i % 30 === 29) SHIPS.forEach(function (sh, k) { var r = rec[k]; r.maxList = Math.max(r.maxList, Math.abs(sh.rollA)); if (!sh.sinkingFinal) { r.maxPre = Math.max(r.maxPre, Math.abs(sh.rollA)); r.maxSinkPre = Math.max(r.maxSinkPre, sh.sink); r.maxPctPre = Math.max(r.maxPctPre || 0, floodPct(sh)); } if (sh.sinkingFinal && r.final === null) r.final = +SIMT.toFixed(1); if (sh.sunk && r.sunk === null) r.sunk = +SIMT.toFixed(1); if (sh.struck && r.struck === null) r.struck = +SIMT.toFixed(1); });
@@ -9080,8 +9155,10 @@ yieldUI().then(function () {                                        // 先讓主
         SHIPS.forEach(function (sh, k) { var nf = SHIPS.reduce(function (a, o) { return isFoe(sh, o) && !isOut(o) ? Math.min(a, Math.hypot(o.px - sh.px, o.pz - sh.pz)) : a; }, 1e9);
           (rec[k].tl = rec[k].tl || []).push([Math.round(SIMT), +sh.sailFrac.toFixed(3), sh.masts.filter(function (m) { return !m.up; }).length, sh.hits, +sh.spd.toFixed(2), +CVt[k].guns.toFixed(3), +CVt[k].crew.toFixed(3), nf < 1e9 ? Math.round(nf) : null]); }); }
       if (rec && i % 30 === 29) ['blue', 'red'].forEach(function (tm) { if (downAt[tm] === null && teamDown(tm)) downAt[tm] = +SIMT.toFixed(1); });
+      if (RC && i % 30 === 29) SHIPS.forEach(function (sh, k) { if (sh.sink > 40) return; ropesFloating(sh).forEach(function (f) { var key = f.name + '#' + f.end; if (RC[k].seen[key]) return; RC[k].seen[key] = 1; RC[k].float.push({ t: +SIMT.toFixed(1), name: f.name, end: f.end, kind: f.kind, why: f.why, P: f.P }); }); });
     }
     remesh(Infinity); RUNNING = false; $('cover').style.display = 'none';
+    if (RC) { var pre2 = document.createElement('pre'); pre2.id = 'ropecheck'; document.body.appendChild(pre2); pre2.textContent = JSON.stringify(RC.map(function (c) { return { hull: c.hull, stat: c.stat, float: c.float }; })); }
     if (rec) { var pre = document.createElement('pre'); pre.id = 'dump'; document.body.appendChild(pre);
       var CV = cmdView('blue').ships, pow = { blue: 0, red: 0 }; CV.forEach(function (v) { if (!v.out) pow[v.team] += cmdStrength(v); });
       pre.textContent = JSON.stringify({ seed: SEED, t: +SIMT.toFixed(1), flood: FLOOD_LV, wind: { rot: +(WIND_ROT * 57.2958).toFixed(1), s0: +WIND_S0.toFixed(3) }, cmd: CMD_SIDE, down: downAt, pow: { blue: +pow.blue.toFixed(3), red: +pow.red.toFixed(3) }, ships: SHIPS.map(function (sh, k) { var r = rec[k];

@@ -231,7 +231,7 @@ function gunCell(g) {
  *  其他砲 ⇒ 砲軸（格座標，+x ＝ 船頭）幾乎朝船頭／船尾才算，不然 ＝ 側舷 'side'。 */
 function gunDir(g) { if (g.type === 'chase') return g.ax[0] >= 0 ? 'bow' : 'stern'; return g.ax[0] > 0.7 ? 'bow' : g.ax[0] < -0.7 ? 'stern' : 'side'; }
 /** 我艦的砲（Tim 2026-10-14）：沒有字、沒有底板（符號描黑邊直接壓在畫面上）。
- *  側舷砲貼畫面左右兩邊（#gunsL 左舷、#gunsR 右舷；從邊往內排、每層砲甲板一行、最上層在上；那一舷有砲對得到目標 ⇒ 貼邊一條金線）；
+ *  側舷砲貼著羅盤左右兩邊往外長（#gunsL 左舷、#gunsR 右舷；船頭那門靠羅盤、每層砲甲板一行、最上層在上；那一舷有砲對得到目標 ⇒ 靠羅盤那一側一條金線）；
  *  船頭砲在羅盤上面（#gunsB）、船尾砲在羅盤下面（#gunsA）—— 跟羅盤裡船頭朝上的船同一個方向；左舷的在左、對得到 ⇒ 靠羅盤那一側一條金線；沒有就藏起來。
  *  下方面板原本那一格（#guns）只剩「⚠ 射界外」。 */
 function gunHud(me) {
@@ -239,7 +239,7 @@ function gunHud(me) {
   ['P', 'S'].forEach(function (side) {
     var rows = me.decks.map(function (D) { return me.guns.filter(function (x) { return x.deck === D.key && x.side === side && gunDir(x) === 'side'; }); }).filter(function (r) { return r.length; }).reverse();
     var on = w && me.guns.some(function (g) { return g.side === side && gunDir(g) === 'side' && g.alive && gunRate(g) > 0 && gunTarget(me, g, w); });
-    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + (side === 'S' ? r.slice().reverse() : r).map(gunCell).join('') + '</div>'; }).join('');   // 右舷倒過來 ⇒ 兩舷都是船頭貼邊
+    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + (side === 'P' ? r.slice().reverse() : r).map(gunCell).join('') + '</div>'; }).join('');   // 左舷倒過來 ⇒ 兩舷都是船頭靠羅盤
     if (box.innerHTML !== h) box.innerHTML = h;
     box.classList.toggle('on', !!on);
   });

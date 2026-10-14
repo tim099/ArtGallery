@@ -87,6 +87,15 @@ function survey(sh) {               // 每半秒量一次：砲還在不在、�
   sh.mastsUp = up;
   sh.ropes.forEach(function (r) { if (r.dead) return; if ((r.a >= 0 && !gp(sh.grid, r.a)) || (r.b >= 0 && !gp(sh.grid, r.b))) { r.dead = true; sh.rigDirty = true; } });
   sh.ropes.forEach(function (r) { if (!r.dead && r.par && r.par.some(function (j) { return sh.ropes[j].dead; })) { r.dead = true; sh.rigDirty = true; } });
+  // 浮空的繩（Tim 2026-10-14：破壞後有浮空的纜線；判斷在 10_ship.js ropeFloat）：綁的帆桁／模型沒了或被帶走、端點附近的格全被打掉（錨是另一格、還在）⇒ 斷
+  //   （物理開著 ⇒ 從還綁著的那一端垂下來）。繩掛在繩上 ⇒ 同一次一路斷到底（⛔ 只走一遍 ⇒ 一層等半秒，量到一串 36 條浮空 1–2 秒）。
+  //   格那一端只量最近打掉的格附近（sh.rbin：8 格一塊，含旁邊一圈；20_shatter.js removeVoxel 記）。
+  var near = null;
+  if (sh.rbin && sh.rbin.size) { near = new Set(); sh.rbin.forEach(function (k) { for (var dz = -1; dz <= 1; dz++) for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) near.add(k + dx + (dy << 8) + (dz << 16)); }); sh.rbin.clear(); }
+  for (var again = true, pass = 0; again && pass < 8; pass++) {
+    again = false;
+    sh.ropes.forEach(function (r) { if (!r.dead && !r.moved && ropeFloat(sh, r, 0, near)) { r.dead = true; sh.rigDirty = true; again = true; } });
+  }
   sh.sails.forEach(function (s) {
     if (!s.dead && !s.furled && (s.as.some(function (a) { return !gp(sh.grid, a); }) || s.par.some(function (j) { return sh.ropes[j].dead; }) ||
         (s.yards || []).some(function (y) { return !y.alive && !y.moved; }))) dropSail(sh, s);   // 掛它的帆桁被打斷或掉了 ⇒ 帆掉

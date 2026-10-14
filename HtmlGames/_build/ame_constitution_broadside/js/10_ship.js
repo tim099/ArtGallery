@@ -69,7 +69,7 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
     sh.ropes.push({ pts: r.pts, col: r.color, bb: ropeBox(r.pts), a: anchorNear(T, r.pts[0], r.pts[1], r.pts[2], 5), b: anchorNear(T, r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1], 5), name: r.name, meta: r.meta || null });
   });
   linkRopes(T, sh.ropes, sh.models);
-  hangFalls(sh);
+  hangFalls(sh); sh.rbin = new Set();
   T.rig.sails.forEach(function (s) {
     var vz = -1e9, ax = 0, ay = 0, az = 0, k = 0, j;
     for (j = 2; j < s.verts.length; j += 3) vz = Math.max(vz, s.verts[j]);
@@ -221,6 +221,70 @@ function hangFalls(sh) {
     m.sax = ax; m.spv = tops[0]; m.sL = Math.max(len(vp), 3); m.sw = 0; m.swA = 0; m.psi = 0; m.psiV = 0; m.pw = null;
     (sh.hangs = sh.hangs || []).push(m);
   });
+}
+// ── 繩的檢查（Tim 2026-10-14：破壞後有浮空的纜線；?ropecheck=1 ＋ ?dump=1 記進 #dump、ropecheck.py 跑很多局寫報告）──
+// 浮空 ＝ 繩還活著（沒斷、沒被帶走），可是有一端撐它的東西已經沒了：
+//   格：端點附近（作品裡端點到錨的距離 d0 ＋ 1 格，至少 2 格）已經沒有實心格 —— ⛔ 只看錨那一格不夠：錨是端點 0.5 m 內最近的實心格，常常是隔壁的結構
+//   模型：那個模型沒了（飛出去、被斷開的那一截帶走）；帆桁（端點在帆桁的網格上，T.ropeYard：帆桁轉、它跟著轉）：同模型；
+//   繩：靠的那條繩斷了、或它自己也浮空。
+/** 繩 r 的一端（e：0 ＝ 起點、1 ＝ 終點）靠什麼：{ k: 'yard'|'grid'|'model'|'rope'|'none', a（帆桁或模型序號／錨格／繩序號）, d0（端點到錨格中心，格）, P（端點）}。記在繩上。
+ *  ⚠ 帆桁優先：端點在帆桁上的繩，錨（0.5 m 內最近的實心格）常常抓到桅 ⇒ 帆桁飛了、被帶走，錨還在 ⇒ 以前不斷（浮空的主因之一）。 */
+function ropeEnd(r, e) {
+  r.ends = r.ends || [];
+  if (r.ends[e]) return r.ends[e];
+  var src = r.pts0 || r.pts, n = src.length / 3, i = e ? n - 1 : 0, P = [src[i * 3], src[i * 3 + 1], src[i * 3 + 2]], an = e ? r.b : r.a, o;
+  var yk = e ? r.yb : r.ya;
+  if (yk >= 0) o = { k: 'yard', a: yk, P: P };
+  else if (an >= 0) o = { k: 'grid', a: an, d0: Math.hypot((an & 1023) + 0.5 - P[0], ((an >> 10) & 1023) + 0.5 - P[1], (an >> 20) + 0.5 - P[2]), P: P };
+  else if ((e ? r.mb : r.ma) !== undefined) o = { k: 'model', a: e ? r.mb : r.ma, P: P };
+  else if ((e ? r.pb : r.pa) !== undefined) o = { k: 'rope', a: e ? r.pb : r.pa, P: P };
+  else o = { k: 'none', a: -1, P: P };
+  return r.ends[e] = o;
+}
+/** 8 格一塊（打掉的格記在哪一塊：sh.rbin）。 */
+function ropeBin(x, y, z) { return (x >> 3) | ((y >> 3) << 8) | ((z >> 3) << 16); }
+/** 那一端現在撐不撐得住：撐得住 ⇒ ''，撐不住 ⇒ 原因。depth：沿著繩往上追幾層（繩掛在繩上）。
+ *  near（survey 用）：最近打掉的格所在的塊（含旁邊一圈）⇒ 格那一端只在端點落在裡面時才量（⛔ 每次全量：兩艘約 3 ms，八艘一格卡 12 ms）；不給 ⇒ 全量（讀數）。 */
+function ropeEndWhy(sh, r, e, depth, near) {
+  var E = ropeEnd(r, e), n = r.pts.length / 3, i = e ? n - 1 : 0, P = [r.pts[i * 3], r.pts[i * 3 + 1], r.pts[i * 3 + 2]];   // 端點照現在的形狀（帆桁轉了、小艇擺了）
+  if (E.k === 'grid') {
+    if (near !== undefined && (!near || !near.has(ropeBin(Math.floor(P[0]), Math.floor(P[1]), Math.floor(P[2]))))) return '';
+    if (!gp(sh.grid, E.a)) return '錨格被打掉（應該已經斷）';
+    var R = Math.max(2, E.d0 + 1), x0 = Math.floor(P[0]), y0 = Math.floor(P[1]), z0 = Math.floor(P[2]), Ri = Math.ceil(R), dx, dy, dz;
+    for (dz = -1; dz <= 1; dz++) for (dy = -1; dy <= 1; dy++) for (dx = -1; dx <= 1; dx++) if (sh.grid.get(x0 + dx, y0 + dy, z0 + dz)) return '';   // 先看貼著的（大多數繩端埋在格裡）
+    for (dz = -Ri; dz <= Ri; dz++) for (dy = -Ri; dy <= Ri; dy++) for (dx = -Ri; dx <= Ri; dx++) {
+      if (dx * dx + dy * dy + dz * dz > R * R) continue;
+      if (sh.grid.get(x0 + dx, y0 + dy, z0 + dz)) return '';
+    }
+    return '端點周圍 ' + R.toFixed(1) + ' 格內沒有格了（錨在 ' + E.d0.toFixed(1) + ' 格外、還在）';
+  }
+  if (E.k === 'model' || E.k === 'yard') { var m = sh.models[E.a]; return !m ? '模型不見了' : m.moved ? '綁的模型被斷開的那一截帶走了（' + m.name + '）' : !m.alive ? '綁的模型沒了（' + m.name + '）' : ''; }
+  if (E.k === 'rope') { var q = sh.ropes[E.a]; if (!q || q.dead) return '靠的繩斷了（' + (q ? q.name : E.a) + '）'; return depth > 0 && ropeFloat(sh, q, depth - 1) ? '靠的繩浮空（' + q.name + '）' : ''; }
+  return '';
+}
+/** 繩 r 浮空嗎 ⇒ null 或 { end, why }。 */
+function ropeFloat(sh, r, depth, near) {
+  if (r.dead || r.moved) return null;
+  for (var e = 0; e < 2; e++) { var w = ropeEndWhy(sh, r, e, depth === undefined ? 4 : depth, near); if (w) return { end: e, why: w }; }
+  return null;
+}
+/** 這艘現在浮空的繩：[{ j, name, end, why, kind, P }]。 */
+function ropesFloating(sh) {
+  var out = [];
+  sh.ropes.forEach(function (r, j) { var f = ropeFloat(sh, r); if (f) { var E = ropeEnd(r, f.end); out.push({ j: j, name: r.name, end: f.end, why: f.why, kind: E.k, P: E.P.map(function (v) { return Math.round(v); }) }); } });
+  return out;
+}
+/** 作品本身（開戰那一刻、還沒打）：每一端靠什麼、端點到錨幾格；遠的（> 2 格）與哪裡都不靠的列出來 ⇒ 雕刻那邊可以把繩端拉到碰到東西。 */
+function ropeAuditStatic(sh) {
+  var kinds = { yard: 0, grid: 0, model: 0, rope: 0, none: 0 }, far = [], none = [];
+  sh.ropes.forEach(function (r, j) {
+    [0, 1].forEach(function (e) {
+      var E = ropeEnd(r, e); kinds[E.k]++;
+      if (E.k === 'grid' && E.d0 > 2) far.push({ name: r.name, end: e, d0: +E.d0.toFixed(1), P: E.P.map(Math.round) });
+      if (E.k === 'none') none.push({ name: r.name, end: e, P: E.P.map(Math.round) });
+    });
+  });
+  return { ropes: sh.ropes.length, ends: kinds, far: far, none: none, floatAtStart: ropesFloating(sh).map(function (f) { return f.name + '#' + f.end + '：' + f.why; }) };
 }
 function linkRopes(T, ropes, models) {
   ropes.forEach(function (r, i) {

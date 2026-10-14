@@ -6,7 +6,8 @@ function removeVoxel(sh, x, y, z, seeds) {
   sh.rs.touch(x, y, z); sh.lost++;
   if (z < sh.T.sz) { sh.flood[z * 3]++; sh.flood[z * 3 + 1] += y > sh.T.cy ? 1 : -1; sh.flood[z * 3 + 2] += x > sh.T.cx ? 1 : -1; }
   if (sh.fl) floodTouch(sh, x, y, z);                                   // 粒子模式：水格與破口待重算（33_flood.js）
-  if (NAV_RE > 0 && sh.nav) navDirty(sh, x, y, z);                       // 尋路動態更新：那幾層記成髒了（42_hands.js；TASK-0572）
+  if (NAV_RE > 0 && sh.nav) navDirty(sh, x, y, z);
+  if (sh.rbin) sh.rbin.add(ropeBin(x, y, z));                             // 繩的檢查只看打掉的格附近（32_hull.js survey、10_ship.js ropeFloat）                       // 尋路動態更新：那幾層記成髒了（42_hands.js；TASK-0572）
   if (seeds) { var s = sh.seeds; s.push(VK.pack(x + 1, y, z), VK.pack(x - 1, y, z), VK.pack(x, y + 1, z), VK.pack(x, y - 1, z), VK.pack(x, y, z + 1), VK.pack(x, y, z - 1)); }
   return c;
 }
