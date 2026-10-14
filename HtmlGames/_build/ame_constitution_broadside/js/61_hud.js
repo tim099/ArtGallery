@@ -262,7 +262,7 @@ function gunArcs(sh, foe) {
   }
   return { all: runs(A), on: runs(O) };
 }
-var TURN_T = 10, TURN_COL = '#7ef0c8';                 // 羅盤外圈的轉向弧：預測幾秒後的船頭、顏色（跟射界的金、風的藍、敵艦的紅分開）
+var TURN_T = 10, TURN_COL = '#7ef0c8', TURN_OFF = 0.22;   // 羅盤外圈的轉向弧：預測幾秒後的船頭、顏色（跟射界的金、風的藍、敵艦的紅分開）、起點離船頭幾 rad（約 13°，讓開航速箭頭）
 function drawNav(sh) {
   if (!CAM.look) return;
   var c2 = $('navc'), g = c2.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = 150;
@@ -326,11 +326,13 @@ function drawNav(sh) {
   }
   // 轉向（Tim 2026-10-13：用圖示表現轉彎的方向與快慢，沿外圈畫）：從船頭的方向沿外圈畫到「照現在的轉向率，TURN_T 秒後船頭會在哪」，
   //   箭頭 ＝ 轉的方向，弧越長轉得越快（最多 120°）；幾乎直走（< 0.2°/秒）只畫船頭那一點。跟船頭在羅盤上用同一支 P(fwd(yaw)) ⇒ 弧的起點就是船頭指的方向。
+  //   弧的起點往轉的那一側偏 TURN_OFF（Tim 2026-10-14：⛔ 從船頭正前方起畫 ⇒ 跟航速箭頭疊在一起）；船頭那一點只在停住（沒有航速箭頭）時畫。
   var yr = sh.yawRate || 0, span = clamp(yr * TURN_T, -2.094, 2.094), hp = P(F, 1.07);
-  g.fillStyle = TURN_COL; g.beginPath(); g.arc(hp[0], hp[1], 2.5, 0, 6.2832); g.fill();
+  g.fillStyle = TURN_COL;
+  if (sk < 0.3) { g.beginPath(); g.arc(hp[0], hp[1], 2.5, 0, 6.2832); g.fill(); }
   if (Math.abs(yr) > 0.0035) {
-    var nT = Math.max(2, Math.ceil(Math.abs(span) / 0.05)), pt = [];
-    for (var iT = 0; iT <= nT; iT++) pt.push(P(fwd(sh.yaw + span * iT / nT), 1.07));
+    var nT = Math.max(2, Math.ceil(Math.abs(span) / 0.05)), pt = [], a0T = sh.yaw + (span > 0 ? TURN_OFF : -TURN_OFF);
+    for (var iT = 0; iT <= nT; iT++) pt.push(P(fwd(a0T + span * iT / nT), 1.07));
     g.strokeStyle = TURN_COL; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(pt[0][0], pt[0][1]);
     for (iT = 1; iT <= nT; iT++) g.lineTo(pt[iT][0], pt[iT][1]);
     g.stroke();
