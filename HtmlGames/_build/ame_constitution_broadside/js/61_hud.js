@@ -216,7 +216,8 @@ var GMAP_COL = { full: '#7be37b', short: '#f0d264', none: '#9a9a9a', dead: '#ff5
 function gmapDraw(sh) {
   var cv = $('gmap'), T = sh && sh.T, NI = T && T.navImg;
   if (!NI) { cv.style.display = 'none'; return; }
-  var narrow = window.innerWidth <= 760, K = narrow ? 2.5 : GMAP_K, dpr = window.devicePixelRatio || 1, C = NAV_CELL, s = K * S, P0 = GMAP_PAD * K;   // s：每一格幾 px；P0：留白（px）
+  var D = sh.decks, n = D.length;
+  var narrow = window.innerWidth <= 760, K = narrow ? 2.5 : GMAP_K, dpr = window.devicePixelRatio || 1, C = NAV_CELL, s = K * S, P0 = Math.max(GMAP_PAD, -1.4 + 2.3 * (n - 1) + 2) * K;   // s：每一格幾 px；P0：留白（px）—— 最下層錯開得最外面（三叉戟號四層砲甲板 ⇒ 5.5 m，⛔ 固定 4.5 m 那層畫到圖外）
   var W = NI.width * C * s + 2 * P0, H = NI.height * C * s + 2 * P0 + GMAP_FOOT;
   function scr(x, y) { return [(y - T.navX0 * C) * s + P0, ((T.navGH - T.navY0) * C - x) * s + P0]; }   // 格 (x, y) ⇒ 畫面（圖上 (u, v) ＝ (y/C − x0, H − y0 − x/C)）
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = Math.round(W) + 'px'; }
@@ -224,7 +225,7 @@ function gmapDraw(sh) {
   var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
   g.save(); g.shadowColor = 'rgba(0,0,0,.75)'; g.shadowBlur = 6; g.globalAlpha = sh.sunk ? 0.45 : 0.97;
   g.drawImage(NI, P0, P0, NI.width * C * s, NI.height * C * s); g.restore();
-  var D = sh.decks, n = D.length, R = Math.max(narrow ? 1.5 : 2.2, Math.min(4, K * 0.55));
+  var R = Math.max(narrow ? 1.5 : 2.2, Math.min(4, K * 0.55));
   sh.guns.forEach(function (gn) {
     var k = 0; for (var q = 0; q < n; q++) if (D[q].key === gn.deck) k = q;
     var off = (-1.4 + 2.3 * (n - 1 - k)) / S, p = scr(gn.muz[0] + gn.ax[0] * off, gn.muz[1] + gn.ax[1] * off), X = p[0], Y = p[1];
