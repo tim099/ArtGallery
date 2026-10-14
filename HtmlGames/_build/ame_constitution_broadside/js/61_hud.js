@@ -81,13 +81,15 @@ function panel(sh, title) {
   // 排水量（Tim 2026-10-13）＝ 開戰時整艘船的重量（格＋砲＋火藥桶＋壓艙物，sh.mass0）：浮著的船排開的水跟自己一樣重；預設壓艙物剛好在設計水線 ⇒ 也就是設計排水量。
   // 「現在」＝ 扣掉被打掉的（格、打飛的砲、炸掉的桶，massLost，跟減重上浮同一支）；艙內的積水不算（那是進水，看下一行）
   var m0 = sh.mass0 || shipT(sh), disp = Math.round(m0), now = Math.round(m0 - massLost(sh));   // 兩個都取到 1 噸（⛔ 開戰時的取到 10 噸 ⇒ 第一格「2,150・現在 2,154」，現在比開戰還重）
-  return '<h3>' + title + '<span class="disp">排水量 ' + disp.toLocaleString() + ' 噸・現在 ' + now.toLocaleString() + ' 噸</span>' + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3>船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
+  // 橫向兩欄（TASK-0564，Tim 2026-10-14：佔畫面中間 ⇒ 儘量橫鋪、別往下壓）：左 ＝ 船體、進水、航行；右 ＝ 砲長、船員、砲、開火。砲一門一門的狀態在底下的砲位圖（gmapDraw）。
+  return '<h3>' + title + '<span class="disp">排水量 ' + disp.toLocaleString() + ' 噸・現在 ' + now.toLocaleString() + ' 噸</span>' + (sh.fate && !sh.sunk ? '　<span style="color:var(--gold)">' + sh.fate + '</span>' : '') + '</h3><div class="pcols"><div class="pc">船體 ' + (hull * 100).toFixed(1) + '%（打掉 ' + sh.lost.toLocaleString() + ' 格）<div class="bar"><i style="width:' + (hull * 100).toFixed(1) + '%"></i></div>' +
     '進水 ' + (sh.sunk ? '沉沒' : (fl * 100).toFixed(0) + '%') + (sh.fl && !sh.broken ? '（艙內積水 ' + Math.round(sh.fl.vol * RHO_W).toLocaleString() + ' 噸・破口 ' + sh.fl.area.toFixed(1) + ' m²）' : '（水線下破洞 ' + (sh.inflow || 0).toLocaleString() + ' 格）') + (sh.lift > 0.05 ? '　浮高 ' + sh.lift.toFixed(1) + ' m' : sh.lift < -0.05 ? '　吃水深 ' + (-sh.lift).toFixed(1) + ' m' : '') + '<div class="bar water"><i style="width:' + (fl * 100).toFixed(0) + '%"></i></div>' +
     '航速 ' + (sh.spd * 1.944).toFixed(1) + ' 節（' + sh.pos + '）　' + SAILSETS[sh.sailSet] + ' ' + Math.round(sh.sailFrac * 100) + '%<br>' +
-    ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正') + '<br>') +
+    ((SAIL === 'off' ? '停船' : sh.manual ? '手動操舵' : '自動操舵') + '　舵 ' + (sh.rudder > 0.05 ? '左 ' + Math.round(sh.rudder * 100) + '%' : sh.rudder < -0.05 ? '右 ' + Math.round(-sh.rudder * 100) + '%' : '正')) + '</div><div class="pc">' +
     capText(sh) + '<br>' +
     '船員 ' + (sh.able || 0) + '/' + sh.crew0 + '（傷 ' + sh.wounded + '　亡 ' + sh.dead + '）' + handsText(sh) + swimText(sh) + '　' + supplyText(sh) + '<br>' +
-    '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>' + gunRow(sh, 'S') + '<br>' + gunRow(sh, 'P') + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits;
+    '砲 有人 ' + (sh.gunsManned || 0) + '／還在 ' + sh.gunsAlive + '／' + sh.guns.length + '　' + m + '<br>開火 ' + sh.fired + '　命中 ' + sh.hits +
+    '<div class="legend">砲位圖：● 好 ◌ 裝填 ○ 開不了 △ 等火藥 ≈ 泡水 ✕ 毀｜<b style="color:#7be37b">綠</b> 滿編 <b style="color:#f0d264">黃</b> 不足 <b style="color:#9a9a9a">灰</b> 沒人｜最上層在船內、越下層越外</div></div></div>';
 }
 // ───────────────────────── 上方艦隊（TASK-0552；Tim 2026-10-14） ─────────────────────────
 // 場上每一艘一個圓形按鈕：我方沿左邊、敵方沿右邊往下排（照 SHIPS 的順序 ⇒ 我艦、敵方第一艘在最上面；候補還有幾艘接在最後）。
@@ -151,19 +153,60 @@ function fleetHud(me) {
   });
   var el = $('info'), o = INFO_SH;
   if (o && SHIPS.indexOf(o) < 0) o = INFO_SH = null;
-  if (!o) el.style.display = 'none';
+  if (!o) { el.style.display = 'none'; gmapDraw(null); }
   else {
     var fs = flagship(o.team), many = teamShips(o.team).length > 1 || RESERVE[o.team].length > 0;
     var who = o.i === PLAYER_I ? '我艦' : o.team === pt ? (many && o === fs ? '我方旗艦' : '友艦') : (many && o === fs ? '敵方旗艦' : '敵艦');
     var title = who + ' ' + o.name + (o.name !== o.T.name ? '<span class="cls">（' + o.T.name + '型）</span>' : '') + teamTag(o);
     el.innerHTML = panel(o, title).replace('</h3>', '<span class="fold">▲ 收起</span></h3>');
     el.style.display = 'block'; el.style.borderLeftColor = teamIdx(o) === 0 ? 'var(--blue)' : 'var(--red)';
+    gmapDraw(o);
   }
   var tc = $('topC');
   if (window.innerWidth <= 760) {
     var bt = $('nav').getBoundingClientRect().bottom;
     tc.style.top = Math.round(bt + 6) + 'px';
   } else tc.style.top = '';
+}
+// ───────────────────────── 砲位圖（TASK-0564；Tim 2026-10-14） ─────────────────────────
+// 展開的那一艘：俯視船體（05_hull.js navImg，船頭朝上、右舷在右；Tim 2026-10-14）直接鋪在詳細資訊旁邊（沒有底框；窄螢幕排到下面），每門砲畫在它的砲口位置。
+//   比例尺固定（電腦 GMAP_K px／公尺、手機 2.5，跟卡片並排）⇒ 小船就小；右下角一條 10 m。上下幾層的砲同一個位置 ⇒ 沿砲軸往外錯開：最上層往船內 1.4 m、往下每一層再往外 2.3 m。
+//   砲的符號與顏色跟砲列（gunRow）同一套：形狀 ＝ 裝填（● 好 ◌ 裝填中 ○ 開不了 △ 等火藥 ≈ 泡水 ✕ 毀）、顏色 ＝ 人手（綠 滿編、黃 不足、灰 沒人、紅 毀、藍 泡水）；
+//   對得到目標的那一舷（我艦看瞄準點、其他看目標中央）旁邊寫金色的「▶ 右舷／左舷」。
+var GMAP_K = 4, GMAP_PAD = 4.5;                                          // px／公尺；四周留白（公尺：最下層的砲畫在船殼外）
+var GMAP_COL = { full: '#7be37b', short: '#f0d264', none: '#9a9a9a', dead: '#ff5b5b', wet: '#58b7ff' };
+function gmapDraw(sh) {
+  var cv = $('gmap'), T = sh && sh.T, NI = T && T.navImg;
+  if (!NI) { cv.style.display = 'none'; return; }
+  var narrow = window.innerWidth <= 760, K = narrow ? 2.5 : GMAP_K, dpr = window.devicePixelRatio || 1, C = NAV_CELL, s = K * S, P0 = GMAP_PAD * K;   // s：每一格幾 px；P0：留白（px）
+  var W = NI.width * C * s + 2 * P0, H = NI.height * C * s + 2 * P0;
+  function scr(x, y) { return [(y - T.navX0 * C) * s + P0, ((T.navGH - T.navY0) * C - x) * s + P0]; }   // 格 (x, y) ⇒ 畫面（圖上 (u, v) ＝ (y/C − x0, H − y0 − x/C)）
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = Math.round(W) + 'px'; }
+  cv.style.display = 'block';
+  var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  g.save(); g.shadowColor = 'rgba(0,0,0,.75)'; g.shadowBlur = 6; g.globalAlpha = sh.sunk ? 0.45 : 0.97;
+  g.drawImage(NI, P0, P0, NI.width * C * s, NI.height * C * s); g.restore();
+  var D = sh.decks, n = D.length, foe = foeOf(sh), aw = handAim(sh) ? aimPoint(sh) : foe && foe.center, R = Math.max(narrow ? 1.5 : 2.2, Math.min(4, K * 0.55));
+  sh.guns.forEach(function (gn) {
+    var k = 0; for (var q = 0; q < n; q++) if (D[q].key === gn.deck) k = q;
+    var off = (-1.4 + 2.3 * (n - 1 - k)) / S, p = scr(gn.muz[0] + gn.ax[0] * off, gn.muz[1] + gn.ax[1] * off), X = p[0], Y = p[1];
+    var st = !gn.alive ? 'dead' : gn.wet ? 'wet' : gn.manned < gn.crewMin ? 'none' : gn.manned < gn.crewFull ? 'short' : 'full';
+    var sym = !gn.alive ? 3 : gn.wet ? 5 : gunRate(gn) <= 0 ? 2 : gn.needCart && !(gn.box > 0) ? 4 : gn.reload > 0 ? 1 : 0, col = GMAP_COL[st];
+    g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1.4;
+    g.beginPath();
+    if (sym === 3) { g.moveTo(X - R, Y - R); g.lineTo(X + R, Y + R); g.moveTo(X + R, Y - R); g.lineTo(X - R, Y + R); g.stroke(); }
+    else if (sym === 4) { g.fillStyle = '#ffb35a'; g.moveTo(X, Y - R); g.lineTo(X + R, Y + R * 0.8); g.lineTo(X - R, Y + R * 0.8); g.closePath(); g.fill(); }
+    else { g.arc(X, Y, R, 0, 6.2832); if (sym === 0 || sym === 5) g.fill(); else { if (sym === 2) g.setLineDash([1.5, 1.5]); g.stroke(); g.setLineDash([]); } }
+  });
+  g.font = 'bold ' + (narrow ? 9 : 11) + 'px "Noto Sans TC","Microsoft JhengHei",sans-serif'; g.textBaseline = 'middle'; g.shadowColor = '#000'; g.shadowBlur = 3;
+  ['P', 'S'].forEach(function (sd) {
+    var on = aw && anyBears(sh, aw, sd), tx = (on ? (sd === 'P' ? '◀ ' : '') : '') + sideName(sd) + (on && sd === 'S' ? ' ▶' : '');
+    g.fillStyle = on ? '#e8c26a' : 'rgba(230,230,230,.75)'; g.textAlign = sd === 'P' ? 'left' : 'right';
+    g.fillText(tx, sd === 'P' ? 2 : W - 2, P0 * 0.5);                                                           // 船頭朝上 ⇒ 左舷在左上、右舷在右上（留白那一條）
+  });
+  g.textAlign = 'left';
+  var bar = 10 * K; g.textBaseline = 'middle'; g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W - 6 - bar, H - 6); g.lineTo(W - 6, H - 6); g.stroke();
+  g.fillStyle = 'rgba(255,255,255,.85)'; g.textAlign = 'right'; g.fillText('10 m', W - 6, H - 15); g.textAlign = 'left';
 }
 /** 一舷的砲列（長砲｜carronade＋追擊砲；船頭在左）：形狀 ＝ 裝填（● 好　◌ 裝填中　○ 開不了　✕ 毀），
  *  顏色 ＝ 人手（綠 滿編、黃 人數不足但能開（裝填慢）、灰 少於最少人數、紅 毀）；▶ ＝ 這一舷有砲對得到目標（我艦看瞄準點、其他看敵艦中央）。

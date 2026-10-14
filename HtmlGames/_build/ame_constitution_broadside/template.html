@@ -23,10 +23,15 @@
   .sb.on{ box-shadow:0 0 0 3px var(--gold), 0 2px 10px rgba(0,0,0,.7); } .sb.out{ opacity:.75; }
   .sb canvas{ position:absolute; inset:0; width:100%; height:100%; cursor:pointer; touch-action:manipulation; }
   .sbres{ font-size:12px; color:var(--dim); background:var(--panel); border-radius:10px; padding:2px 8px; }
-  #topC{ left:50%; top:12px; transform:translateX(-50%); width:max(280px, min(760px, calc(100vw - 200px))); display:flex; flex-direction:column; align-items:center; }
+  #topC{ left:50%; top:12px; transform:translateX(-50%); width:max(280px, min(900px, calc(100vw - 200px))); display:flex; flex-direction:column; align-items:center; }
   #info{ display:none; pointer-events:auto; cursor:pointer; border-left:3px solid var(--blue); margin-bottom:6px; max-width:100%; box-sizing:border-box; }
   #info .fold{ float:right; margin-left:12px; color:var(--gold); font-size:12px; font-weight:normal; border:1px solid rgba(232,194,106,.55); border-radius:4px; padding:0 7px; }
   #info .cls{ color:var(--dim); font-weight:normal; font-size:.85em; }
+  #info .pcols{ display:flex; flex-wrap:wrap; gap:4px 20px; } #info .pc{ flex:1 1 200px; min-width:0; }   /* 橫向兩欄（TASK-0564） */
+  #info .legend{ color:var(--dim); font-size:11px; margin-top:2px; }
+  #irow{ display:flex; align-items:flex-start; justify-content:center; gap:8px; max-width:100%; }   /* 詳細資訊＋旁邊的砲位圖（窄螢幕排到下面） */
+  #info{ flex:1 1 auto; min-width:0; }
+  #gmap{ position:static; inset:auto; display:none; flex:none; max-width:100%; height:auto; margin:0 0 6px; cursor:default; pointer-events:none; }   /* 砲位圖：直接鋪在畫面上（沒有底框；61_hud.js gmapDraw） */
   .hud h3{ margin:0 0 2px; font-size:14px; }
   .hud h3 .disp{ color:var(--dim); font-weight:normal; font-size:.85em; margin-left:1em; }   /* 排水量（61_hud.js panel）；窄螢幕自己一行 */
   .bar{ height:5px; background:rgba(255,255,255,.15); border-radius:3px; overflow:hidden; margin:2px 0 4px; width:170px; }
@@ -71,7 +76,7 @@
      （航速、帆裝、舵上面的面板都有，航向與風看羅盤）。⛔ 以前放左上面板底下：佔掉畫面左邊一整塊、廣播只好壓到畫面中間的船上 */
   @media (max-width:760px){
     .fleet{ top:6px; gap:4px; max-height:calc(100vh - 230px); } #fleetL{ left:5px; } #fleetR{ right:5px; max-height:calc(100vh - 230px); } .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
-    #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .gr{ white-space:normal; word-break:break-all; }   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
+    #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
     #nav{ left:50%; top:6px; bottom:auto; width:auto; padding:3px; border-radius:50%; transform:translateX(-50%); }
     #navc{ width:clamp(44px, calc(100vw - 322px), 84px); height:clamp(44px, calc(100vw - 322px), 84px); margin:0; } #navt{ display:none; }
     #ctl{ white-space:normal; width:96vw; padding:6px 4px; bottom:6px; } #ctl .kb{ font-size:13px; padding:5px 9px; } #tip{ display:none; }
@@ -146,7 +151,7 @@
 
   <div id="fleetL" class="hud fleet"></div>
   <div id="fleetR" class="hud fleet"></div>
-  <div id="topC" class="hud"><div id="info" class="panel"></div><div id="msg"></div></div>
+  <div id="topC" class="hud"><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
   <div id="ctl" class="hud panel">
     <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
     <div id="hudctl"><b>Tab</b> 航行 <span class="chip" data-s="auto">自動</span><span class="chip" data-s="manual">手動</span><span class="chip" data-s="off">停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>
