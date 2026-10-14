@@ -109,7 +109,7 @@ def act_relock(sid):
 
 MENU = {'play': ('fun', 'real'), 'mode': ('pve', 'eve', 'sandbox'), 'sail': ('auto', 'manual', 'off'),
         'gfx': ('low', 'mid', 'high'), 'phx': ('full', 'high', 'mid', 'low')}
-SHIP_CFG_KEYS = ('hard', 'flood', 'gunw', 'speed', 'agile', 'upwind')          # 每艘船的船隻設定（壓艙物照船算，不在這裡）
+SHIP_CFG_KEYS = ('hard', 'flood', 'gunw', 'speed', 'agile', 'upwind', 'base')          # 每艘船的船隻設定（壓艙物照船算，不在這裡）
 CREW = {'officers': (0, 8, True), 'helm': (0, 4, True), 'marines': (0, 60, True), 'marineGap': (5, 200, True),
         'top': (0, 8, True), 'monkeys': (0, 2, True), 'handsK': (0, 4, False)}
 CREW_SHIP = {'hands': (0, 120, True)}          # 只在每艘船寫（TASK-0570 船隻配置頁的預設）：預備水手人數；沒寫 ＝ lim.hands × handsK
@@ -226,6 +226,10 @@ def validate(cfg, prev=None):
             err(p + '.big', '要是 true／false')
         if 'hole' in g and not (isnum(g['hole']) and g['hole'] > 0):
             err(p + '.hole', '要是正數（沒寫 ＝ 1）')
+        if 'burst' in g and not (isint(g['burst']) and 1 <= g['burst'] <= 20):
+            err(p + '.burst', '連發：一份彈藥打幾發，1～20 的整數（沒寫 ＝ 1）')
+        if 'burstGap' in g and not (isnum(g['burstGap']) and 0.02 <= g['burstGap'] <= 2):
+            err(p + '.burstGap', '連發間隔：0.02～2 秒（沒寫 ＝ 0.15）')
         if not (isint(g.get('crew')) and 1 <= g.get('crew') <= 8):
             err(p + '.crew', '1～8 的整數（砲旁的站位只有 8 個）')
         elif not (isint(g.get('min')) and 1 <= g.get('min') <= g.get('crew')):

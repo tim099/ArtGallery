@@ -126,10 +126,10 @@ function sbMake(o, box) {
 /** 圓鈕兩側的數字：左下 還能動的船員、右下 還在的砲（像素圖示：HUD 美術的「船員」「裝填好」；沒有美術 ⇒ emoji）。 */
 function sbIcon(k, emo) { return HUD_ART ? '<span class="ico" style="background-position:' + (k * 100 / 7).toFixed(3) + '% 0"></span>' : '<i>' + emo + '</i>'; }
 function sbNums(b, o) {
-  var cr = 0, gn = 0; o.crew.forEach(function (c) { if (able(c)) cr++; }); o.guns.forEach(function (g) { if (g.alive) gn++; });
+  var cr = 0, gn = 0; o.crew.forEach(function (c) { if (able(c)) cr++; }); o.guns.forEach(function (g) { if (g.alive && !g.wet) gn++; });   // 泡水的不算（Tim 2026-10-14：只算還能用的）
   var k = cr + '/' + gn + (HUD_ART ? 'a' : ''); if (k === b.nk) return; b.nk = k;
   b.nl.innerHTML = sbIcon(0, '👤') + cr; b.nr.innerHTML = sbIcon(3, '💥') + gn;
-  b.nl.title = '船員還能動的 ' + cr + ' 人'; b.nr.title = '砲還在的 ' + gn + ' 門';
+  b.nl.title = '船員還能動的 ' + cr + ' 人'; b.nr.title = '還能用的砲 ' + gn + ' 門（沒被打掉、沒泡水）';
 }
 /** 船隻配置頁最上面那個大圓鈕（跟艦隊圓鈕同一種畫法：天與海、側面投影、艦名；沒有圓環）。 */
 function badgeDraw(cv, T, name) {

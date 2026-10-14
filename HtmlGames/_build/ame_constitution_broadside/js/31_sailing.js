@@ -81,6 +81,8 @@ function sail(sh, dt) {
   var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - dU)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
   sh.irons = nogo;
   var target = sh.sunk || stop ? 0 : VMAX * SPK * Math.sqrt(WIND_SPD) * sh.sailFrac * polar(dU) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1);   // throttle：讓開友艦砲線時放慢（52_fleet.js lineClear；平常 1）
+  var BK = sh.cfg.base || 0;
+  if (BK > 0 && !sh.sunk && !stop) target = Math.max(target, BK / 1.9438 * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1));   // 基底航速（節 ⇒ m/s）：額外動力，跟帆脫鉤；進水、降旗、讓砲線照樣慢
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop || sh.throttle < 1 ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵

@@ -9,7 +9,7 @@
 // 格式帶版本號（v）；看不懂的版本、壞掉的 JSON ⇒ 整份不套；型別不對、界外的值 ⇒ 那一項不套（界外的夾回範圍）。
 // 什麼時候存：每秒比一次（跟上次存的不一樣才寫）＋ 關頁、切到背景時。全部回到預設 ⇒ 刪掉那一筆。
 var PREFS_KEY = 'ame_constitution_broadside.prefs', PREFS_VER = 1;
-var PREF_Q = ['wdir', 'wspd', 'ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18', 'dmg12', 'dmg6', 'dmg3c',
+var PREF_Q = ['wdir', 'wspd', 'ship', 'blue', 'red', 'hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind', 'base', 'gunhp', 'sailhp', 'crewhp', 'powderhp', 'blast', 'blastv', 'dmg24', 'dmg32l', 'dmg32', 'dmg18', 'dmg12', 'dmg6', 'dmg3c',
   'box', 'carry', 'hands', 'drown', 'heal', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
   'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_rigfar', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'cmd', 'blue', 'red', 'slowmo', 'slowcam', 'roomfn', 'navre', 'smoke', 'pslow', 'pslowb', 'debcap'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4', long12: 'dmg12', long6: 'dmg6', chase3: 'dmg3c' };

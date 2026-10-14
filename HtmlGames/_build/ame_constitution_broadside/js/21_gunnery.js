@@ -1,8 +1,30 @@
 // ───────────────────────── 砲彈 ─────────────────────────
+// 連發（Tim 2026-10-14：風暴角號船頭的三管速射砲）：砲種表的 burst ＝ 一份彈藥打幾發（預設 1）、burstGap ＝ 每發隔幾秒。
+//   第一發照常（開火的閘、扣藥箱、開始裝填）；剩下的 burst − 1 發由 burstStep 照間隔一發一發打（每發重新挑點、照樣散布；射界外那一發跳過）。
+//   模型有 muzzle-a／b／c ⇒ 輪流從那幾根砲管出彈。burst ＝ 1 的砲一個亂數都不多抽 ⇒ 別的船戰局不變。
 function fireGun(sh, g, target, ammo) {
   if (sh.struck || !g.alive || g.reload > 0 || gunRate(g) <= 0) return false;      // 砲要有人操作；降旗了就不開（排在齊射裡還沒開的也一樣）
   if (!bears(sh, g, target)) return false;                            // 目標不在這門砲的砲門射界 ⇒ 不開（呼叫端先用 gunTarget 挑好這門打得到的點）
-  var mw = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]);
+  var GS = GUNS[g.type], r = fireShot(sh, g, target, ammo, g.muzs ? g.muzs[0] : g.muz);
+  g.reload = sh.reloadT * GS.reload * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
+  g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
+  shotFx(sh, g, r.mw, r.dir);
+  if ((GS.burst || 1) > 1) { g.burstLeft = GS.burst - 1; g.burstK = 1; g.burstAmmo = ammo; g.burstT = SIMT + (GS.burstGap || 0.15); }   // 連發：同一份彈藥再打 burst − 1 發
+  return true;
+}
+/** 連發剩下的那幾發（每一步、每艘；50_sim.js）：到時間就照現在的瞄準點再打一發；砲沒了、泡水、沒人、降旗 ⇒ 剩下的作廢。 */
+function burstStep(sh) {
+  for (var i = 0; i < sh.guns.length; i++) {
+    var g = sh.guns[i]; if (!(g.burstLeft > 0) || SIMT < g.burstT) continue;
+    if (sh.struck || sh.sunk || !g.alive || g.wet || gunRate(g) <= 0) { g.burstLeft = 0; continue; }
+    var t = gunTarget(sh, g, aimPoint(sh));
+    if (t && bears(sh, g, t)) { var r = fireShot(sh, g, t, g.burstAmmo, g.muzs ? g.muzs[g.burstK % g.muzs.length] : g.muz); sh.fired++; shotFx(sh, g, r.mw, r.dir); }
+    g.burstK++; g.burstLeft--; g.burstT = SIMT + (GUNS[g.type].burstGap || 0.15);
+  }
+}
+/** 一發砲彈：從 muz（格座標的砲口）照 target 算仰角、前置量、散布，放進 BALLS。回：{ mw 世界的砲口, dir 出膛方向 }。 */
+function fireShot(sh, g, target, ammo, muz) {
+  var mw = M4.pt(sh.M, muz[0], muz[1], muz[2]);
   var side = gunAxis(sh, g);
   var GS = GUNS[g.type], V = GS.V;                                    // 初速照砲種（carronade：32 磅、短砲身 ⇒ 初速低、彈大）
   var foe = aimShip(sh), rel = sub(foe.vel, sh.vel);              // 前置量：砲彈帶著本艦的船速 ⇒ 瞄對方「相對本艦」飛行時間後的位置（瞄的那艘，52_fleet.js）
@@ -19,8 +41,11 @@ function fireGun(sh, g, target, ammo) {
   el = clamp(el + gauss() * spread, -0.17, 0.26); az += gauss() * spread;
   var dir = [Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)];
   var b = { p: mw.slice(), v: add(mul(dir, V * rr(0.985, 1.015)), sh.vel), owner: sh.i, ammo: ammo, trav: 0, alive: true, age: 0, bounced: false, big: GS.big, hole: GS.hole, dmg: DMG[g.type] };   // dmg：每發傷害（砲種，細節設定）；hole：洞的倍率（4 磅彈小）
-  windShot(sh, b, dx, dz); BALLS.push(b); g.reload = sh.reloadT * GS.reload * rr(0.9, 1.1); g.firedAt = SIMT; sh.fired++;
-  g.needCart = true;                                                // 下一發要從砲旁的藥箱拿一份火藥與彈藥（沒有 ⇒ 等送藥手，23_powder.js）
+  windShot(sh, b, dx, dz); BALLS.push(b);
+  return { mw: mw, dir: dir };
+}
+/** 開火的火光、煙、後座、聲音（連發每一發都有）。 */
+function shotFx(sh, g, mw, dir) {
   flash(add(mw, mul(dir, 1)), dir, 14, false); smoke(add(mw, mul(dir, 1.5)), dir, 10, false);
   sh.rollV += g.side === 'P' ? 0.0012 : -0.0012;                      // 後座：船往反方向晃一下（開火那一舷抬起；roll 正 ＝ 右舷 S 那邊往下）
   sfx('boom', mw, sh.i === PLAYER_I ? 1 : 0.8);

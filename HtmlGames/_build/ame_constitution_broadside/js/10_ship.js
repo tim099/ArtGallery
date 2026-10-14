@@ -54,7 +54,7 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
   sh.models.forEach(function (m) {
     if (!GUNS[m.kind]) return;
     var A = gunMuzzle(m);
-    sh.guns.push(m.gun = { name: m.name, type: m.kind, side: A.ax[1] >= 0 ? 'S' : 'P', model: m, ax: A.ax, muz: A.muz, alive: true, reload: rr(0, 1.2), box: BOX_N, needCart: false });   // box：砲旁藥箱裡的份數
+    sh.guns.push(m.gun = { name: m.name, type: m.kind, side: A.ax[1] >= 0 ? 'S' : 'P', model: m, ax: A.ax, muz: A.muz, muzs: A.muzs, alive: true, reload: rr(0, 1.2), box: BOX_N, needCart: false });   // box：砲旁藥箱裡的份數
   });
   sh.guns.sort(gunOrder);
   sh.decks = gunDecks(sh); sh.weatherDeck = sh.decks.length ? sh.decks[sh.decks.length - 1].key : null;   // 砲甲板（照砲的高度分層）；最上面那層 ＝ 露天
@@ -113,7 +113,8 @@ function gunMuzzle(m) {                                               // ⛔ 不
   if (mz && br) ax = [mz[0] - br[0], mz[1] - br[1]];
   else { var sg0 = /-P\d*$|-P$/.test(m.name) ? -1 : 1; ax = [0, sg0]; mz = [m.c[0], sg0 > 0 ? m.bb[4] - 0.5 : m.bb[1] + 0.5, m.c[2]]; }   // 沒有固定點（舊的 .vxk）⇒ 外框外緣
   var al = Math.hypot(ax[0], ax[1]) || 1; ax = [ax[0] / al, ax[1] / al];
-  return { ax: ax, muz: [mz[0] + ax[0] * 1.5, mz[1] + ax[1] * 1.5, mz[2]] };
+  var mk = Object.keys(m.pts || {}).filter(function (k) { return /^muzzle-[a-z]$/.test(k); }).sort();   // 多管砲（風暴角號的三管砲：muzzle-a／b／c）⇒ 連發時輪流出彈（21_gunnery.js burstStep）
+  return { ax: ax, muz: [mz[0] + ax[0] * 1.5, mz[1] + ax[1] * 1.5, mz[2]], muzs: mk.length ? mk.map(function (k) { var q = m.pts[k]; return [q[0] + ax[0] * 1.5, q[1] + ax[1] * 1.5, q[2]]; }) : null };
 }
 /** 砲的順序：船頭往船尾、同一個 x 先左舷（砲甲板的「主砲」＝ 每層第一門側舷砲 ⇒ 切高照它；送藥手的分對也照這個順序）。 */
 function gunOrder(a, b) { return b.muz[0] - a.muz[0] || a.muz[1] - b.muz[1]; }

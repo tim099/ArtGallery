@@ -66,6 +66,7 @@ function step() {
     if (e.on) withAim(sh, e.aim, e.on, function () { sh.autoNow = true; var et2 = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et2) fireGun(sh, e.g, et2, e.ammo); sh.autoNow = false; });   // 另一舷那一輪：照它自己的瞄準點（21_gunnery.js broadsideAt）
     else { var et = sh.sunk ? null : gunTarget(sh, e.g, add(aimPoint(sh), mul(shipAxis(sh), e.off))); if (et) fireGun(sh, e.g, et, e.ammo); }   // 開火那一刻才挑點（兩艘都在動）
   }
+  SHIPS.forEach(burstStep);                                        // 連發剩下的那幾發（21_gunnery.js；burst ＝ 1 的砲什麼都不做）
   if (PF) pfLap('fire');
   SHIPS.forEach(function (sh) { sail(sh, DT); stepShip(sh, DT); if (PF) pfLap('ship'); stepCrew(sh, DT); if (PF) pfLap('crew'); });
   collide();

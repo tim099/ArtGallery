@@ -11,6 +11,7 @@
     "speed": [0.25, 5, 1.5],
     "agile": [0.25, 5, 2],
     "upwind": [0.5, 5, 1],
+    "base": [0, 20, 0],
     "gunhp": [20, 500, 200],
     "sailhp": [20, 500, 150],
     "crewhp": [20, 300, 100],
@@ -53,7 +54,20 @@
     "long4": {"code": "4l", "name": "4 磅砲", "short": "4 磅砲", "V": 165, "reload": 0.6, "big": false, "hole": 0.6, "crew": 2, "min": 1, "mass": 0.5},
     "long12": {"code": "12l", "name": "12 磅長砲", "short": "12 磅長砲", "V": 170, "reload": 0.9, "big": false, "hole": 0.85, "crew": 4, "min": 2, "mass": 1.7},
     "long6": {"code": "6l", "name": "6 磅砲", "short": "6 磅砲", "V": 168, "reload": 0.75, "big": false, "hole": 0.7, "crew": 3, "min": 2, "mass": 1.0},
-    "chase3": {"code": "3chase", "name": "3 磅追擊砲", "short": "3 磅追擊砲", "V": 165, "reload": 0.55, "big": false, "hole": 0.5, "crew": 2, "min": 1, "mass": 0.4}
+    "chase3": {
+      "code": "3chase",
+      "name": "3 磅追擊砲",
+      "short": "3 磅追擊砲",
+      "V": 165,
+      "reload": 0.55,
+      "big": false,
+      "hole": 0.5,
+      "crew": 2,
+      "min": 1,
+      "mass": 0.4,
+      "burst": 6,
+      "burstGap": 0.15
+    }
   },
   "geo0": {"spar": null, "marines": [160, 220], "center": 140, "aim": 90, "aimZ": [40, 320], "deckAim": [84, 104], "rigAim": [150, 300]},
   "crew0": {"officers": 4, "helm": 2, "marines": 12, "marineGap": 37, "top": 4, "monkeys": 1, "handsK": 1},
@@ -136,7 +150,8 @@
       "vxk": "stormkaap.vxk",
       "work": "summit-stormkaap-01m-assembly",
       "geo": {"spar": [84, 118], "marines": [90, 110], "center": 110, "aim": 80, "aimZ": [30, 380], "deckAim": [66, 96], "rigAim": [150, 380]},
-      "rooms": {"甲板-上/艙房/1": "medical", "甲板-上/艙房/2": "medical", "甲板-上/艙房/3": "medical"}
+      "rooms": {"甲板-上/艙房/1": "medical", "甲板-上/艙房/2": "medical", "甲板-上/艙房/3": "medical"},
+      "cfg": {"base": 6}
     }
   ],
   "furniture": {

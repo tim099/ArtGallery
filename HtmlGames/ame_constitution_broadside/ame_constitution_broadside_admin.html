@@ -83,7 +83,7 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
 
   <section><h2>砲種表</h2>
     <p class="note">代號（code）是雕刻作品裡 meta gun 的值，改了舊船就認不到砲。砲班滿編最多 8（砲旁只有 8 個站位）。每發傷害在上面的滑桿（dmg…）。</p>
-    <div class="tbl"><table id="guns"><thead><tr><th>種類</th><th>代號</th><th>名字</th><th>簡稱</th><th>初速 m/s</th><th>裝填倍率</th><th>大彈</th><th>洞倍率</th><th>砲班滿編</th><th>最少</th><th>重量 噸</th></tr></thead><tbody></tbody></table></div></section>
+    <div class="tbl"><table id="guns"><thead><tr><th>種類</th><th>代號</th><th>名字</th><th>簡稱</th><th>初速 m/s</th><th>裝填倍率</th><th>大彈</th><th>洞倍率</th><th>砲班滿編</th><th>最少</th><th>重量 噸</th><th>連發（發）</th><th>連發間隔 秒</th></tr></thead><tbody></tbody></table></div></section>
 
   <section><h2>船員配置（每艘船的預設）</h2>
     <p class="note">每艘船可以在下面另外寫，空白 ＝ 用這裡的。砲手人數照砲種表；預備水手的人數 ＝ 細節設定的「預備水手」× 倍率。</p>
@@ -109,7 +109,7 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
 <script>
 (function () {
   'use strict';
-  var LIM_NAME = { hard: '船殼硬度', flood: '進水速度', ballast: '壓艙物（噸）', gunw: '砲的重量倍率', cas: '降旗的死傷比例', speed: '航速倍率', agile: '靈活性倍率', upwind: '逆風性能',
+  var LIM_NAME = { base: '基底航速（節；額外動力，0 ＝ 沒有）', hard: '船殼硬度', flood: '進水速度', ballast: '壓艙物（噸）', gunw: '砲的重量倍率', cas: '降旗的死傷比例', speed: '航速倍率', agile: '靈活性倍率', upwind: '逆風性能',
     gunhp: '砲的血量', sailhp: '帆的血量', crewhp: '船員的血量', powderhp: '火藥桶的血量（拉滿 ＝ 不會爆）', blast: '殉爆威力', blastv: '爆炸威力浮動 ±',
     dmg24: '每發傷害：24 磅長砲', dmg32l: '每發傷害：32 磅長砲', dmg32: '每發傷害：32 磅 carronade', dmg18: '每發傷害：18 磅追擊砲', dmg4: '每發傷害：4 磅砲', dmg12: '每發傷害：12 磅長砲', dmg6: '每發傷害：6 磅砲', dmg3c: '每發傷害：3 磅追擊砲',
     box: '砲旁藥箱（份）', carry: '送藥手一次搬（份）', wind: '帆的風壓', hands: '預備水手（人）', drown: '溺水時間（秒）', heal: '治療時間（秒；0 ＝ 關）', pslowb: '物理減速門檻（模擬最多佔幾成時間）', navre: '尋路更新（秒；0 ＝ 關）', sea: '浪的大小', stall: '頂風失速',
@@ -122,8 +122,8 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
     ['top', '每根桅的桅頂水手', 1], ['monkeys', '送藥手（每對砲幾個：0–2，0 ＝ 沒有）', 1], ['handsK', '預備水手倍率', 0]];
   var GEO = [['spar', '露天甲板站人高度 z0–z1（空白 ＝ 照 carronade 推）', 2], ['marines', '陸戰隊範圍：離船尾、離船頭（格）', 2], ['center', '船的中心高度（鏡頭）', 1], ['aim', '沒有目標時瞄的高度', 1],
     ['aimZ', '瞄準高度範圍', 2], ['deckAim', '砲長「砲甲板」瞄的高度', 2], ['rigAim', '砲長「桅」瞄的高度', 2]];
-  var SHIP_CFG = [['speed', '航速'], ['agile', '靈活'], ['upwind', '逆風'], ['hard', '硬度'], ['flood', '進水'], ['gunw', '砲重']];
-  var GUNF = [['code', 's'], ['name', 's'], ['short', 's'], ['V', 'n'], ['reload', 'n'], ['big', 'b'], ['hole', 'o'], ['crew', 'n'], ['min', 'n'], ['mass', 'n']];
+  var SHIP_CFG = [['speed', '航速'], ['agile', '靈活'], ['upwind', '逆風'], ['base', '基底航速'], ['hard', '硬度'], ['flood', '進水'], ['gunw', '砲重']];
+  var GUNF = [['code', 's'], ['name', 's'], ['short', 's'], ['V', 'n'], ['reload', 'n'], ['big', 'b'], ['hole', 'o'], ['crew', 'n'], ['min', 'n'], ['mass', 'n'], ['burst', 'o'], ['burstGap', 'g']];   // burst／burstGap：連發（一份彈藥打幾發、每發隔幾秒；空白 ＝ 1 發）
 
   var S = null, C = null, C0 = null, dirty = false, busy = false;
   function $(id) { return document.getElementById(id); }
@@ -200,7 +200,7 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
     var gt = $('guns').tBodies[0]; gt.innerHTML = '';
     Object.keys(C.guns).forEach(function (k) {
       gt.appendChild(el('tr', {}, [el('td', { 'class': 'k', text: k })].concat(GUNF.map(function (f) {
-        var p = ['guns', k, f[0]], w = f[1] === 's' ? txt(p) : f[1] === 'b' ? chk(p) : num(p, f[1] === 'o' ? { opt: true, ph: '1' } : {});
+        var p = ['guns', k, f[0]], w = f[1] === 's' ? txt(p) : f[1] === 'b' ? chk(p) : num(p, f[1] === 'o' ? { opt: true, ph: '1' } : f[1] === 'g' ? { opt: true, ph: '0.15' } : {});
         if (f[1] === 's') w.style.width = f[0] === 'code' ? '72px' : '120px';
         return el('td', {}, [w]);
       }))));
