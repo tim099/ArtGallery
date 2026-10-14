@@ -22,6 +22,9 @@
     "dmg32": [10, 300, 120],
     "dmg18": [10, 300, 70],
     "dmg4": [10, 300, 35],
+    "dmg12": [10, 300, 55],
+    "dmg6": [10, 300, 40],
+    "dmg3c": [10, 300, 30],
     "box": [1, 8, 2],
     "carry": [1, 6, 1],
     "wind": [0.25, 3, 1],
@@ -47,7 +50,10 @@
     "long32": {"code": "32l", "name": "32 磅長砲", "short": "32 磅長砲", "V": 172, "reload": 1.15, "big": true, "crew": 6, "min": 4, "mass": 2.9},
     "carr": {"code": "32c", "name": "32 磅 carronade", "short": " carronade ", "V": 140, "reload": 0.7, "big": true, "crew": 3, "min": 2, "mass": 0.9},
     "chase": {"code": "18chase", "name": "18 磅追擊砲", "short": "追擊砲", "V": 165, "reload": 1, "big": false, "crew": 3, "min": 2, "mass": 2.1},
-    "long4": {"code": "4l", "name": "4 磅砲", "short": "4 磅砲", "V": 165, "reload": 0.6, "big": false, "hole": 0.6, "crew": 2, "min": 1, "mass": 0.5}
+    "long4": {"code": "4l", "name": "4 磅砲", "short": "4 磅砲", "V": 165, "reload": 0.6, "big": false, "hole": 0.6, "crew": 2, "min": 1, "mass": 0.5},
+    "long12": {"code": "12l", "name": "12 磅長砲", "short": "12 磅長砲", "V": 170, "reload": 0.9, "big": false, "hole": 0.85, "crew": 4, "min": 2, "mass": 1.7},
+    "long6": {"code": "6l", "name": "6 磅砲", "short": "6 磅砲", "V": 168, "reload": 0.75, "big": false, "hole": 0.7, "crew": 3, "min": 2, "mass": 1.0},
+    "chase3": {"code": "3chase", "name": "3 磅追擊砲", "short": "3 磅追擊砲", "V": 165, "reload": 0.55, "big": false, "hole": 0.5, "crew": 2, "min": 1, "mass": 0.4}
   },
   "geo0": {"spar": null, "marines": [160, 220], "center": 140, "aim": 90, "aimZ": [40, 320], "deckAim": [84, 104], "rigAim": [150, 300]},
   "crew0": {"officers": 4, "helm": 2, "marines": 12, "marineGap": 37, "top": 4, "monkeys": 1, "handsK": 1},
@@ -122,6 +128,15 @@
       "cfg": {"speed": 1.2, "agile": 1.6, "upwind": 1.25, "hard": 6},
       "crew": {"handsK": 0.25},
       "rooms": {"甲板-主/艙房/1": "medical"}
+    },
+    {
+      "id": "stormkaap",
+      "el": "ship-stormkaap",
+      "name": "風暴角號",
+      "vxk": "stormkaap.vxk",
+      "work": "summit-stormkaap-01m-assembly",
+      "geo": {"spar": [84, 118], "marines": [90, 110], "center": 110, "aim": 80, "aimZ": [30, 380], "deckAim": [66, 96], "rigAim": [150, 380]},
+      "rooms": {"甲板-上/艙房/1": "medical", "甲板-上/艙房/2": "medical", "甲板-上/艙房/3": "medical"}
     }
   ],
   "furniture": {
