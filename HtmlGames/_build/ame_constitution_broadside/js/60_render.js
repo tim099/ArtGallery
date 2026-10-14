@@ -200,7 +200,7 @@ function drawModels(prog, near) {
     sh.models.forEach(function (m) {
       var me = sh.T.meshes[m.mesh]; if (!m.alive || !me) return;
       gl.uniformMatrix4fv(prog.u.uModel, false, M4.mul(sh.M, modelLocal(m)));
-      if (prog.u.uGlow) gl.uniform1f(prog.u.uGlow, m.meta && m.meta.kind === 'lantern' ? lanternK(m) : 0);   // 取用點的火藥桶是後加的模型，沒有 meta
+      if (prog.u.uGlow) gl.uniform1f(prog.u.uGlow, isLamp(m) ? lanternK(m) : 0);   // 取用點的火藥桶是後加的模型，沒有 meta
       gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n);
     });
   });
@@ -213,15 +213,34 @@ function drawModels(prog, near) {
   }); });
   FLY.forEach(function (f) { var me = f.T.meshes[f.mesh]; if (!me || !f.M) return; gl.uniformMatrix4fv(prog.u.uModel, false, f.M); gl.bindVertexArray(me.vao); gl.drawArrays(gl.TRIANGLES, 0, me.n); });
 }
-/** 燈籠（餘燼號船尾三盞，meta kind=lantern）：亮度 0.8–1 慢慢晃，照模擬時間與燈的編號（⛔ 不抽 rnd()：只給人看）；打飛了就熄。 */
+/** 燈（餘燼號船尾三盞燈籠 meta kind=lantern、夜燈號船首像的提燈 kind=light）：燈罩發光、光暈、點光源。 */
+function isLamp(m) { return !!(m.meta && (m.meta.kind === 'lantern' || m.meta.kind === 'light')); }
+/** 火焰在哪（船的格座標）：固定點 wick（造船規格：火焰中心）；沒有 ⇒ 模型中心。 */
+function lampAt(m) { return m.pts && m.pts.wick ? m.pts.wick : m.c; }
+/** 這一格的點光源（01_gl.js LAMP_GLSL）：離鏡頭近的 LAMP_N 盞；亮度跟著燈晃、天越暗越亮（跟光暈同一條）。只給人看、不抽 rnd()。 */
+var LAMPS = { n: 0, p: new Float32Array(LAMP_N * 4), c: new Float32Array(LAMP_N * 4) }, LAMP_R = 6, LAMP_I = 0.5;
+function lampsUpdate() {
+  var L = [], E = CAM.eye;
+  SHIPS.forEach(function (sh) {
+    if (sh.sink > 40) return;
+    sh.models.forEach(function (m) { if (!m.alive || !isLamp(m)) return; var q = lampAt(m), w = M4.pt(sh.M, q[0], q[1], q[2]); L.push({ w: w, k: lanternK(m), d: (w[0] - E[0]) * (w[0] - E[0]) + (w[1] - E[1]) * (w[1] - E[1]) + (w[2] - E[2]) * (w[2] - E[2]) }); });
+  });
+  L.sort(function (a, b) { return a.d - b.d; });
+  LAMPS.n = Math.min(LAMP_N, L.length);
+  for (var i = 0; i < LAMPS.n; i++) {
+    var l = L[i], I = LAMP_I * l.k * (1.6 - WX.lum);
+    LAMPS.p.set([l.w[0], l.w[1], l.w[2], LAMP_R], i * 4); LAMPS.c.set([1 * I, 0.62 * I, 0.25 * I, 0], i * 4);
+  }
+}
+/** 燈籠／提燈：亮度 0.8–1 慢慢晃，照模擬時間與燈的編號（⛔ 不抽 rnd()：只給人看）；打飛了就熄。 */
 function lanternK(m) { var t = SIMT * 1.7 + m.k * 2.39; return 0.8 + 0.1 * Math.sin(t) + 0.1 * Math.sin(t * 2.71 + 1.3); }
 function lanternHalo(push) {
   SHIPS.forEach(function (sh) {
     if (sh.sink > 40) return;
     sh.models.forEach(function (m) {
-      if (!m.alive || !m.meta || m.meta.kind !== 'lantern') return;
-      var k = lanternK(m), sz = Math.max(m.bb[3] - m.bb[0], m.bb[5] - m.bb[2]) * S;   // 燈籠多大（公尺）
-      push(M4.pt(sh.M, m.c[0], m.c[1], m.c[2]), sz * (2.4 + 0.4 * k), [1, 0.6, 0.2], 0.18 + 0.2 * k * (1.6 - WX.lum));   // 天越暗越亮（暴風雨的 lum 比晴天低）
+      if (!m.alive || !isLamp(m)) return;
+      var k = lanternK(m), sz = Math.max(m.bb[3] - m.bb[0], m.bb[5] - m.bb[2]) * S, q = lampAt(m);   // 燈多大（公尺）；光暈在火焰那一點
+      push(M4.pt(sh.M, q[0], q[1], q[2]), sz * (2.4 + 0.4 * k), [1, 0.6, 0.2], 0.18 + 0.2 * k * (1.6 - WX.lum));   // 天越暗越亮（暴風雨的 lum 比晴天低）
     });
   });
 }
@@ -323,7 +342,7 @@ function render() {
   var bolt = wxBolt(SIMT), sky0 = SKY, hor0 = HORIZON;
   if (bolt && bolt.f > 0) { SKY = lerp3(SKY, [0.82, 0.86, 0.98], bolt.f * 0.7); HORIZON = lerp3(HORIZON, [0.76, 0.79, 0.88], bolt.f * 0.6); }
   if (bolt && bolt.n !== LAST_BOLT) { LAST_BOLT = bolt.n; if (RUNNING && !STILL) setTimeout(function () { sfx('thunder', null, 1 / (1 + bolt.d / 1500)); }, bolt.d / 340 * 1000); }
-  targets(w, h); shadowMaps(); gpuSlots(); shadowGrow();             // gpuSlots：這一格 GPU 的格給哪幾艘（視野裡最近的幾艘：畫質設定）
+  targets(w, h); shadowMaps(); gpuSlots(); shadowGrow(); lampsUpdate();             // gpuSlots：這一格 GPU 的格給哪幾艘（視野裡最近的幾艘：畫質設定）
   if (!DUMMY) { DUMMY = mkTex(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, 1, 1, false); }
   prepRig();
   gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, null); gl.activeTexture(gl.TEXTURE0);   // 畫陰影圖時不綁著它（⛔ 綁著 ⇒ 讀寫同一張）
