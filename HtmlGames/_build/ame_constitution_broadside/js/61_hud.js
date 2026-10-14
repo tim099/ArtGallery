@@ -343,6 +343,8 @@ function navText(sh) {
     '<span style="color:#8fd3ff">風 從 ' + deg3(wb) + '（' + compassName(wb) + '）' + windKnots().toFixed(0) + ' 節</span>' + (sh.irons > 0.05 ? '　<b style="color:#ff9a7a">失速' + (sh.irons < 0.95 ? ' ' + Math.round(sh.irons * 100) + '%' : '') + '</b>' : '') + '<br>' +
     '傾斜 ' + Math.abs(roll).toFixed(1) + '°' + (Math.abs(roll) < 0.2 ? '' : roll < 0 ? '（左低）' : '（右低）') + '　縱傾 ' + pitch.toFixed(1) + '°';
 }
+/** P 那顆按鈕：停格中寫「繼續」、平常寫「停格」（Tim 2026-10-14）。 */
+function pauseLabel() { var b = $('pauseK'), s = '<b>P</b> ' + (PAUSED ? '繼續' : '停格'); if (b && b.innerHTML !== s) b.innerHTML = s; }
 function hud(dt) {
   stepMsgs(dt);
   if (!SHIPS.length || (HUDN++ % 6)) return;
@@ -351,7 +353,8 @@ function hud(dt) {
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
   var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
-  $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode] + (PAUSED ? '　⏸ 停格' : '');
+  $('guns').innerHTML = gunRow(me, bs || me.side) + warn;                       // 鏡頭名稱改成按 C 時廣播、停格改看 P 那顆按鈕（Tim 2026-10-14：這兩段字不用常駐）
+  pauseLabel();
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
   var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (!handAim(me) ? '砲長' : (AUTOFIRE ? '手動一舷・' : '') + AIM_NAME[me.pMode || 'free']);
   var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + (PHYS ? '　物理 ' + PHYS_MS.toFixed(2) + ' ms/步、垂繩 ' + SHIPS.map(function (s) { return s.loose.length; }).join('／') : '') + '　' + FPS.toFixed(0) + ' fps' : '';
