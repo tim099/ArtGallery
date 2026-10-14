@@ -71,6 +71,7 @@ python -I admin.py reimport --id constitution
 | `51_captain.js` | 砲長：瞄準模式（水線／砲甲板／帆具／甲板人員／彈藥庫）、各砲長的偏好與換模式（`captainThink`）、模式要瞄哪裡（`modeAim`） |
 | `60_render.js` | 畫一格：畫質管線（`targets` 場景與解析的 framebuffer、`shadowPass` 陰影圖、`reflPass` 反射、折射複製、最後縮放貼到畫布）、海面網格 `seaGrid` |
 | `61_hud.js` | HUD、砲列、左下羅盤、上方廣播（`note`／`newsGun`／`newsFlush`） |
+| `68_guncfg.js` | 砲的設定頁（主選單「砲的設定…」；Tim 2026-10-14）：一種砲一份 —— 每發傷害、重量、初速、裝填、連發、洞、砲班；改的直接寫進 `GUNS`、存檔只存跟砲種表預設不一樣的（`GUN_SET`），可匯出匯入 |
 | `69_prefs.js` | 設定存檔（localStorage）：載入時套用、每秒比一次有變才寫（`prefsSnap`／`prefsApply`） |
 | `70_flow.js` | 開局（`reset`／`start`） |
 | `71_input.js` | 輸入與選單（鍵盤與畫面上的按鍵按鈕共用 `doKey`、滑鼠、觸控（雙指張合縮放、雙指一起拖平移 ＝ 右鍵拖曳，`panBy`）、滑桿、彈種倍率表、主選單 ⇄ 船隻配置頁（船員滑桿、匯出匯入）⇄ 細節設定頁、重設預設值） |

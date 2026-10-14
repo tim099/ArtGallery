@@ -200,7 +200,7 @@ var CFG_ID = myHull();                             // 細節設定的「船隻�
 var SLIDERS_SHOW = null;                               // 載入完（HYD 算好）再顯示一次 ⇒ 減重上浮的例子有數字
 function sliders() {
   var lf = $('ballast'), f = $('flood'), h = $('hard'), c = $('cas'), sp = $('speed'), ag = $('agile'), uw = $('upwind'), gh = $('gunhp'), gw = $('gunw'), sl = $('sailhp'), ph = $('powderhp'), bl = $('blast'), bv = $('blastv'), ch = $('crewhp');
-  var dm = { long: $('dmg24'), long32: $('dmg32l'), carr: $('dmg32'), chase: $('dmg18'), long4: $('dmg4'), long12: $('dmg12'), long6: $('dmg6'), chase3: $('dmg3c') }, DLIM = { long: LIM.dmg24, long32: LIM.dmg32l, carr: LIM.dmg32, chase: LIM.dmg18, long4: LIM.dmg4, long12: LIM.dmg12, long6: LIM.dmg6, chase3: LIM.dmg3c }, bx = $('box'), cy = $('carry'), wk = $('wind'), dr = $('drown');
+  var bx = $('box'), cy = $('carry'), wk = $('wind'), dr = $('drown');
   var st = $('stall'), fs = $('funspeed'), fa = $('funagile'), fl = $('funstall'), fp = $('funpowder'), se = $('sea');   // 頂風失速、娛樂加成、浪
   [[se, 'sea'], [st, 'stall'], [fs, 'funspeed'], [fa, 'funagile'], [fl, 'funstall'], [fp, 'funpowder']].forEach(function (e) { e[0].min = LIM[e[1]][0]; e[0].max = LIM[e[1]][1]; });
   dr.min = LIM.drown[0]; dr.max = LIM.drown[1];
@@ -212,7 +212,6 @@ function sliders() {
   sp.min = LIM.speed[0]; sp.max = LIM.speed[1]; ag.min = LIM.agile[0]; ag.max = LIM.agile[1]; uw.min = LIM.upwind[0]; uw.max = LIM.upwind[1]; var bs = $('base'); bs.min = LIM.base[0]; bs.max = LIM.base[1];
   gh.min = LIM.gunhp[0]; gh.max = LIM.gunhp[1]; sl.min = LIM.sailhp[0]; sl.max = LIM.sailhp[1]; ph.min = LIM.powderhp[0]; ph.max = LIM.powderhp[1];
   bl.min = LIM.blast[0]; bl.max = LIM.blast[1]; bv.min = LIM.blastv[0] * 100; bv.max = LIM.blastv[1] * 100; ch.min = LIM.crewhp[0]; ch.max = LIM.crewhp[1];
-  for (var t in dm) { dm[t].min = DLIM[t][0]; dm[t].max = DLIM[t][1]; }
   function am(r, k) { return $('am-' + r + '-' + k); }
   function C() { return shipCfg(CFG_ID); }             // 正在編輯的那一型（船隻配置頁）
   // 船員（船隻配置頁；TASK-0570）：每一項一條滑桿；砲班照砲種各一條（這一型沒有的砲種藏起來）。改了寫進 SHIP_CREW（05_hull.js），存檔跟著存（69_prefs.js）
@@ -448,7 +447,6 @@ function sliders() {
     var k = C(); $('cfgShip').value = CFG_ID;
     lf.value = k.ballast !== undefined ? k.ballast : LIM.ballast[2]; f.value = k.flood; h.value = Math.log(k.hard / LIM.hard[0]) / hk; c.value = STRIKE.cas * 100; sp.value = k.speed; ag.value = k.agile; uw.value = k.upwind; $('base').value = k.base || 0;
     gh.value = GUN_HP; gw.value = k.gunw; sl.value = SAIL_HP; ph.value = POWDER_HP; bl.value = BLAST_K; bv.value = Math.round(BLAST_V * 100); ch.value = CREW_HP;
-    for (var t in dm) dm[t].value = DMG[t];
     bx.value = BOX_N; cy.value = CARRY_N; wk.value = WIND_K; dr.value = DROWN_T; $('navre').value = NAV_RE; $('heal').value = HEAL_T;
     se.value = SEA_K; st.value = STALL_K; fs.value = FUN.speed; fa.value = FUN.agile; fl.value = FUN.stall; fp.value = FUN.powder;
     for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) am(r, k).value = AMMO_K[r][k];
@@ -488,7 +486,6 @@ function sliders() {
     $('drownV').textContent = DROWN_T ? '約 ' + DROWN_T + ' 秒（浮上水面、往自己的船游，爬回來當預備水手；受傷的減半）' : '0（關：落水當場算陣亡、淹到的跟著船沉）';
     $('windV').textContent = WIND_K.toFixed(2) + '×（帆上的風約 ' + (WIND_SAIL * WIND_K).toFixed(0) + ' m/s，陣風 ±' + Math.round(GUST[0] * 100) + '%）';
     $('carryV').textContent = CARRY_N + ' 份' + (CARRY_N > BOX_N ? '（比藥箱多 ⇒ 一趟送好幾門）' : '');
-    $('dmg24V').textContent = DMG.long; $('dmg32lV').textContent = DMG.long32; $('dmg32V').textContent = DMG.carr; $('dmg18V').textContent = DMG.chase; $('dmg4V').textContent = DMG.long4; $('dmg12V').textContent = DMG.long12; $('dmg6V').textContent = DMG.long6; $('dmg3cV').textContent = DMG.chase3;
     $('casV').textContent = STRIKE.cas >= 1 ? '100%（全員倒下才停）' : Math.round(STRIKE.cas * 100) + '%';
     $('strikeV').textContent = strikeText();
     var amDef = AMMO_K.every(function (r, i) { return r.every(function (v, j) { return v === AMMO_K0[i][j]; }); });
@@ -523,7 +520,6 @@ function sliders() {
   se.oninput = function () { SEA_K = +se.value; show(); };
   fs.oninput = function () { FUN.speed = +fs.value; show(); }; fa.oninput = function () { FUN.agile = +fa.value; show(); }; fl.oninput = function () { FUN.stall = +fl.value; show(); }; fp.oninput = function () { FUN.powder = +fp.value; show(); };
   wk.oninput = function () { WIND_K = +wk.value; show(); };          // 物理是每一步讀 ⇒ 遊戲中也能調（只管畫面）
-  Object.keys(dm).forEach(function (t) { dm[t].oninput = function () { DMG[t] = Math.round(+dm[t].value); show(); }; });
   for (var r = 0; r < 3; r++) for (var k = 0; k < 3; k++) (function (r, k) {
     var el = am(r, k);
     el.oninput = function () { var v = parseFloat(el.value); if (isFinite(v)) { AMMO_K[r][k] = clamp(Math.round(v), AMMO_LIM[0], AMMO_LIM[1]); show(); } };
@@ -535,7 +531,7 @@ function sliders() {
   cs.onchange = function () { CFG_ID = cs.value; loadHull(CFG_ID).then(function () { put(); show(); }); put(); show(); };
   fleetUI();                                                     // 主選單：艦隊編成
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
-  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; $('phxp').style.display = w === 'phx' ? '' : 'none'; $('shipp').style.display = w === 'ship' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp):not(#phxp):not(#shipp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; $('pgX').classList.toggle('on', !!w && !ADMIN_ROOMS); }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定、'phx' 物理設定、'ship' 船隻配置
+  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; $('phxp').style.display = w === 'phx' ? '' : 'none'; $('shipp').style.display = w === 'ship' ? '' : 'none'; $('gunp').style.display = w === 'gun' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp):not(#phxp):not(#shipp):not(#gunp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; $('pgX').classList.toggle('on', !!w && !ADMIN_ROOMS); }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定、'phx' 物理設定、'ship' 船隻配置、'gun' 砲的設定
   [].forEach.call(document.querySelectorAll('#plays button'), function (b) { b.onclick = function () { setPlay(b.dataset.p); show(); }; });   // 主選單：玩法
   $('detB').onclick = function () { page('det'); };
   $('detX').onclick = function () { page(''); };
@@ -546,6 +542,8 @@ function sliders() {
   $('shipB').onclick = function () { page('ship'); loadHull(CFG_ID).then(function () { put(); show(); }); };   // 船隻配置：先載那一型（砲數、桅數、壓艙物的預設要船型）
   if (ADMIN_ROOMS) { $('shipB').onclick(); try { window.parent.postMessage({ kind: 'cb-ready' }, location.origin); } catch (e) { /* 不是嵌在後台裡 */ } }
   $('shipX').onclick = function () { page(''); };
+  $('gunB').onclick = function () { page('gun'); gunShow(); };   // 砲的設定（68_guncfg.js）
+  $('gunX').onclick = function () { page(''); };
   $('pgX').onclick = function () { RE.i = -1; show(); page(''); };   // 右上角的返回（每一頁同一顆）
   var rArm = 0;                                        // 這一型回到預設：按兩下（Tim：編起來很花時間 ⇒ 不要一按就沒了；⛔ 不用 confirm()：畫廊彈窗的 iframe 沒開 allow-modals，confirm 直接回 false）
   $('shipR').onclick = function () {
@@ -574,17 +572,17 @@ function sliders() {
     };
     r.readAsText(f);
   };
-  gfxUI(); phxUI();
+  gfxUI(); phxUI(); gunUI(); gunShow();
   $('detR').onclick = function () {                    // 重設預設值：LIM 的第三格、降旗全不勾
     // 船隻配置頁（每一型的船員與性能）不跟著重設：那一頁有自己的「這一型回到預設」（TASK-0570：編起來很花時間）
     GUN_HP = LIM.gunhp[2]; SAIL_HP = LIM.sailhp[2]; POWDER_HP = LIM.powderhp[2]; BLAST_K = LIM.blast[2]; BLAST_V = LIM.blastv[2]; CREW_HP = LIM.crewhp[2];
-    DMG.long = LIM.dmg24[2]; DMG.long32 = LIM.dmg32l[2]; DMG.carr = LIM.dmg32[2]; DMG.chase = LIM.dmg18[2]; DMG.long4 = LIM.dmg4[2]; DMG.long12 = LIM.dmg12[2]; DMG.long6 = LIM.dmg6[2]; DMG.chase3 = LIM.dmg3c[2]; BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2]; DROWN_T = LIM.drown[2]; NAV_RE = LIM.navre[2]; HEAL_T = LIM.heal[2];
+    BOX_N = LIM.box[2]; CARRY_N = LIM.carry[2]; WIND_K = LIM.wind[2]; HANDS = LIM.hands[2]; DROWN_T = LIM.drown[2]; NAV_RE = LIM.navre[2]; HEAL_T = LIM.heal[2];
     AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
     SEA_K = LIM.sea[2]; STALL_K = LIM.stall[2]; FUN.speed = LIM.funspeed[2]; FUN.agile = LIM.funagile[2]; FUN.stall = LIM.funstall[2]; FUN.powder = LIM.funpowder[2];
     STRIKE.cas = LIM.cas[2]; STRIKE.guns = STRIKE.masts = STRIKE.officers = false; CAP_SET = ['random', 'random'];
     put(); show(); prefsReset();                         // 存檔跟著清（69_prefs.js：只剩主選單的選擇）
   };
-  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && ($('detail').style.display !== 'none' || $('gfxp').style.display !== 'none' || $('phxp').style.display !== 'none' || $('shipp').style.display !== 'none')) page(''); });
+  window.addEventListener('keydown', function (e) { if (!RUNNING && e.key === 'Escape' && ($('detail').style.display !== 'none' || $('gfxp').style.display !== 'none' || $('phxp').style.display !== 'none' || $('shipp').style.display !== 'none' || $('gunp').style.display !== 'none')) page(''); });
   put(); show(); SLIDERS_SHOW = function () { put(); show(); };
 }
 /** 畫質（07_gfx.js）：主選單的低／中／高、畫質設定頁每一項的按鈕、顯示 FPS。改了立刻生效（render 每一格讀 GFX）。 */

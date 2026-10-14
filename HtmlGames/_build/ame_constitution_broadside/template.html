@@ -294,7 +294,7 @@
       <div class="row" id="phxs">物理效果
         <button data-x="full">全開</button><button data-x="high">高</button><button data-x="mid">中</button><button data-x="low">低</button><button id="phxB">物理設定…</button>
       </div>
-      <div class="row"><button id="shipB">船隻配置…</button><button id="detB">細節設定…</button></div>
+      <div class="row"><button id="shipB">船隻配置…</button><button id="gunB">砲的設定…</button><button id="detB">細節設定…</button></div>
       <div class="row"><button class="go" id="go" disabled>載入中…</button></div>
       <!-- 說明與細節設定的摘要放在開戰鈕下面（Tim 2026-10-13：手機上開戰鈕被擠到畫面外、要捲才看得到） -->
       <div class="sub">Constitution Broadside —— 兩艘 1:1 的憲法號（0.1 公尺一格）互轟，船殼一格一格被打碎、桅杆打得斷、破洞進水會沉。<br>
@@ -367,6 +367,17 @@
       <div class="row"><button id="shipX">返回</button></div>
       </div>
     </div>
+    <!-- 砲的設定（從主選單進；Tim 2026-10-14）：一種砲一份；項目在 js/68_guncfg.js 的 GUN_ITEMS，滑桿由它生；預設值在後台管理頁的砲種表（config/game.json guns）與 LIM.dmg* -->
+    <div class="card panel" id="gunp" style="display:none">
+      <h2>砲的設定</h2>
+      <div class="sub">一種砲一份：所有船上同一種砲都照這一份。下一場開始生效。預設值在後台管理頁的砲種表。</div>
+      <div class="row slide"><label for="gunSel">砲種</label><select id="gunSel" aria-label="編輯哪一種砲"></select></div>
+      <div class="row note" id="gunInfo"></div>
+      <div id="gunItems"></div>
+      <div class="row note" id="gunSt"></div>
+      <div class="row"><button id="gunR">這一種回到預設</button><button id="gunE">匯出…</button><button id="gunI">匯入…</button><input type="file" id="gunF" accept=".json,application/json" style="display:none"></div>
+      <div class="row"><button id="gunX">返回</button></div>
+    </div>
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">
       <h2>細節設定</h2>
@@ -385,15 +396,7 @@
       <h3>砲</h3>
       <div class="row slide"><label for="gunhp">血量</label><input type="range" id="gunhp" step="10" aria-label="砲的血量"><span id="gunhpV"></span></div>
       <div class="row note">長砲、carronade、追擊砲都是模型：被打到扣血，歸零整門飛出去（舵輪 6 成血）。砲列底下的紅線 ＝ 剩下的血量。</div>
-      <div class="row slide"><label for="dmg24">24 磅長砲</label><input type="range" id="dmg24" step="5" aria-label="24 磅長砲每發傷害"><span id="dmg24V"></span></div>
-      <div class="row slide"><label for="dmg32l">32 磅長砲</label><input type="range" id="dmg32l" step="5" aria-label="32 磅長砲每發傷害"><span id="dmg32lV"></span></div>
-      <div class="row slide"><label for="dmg32">32 磅 carronade</label><input type="range" id="dmg32" step="5" aria-label="32 磅 carronade 每發傷害"><span id="dmg32V"></span></div>
-      <div class="row slide"><label for="dmg18">18 磅追擊砲</label><input type="range" id="dmg18" step="5" aria-label="18 磅追擊砲每發傷害"><span id="dmg18V"></span></div>
-      <div class="row slide"><label for="dmg4">4 磅砲</label><input type="range" id="dmg4" step="5" aria-label="4 磅砲每發傷害"><span id="dmg4V"></span></div>
-      <div class="row slide"><label for="dmg12">12 磅長砲</label><input type="range" id="dmg12" step="5" aria-label="12 磅長砲每發傷害"><span id="dmg12V"></span></div>
-      <div class="row slide"><label for="dmg6">6 磅砲</label><input type="range" id="dmg6" step="5" aria-label="6 磅砲每發傷害"><span id="dmg6V"></span></div>
-      <div class="row slide"><label for="dmg3c">3 磅追擊砲</label><input type="range" id="dmg3c" step="5" aria-label="3 磅追擊砲每發傷害"><span id="dmg3cV"></span></div>
-      <div class="row note">每發傷害（打到砲、帆、人時的基準），再乘下面的彈種倍率。</div>
+      <div class="row note">每一種砲的每發傷害、重量、初速、裝填、連發在主選單的「砲的設定…」。下面的彈種倍率乘在每發傷害上。</div>
       <h3>彈種倍率（%）</h3>
       <table class="ammo"><tr><th></th><th>對砲</th><th>對帆</th><th>對人</th></tr>
         <tr><th>實心彈</th><td><input type="number" id="am-0-0" min="0" max="400" step="5" aria-label="實心彈對砲"></td><td><input type="number" id="am-0-1" min="0" max="400" step="5" aria-label="實心彈對帆"></td><td><input type="number" id="am-0-2" min="0" max="400" step="5" aria-label="實心彈對人"></td></tr>
@@ -502,6 +505,7 @@
 <script src="js/53_commander.js" data-bundle="game"></script>
 <script src="js/60_render.js" data-bundle="game"></script>
 <script src="js/61_hud.js" data-bundle="game"></script>
+<script src="js/68_guncfg.js" data-bundle="game"></script>
 <script src="js/69_prefs.js" data-bundle="game"></script>
 <script src="js/70_flow.js" data-bundle="game"></script>
 <script src="js/71_input.js" data-bundle="game"></script>
