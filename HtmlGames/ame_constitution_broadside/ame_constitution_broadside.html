@@ -22,6 +22,12 @@
   .sb:hover{ transform:scale(1.07); box-shadow:0 0 0 2px rgba(255,255,255,.55), 0 2px 9px rgba(0,0,0,.7); } .sb:active{ transform:scale(.94); }
   .sb.on{ box-shadow:0 0 0 3px var(--gold), 0 2px 10px rgba(0,0,0,.7); } .sb.out{ opacity:.75; }
   .sb canvas{ position:absolute; inset:0; width:100%; height:100%; cursor:pointer; touch-action:manipulation; }
+  /* 艦隊圓鈕兩側的數字（Tim 2026-10-14）：左下 ＝ 還能動的船員、右下 ＝ 還在的砲；像素圖示（HUD 美術）或 emoji，壓在外圈上 */
+  .sbn{ position:absolute; bottom:-3px; display:flex; align-items:center; gap:1px; padding:0 3px; border-radius:7px; background:rgba(10,14,20,.86); color:#f2f2f2; font:bold 11px/14px Consolas,monospace; pointer-events:none; white-space:nowrap; z-index:1; }
+  .sbn.l{ left:-6px; } .sbn.r{ right:-6px; } .sbn .ico{ width:12px; height:12px; vertical-align:0; } .sbn i{ font-style:normal; font-size:10px; }
+  /* 船隻配置頁最上面（Tim 2026-10-14）：大一點的艦隊圓鈕＋重要資訊 */
+  #shipCard{ display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin:6px auto 4px; max-width:660px; }
+  #shipCardC{ position:static; inset:auto; width:150px; height:150px; flex:none; } #shipCardT{ text-align:left; font-size:14px; line-height:1.75; min-width:220px; flex:1; } #shipCardT b{ color:var(--gold); font-weight:normal; } #shipCardT .h{ font-size:17px; color:var(--gold); } #shipCardT .n{ color:var(--dim); font-size:12px; }
   .sbres{ font-size:12px; color:var(--dim); background:var(--panel); border-radius:10px; padding:2px 8px; }
   #topC{ left:50%; top:12px; transform:translateX(-50%); width:max(280px, min(900px, calc(100vw - 200px))); display:flex; flex-direction:column; align-items:center; }
   #info{ display:none; pointer-events:auto; cursor:pointer; border-left:3px solid var(--blue); margin-bottom:6px; max-width:100%; box-sizing:border-box; }
@@ -111,6 +117,7 @@
     .fleet{ top:6px; gap:4px; max-height:calc(100vh - 175px); } #fleetL{ left:5px; } #fleetR{ right:5px; }
     #botC{ --gc:9px; } .gside{ max-width:calc(50vw - 48px); } .helm{ gap:5px; } #helmL{ flex-direction:column-reverse; } #helmR{ flex-direction:column; } #ctlRow{ gap:2px; width:100%; }
     .kb.hb{ width:46px; height:46px; font-size:10px; } .kb.hb b{ font-size:9px; }
+    .sbn{ font-size:9px; line-height:11px; padding:0 2px; } .sbn .ico{ width:9px; height:9px; } .sbn i{ font-size:8px; } .sbn.l{ left:-4px; } .sbn.r{ right:-4px; top:-3px; bottom:auto; }   /* 圓鈕 38 px：兩個放在同一條底邊會疊在一起 ⇒ 對角（船員左下、砲右上） */ #shipCardC{ width:120px; height:120px; } #shipCardT{ font-size:13px; }
     #botC{ bottom:6px; width:calc(100vw - 6px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
     #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
     #navc{ width:68px; height:68px; } #modeT{ font-size:12px; }
@@ -322,6 +329,7 @@
       <h2>船隻配置</h2>
       <div class="sub">一型船一份：同一型的船（我方、敵方、友艦、候補）都照這一份。下一場開始生效。預設值在後台管理頁設。</div>
       <div class="row slide"><label for="cfgShip">船型</label><select id="cfgShip" aria-label="編輯哪一型船"></select></div>
+      <div id="shipCard"><canvas id="shipCardC"></canvas><div id="shipCardT"></div></div>
       <div class="row note" id="shipSt"></div>
       <div class="row note" id="shipAdm">設定後台：這裡改的是設定檔的預設（ships[].rooms），改了就送回後台；記得在後台按「儲存」，重建之後遊戲才吃得到。船員與性能的預設在後台的欄位改。</div>
       <div class="nadm">
@@ -7645,8 +7653,31 @@ function camSee(o) { if (!o) return; CAM.mode = 3; CAM.follow = null; CAM.pan = 
 function fleetReset() { INFO_SH = null; for (var k in SB_EL) SB_EL[k].el.remove(); SB_EL = {}; [].forEach.call(document.querySelectorAll('.sbres'), function (e) { e.remove(); }); }
 function sbMake(o, box) {
   var el = document.createElement('div'), cv = document.createElement('canvas'); el.className = 'sb'; el.appendChild(cv);
+  var nl = document.createElement('span'), nr = document.createElement('span'); nl.className = 'sbn l'; nr.className = 'sbn r'; el.appendChild(nl); el.appendChild(nr);   // 船員、砲（sbNums）
   el.onclick = function (e) { e.stopPropagation(); INFO_SH = INFO_SH === o ? null : o; fleetHud(SHIPS[PLAYER_I]); };
-  box.insertBefore(el, box.querySelector('.sbres')); return { el: el, cv: cv, box: box, key: '' };
+  box.insertBefore(el, box.querySelector('.sbres')); return { el: el, cv: cv, box: box, key: '', nl: nl, nr: nr, nk: '' };
+}
+/** 圓鈕兩側的數字：左下 還能動的船員、右下 還在的砲（像素圖示：HUD 美術的「船員」「裝填好」；沒有美術 ⇒ emoji）。 */
+function sbIcon(k, emo) { return HUD_ART ? '<span class="ico" style="background-position:' + (k * 100 / 7).toFixed(3) + '% 0"></span>' : '<i>' + emo + '</i>'; }
+function sbNums(b, o) {
+  var cr = 0, gn = 0; o.crew.forEach(function (c) { if (able(c)) cr++; }); o.guns.forEach(function (g) { if (g.alive) gn++; });
+  var k = cr + '/' + gn + (HUD_ART ? 'a' : ''); if (k === b.nk) return; b.nk = k;
+  b.nl.innerHTML = sbIcon(0, '👤') + cr; b.nr.innerHTML = sbIcon(3, '💥') + gn;
+  b.nl.title = '船員還能動的 ' + cr + ' 人'; b.nr.title = '砲還在的 ' + gn + ' 門';
+}
+/** 船隻配置頁最上面那個大圓鈕（跟艦隊圓鈕同一種畫法：天與海、側面投影、艦名；沒有圓環）。 */
+function badgeDraw(cv, T, name) {
+  var dpr = window.devicePixelRatio || 1, W = Math.round((cv.clientWidth || 150) * dpr); if (!W) return;
+  cv.width = cv.height = W; var g = cv.getContext('2d'), R = W / 2; g.clearRect(0, 0, W, W);
+  g.fillStyle = 'rgba(12,18,26,.92)'; g.beginPath(); g.arc(R, R, R - 1, 0, 6.2832); g.fill();
+  var sky = g.createLinearGradient(0, R * 0.2, 0, R * 1.8); sky.addColorStop(0, '#6f8aa3'); sky.addColorStop(0.62, '#a9bccb'); sky.addColorStop(0.63, '#3e6680'); sky.addColorStop(1, '#2a4a60');
+  g.fillStyle = sky; g.beginPath(); g.arc(R, R, R * 0.86, 0, 6.2832); g.fill();
+  g.lineWidth = Math.max(2, 2 * dpr); g.strokeStyle = '#e8c26a'; g.beginPath(); g.arc(R, R, R - 2 * dpr, 0, 6.2832); g.stroke();
+  var im = T && T.sideImg;
+  if (im) { var bw = R * 1.5, bh = R * 1.15, k = Math.min(bw / im.width, bh / im.height), iw = im.width * k, ih = im.height * k;
+    g.save(); g.beginPath(); g.arc(R, R, R * 0.86, 0, 6.2832); g.clip(); g.imageSmoothingEnabled = true; g.drawImage(im, R - iw / 2, R * 1.12 - ih, iw, ih); g.restore(); }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.shadowColor = '#000'; g.shadowBlur = 4 * dpr; g.fillStyle = '#fff';
+  g.font = 'bold ' + Math.round(R * 0.2) + 'px "Noto Sans TC","Microsoft JhengHei",sans-serif'; g.fillText(name, R, R * 1.4, R * 1.3);
 }
 function sbDraw(b, o, flip) {
   var hull = o.grid.count / o.orig, fl = o.sunk ? 1 : floodPct(o), st = o.sunk ? '沉沒' : o.sinkingFinal ? '下沉' : o.struck ? '降旗' : '';
@@ -7690,7 +7721,7 @@ function fleetHud(me) {
       if (o.sunk && o.sunkHud == null) o.sunkHud = SIMT;                                                      // 沉沒那一刻（模擬時間；只給 HUD 用）
       if (o.sunk && SIMT - o.sunkHud > SUNK_HIDE) { if (SB_EL[o.i]) { SB_EL[o.i].el.remove(); delete SB_EL[o.i]; } if (INFO_SH === o) INFO_SH = null; return; }
       var b = SB_EL[o.i]; if (!b || b.box !== box) { if (b) b.el.remove(); b = SB_EL[o.i] = sbMake(o, box); }
-      sbDraw(b, o, s === 'R');
+      sbDraw(b, o, s === 'R'); sbNums(b, o);
     });
     var n = RESERVE[team].length, rc = box.querySelector('.sbres');
     if (n && !rc) { rc = document.createElement('div'); rc.className = 'sbres'; box.appendChild(rc); }
@@ -8440,6 +8471,22 @@ function sliders() {
     (T.rig.models || []).forEach(function (m) { var k = modelKind(m); if (GUNS[k]) { g[k] = (g[k] || 0) + 1; n++; } if (k === 'wheel') wheel = true; });
     return { guns: g, n: n, masts: T.masts.length, wheel: wheel };
   }
+  /** 全船人數（跟船員那一節的合計同一條算法）。 */
+  function crewTotal(cw, hc) { var g = 0; Object.keys(GUNS).forEach(function (t) { g += gunCrew(cw, t) * (hc.guns[t] || 0); }); return g + Math.ceil(hc.n / 2) * cw.monkeys + cw.officers + (hc.wheel ? cw.helm : 0) + cw.marines + cw.top * hc.masts + cw.hands; }
+  /** 船隻配置頁最上面（Tim 2026-10-14）：大圓鈕（61_hud.js badgeDraw）＋排水量、航速（順風／側順風／逆風，照這一型的航速與逆風性能、玩法的加成；標準風、滿帆）、砲、船員、靈活與硬度。 */
+  function shipCardShow() {
+    var T = HULLT[CFG_ID], h = hullInfo(CFG_ID), el = $('shipCardT'); badgeDraw($('shipCardC'), T, h ? h.name : CFG_ID);
+    if (!T) { el.innerHTML = '<div class="h">' + (h ? h.name : CFG_ID) + '</div><div class="n">船型載入中…</div>'; return; }
+    var c = shipCfg(CFG_ID), hc = hullCounts(CFG_ID), kn = VMAX * c.speed * playK('speed') * 1.9438, UP = c.upwind || 1, dz = 180 - NOGO_DEG, stall = 180 - (UP === 1 ? dz : 90 + (dz - 90) * UP);
+    var gl = Object.keys(GUNS).filter(function (t) { return hc.guns[t]; }).map(function (t) { return (GUNS[t].short || GUNS[t].name).trim() + ' ' + hc.guns[t]; }).join('、');
+    el.innerHTML = '<div class="h">' + h.name + '</div>' +
+      '排水量 <b>' + Math.round(T.disp).toLocaleString() + '</b> 噸<span class="n">（設計水線）</span><br>' +
+      '航速 順風 <b>' + (kn * polar(0)).toFixed(1) + '</b>・側順風 <b>' + kn.toFixed(1) + '</b>（最快）・逆風 <b>' + (kn * polar(dz)).toFixed(1) + '</b> 節<br>' +
+      '<span class="n">標準風、滿帆；逆風 ＝ 離風 ' + Math.round(stall) + '° 時（再頂就開始失速）' + (PLAY === 'fun' ? '；含娛樂玩法的加成' : '') + '</span><br>' +
+      '砲 <b>' + hc.n + '</b> 門<span class="n">（' + gl + '）</span><br>' +
+      '船員 約 <b>' + crewTotal(shipCrew(CFG_ID), hc) + '</b> 人<span class="n">（含預備水手 ' + shipCrew(CFG_ID).hands + '）</span><br>' +
+      '靈活 <b>×' + (+c.agile).toFixed(2) + '</b>・船殼硬度 <b>' + (+c.hard).toFixed(1) + '</b>・桅 <b>' + hc.masts + '</b> 根';
+  }
   function rankList(n) { var r = OFFICER_RANKS.slice(0, n); if (n > OFFICER_RANKS.length) r.push('見習軍官 ' + (n - OFFICER_RANKS.length)); return r.join('、'); }
   // 艙房（船隻配置頁；TASK-0568）：這一型標好的空艙房一間一列 —— 房間類型（放不下必要件的那個選項不能選、寫出原因）、擺了什麼、buff；
   //   「擺設…」打開那一間的俯視格子編輯器（#roomEd；0.5 m 一格）：挑物品、點格子擺（物品的中心在點的那一格）、轉 90°、拿掉、自動擺滿、清空。
@@ -8629,6 +8676,7 @@ function sliders() {
         : '上一場實際上船 ' + seen.n + ' 人' + (seen.short.length ? '；站位不夠、站不下的：' + seen.short.map(function (r) { return r[0] + ' ' + r[2] + '／' + r[1]; }).join('、') + '。' : '，全部站得下。');
       $('crewSum').textContent = '全船約 ' + tot + ' 人：砲班 ' + gsum + '、送藥手約 ' + pm + '、軍官 ' + cw.officers + '、舵手 ' + hl + '、陸戰隊 ' + cw.marines + '、桅頂 ' + tp + '、預備水手 ' + cw.hands + '。' + ss;
     } else $('crewSum').textContent = '船型載入後算得出全船人數。';
+    shipCardShow();
     $('shipSt').textContent = PREFS.write ? '改了就自動存在這個瀏覽器（重新整理、下次打開都還在）；換瀏覽器或裝置：用下面的匯出、匯入。'
       : '⚠ 這一頁現在存不了' + (PREFS.state ? '（' + PREFS.state + '）' : '（網址帶了設定參數、或是在畫廊的彈窗裡）') + ' —— 要留住請用下面的「匯出」。';
   }

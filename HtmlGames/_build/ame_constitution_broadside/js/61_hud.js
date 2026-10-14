@@ -119,8 +119,31 @@ function camSee(o) { if (!o) return; CAM.mode = 3; CAM.follow = null; CAM.pan = 
 function fleetReset() { INFO_SH = null; for (var k in SB_EL) SB_EL[k].el.remove(); SB_EL = {}; [].forEach.call(document.querySelectorAll('.sbres'), function (e) { e.remove(); }); }
 function sbMake(o, box) {
   var el = document.createElement('div'), cv = document.createElement('canvas'); el.className = 'sb'; el.appendChild(cv);
+  var nl = document.createElement('span'), nr = document.createElement('span'); nl.className = 'sbn l'; nr.className = 'sbn r'; el.appendChild(nl); el.appendChild(nr);   // 船員、砲（sbNums）
   el.onclick = function (e) { e.stopPropagation(); INFO_SH = INFO_SH === o ? null : o; fleetHud(SHIPS[PLAYER_I]); };
-  box.insertBefore(el, box.querySelector('.sbres')); return { el: el, cv: cv, box: box, key: '' };
+  box.insertBefore(el, box.querySelector('.sbres')); return { el: el, cv: cv, box: box, key: '', nl: nl, nr: nr, nk: '' };
+}
+/** 圓鈕兩側的數字：左下 還能動的船員、右下 還在的砲（像素圖示：HUD 美術的「船員」「裝填好」；沒有美術 ⇒ emoji）。 */
+function sbIcon(k, emo) { return HUD_ART ? '<span class="ico" style="background-position:' + (k * 100 / 7).toFixed(3) + '% 0"></span>' : '<i>' + emo + '</i>'; }
+function sbNums(b, o) {
+  var cr = 0, gn = 0; o.crew.forEach(function (c) { if (able(c)) cr++; }); o.guns.forEach(function (g) { if (g.alive) gn++; });
+  var k = cr + '/' + gn + (HUD_ART ? 'a' : ''); if (k === b.nk) return; b.nk = k;
+  b.nl.innerHTML = sbIcon(0, '👤') + cr; b.nr.innerHTML = sbIcon(3, '💥') + gn;
+  b.nl.title = '船員還能動的 ' + cr + ' 人'; b.nr.title = '砲還在的 ' + gn + ' 門';
+}
+/** 船隻配置頁最上面那個大圓鈕（跟艦隊圓鈕同一種畫法：天與海、側面投影、艦名；沒有圓環）。 */
+function badgeDraw(cv, T, name) {
+  var dpr = window.devicePixelRatio || 1, W = Math.round((cv.clientWidth || 150) * dpr); if (!W) return;
+  cv.width = cv.height = W; var g = cv.getContext('2d'), R = W / 2; g.clearRect(0, 0, W, W);
+  g.fillStyle = 'rgba(12,18,26,.92)'; g.beginPath(); g.arc(R, R, R - 1, 0, 6.2832); g.fill();
+  var sky = g.createLinearGradient(0, R * 0.2, 0, R * 1.8); sky.addColorStop(0, '#6f8aa3'); sky.addColorStop(0.62, '#a9bccb'); sky.addColorStop(0.63, '#3e6680'); sky.addColorStop(1, '#2a4a60');
+  g.fillStyle = sky; g.beginPath(); g.arc(R, R, R * 0.86, 0, 6.2832); g.fill();
+  g.lineWidth = Math.max(2, 2 * dpr); g.strokeStyle = '#e8c26a'; g.beginPath(); g.arc(R, R, R - 2 * dpr, 0, 6.2832); g.stroke();
+  var im = T && T.sideImg;
+  if (im) { var bw = R * 1.5, bh = R * 1.15, k = Math.min(bw / im.width, bh / im.height), iw = im.width * k, ih = im.height * k;
+    g.save(); g.beginPath(); g.arc(R, R, R * 0.86, 0, 6.2832); g.clip(); g.imageSmoothingEnabled = true; g.drawImage(im, R - iw / 2, R * 1.12 - ih, iw, ih); g.restore(); }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.shadowColor = '#000'; g.shadowBlur = 4 * dpr; g.fillStyle = '#fff';
+  g.font = 'bold ' + Math.round(R * 0.2) + 'px "Noto Sans TC","Microsoft JhengHei",sans-serif'; g.fillText(name, R, R * 1.4, R * 1.3);
 }
 function sbDraw(b, o, flip) {
   var hull = o.grid.count / o.orig, fl = o.sunk ? 1 : floodPct(o), st = o.sunk ? '沉沒' : o.sinkingFinal ? '下沉' : o.struck ? '降旗' : '';
@@ -164,7 +187,7 @@ function fleetHud(me) {
       if (o.sunk && o.sunkHud == null) o.sunkHud = SIMT;                                                      // 沉沒那一刻（模擬時間；只給 HUD 用）
       if (o.sunk && SIMT - o.sunkHud > SUNK_HIDE) { if (SB_EL[o.i]) { SB_EL[o.i].el.remove(); delete SB_EL[o.i]; } if (INFO_SH === o) INFO_SH = null; return; }
       var b = SB_EL[o.i]; if (!b || b.box !== box) { if (b) b.el.remove(); b = SB_EL[o.i] = sbMake(o, box); }
-      sbDraw(b, o, s === 'R');
+      sbDraw(b, o, s === 'R'); sbNums(b, o);
     });
     var n = RESERVE[team].length, rc = box.querySelector('.sbres');
     if (n && !rc) { rc = document.createElement('div'); rc.className = 'sbres'; box.appendChild(rc); }

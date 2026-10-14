@@ -22,6 +22,12 @@
   .sb:hover{ transform:scale(1.07); box-shadow:0 0 0 2px rgba(255,255,255,.55), 0 2px 9px rgba(0,0,0,.7); } .sb:active{ transform:scale(.94); }
   .sb.on{ box-shadow:0 0 0 3px var(--gold), 0 2px 10px rgba(0,0,0,.7); } .sb.out{ opacity:.75; }
   .sb canvas{ position:absolute; inset:0; width:100%; height:100%; cursor:pointer; touch-action:manipulation; }
+  /* 艦隊圓鈕兩側的數字（Tim 2026-10-14）：左下 ＝ 還能動的船員、右下 ＝ 還在的砲；像素圖示（HUD 美術）或 emoji，壓在外圈上 */
+  .sbn{ position:absolute; bottom:-3px; display:flex; align-items:center; gap:1px; padding:0 3px; border-radius:7px; background:rgba(10,14,20,.86); color:#f2f2f2; font:bold 11px/14px Consolas,monospace; pointer-events:none; white-space:nowrap; z-index:1; }
+  .sbn.l{ left:-6px; } .sbn.r{ right:-6px; } .sbn .ico{ width:12px; height:12px; vertical-align:0; } .sbn i{ font-style:normal; font-size:10px; }
+  /* 船隻配置頁最上面（Tim 2026-10-14）：大一點的艦隊圓鈕＋重要資訊 */
+  #shipCard{ display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin:6px auto 4px; max-width:660px; }
+  #shipCardC{ position:static; inset:auto; width:150px; height:150px; flex:none; } #shipCardT{ text-align:left; font-size:14px; line-height:1.75; min-width:220px; flex:1; } #shipCardT b{ color:var(--gold); font-weight:normal; } #shipCardT .h{ font-size:17px; color:var(--gold); } #shipCardT .n{ color:var(--dim); font-size:12px; }
   .sbres{ font-size:12px; color:var(--dim); background:var(--panel); border-radius:10px; padding:2px 8px; }
   #topC{ left:50%; top:12px; transform:translateX(-50%); width:max(280px, min(900px, calc(100vw - 200px))); display:flex; flex-direction:column; align-items:center; }
   #info{ display:none; pointer-events:auto; cursor:pointer; border-left:3px solid var(--blue); margin-bottom:6px; max-width:100%; box-sizing:border-box; }
@@ -111,6 +117,7 @@
     .fleet{ top:6px; gap:4px; max-height:calc(100vh - 175px); } #fleetL{ left:5px; } #fleetR{ right:5px; }
     #botC{ --gc:9px; } .gside{ max-width:calc(50vw - 48px); } .helm{ gap:5px; } #helmL{ flex-direction:column-reverse; } #helmR{ flex-direction:column; } #ctlRow{ gap:2px; width:100%; }
     .kb.hb{ width:46px; height:46px; font-size:10px; } .kb.hb b{ font-size:9px; }
+    .sbn{ font-size:9px; line-height:11px; padding:0 2px; } .sbn .ico{ width:9px; height:9px; } .sbn i{ font-size:8px; } .sbn.l{ left:-4px; } .sbn.r{ right:-4px; top:-3px; bottom:auto; }   /* 圓鈕 38 px：兩個放在同一條底邊會疊在一起 ⇒ 對角（船員左下、砲右上） */ #shipCardC{ width:120px; height:120px; } #shipCardT{ font-size:13px; }
     #botC{ bottom:6px; width:calc(100vw - 6px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
     #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
     #navc{ width:68px; height:68px; } #modeT{ font-size:12px; }
@@ -322,6 +329,7 @@
       <h2>船隻配置</h2>
       <div class="sub">一型船一份：同一型的船（我方、敵方、友艦、候補）都照這一份。下一場開始生效。預設值在後台管理頁設。</div>
       <div class="row slide"><label for="cfgShip">船型</label><select id="cfgShip" aria-label="編輯哪一型船"></select></div>
+      <div id="shipCard"><canvas id="shipCardC"></canvas><div id="shipCardT"></div></div>
       <div class="row note" id="shipSt"></div>
       <div class="row note" id="shipAdm">設定後台：這裡改的是設定檔的預設（ships[].rooms），改了就送回後台；記得在後台按「儲存」，重建之後遊戲才吃得到。船員與性能的預設在後台的欄位改。</div>
       <div class="nadm">
