@@ -111,7 +111,7 @@ function panel(sh, title) {
 //   外圈 ＝ 船體（金）、內圈 ＝ 進水（水藍），中間 ＝ 那一型的側面投影（05_hull.js sideImg；我方船頭朝右、敵方朝左 ⇒ 都朝畫面中間）與艦名；
 //   ★ ＝ 我艦；沉沒、下沉、降旗寫在圖上、整顆變暗。按鈕的畫布只在讀數變了才重畫（key）。
 // 點一顆 ⇒ 中間展開那一艘的詳細資訊（panel，同時最多一艘）；點同一顆或點資訊本身 ⇒ 收回。預設全折疊、每一場開局全折疊（fleetReset，70_flow.js reset）。
-var INFO_SH = null, SB_EL = {};
+var INFO_SH = null, SB_EL = {}, SUNK_HIDE = 60;   // SUNK_HIDE：沉了幾秒（模擬時間）之後上方的圓鈕收掉（Tim 2026-10-14：補船之後那一欄才不會越排越長）
 // 點資訊或旁邊的砲位圖任何地方 ⇒ 收回。用 pointerdown：⛔ click 要按下、放開都落在同一個元素 —— 卡片每 6 格整個重畫（innerHTML），按下到放開之間剛好重畫 ⇒ click 不觸發（Tim：收起有時沒反應）
 ['info', 'gmap'].forEach(function (id) { $(id).addEventListener('pointerdown', function (e) { e.preventDefault(); if (e.target.closest && e.target.closest('[data-see]')) { camSee(INFO_SH); return; } INFO_SH = null; fleetHud(SHIPS[PLAYER_I]); }); });
 /** 「🎥 看這艘」（詳細資訊的標題列；Tim 2026-10-14）：鏡頭換成看那一艘（看我艦那一種：跟著它、繞著它轉，拖曳、平移、縮放照舊）；資訊不收。按 C 換鏡頭 ⇒ 回到照常的循環。 */
@@ -161,6 +161,8 @@ function fleetHud(me) {
     var box = $('fleet' + s), team = s === 'L' ? pt : other(pt);
     SHIPS.forEach(function (o) {
       if (o.team !== team) return;
+      if (o.sunk && o.sunkHud == null) o.sunkHud = SIMT;                                                      // 沉沒那一刻（模擬時間；只給 HUD 用）
+      if (o.sunk && SIMT - o.sunkHud > SUNK_HIDE) { if (SB_EL[o.i]) { SB_EL[o.i].el.remove(); delete SB_EL[o.i]; } if (INFO_SH === o) INFO_SH = null; return; }
       var b = SB_EL[o.i]; if (!b || b.box !== box) { if (b) b.el.remove(); b = SB_EL[o.i] = sbMake(o, box); }
       sbDraw(b, o, s === 'R');
     });
@@ -222,7 +224,7 @@ function gunCell(g) {
   var hp = !g.alive ? 0 : Math.max(0, g.model.hp / g.model.hpMax), hurt = g.alive && hp < 0.999;   // 受損 ⇒ 底下一條血條（.hp::after，寬 ＝ 剩下的血量）
   var cls = 'g-' + st + (hurt ? ' hp' : ''), sty = hurt ? '--hp:' + Math.round(hp * 100) + '%;' : '';
   if (HUD_ART) return '<span class="ico ' + cls + '" style="' + sty + 'background-position:' + ((3 + (k === 4 ? 1 : k === 5 ? 2 : k)) * 100 / 7).toFixed(3) + '% 0"></span>';
-  return '<span class="' + cls + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';
+  return '<span class="' + cls + ' gk' + k + '"' + (sty ? ' style="' + sty + '"' : '') + '>' + '●◌○✕△≈'[k] + '</span>';   // gk<k>：比較寬的符號（✕ △）在 HUD 的固定格子裡縮小字級（template.html）
 }
 /** HUD 放哪：追擊砲 ⇒ 砲軸偏船頭 'bow'、偏船尾 'stern'（⛔ 只看砲軸：憲法號、餘燼號船頭的追擊砲朝兩舷外 60–75°，會被當成側舷）；
  *  其他砲 ⇒ 砲軸（格座標，+x ＝ 船頭）幾乎朝船頭／船尾才算，不然 ＝ 側舷 'side'。 */
@@ -236,7 +238,7 @@ function gunHud(me) {
   ['P', 'S'].forEach(function (side) {
     var rows = me.decks.map(function (D) { return me.guns.filter(function (x) { return x.deck === D.key && x.side === side && gunDir(x) === 'side'; }); }).filter(function (r) { return r.length; }).reverse();
     var on = w && me.guns.some(function (g) { return g.side === side && gunDir(g) === 'side' && g.alive && gunRate(g) > 0 && gunTarget(me, g, w); });
-    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + (side === 'P' ? r.slice().reverse() : r).map(gunCell).join('') + '</div>'; }).join('');   // 左舷倒過來 ⇒ 兩舷都是船頭靠羅盤
+    var box = $(side === 'P' ? 'gunsL' : 'gunsR'), h = rows.map(function (r) { return '<div>' + r.map(gunCell).join('') + '</div>'; }).join('');   // 左舷那一欄 rtl（template.html）⇒ 兩舷都是船頭靠羅盤、換行也從羅盤那邊接
     if (box.innerHTML !== h) box.innerHTML = h;
     box.classList.toggle('on', !!on);
   });
@@ -263,6 +265,15 @@ function hudArt() {
   var st = document.createElement('style');
   st.textContent = '.ico{display:inline-block;width:14px;height:14px;vertical-align:-2px;background-image:url(' + HUD_ART.src + ');background-size:800% 200%;}';
   document.head.appendChild(st);
+}
+/** 羅盤那一團（#navBox）往下壓、底邊貼在下方面板（#ctl）頂上 BOT_GAP px（Tim 2026-10-14）：量現在差多少、改 margin-bottom（負的 ⇒ 落進兩組大圓鈕之間；砲列壓在大圓鈕底下）。
+ *  #botC 可能被 scale（手機橫拿 .82）⇒ 量到的差先除回去；差不到半格不動。 */
+var BOT_GAP = 2;
+function botFit() {
+  var nb = $('navBox'), ctl = $('ctl'), bc = $('botC'); if (!nb || !ctl) return;
+  var k = bc.getBoundingClientRect().width / (bc.offsetWidth || 1) || 1, d = (ctl.getBoundingClientRect().top - BOT_GAP - nb.getBoundingClientRect().bottom) / k;
+  if (Math.abs(d) < 0.5) return;
+  nb.style.marginBottom = Math.min(0, (parseFloat(nb.style.marginBottom) || 0) - d) + 'px';   // ⛔ 不給正的：面板比大圓鈕高的時候照舊排在面板上面
 }
 // ───────────────────────── 左下：羅盤與船身 ─────────────────────────
 // 羅盤跟著鏡頭轉（畫面上方 ＝ 鏡頭看的方向）；「北」＝ 世界 −z（只是參考方向，航向照它算：東 ＝ +x）。
@@ -384,6 +395,7 @@ function hud(dt) {
   var me = SHIPS[PLAYER_I];
   fleetHud(me);                                                                  // 上方：每艘一個圓形按鈕＋中間一艘的詳細資訊（TASK-0552）
   gunHud(me);                                                                   // 我艦的砲：兩舷貼左右兩邊、追擊砲與射界外警告在下方面板
+  botFit();
   pauseLabel();
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
   // 瞄準模式＋鏡頭名稱：羅盤底下一行空心字（Tim 2026-10-14；Q 那顆按鈕只寫「瞄準」）；鏡頭名稱要常駐（Tim：拿掉之後看不出現在是哪個鏡頭）

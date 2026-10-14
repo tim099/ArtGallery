@@ -42,7 +42,7 @@
   .bar.water i{ background:#4fb3d9; }
   /* 下方（TASK-0567，Tim 2026-10-14；電腦與手機同一種排法）：左下 ＝ 帆與左舵（左舵最左、收帆、加帆）；右下 ＝ 開砲與右舵（單門、齊射、右舵最右）；
      中間一欄 ＝ 羅盤＋面板：由上到下 ＝ 瞄準／鏡頭／停格／設定、砲列、彈種、航行與自動開砲（設定那一列跟彈種、航行隔著砲列 ⇒ 不會誤觸）。手機只是縮小、兩組改成直的（左舵、右舵在最下面靠角落）。 */
-  .helm{ display:flex; gap:8px; pointer-events:auto; flex:none; }   /* 帆與舵（左）、開砲與舵（右）兩組大圓鈕：貼著中間的主面板（#ctlRow；Tim 2026-10-14：⛔ 以前貼畫面兩邊） */
+  .helm{ display:flex; gap:8px; pointer-events:auto; flex:none; position:relative; z-index:2; }   /* 帆與舵（左）、開砲與舵（右）兩組大圓鈕：貼著中間的主面板（#ctlRow；Tim 2026-10-14：⛔ 以前貼畫面兩邊） */
   #ctlRow{ display:flex; align-items:flex-end; justify-content:center; gap:8px; max-width:100%; }
   .kb.hb{ width:64px; height:64px; margin:0; padding:0; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.25; font-size:12px;
     background:rgba(14,18,24,.78); border:1px solid rgba(255,255,255,.32); box-shadow:0 2px 7px rgba(0,0,0,.6); }
@@ -57,7 +57,7 @@
   .kb b, .chip b{ color:var(--gold); } .chip.on b{ color:#4a3500; }
   .kb:active, .kb.down{ background:rgba(232,194,106,.38); }
   #keys .hint{ color:var(--dim); font-size:12px; margin-right:4px; }
-  #modeT{ font-size:13px; line-height:1.2; white-space:nowrap; color:#f2f2f2; margin:-2px 0 -1px;   /* 羅盤底下：瞄準模式＋鏡頭，空心字直接壓在海上（Tim 2026-10-14） */
+  #modeT{ font-size:13px; line-height:1.2; white-space:nowrap; color:#f2f2f2; margin:0;   /* 羅盤上方（有船頭砲 ⇒ 船頭砲上方）：瞄準模式＋鏡頭，空心字直接壓在海上（Tim 2026-10-14） */
     text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000, 0 0 4px rgba(0,0,0,.8); }
   #modeT b{ color:var(--gold); font-weight:normal; }
   .chip{ display:inline-block; margin:2px 3px 0; padding:0 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); font-size:12px; }
@@ -65,11 +65,22 @@
   #guns{ margin-top:4px; font-size:12px; }
   /* 兩舷的砲（Tim 2026-10-14）：貼著羅盤左右兩邊往外長（左舷在左、右舷在右；船頭那門靠羅盤）；沒有字、沒有底板（符號描黑邊直接壓在畫面上）；每層砲甲板一行、最上層在上；
      對得到目標的那一舷靠羅盤那一側一條金線。掛在羅盤（#nav）上、上下置中（⛔ 放進 #botC 的排版裡 ⇒ 手機那一欄太窄，羅盤被擠小） */
-  #nav{ position:relative; } .gside{ position:absolute; top:50%; transform:translateY(-50%); font-family:Consolas,monospace; font-size:14px; line-height:1.3; letter-spacing:1px; white-space:nowrap; pointer-events:none; padding:0 4px;
+  /* 砲太多伸到大圓鈕那邊 ⇒ 壓在按鈕底下（Tim 2026-10-14）：.gside z-index 1、.helm 2（兩個都在 #botC 這個疊放層裡） */
+  #nav{ position:relative; } .gside{ z-index:1; position:absolute; top:50%; transform:translateY(-50%); font-family:Consolas,monospace; letter-spacing:0; white-space:nowrap; pointer-events:none; padding:0 4px;
     text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 3px rgba(0,0,0,.9); }
   #gunsL{ right:100%; border-right:3px solid transparent; text-align:right; } #gunsR{ left:100%; border-left:3px solid transparent; text-align:left; }
   #gunsL.on{ border-right-color:var(--gold); } #gunsR.on{ border-left-color:var(--gold); }
-  .gend{ font-family:Consolas,monospace; font-size:14px; line-height:1.2; letter-spacing:2px; white-space:nowrap; margin:-3px 0; padding:0 2px;
+  /* 砲的符號固定大小（Tim 2026-10-14）：每門一個 --gc 見方的格子、符號置中 ⇒ 不管字型（手機沒有 Consolas）、符號（● 跟 ◌ 寬不一樣）或圖示，都一樣大 */
+  /* 一排放不下（畫面窄、砲多）⇒ 從羅盤那一側接著換行（左舷 rtl ⇒ 每一行都從靠羅盤那邊開始排），換下去的那幾行壓在大圓鈕底下（Tim 2026-10-14） */
+  #botC{ --gc:12px; } .gside{ width:max-content; max-width:calc(50vw - 85px); }   /* ⛔ 只給 max-width ⇒ 收縮寬度照 #nav（74 px）算、一行只排一門 */
+  .gend{ line-height:0; }
+  .gside > div{ display:flex; flex-wrap:wrap; gap:1px 0; margin:0 0 3px; } .gside > div:last-child{ margin-bottom:0; } #gunsL > div{ direction:rtl; }
+  .gside > div > span, .gend > span{ display:inline-block; width:var(--gc); height:var(--gc); line-height:var(--gc); font-size:var(--gc); text-align:center; vertical-align:top; flex:none; overflow:visible; } .gend{ display:flex; gap:0; }
+  .gside > div > span:not(.ico), .gend > span:not(.ico){ width:calc(var(--gc) * .8); }   /* 左右再擠一點（Tim 2026-10-14：不重疊就好）：● ◌ 約 .55 字寬 ⇒ 格子 .8 不會碰在一起；圖示版維持正方形（⛔ 窄了貼圖會被壓扁） */
+  .gside .gk3, .gend .gk3{ font-size:calc(var(--gc) * .85); } .gside .gk4, .gend .gk4{ font-size:calc(var(--gc) * .68); }   /* ✕ 約 .8 字寬、△ 約 1.1 字寬（Chrome 量的）⇒ 縮到放得進 .8 的格子 */
+  /* 羅盤那一團（說明字、船頭砲、羅盤、船尾砲）往下壓、貼在下方面板上（Tim 2026-10-14）：61_hud.js botFit 照 #ctl 的頂調 margin-bottom（負的 ⇒ 落進兩組大圓鈕之間） */
+  #navBox{ display:flex; flex-direction:column; align-items:center; gap:1px; }
+  .gend{ font-family:Consolas,monospace; letter-spacing:0; white-space:nowrap; margin:0; padding:1px 2px;
     text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 3px rgba(0,0,0,.9); }   /* 船頭砲（羅盤上）、船尾砲（羅盤下）：同上，沒有底板 */
   #gunsB{ border-bottom:2px solid transparent; } #gunsA{ border-top:2px solid transparent; } #gunsB.on{ border-bottom-color:var(--gold); } #gunsA.on{ border-top-color:var(--gold); }
   .gr{ font-family:Consolas,monospace; font-size:12px; letter-spacing:1px; white-space:nowrap; display:inline-flex; align-items:center; vertical-align:middle; }
@@ -98,11 +109,11 @@
   /* 手機直拿：跟電腦同一種排法，只是縮小 —— 艦隊按鈕 38 px、左右兩組打舵開砲改成直的一欄、中間一欄窄一點 */
   @media (max-width:760px){
     .fleet{ top:6px; gap:4px; max-height:calc(100vh - 175px); } #fleetL{ left:5px; } #fleetR{ right:5px; }
-    .gside{ font-size:11px; letter-spacing:0; } .helm{ gap:5px; } #helmL{ flex-direction:column-reverse; } #helmR{ flex-direction:column; } #ctlRow{ gap:2px; width:100%; }
+    #botC{ --gc:9px; } .gside{ max-width:calc(50vw - 48px); } .helm{ gap:5px; } #helmL{ flex-direction:column-reverse; } #helmR{ flex-direction:column; } #ctlRow{ gap:2px; width:100%; }
     .kb.hb{ width:46px; height:46px; font-size:10px; } .kb.hb b{ font-size:9px; }
     #botC{ bottom:6px; width:calc(100vw - 6px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
     #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
-    #navc{ width:84px; height:84px; } #modeT{ font-size:12px; }
+    #navc{ width:68px; height:68px; } #modeT{ font-size:12px; }
     #ctl{ flex:1; padding:5px 3px; } #ctl .kb, #ctl .chip{ font-size:12px; padding:4px 5px; margin-left:1px; margin-right:1px; } #ammo span{ margin:0 2px; padding:1px 6px; } #keys .hint{ display:none; } #guns .gr{ white-space:normal; word-break:break-all; } #tip{ display:none; }   /* 砲列在窄面板裡換行 */
     #msg{ font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：跟資訊同一欄（頂端中間，兩邊艦隊按鈕之間） */
     .hud h3 .disp{ display:block; margin-left:0; } }                                     /* 排水量換到船名下一行（⛔ 同一行 ⇒ 面板縮半之後「現在 …」被切掉） */
@@ -185,7 +196,7 @@
   <div id="fleetL" class="hud fleet"></div>
   <div id="fleetR" class="hud fleet"></div>
   <div id="topC" class="hud"><div id="fps" class="hud"></div><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
-  <div id="botC" class="hud"><div id="gunsB" class="gend"></div><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div><div id="gunsL" class="gside"></div><div id="gunsR" class="gside"></div></div><div id="gunsA" class="gend"></div><div id="modeT"></div>
+  <div id="botC" class="hud"><div id="navBox"><div id="modeT"></div><div id="gunsB" class="gend"></div><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div><div id="gunsL" class="gside"></div><div id="gunsR" class="gside"></div></div><div id="gunsA" class="gend"></div></div>
   <div id="ctlRow"><div id="helmL" class="helm"><span class="kb hb" data-k="a" data-hold="1"><b>A</b>◀ 左舵</span><span class="kb hb" data-k="s"><b>S</b>收帆</span><span class="kb hb" data-k="w"><b>W</b>加帆</span></div><div id="ctl" class="panel">
     <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p" id="pauseK"><b>P</b> 停格</span><span class="kb" id="setB"><b>O</b> 設定</span></div>
     <div id="guns"></div>
