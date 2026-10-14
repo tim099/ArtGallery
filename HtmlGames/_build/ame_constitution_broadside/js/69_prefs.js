@@ -13,7 +13,7 @@ var PREF_Q = ['wdir', 'wspd', 'ship', 'blue', 'red', 'hard', 'flood', 'ballast',
   'box', 'carry', 'hands', 'drown', 'wind', 'ammo', 'strike', 'cap', 'phys', 'sail', 'play', 'stall', 'funspeed', 'funagile', 'funstall', 'funpowder', 'sea',
   'gfx', 'g_shadow', 'g_refl', 'g_refr', 'g_sea', 'g_res', 'g_aa', 'phx', 'p_rig', 'p_debris', 'p_fx', 'weather', 'g_rain', 'g_drops', 'g_dropspl', 'g_shships', 'g_masks', 'dist', 'field', 'reinf', 'cmd', 'blue', 'red', 'slowmo', 'slowcam', 'roomfn', 'navre'];          // 會蓋過存檔的網址參數（04_state.js、05_hull.js 讀的那些）
 var DMG_Q = { long: 'dmg24', long32: 'dmg32l', carr: 'dmg32', chase: 'dmg18', long4: 'dmg4' };
-var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0', write: false, state: '', last: '' };
+var PREFS = { read: DEMO < 0 && Q.get('prefs') !== '0' && !Q.has('admin'), write: false, state: '', last: '' };   // ?admin=rooms（設定後台嵌的那一份）⇒ 不讀不存
 PREFS.write = PREFS.read && !PREF_Q.some(function (k) { return Q.has(k); });
 // ?cmd=我方,敵方（艦隊指揮官，52_fleet.js CMD_SIDE）：放這裡 —— ⛔ 放在 52_fleet.js 那時 53_commander.js 的 CMD_NAMES 還沒定義 ⇒ 帶 ?cmd 一開就丟錯、整頁停在載入
 if (Q.has('cmd')) Q.get('cmd').split(',').forEach(function (w, i) { if (i < 2 && CMD_NAMES[w]) CMD_SIDE[i ? 'red' : 'blue'] = w; });

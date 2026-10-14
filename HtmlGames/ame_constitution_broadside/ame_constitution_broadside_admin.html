@@ -46,6 +46,7 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
 #banner { display: none; background: var(--bad-bg); color: var(--bad); border: 1px solid var(--bad); border-radius: 8px; padding: 12px 16px; }
 #errs { color: var(--bad); margin: 0; padding-left: 18px; }
 .mute { color: var(--mute); }
+#roomsWrap { padding: 0 16px 16px; } #roomsF { width: 100%; height: 86vh; border: 1px solid var(--line); border-radius: 6px; background: #000; display: block; }
 @media (max-width: 600px) { header { padding: 8px 16px; } main { padding: 12px 16px; } input[type=number] { width: 70px; } }
 </style>
 </head>
@@ -100,6 +101,11 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
     <div class="row"><input id="iWork" placeholder="雕刻作品 ID" style="flex:2;min-width:220px"><input id="iId" placeholder="代號（英文小寫，例 frigate2）" style="flex:1;min-width:150px"><input id="iName" placeholder="名字（例 二號艦）" style="flex:1;min-width:120px"><button id="bImport" class="pri">匯入</button></div>
   </section>
 </main>
+<!-- 甲板與艙房的預設（TASK-0568）：格子要船型 ⇒ 嵌一份建好的遊戲（/game?admin=rooms，只開船隻配置頁的甲板與艙房）當編輯器；它改了就把那一型送回來 -->
+<div id="roomsWrap"><section><h2>甲板與艙房（每艘船的預設）</h2>
+  <p class="note">在下面的遊戲畫面裡選船型、改：艙房選類型（自動擺滿）或「擺設…」自己擺；甲板擺火藥桶（取用點）。改了就寫進這裡的設定（ships[].rooms，黃色的「還沒存」），按上面的「儲存」才存檔、重建之後遊戲才吃得到。玩家自己在遊戲裡改的不受影響。編輯器用的是上一次建好的成品（新船、新的艙房標記要先重建）。</p>
+  <p class="note" id="roomsSum"></p>
+  <iframe id="roomsF" src="/game?admin=rooms" title="甲板與艙房編輯器"></iframe></section></div>
 <script>
 (function () {
   'use strict';
@@ -262,7 +268,7 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
   }
   function load(keepLog) {
     return api('/api/state').then(function (st) {
-      S = st; C = JSON.parse(JSON.stringify(st.config)); C0 = st.committed; dirty = false; render();
+      S = st; C = JSON.parse(JSON.stringify(st.config)); C0 = st.committed; dirty = false; render(); roomsPush();
       if (!keepLog) say(['讀了 ' + st.paths.config, '成品：' + st.paths.out, C0 ? '黃底 ＝ 跟版控（git HEAD）裡的不一樣' : '版控裡還沒有這份設定檔 ⇒ 不標黃底']);
     }).catch(function () { $('banner').style.display = 'block'; $('st').textContent = '讀不到設定（要由 admin.py serve 開）'; ['bSave', 'bBuild', 'bBoth', 'bRevert', 'bImport'].forEach(function (k) { $(k).disabled = true; }); });
   }
@@ -275,6 +281,17 @@ td.k { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: v
       say(lines); return then ? then() : load(true).then(function () { say(lines); return true; });
     }).catch(function (e) { busy = false; say(['連不上 admin.py：' + e], true); status(); return false; });
   }
+  // 甲板與艙房：嵌的遊戲準備好（cb-ready）或這裡重讀設定 ⇒ 把每艘船的預設送過去（cb-defaults）；它改了 ⇒ 送回那一型（cb-rooms）⇒ 照收、標成還沒存
+  function roomsPush() { try { $('roomsF').contentWindow.postMessage({ kind: 'cb-defaults', rooms: C.ships.reduce(function (o, s) { o[s.id] = s.rooms; return o; }, {}) }, location.origin); } catch (e) { /* 還沒載好：等 cb-ready */ } roomsSum(); }
+  function roomsSum() { $('roomsSum').textContent = C.ships.map(function (s) { var n = Object.keys(s.rooms || {}).length, c = C0 && !same(s.rooms, (C0.ships.filter(function (x) { return x.id === s.id; })[0] || {}).rooms); return s.name + '：' + (n ? n + ' 間有寫' : '沒寫（艙房空著、甲板照舊）') + (c ? '（跟版控不一樣）' : ''); }).join('；'); }
+  window.addEventListener('message', function (ev) {
+    if (ev.origin !== location.origin || !ev.data || !C) return;
+    if (ev.data.kind === 'cb-ready') return roomsPush();
+    if (ev.data.kind !== 'cb-rooms') return;
+    var s = C.ships.filter(function (x) { return x.id === ev.data.id; })[0]; if (!s) return;
+    if (ev.data.rooms && Object.keys(ev.data.rooms).length) s.rooms = ev.data.rooms; else delete s.rooms;
+    touch(); roomsSum();
+  });
   function saveCfg() { return call('/api/config', { config: C }, function () { return load(true).then(function () { return true; }); }); }
   $('bSave').onclick = function () { saveCfg().then(function (ok) { if (ok) say(['✓ 存了 config/game.json —— 重建之後遊戲才吃得到']); }); };
   $('bBuild').onclick = function () { if (dirty && !confirm('有還沒存的修改；重建只照磁碟上的設定檔。照樣重建？')) return; call('/api/build', {}); };

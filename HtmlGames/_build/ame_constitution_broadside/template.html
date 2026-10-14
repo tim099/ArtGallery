@@ -126,7 +126,11 @@
   #roomItems .rm{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 8px; font-size:13px; margin:5px 0; } #roomItems .rm label{ min-width:10em; text-align:right; } #roomItems .rm .rs{ color:var(--dim); font-size:12px; text-align:left; max-width:30em; } #roomItems select{ max-width:9em; }   /* 艙房一間一列（TASK-0568）；⛔ 選單不限寬 ⇒ 最長那個選項（放不下的原因）把選單撐成整排、手機多出橫向捲動 */
   #roomItems button, #roomEd button{ font-size:13px; padding:4px 10px; margin:2px; } #roomItems button.on, #roomEd button.on{ color:#111; background:var(--gold); border-color:var(--gold); }
   #roomEd{ margin:8px auto; max-width:660px; border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:8px; } #roomEd .rt{ color:var(--gold); font-size:14px; margin-bottom:4px; } #roomEd .rn{ color:var(--dim); font-size:12px; margin:4px 0; line-height:1.5; }
-  #roomEdW{ overflow-x:auto; max-width:100%; } #deckItems .rm{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 8px; font-size:13px; margin:5px 0; } #deckItems .rm label{ min-width:10em; text-align:right; } #deckItems .rm .rs{ color:var(--dim); font-size:12px; text-align:left; max-width:30em; } #deckItems button{ font-size:13px; padding:4px 10px; margin:2px; } #deckItems button.on{ color:#111; background:var(--gold); border-color:var(--gold); }
+  #roomEdW{ max-width:100%; }
+  body.roomEdOn #roomEd{ position:fixed; inset:8px; z-index:50; max-width:none; margin:0; overflow-y:auto; background:#141a22; border-color:rgba(255,255,255,.3); box-shadow:0 6px 30px rgba(0,0,0,.6); }   /* 打開 ⇒ 接近全螢幕（Tim 2026-10-14） */
+  #cover #pgX{ position:fixed; top:10px; right:12px; z-index:40; display:none; margin:0; background:#e3c46a; color:#111; border-color:#e3c46a; box-shadow:0 2px 10px rgba(0,0,0,.6); } #cover #pgX.on{ display:block; }
+  #roomEdX2{ display:none; } body.roomEdOn #roomEdX2{ display:block; position:sticky; top:0; float:right; z-index:2; background:#e3c46a; color:#111; border-color:#e3c46a; }   /* 編輯器浮層：右上角的完成（捲動時黏在上面） */
+  #shipAdm{ display:none; } #shipp.admin #shipAdm{ display:block; color:#ffd27a; } #shipp.admin .nadm{ display:none; }   /* 設定後台嵌的那一份（?admin=rooms） */ #deckItems .rm{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 8px; font-size:13px; margin:5px 0; } #deckItems .rm label{ min-width:10em; text-align:right; } #deckItems .rm .rs{ color:var(--dim); font-size:12px; text-align:left; max-width:30em; } #deckItems button{ font-size:13px; padding:4px 10px; margin:2px; } #deckItems button.on{ color:#111; background:var(--gold); border-color:var(--gold); }
   #roomEd canvas{ position:static; display:block; margin:6px auto; touch-action:manipulation; cursor:crosshair; }   /* ⛔ 全域的 canvas 是 absolute（遊戲畫面）⇒ 編輯器的格子會飛到頁面外 */
   #cover table.ammo{ margin:4px auto; border-collapse:collapse; font-size:13px; }
   #cover table.ammo th, #cover table.ammo td{ padding:2px 8px; } #cover table.ammo th{ color:var(--dim); font-weight:400; }
@@ -238,6 +242,7 @@
   </div>
 
   <div id="cover">
+    <button id="pgX" aria-label="返回主選單">返回</button><!-- 細節、畫質、物理、船隻配置頁：右上角固定的返回（Tim 2026-10-14：不用捲到底才按得到、不跟著捲） -->
     <div class="card panel">
       <h1>憲法號對轟</h1>
       <div class="row" id="modes">
@@ -298,21 +303,25 @@
       <div class="sub">一型船一份：同一型的船（我方、敵方、友艦、候補）都照這一份。下一場開始生效。預設值在後台管理頁設。</div>
       <div class="row slide"><label for="cfgShip">船型</label><select id="cfgShip" aria-label="編輯哪一型船"></select></div>
       <div class="row note" id="shipSt"></div>
+      <div class="row note" id="shipAdm">設定後台：這裡改的是設定檔的預設（ships[].rooms），改了就送回後台；記得在後台按「儲存」，重建之後遊戲才吃得到。船員與性能的預設在後台的欄位改。</div>
+      <div class="nadm">
       <h3>船員</h3>
       <div id="crewItems"></div>
       <div class="row note" id="crewSum"></div>
+      </div>
       <h3>甲板與艙房</h3>
       <div id="deckItems"></div>
       <div id="roomItems"></div>
       <div class="row note" id="roomSum"></div>
       <div id="roomEd" style="display:none">
-        <div class="rt" id="roomEdT"></div>
+        <button id="roomEdX2">完成</button><div class="rt" id="roomEdT"></div>
         <div class="pal" id="roomEdP"></div>
         <div id="roomEdW"><canvas id="roomEdC"></canvas></div>
-        <div class="rn">← 船尾　船頭 →；上 ＝ 左舷、下 ＝ 右舷。綠 ＝ 可以擺、黃 ＝ 門口走道（不能擺）、深色 ＝ 站不住。物品的中心擺在點的那一格；每一件都要有一邊從門口走得到。</div>
+        <div class="rn" id="roomEdL"></div>
         <div class="rn" id="roomEdV"></div>
         <div><button id="roomEdA">自動擺滿</button><button id="roomEdZ">清空</button><button id="roomEdX">完成</button></div>
       </div>
+      <div class="nadm">
       <h3>性能</h3>
       <div class="row note">壓艙物的預設 ＝ 那艘剛好浮在設計水線。</div>
       <div class="row slide"><label for="hard">硬度</label><input type="range" id="hard"><span id="hardV"></span></div>
@@ -325,6 +334,7 @@
       <div class="row slide"><label for="upwind">逆風</label><input type="range" id="upwind" step="0.05" aria-label="逆風性能"><span id="upwindV"></span></div>
       <div class="row"><button id="shipR">這一型回到預設</button><button id="shipE">匯出…</button><button id="shipI">匯入…</button><input type="file" id="shipF" accept=".json,application/json" style="display:none"></div>
       <div class="row"><button id="shipX">返回</button></div>
+      </div>
     </div>
     <!-- 細節設定（從主選單進）：滑桿的上下限與預設在 js/04_state.js 的 LIM（網址參數共用同一組） -->
     <div class="card panel" id="detail" style="display:none">

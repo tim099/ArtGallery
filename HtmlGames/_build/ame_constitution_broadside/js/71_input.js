@@ -236,7 +236,15 @@ function sliders() {
   //   甲板也是一間（Tim 2026-10-14）：每一層砲甲板一列，只擺火藥桶（取用點）；沒擺過 ＝ 自動（照舊的那幾處）。RE.d ＝ 編輯的是甲板。
   var RE = { i: -1, d: false, it: '', r: 0, del: false, hover: null, msg: '' }, ITEM_COL = { bed: '#d8cba4', table: '#9a7552', medkit: '#c04a40', keg: '#7a5230' };
   function roomName(r) { return (r.deck ? r.deck.name + ' ' : '') + r.name.split('/').slice(-2).join(' ').replace('艙房-鏡像', '左').replace('艙房', '右'); }
-  function roomSet(name, v) { (SHIP_ROOMS[CFG_ID] = SHIP_ROOMS[CFG_ID] || {})[name] = v; }
+  var ADM_SENT = {};                                                 // 後台模式：每一型上一次送回後台的預設（一樣就不送）
+  function roomSet(name, v) { (SHIP_ROOMS[CFG_ID] = SHIP_ROOMS[CFG_ID] || {})[name] = v; if (ADMIN_ROOMS) ADM_SENT[CFG_ID] = ADM_SENT[CFG_ID] || ''; }
+  /** 後台模式：使用者改過的那一型 ⇒ 把預設送回後台（後台照收、標成還沒存）。 */
+  function roomsAdminPost() {
+    if (!ADMIN_ROOMS || ADM_SENT[CFG_ID] === undefined || !HULLT[CFG_ID]) return;
+    var o = roomsDefaultSnap(CFG_ID), s = JSON.stringify(o);
+    if (s === ADM_SENT[CFG_ID]) return;
+    ADM_SENT[CFG_ID] = s; try { window.parent.postMessage({ kind: 'cb-rooms', id: CFG_ID, rooms: o }, location.origin); } catch (e) { /* 不是嵌在後台裡 */ }
+  }
   function itemsText(items) { var n = {}; items.forEach(function (q) { n[q.it] = (n[q.it] || 0) + 1; }); return Object.keys(n).map(function (it) { return FURN[it].name + ' ' + n[it]; }).join('、'); }
   function furnNote(it) { var f = FURN[it], b = f.buff || {}; return f.role === 'powder' ? '一處三桶' : f.hold ? '躺 ' + f.hold + ' 人' : Object.keys(b).map(function (k) { return (BUFF_NAMES[k] || k) + ' +' + Math.round(b[k] * 100) + '%'; }).join('、'); }
   function roomsPut() {
@@ -281,7 +289,7 @@ function sliders() {
     });
     $('roomSum').textContent = !T ? '船型載入後列得出艙房。' : !R.length ? '這一型還沒標空艙房（造船規格 §9.2：艙房子作品的固定點 <房名>.min／.max、關聯 meta kind=rooms）。'
       : R.length + ' 間空艙房' + (Object.keys(n).length ? '：' + Object.keys(n).map(function (f) { return ROOM_FN[f].name + ' ' + n[f] + ' 間'; }).join('、') : '，都空著') + '。選了類型就自動擺滿（先擺必要件、再擺加強件、剩下的空間多擺）；「擺設…」自己擺。門口留一格走道。' + (ROOMFN_Q ? '　⚠ 網址 ?roomfn= 蓋過' : '');
-    roomEdShow();
+    roomEdShow(); roomsAdminPost();
   }
   /** 編輯器裡那一間：{ T, name（擺法的鍵）, label, G, pl（擺法）, I（實際擺上的）}；沒有打開 ⇒ null。 */
   function roomEdCur() {
@@ -292,49 +300,64 @@ function sliders() {
   }
   function roomEdShow() {
     var ed = $('roomEd'), E = roomEdCur();
-    if (!E) { ed.style.display = 'none'; RE.i = -1; return; }
-    ed.style.display = '';
+    if (!E) { ed.style.display = 'none'; RE.i = -1; document.body.classList.remove('roomEdOn'); return; }
+    ed.style.display = ''; document.body.classList.add('roomEdOn');            // 打開 ⇒ 接近全螢幕的浮層（Tim：拉寬、儘量不要捲軸）
     var F = ROOM_FN[E.pl.type], its = E.I.items.map(function (q) { return q.it; }), B = roomBuff(E.pl.type, its), lack = roomLack(E.pl.type, its), cap = 0;
     if (!RE.it || F.items.indexOf(RE.it) < 0) RE.it = F.items[0];
     E.I.items.forEach(function (q) { cap += FURN[q.it].hold || 0; });
     $('roomEdT').textContent = E.label + '・' + F.name + '（' + E.G.nx + '×' + E.G.ny + ' 格，一格 0.5 m）' + (E.I.auto ? (RE.d ? '・自動（照舊的取用點）' : '・自動擺滿') : '・自訂');
     $('roomEdA').textContent = RE.d ? '回到自動' : '自動擺滿';
     $('roomEdP').innerHTML = F.items.map(function (it) { return '<button data-it="' + it + '"' + (RE.it === it && !RE.del ? ' class="on"' : '') + '>' + FURN[it].name + '（' + furnNote(it) + '）</button>'; }).join('') +
-      '<button data-rot="1">轉 90°（' + (RE.r ? '直' : '橫') + '）</button><button data-del="1"' + (RE.del ? ' class="on"' : '') + '>拿掉</button>';
+      '<button data-rot="1">轉 90°（' + (RE.r ? '橫過船身' : '順著船身') + '）</button><button data-del="1"' + (RE.del ? ' class="on"' : '') + '>拿掉</button>';
     [].forEach.call($('roomEdP').querySelectorAll('button'), function (b) {
       b.onclick = function () { if (b.dataset.it) { RE.it = b.dataset.it; RE.del = false; } else if (b.dataset.rot) RE.r = 1 - RE.r; else RE.del = !RE.del; RE.msg = ''; roomEdShow(); };
     });
     $('roomEdV').innerHTML = (RE.d ? '取用點 ' + E.I.items.length + ' 處：送藥手到最近的一處拿火藥與彈藥（彈藥庫 ＝ 離它最近的那間）；被打到會殉爆。深紅 ＝ 砲班的位置（不能擺）。' : '') + (cap ? '容納 ' + cap + ' 人' : '') + (Object.keys(B).length ? (cap ? '・' : '') + buffText(B) : '') + (lack ? '　<b style="color:#ff9a7a">缺必要件（' + lack + '）⇒ 這一間不能用</b>' : '') +
       (E.I.bad.length ? '<br>⚠ 存的擺法這幾件擺不下（沒擺）：' + E.I.bad.join('；') : '') + (E.I.why ? '<br>⚠ ' + E.I.why : '') + (RE.msg ? '<br>' + RE.msg : '') + (ROOMFN_Q ? '<br>⚠ 網址 ?roomfn= 蓋過：這裡改的開戰時不會用' : '');
+    var L = roomEdLay(E.G);
+    $('roomEdL').textContent = (L.rot ? '↑ 船頭；左 ＝ 左舷、右 ＝ 右舷' : '← 船尾　船頭 →；上 ＝ 左舷、下 ＝ 右舷') + '。綠 ＝ 可以擺、' + (RE.d ? '深紅 ＝ 砲班的位置' : '黃 ＝ 門口走道') + '（不能擺）、深色 ＝ 站不住。物品的中心擺在點的那一格' + (RE.d ? '。' : '；每一件都要有一邊從門口走得到。');
     roomEdDraw(E);
+  }
+  /** 格子怎麼畫：一格幾 px、要不要轉（窄的螢幕上，長的甲板改成船頭朝上 ⇒ 往下捲、不用左右捲）。 */
+  function roomEdLay(G) {
+    var W = Math.max(200, ($('roomEd').clientWidth || innerWidth) - 24), a = Math.floor(W / G.nx), b = Math.floor(W / G.ny);
+    if (a < 9 && G.nx > G.ny && b > a) return { rot: true, cs: Math.min(40, b) };
+    return { rot: false, cs: Math.max(6, Math.min(40, a)) };
   }
   /** 物品的中心落在 (i, j) 那一格 ⇒ 最小角。 */
   function roomEdAt(it, r, i, j) { var t = itemTiles(it, r); return { it: it, x: i - Math.floor((t[0] - 1) / 2), y: j - Math.floor((t[1] - 1) / 2), r: r }; }
   function roomEdHit(items, i, j) { return items.filter(function (q) { var t = itemTiles(q.it, q.r); return i >= q.x && i < q.x + t[0] && j >= q.y && j < q.y + t[1]; })[0] || null; }
   function roomEdDraw(E) {
-    var cv = $('roomEdC'), G = E.G, W = Math.min($('roomEd').clientWidth || 600, 640) - 20, cs = Math.max(G.deck ? 8 : 10, Math.min(34, Math.floor(W / G.nx))), dpr = window.devicePixelRatio || 1;   // 甲板很長 ⇒ 一格最少 8 px、左右捲（#roomEdW）
-    cv.style.width = G.nx * cs + 'px'; cv.style.height = G.ny * cs + 'px'; cv.width = Math.round(G.nx * cs * dpr); cv.height = Math.round(G.ny * cs * dpr); cv.cs = cs;
+    var cv = $('roomEdC'), G = E.G, L = roomEdLay(G), cs = L.cs, dpr = window.devicePixelRatio || 1, W = (L.rot ? G.ny : G.nx) * cs, H = (L.rot ? G.nx : G.ny) * cs;
+    cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.lay = L;
     var x = cv.getContext('2d'), i, j; x.setTransform(dpr, 0, 0, dpr, 0, 0);
-    for (j = 0; j < G.ny; j++) for (i = 0; i < G.nx; i++) { var s = G.s[i + j * G.nx]; x.fillStyle = s === 0 ? '#20252c' : s === 2 ? '#5d5530' : s === 3 ? '#4e2a26' : '#3b4a3a'; x.fillRect(i * cs, j * cs, cs, cs); }
-    x.strokeStyle = 'rgba(255,255,255,.12)'; x.lineWidth = 1; x.beginPath();
-    for (i = 0; i <= G.nx; i++) { x.moveTo(i * cs + 0.5, 0); x.lineTo(i * cs + 0.5, G.ny * cs); }
-    for (j = 0; j <= G.ny; j++) { x.moveTo(0, j * cs + 0.5); x.lineTo(G.nx * cs, j * cs + 0.5); }
-    x.stroke();
+    /** 格子（i, j）起、寬 wi 格、高 hj 格的那一塊 ⇒ 畫面上的 [x, y, w, h]（轉了 ⇒ 船頭朝上：畫面的列 ＝ nx − 1 − i、欄 ＝ j）。 */
+    function R(i0, j0, wi, hj) { return L.rot ? [j0 * cs, (G.nx - i0 - wi) * cs, hj * cs, wi * cs] : [i0 * cs, j0 * cs, wi * cs, hj * cs]; }
+    for (j = 0; j < G.ny; j++) for (i = 0; i < G.nx; i++) { var s = G.s[i + j * G.nx], r = R(i, j, 1, 1); x.fillStyle = s === 0 ? '#20252c' : s === 2 ? '#5d5530' : s === 3 ? '#4e2a26' : '#3b4a3a'; x.fillRect(r[0], r[1], r[2], r[3]); }
+    if (cs >= 6) {
+      x.strokeStyle = 'rgba(255,255,255,.12)'; x.lineWidth = 1; x.beginPath();
+      for (i = 0; i <= W / cs; i++) { x.moveTo(i * cs + 0.5, 0); x.lineTo(i * cs + 0.5, H); }
+      for (j = 0; j <= H / cs; j++) { x.moveTo(0, j * cs + 0.5); x.lineTo(W, j * cs + 0.5); }
+      x.stroke();
+    }
     var hit = RE.hover && RE.del ? roomEdHit(E.I.items, RE.hover[0], RE.hover[1]) : null;
-    x.font = Math.max(9, Math.min(12, cs * 0.45)) + 'px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = Math.max(9, Math.min(13, cs * 0.45)) + 'px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
     E.I.items.forEach(function (q) {
-      var t = itemTiles(q.it, q.r);
-      x.fillStyle = ITEM_COL[q.it] || '#aaa'; x.fillRect(q.x * cs + 2, q.y * cs + 2, t[0] * cs - 4, t[1] * cs - 4);
-      x.strokeStyle = q === hit ? '#ff5040' : 'rgba(0,0,0,.6)'; x.lineWidth = q === hit ? 3 : 1; x.strokeRect(q.x * cs + 2, q.y * cs + 2, t[0] * cs - 4, t[1] * cs - 4);
-      x.fillStyle = q.it === 'keg' ? '#f2dcb8' : '#111'; if (t[0] * cs > 22) x.fillText(q.it === 'keg' ? '桶' : FURN[q.it].name, (q.x + t[0] / 2) * cs, (q.y + t[1] / 2) * cs);
+      var t = itemTiles(q.it, q.r), r = R(q.x, q.y, t[0], t[1]);
+      x.fillStyle = ITEM_COL[q.it] || '#aaa'; x.fillRect(r[0] + 2, r[1] + 2, r[2] - 4, r[3] - 4);
+      x.strokeStyle = q === hit ? '#ff5040' : 'rgba(0,0,0,.6)'; x.lineWidth = q === hit ? 3 : 1; x.strokeRect(r[0] + 2, r[1] + 2, r[2] - 4, r[3] - 4);
+      x.fillStyle = q.it === 'keg' ? '#f2dcb8' : '#111'; if (Math.min(r[2], r[3]) > 14 && Math.max(r[2], r[3]) > 22) x.fillText(q.it === 'keg' ? '桶' : FURN[q.it].name, r[0] + r[2] / 2, r[1] + r[3] / 2);
     });
     if (RE.hover && !RE.del) {
-      var q = roomEdAt(RE.it, RE.r, RE.hover[0], RE.hover[1]), t = itemTiles(q.it, q.r), ok = !placeOk(G, E.pl.type, E.I.items, q);
-      x.fillStyle = ok ? 'rgba(120,255,140,.35)' : 'rgba(255,90,70,.35)'; x.fillRect(q.x * cs, q.y * cs, t[0] * cs, t[1] * cs);
-      x.strokeStyle = ok ? '#7f8' : '#f65'; x.lineWidth = 2; x.strokeRect(q.x * cs + 1, q.y * cs + 1, t[0] * cs - 2, t[1] * cs - 2);
+      var q = roomEdAt(RE.it, RE.r, RE.hover[0], RE.hover[1]), t = itemTiles(q.it, q.r), ok = !placeOk(G, E.pl.type, E.I.items, q), r2 = R(q.x, q.y, t[0], t[1]);
+      x.fillStyle = ok ? 'rgba(120,255,140,.35)' : 'rgba(255,90,70,.35)'; x.fillRect(r2[0], r2[1], r2[2], r2[3]);
+      x.strokeStyle = ok ? '#7f8' : '#f65'; x.lineWidth = 2; x.strokeRect(r2[0] + 1, r2[1] + 1, r2[2] - 2, r2[3] - 2);
     }
   }
-  function roomEdTile(ev) { var cv = $('roomEdC'), b = cv.getBoundingClientRect(), cs = cv.cs || 20; return [Math.floor((ev.clientX - b.left) / cs), Math.floor((ev.clientY - b.top) / cs)]; }
+  function roomEdTile(ev) {
+    var cv = $('roomEdC'), b = cv.getBoundingClientRect(), L = cv.lay || { cs: 20 }, c = Math.floor((ev.clientX - b.left) / L.cs), rw = Math.floor((ev.clientY - b.top) / L.cs), E = roomEdCur();
+    return L.rot && E ? [E.G.nx - 1 - rw, c] : [c, rw];
+  }
   $('roomEdC').onpointermove = function (ev) { var E = roomEdCur(); if (!E) return; var h = roomEdTile(ev); if (!RE.hover || h[0] !== RE.hover[0] || h[1] !== RE.hover[1]) { RE.hover = h; roomEdDraw(E); } };
   $('roomEdC').onpointerleave = function () { var E = roomEdCur(); RE.hover = null; if (E) roomEdDraw(E); };
   $('roomEdC').onclick = function (ev) {
@@ -352,12 +375,24 @@ function sliders() {
   };
   $('roomEdA').onclick = function () {
     var E = roomEdCur(); if (!E) return;
-    if (RE.d) { if (SHIP_ROOMS[CFG_ID]) delete SHIP_ROOMS[CFG_ID][E.name]; RE.msg = '回到自動（照舊的取用點）'; }   // 甲板的自動 ＝ 不存（⇒ 開戰時照舊找、戰局跟沒改過一樣）
+    if (RE.d) { roomSet(E.name, { type: 'deck' }); RE.msg = '回到自動（照舊的取用點）'; }   // 甲板的自動 ＝ 沒有 items（⇒ 開戰時照舊找、戰局跟沒改過一樣；蓋過設定檔的自訂預設）
     else { roomSet(E.name, { type: E.pl.type }); RE.msg = '自動擺滿了'; }
     show();
   };
   $('roomEdZ').onclick = function () { var E = roomEdCur(); if (!E) return; roomSet(E.name, { type: E.pl.type, items: [] }); RE.msg = '清空了'; show(); };
-  $('roomEdX').onclick = function () { RE.i = -1; show(); };
+  $('roomEdX').onclick = $('roomEdX2').onclick = function () { RE.i = -1; show(); };
+  window.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && RE.i >= 0) { RE.i = -1; show(); } });
+  window.addEventListener('resize', function () { if (RE.i >= 0) roomEdShow(); });
+  // 後台模式（?admin=rooms）：只開船隻配置頁的甲板與艙房；後台送來設定檔的預設（{ kind:'cb-defaults', rooms: { 船型: ships[].rooms } }）⇒ 換掉預設、清掉這裡改的
+  if (ADMIN_ROOMS) {
+    $('shipp').classList.add('admin');
+    window.addEventListener('message', function (ev) {
+      if (ev.origin !== location.origin || !ev.data || ev.data.kind !== 'cb-defaults') return;
+      HULL_KNOWN.forEach(function (h) { h.rooms = ev.data.rooms[h.id] || undefined; });
+      Object.keys(SHIP_ROOMS).forEach(function (k) { delete SHIP_ROOMS[k]; }); ADM_SENT = {};
+      put(); show();
+    });
+  }
   function crewPut() {
     var cw = shipCrew(CFG_ID), hc = hullCounts(CFG_ID);
     Object.keys(CR).forEach(function (key) { var e = CR[key]; e.el.value = e.it.gun ? gunCrew(cw, e.it.gun) : cw[e.it.k]; if (e.it.gun) e.row.style.display = !hc || hc.guns[e.it.gun] ? '' : 'none'; });
@@ -472,7 +507,7 @@ function sliders() {
   cs.onchange = function () { CFG_ID = cs.value; loadHull(CFG_ID).then(function () { put(); show(); }); put(); show(); };
   fleetUI();                                                     // 主選單：艦隊編成
   // 細節設定那一頁：主選單 ⇄ 細節設定（同一個 #cover 裡兩張卡片，一次顯示一張）
-  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; $('phxp').style.display = w === 'phx' ? '' : 'none'; $('shipp').style.display = w === 'ship' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp):not(#phxp):not(#shipp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定、'phx' 物理設定、'ship' 船隻配置
+  function page(w) { $('detail').style.display = w === 'det' ? '' : 'none'; $('gfxp').style.display = w === 'gfx' ? '' : 'none'; $('phxp').style.display = w === 'phx' ? '' : 'none'; $('shipp').style.display = w === 'ship' ? '' : 'none'; document.querySelector('#cover .card:not(#detail):not(#gfxp):not(#phxp):not(#shipp)').style.display = w ? 'none' : ''; $('cover').scrollTop = 0; $('pgX').classList.toggle('on', !!w && !ADMIN_ROOMS); }   // w：'' 主選單、'det' 細節設定、'gfx' 畫質設定、'phx' 物理設定、'ship' 船隻配置
   [].forEach.call(document.querySelectorAll('#plays button'), function (b) { b.onclick = function () { setPlay(b.dataset.p); show(); }; });   // 主選單：玩法
   $('detB').onclick = function () { page('det'); };
   $('detX').onclick = function () { page(''); };
@@ -481,7 +516,9 @@ function sliders() {
   $('phxB').onclick = function () { page('phx'); };
   $('phxX').onclick = function () { page(''); };
   $('shipB').onclick = function () { page('ship'); loadHull(CFG_ID).then(function () { put(); show(); }); };   // 船隻配置：先載那一型（砲數、桅數、壓艙物的預設要船型）
+  if (ADMIN_ROOMS) { $('shipB').onclick(); try { window.parent.postMessage({ kind: 'cb-ready' }, location.origin); } catch (e) { /* 不是嵌在後台裡 */ } }
   $('shipX').onclick = function () { page(''); };
+  $('pgX').onclick = function () { RE.i = -1; show(); page(''); };   // 右上角的返回（每一頁同一顆）
   var rArm = 0;                                        // 這一型回到預設：按兩下（Tim：編起來很花時間 ⇒ 不要一按就沒了；⛔ 不用 confirm()：畫廊彈窗的 iframe 沒開 allow-modals，confirm 直接回 false）
   $('shipR').onclick = function () {
     var b = $('shipR'), hi = hullInfo(CFG_ID);

@@ -203,6 +203,27 @@ def validate(cfg, prev=None):
                     err(p + '.' + k, '缺')
     geo(cfg.get('geo0'), 'geo0', True)
     crew(cfg.get('crew0'), 'crew0', True)
+    FU, RT = cfg.get('furniture') or {}, cfg.get('rooms') or {}
+
+    def rooms(rm, p):
+        # 甲板與艙房的預設（TASK-0568；遊戲 36_rooms.js）：{ 房名: '類型'（艙房自動擺滿）｜{ type, items: [{ it, x, y, r }] }（自訂；甲板 type=deck）}
+        #   房名、格子要船型才驗得了 ⇒ 這裡只驗形狀；開戰時遊戲照格子再驗一次（擺不下的不擺）
+        if not isinstance(rm, dict):
+            return err(p, '要是物件 { 房名: 類型或擺法 }')
+        for k, v in rm.items():
+            q = p + '.' + k
+            if isinstance(v, str):
+                if v not in RT or RT[v].get('deck'):
+                    err(q, '不認得的艙房類型 %s（rooms 裡的：%s）' % (v, '、'.join(x for x in RT if not RT[x].get('deck'))))
+                continue
+            if not (isinstance(v, dict) and v.get('type') in RT and isinstance(v.get('items'), list)):
+                err(q, "要是類型字串或 { type, items }")
+                continue
+            for j, it in enumerate(v['items']):
+                if not (isinstance(it, dict) and it.get('it') in FU and isint(it.get('x')) and isint(it.get('y')) and 0 <= it['x'] < 400 and 0 <= it['y'] < 400 and it.get('r', 0) in (0, 1)):
+                    err('%s.items[%d]' % (q, j), '{ it: 物品, x, y: 0～399 的整數, r: 0 或 1 }')
+                elif RT[v['type']].get('items') and it['it'] not in RT[v['type']]['items']:
+                    err('%s.items[%d]' % (q, j), '%s 不能擺在 %s' % (it['it'], v['type']))
     S = cfg.get('ships')
     if not (isinstance(S, list) and S):
         err('ships', '至少要有一艘')
@@ -241,6 +262,8 @@ def validate(cfg, prev=None):
             geo(s['geo'], p + '.geo', False)
         if 'crew' in s:
             crew(s['crew'], p + '.crew', False)
+        if 'rooms' in s:
+            rooms(s['rooms'], p + '.rooms')
     if prev:
         for sec in ('limits', 'menu', 'lim', 'guns', 'geo0', 'crew0'):
             for k in (prev.get(sec) or {}):
@@ -569,8 +592,13 @@ def serve(port, do_open=False):
                 return
             if self.path == '/favicon.ico':
                 return self.send(204, b'', 'image/x-icon')
-            if self.path in ('/', '/index.html'):
+            path = self.path.split('?')[0]
+            if path in ('/', '/index.html'):
                 return self.send(200, open(PAGE, 'rb').read(), 'text/html; charset=utf-8')
+            if path == '/game':                      # 後台嵌的甲板與艙房編輯器（成品 ?admin=rooms；要船型的格子 ⇒ 用建好的成品）
+                if not os.path.exists(OUT):
+                    return self.send(404, {'ok': False, 'log': ['還沒建置成品']})
+                return self.send(200, open(OUT, 'rb').read(), 'text/html; charset=utf-8')
             if self.path == '/api/state':
                 return self.send(200, dict(act_state(), ok=True))
             self.send(404, {'ok': False, 'log': ['沒有這一頁']})

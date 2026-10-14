@@ -29,12 +29,23 @@ function hullRooms(T) {
 //   玩家在船隻配置頁的俯視格子編輯器（0.5 m 一格，ROOM_TILE）直接擺、轉 90°、拿掉，或一鍵「自動擺滿」（roomAuto）。
 //   物品給 buff（furniture[].buff，例：藥箱 治療速度 +15%）：同一間加總、上限 rooms[].buffCap，套用到同一間的物品（roomBuff）；容納 hold（病床躺 1 人）。
 // 每一型一份擺法：SHIP_ROOMS[船型][房名] ＝ { type, items: [{ it, x, y, r }] }（x、y ＝ 房間裡第幾格（物品的最小角），r ＝ 1 ⇒ 轉 90°（長邊沿 y））；
-//   沒有 items ⇒ 開戰時自動擺滿；null ⇒ 空著。預設 ＝ config ships[].rooms { 房名: 類型 }（⇒ 自動擺滿；電腦的船也照這一份）。存檔、匯出入：69_prefs.js。
+//   沒有 items ⇒ 開戰時自動擺滿；null ⇒ 空著。存檔、匯出入：69_prefs.js。
+//   預設 ＝ config ships[].rooms { 房名: '類型'（自動擺滿）｜{ type, items }（自訂；甲板也是）}；沒寫的艙房空著、沒寫的甲板照舊的取用點。
+//   預設在設定後台編：後台嵌一份 ?admin=rooms 的遊戲（只開船隻配置頁的甲板與艙房、不讀不存 localStorage），改了就把那一型的預設 postMessage 回後台（ADMIN_ROOMS）。
 // 物品 ＝ 模型（跟砲同一套血量、命中、飛出去；打壞的不再能用、不再給 buff）；雕刻的物品（TASK-0569）之前用程式產生的方塊（furnMesh）。
 var FURN = CFG.furniture || {}, ROOM_FN = CFG.rooms || {}, SHIP_ROOMS = {}, ROOM_TILE = 5, ROOM_HEAD = 14;
 var ROOM_AISLE = 6;                                                     // 門口走道：格子的中心離門 0.6 m 以內 ⇒ 不能擺（⇒ 門口往裡一格、門的兩旁各多一格；⛔ 整格碰到就算 ⇒ 往裡兩格，1.5×2 m 的房間擺不下床）
 var ROOMFN_Q = Q.get('roomfn');                                        // 量的時候：?roomfn=medical ⇒ 每一型每一間都配這個類型、自動擺滿（蓋過存檔與設定檔）
-function roomPlanDefault(id) { var h = HULL_KNOWN.filter(function (x) { return x.id === id; })[0], d = {}; Object.keys((h && h.rooms) || {}).forEach(function (k) { if (ROOM_FN[h.rooms[k]]) d[k] = { type: h.rooms[k] }; }); return d; }
+var ADMIN_ROOMS = Q.get('admin') === 'rooms';
+/** 設定檔的預設 ⇒ { 房名: 擺法 }（格式跟存檔同一套：69_prefs.js roomPlanParse）。 */
+function roomPlanDefault(id) { var h = HULL_KNOWN.filter(function (x) { return x.id === id; })[0], d = {}; Object.keys((h && h.rooms) || {}).forEach(function (k) { var v = roomPlanParse(h.rooms[k]); if (v) d[k] = v; }); return d; }
+/** 後台模式：那一型現在的擺法寫成預設的格式（艙房：自動 ⇒ '類型'、自訂 ⇒ { type, items }；甲板只寫自訂的；空著的不寫）。 */
+function roomsDefaultSnap(id) {
+  var T = HULLT[id], o = {}; if (!T) return null;
+  hullRooms(T).forEach(function (r) { var p = roomPlan(id, r.name); if (p) o[r.name] = p.items ? { type: p.type, items: p.items } : p.type; });
+  hullDeckKit(T).decks.forEach(function (D) { var p = deckPlan(id, D.id); if (p.items) o[D.id] = { type: 'deck', items: p.items }; });
+  return o;
+}
 /** 那一型那一間的擺法：{ type, items? }；空著 ⇒ null。（甲板那一間走 deckPlan） */
 function roomPlan(id, name) {
   if (ROOMFN_Q && ROOM_FN[ROOMFN_Q] && !ROOM_FN[ROOMFN_Q].deck) return { type: ROOMFN_Q };
@@ -63,8 +74,11 @@ function hullDeckKit(T) {
 }
 /** 那一層砲甲板當房間時的房名（擺法的鍵）。 */
 function deckId(D) { return D.meta ? D.meta.path : D.key; }
-/** 那一層甲板的擺法：沒有存 ⇒ { type:'deck' }（自動 ＝ 照舊的取用點）。 */
-function deckPlan(id, name) { var S = SHIP_ROOMS[id], p = S && S[name]; return p && p.type === 'deck' ? p : { type: 'deck' }; }
+/** 那一層甲板的擺法：存的 ← 設定檔的預設 ← { type:'deck' }（自動 ＝ 照舊的取用點）。 */
+function deckPlan(id, name) {
+  var S = SHIP_ROOMS[id], p = S && Object.prototype.hasOwnProperty.call(S, name) ? S[name] : roomPlanDefault(id)[name];
+  return p && p.type === 'deck' ? p : { type: 'deck' };
+}
 /** 那一層甲板照擺法擺上的取用點（格子）⇒ 跟 roomItems 同一個格式（auto ⇒ 照舊找的那幾處換成格子）。 */
 function deckItems(T, D, pl) {
   if (!pl.items) return { type: 'deck', items: deckAutoItems(T, D), bad: [], why: '', auto: true };
