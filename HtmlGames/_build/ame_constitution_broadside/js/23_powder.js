@@ -248,6 +248,7 @@ function makeMonkeys(sh, crew, taken, add) {
       var br = g.model.pts.breech || g.model.c, sg = g.side === 'P' ? -1 : 1;
       g.drop = standNear(BASE, Math.floor(br[0]) + 3, Math.floor(br[1] - sg * 7), zr[0], zr[1], 12, {}) || (g.spots.length ? g.spots[g.spots.length - 1].at : null);
     });
+    if (!sh.T.crew.monkeys) return;                                  // 船員配置：0 ＝ 沒有送藥手（砲旁的藥箱用完就停）
     var at = standNear(BASE, x, CY + (i % 2 ? 9 : -9), zr[0], zr[1], 12, taken); if (!at) return;
     add(ROLE.POWDER, at, null, 1);
     var c = crew[crew.length - 1]; c.deck = deck; c.guns = gs; c.pm = { st: 'idle', t: 0 }; c.cart = false;

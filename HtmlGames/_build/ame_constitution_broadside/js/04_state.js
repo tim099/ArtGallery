@@ -2,21 +2,17 @@
 var QIDX = null;                                   // 四邊形索引（每種船共用）；船型的資料在 05_hull.js
 var SHIPS = [], PIECES = [], BALLS = [], EVENTS = [], FLY = [], PLAYER_I = 0;
 // 選單的滑桿：[下限, 上限, 預設]。網址參數與滑桿共用這一組（⛔ 各一組 ⇒ ?demo 跑的不是網址寫的那組）；讀不懂的值 ⇒ 預設
-var LIM = { hard: [0.5, 20, 3], flood: [0, 2, 0.35], ballast: [0, 2000, 1075], gunw: [0, 5, 1], cas: [0.1, 1, 1], speed: [0.25, 3, 1], agile: [0.25, 3, 1], upwind: [0.5, 2, 1],
-  // 細節設定頁：血量（砲／帆／船員／火藥桶）、每發傷害（砲種）、殉爆威力。火藥桶預設 675（很難殉爆但有機率；Tim 2026-10-12：450 還是很容易炸 ⇒ 1.5 倍），拉滿 1000 ＝ 不會爆
-  gunhp: [20, 500, 200], sailhp: [20, 500, 100], crewhp: [20, 300, 100], powderhp: [20, 1000, 675], blast: [0.25, 4, 1], blastv: [0, 0.9, 0.4],   // blastv：每次爆炸的威力浮動 ±（Tim 2026-10-13：自爆太固定）
-  dmg24: [10, 300, 100], dmg32l: [10, 300, 130], dmg32: [10, 300, 120], dmg18: [10, 300, 70], dmg4: [10, 300, 35],   // dmg32l：32 磅長砲（餘燼號）、dmg4：4 磅砲（夜隼號）
-  box: [1, 8, 2], carry: [1, 6, 1], wind: [0.25, 3, 1],                                     // 補給：砲旁藥箱放幾份、送藥手一次搬幾份（Tim：可以一次存 n 發）
-  hands: [0, 120, 40],                                                                        // 預備水手（每艘幾個人物；0 ＝ 沒有，42_hands.js）
-  drown: [0, 120, 45],                                                                        // 溺水時間（秒；落水、被水淹過頭的人撐多久，43_swim.js；0 ＝ 照以前：落水當場算陣亡）
-  sea: [0, 3, 1],                                                                             // 浪的大小（08_sea.js）：0 ＝ 平靜、1 ＝ 中浪（浪高約 1–2 m）、3 ＝ 大浪
-  stall: [0, 1, 1],                                                                           // 頂風失速（31_sailing.js）：0 ＝ 頂風只是慢、1 ＝ 寫實
-  funspeed: [1, 3, 1.4], funagile: [1, 3, 1.5], funstall: [0, 1, 0.4],                       // 娛樂加成：玩法選「娛樂」時再乘的倍率（寫實 ＝ 都是 1）
-  funpowder: [0.1, 1, 2 / 3] };                                                               // 火藥血量：675 × 2/3 ＝ 450（Tim 2026-10-13 晚：「娛樂模式的彈藥庫血量要增加一些，憲法號很容易爆」；原本 4/9 ＝ 300）
+// 值住在 config/game.json 的 lim（TASK-0542 設定後台）；各鍵的意思：
+//   hard flood ballast gunw speed agile upwind：船隻設定（下面 SHIP_KEYS）；cas：降旗的死傷比例
+//   gunhp sailhp crewhp powderhp：血量（砲／帆／船員／火藥桶；火藥桶拉滿上限 ＝ 不會爆）；blast：殉爆威力；blastv：每次爆炸的威力浮動 ±
+//   dmg24 dmg32l dmg32 dmg18 dmg4：每發傷害（24 磅長砲、32 磅長砲（餘燼號）、32 磅 carronade、18 磅追擊砲、4 磅砲（夜隼號））
+//   box：砲旁藥箱放幾份；carry：送藥手一次搬幾份；wind：帆的風壓；hands：預備水手（每艘幾個人物，42_hands.js）；drown：溺水時間（秒，43_swim.js）
+//   sea：浪的大小（0 平靜、1 中浪、3 大浪）；stall：頂風失速（0 只是慢、1 寫實）；funspeed funagile funstall funpowder：娛樂加成（玩法選娛樂時再乘）
+var LIM = CFG.lim;
 function qnum(k, lim) { var v = parseFloat(Q.get(k)); return isFinite(v) ? clamp(v, lim[0], lim[1]) : lim[2]; }
 // 玩法（Tim 2026-10-13：配置分成寫實與娛樂兩組，主選單切換，預設娛樂）：細節設定的滑桿 ＝ 寫實的基準，
 //   娛樂 ＝ 在那之上再乘娛樂加成（航速、靈活性、頂風失速）。⇒ 兩組共用同一份滑桿，切換不會把調好的數字蓋掉。網址 ?play=real／fun
-var PLAY = Q.get('play') === 'real' ? 'real' : 'fun';
+var PLAY = Q.has('play') ? (Q.get('play') === 'real' ? 'real' : 'fun') : CFG.menu.play;   // 沒給 ⇒ 設定檔的預設（menu.play）
 var STALL_K = qnum('stall', LIM.stall);
 var FUN = { speed: qnum('funspeed', LIM.funspeed), agile: qnum('funagile', LIM.funagile), stall: qnum('funstall', LIM.funstall), powder: qnum('funpowder', LIM.funpowder) };
 function playK(k) { return PLAY === 'fun' ? FUN[k] : 1; }
@@ -33,7 +29,8 @@ var SHIP_KEYS = ['hard', 'flood', 'ballast', 'gunw', 'speed', 'agile', 'upwind']
 //   餘燼號是兩層砲甲板、90 門砲的重船 ⇒ 航速 0.85、靈活 0.7。網址參數（?speed= …）照舊套到每一型。
 //   夜隼號（Tim 2026-10-13：「速度更快、更靈活，彌補火力劣勢」「加強逆風航速與轉彎，彌補火力跟防禦不足」「材質硬度兩倍試試」）：
 //   12 門 4 磅砲的雙桅小船（brigantine：主桅縱帆，吃風比全橫帆的船近）⇒ 航速 1.2、靈活 1.6、逆風 1.25、硬度 6（預設 3 的兩倍）。
-var HULL_CFG0 = { ember: { speed: 0.85, agile: 0.7 }, falcon: { speed: 1.2, agile: 1.6, upwind: 1.25, hard: 6 } };
+//   值住在 config/game.json 每艘船的 cfg（TASK-0542）。
+var HULL_CFG0 = {}; CFG.ships.forEach(function (s) { if (s.cfg) HULL_CFG0[s.id] = s.cfg; });
 function cfgBase(k, id) { var d = HULL_CFG0[id]; return d && d[k] !== undefined ? d[k] : LIM[k][2]; }
 var PREF_BALLAST = {};                                   // 存檔裡的壓艙物：id → { v: 噸, chk: 存的時候那艘船的 checksum }（船重匯過 ⇒ 不套）
 function cfgDefault(k, T, id) {
@@ -67,7 +64,7 @@ function powderHP() { return Math.round(POWDER_HP * playK('powder')); }   // 實
 // 每發傷害（砲種）：砲彈開火時帶著 b.dmg
 var DMG = { long: Math.round(qnum('dmg24', LIM.dmg24)), long32: Math.round(qnum('dmg32l', LIM.dmg32l)), carr: Math.round(qnum('dmg32', LIM.dmg32)), chase: Math.round(qnum('dmg18', LIM.dmg18)), long4: Math.round(qnum('dmg4', LIM.dmg4)) };
 // 彈種倍率（%）：列 ＝ 實心／爆裂／鏈彈，欄 ＝ 對砲（模型：砲、舵輪、火藥桶）／對帆／對人。網址 ?ammo= 九個數字（照列）
-var AMMO_LIM = [0, 400], AMMO_K0 = [[100, 10, 100], [160, 10, 100], [50, 100, 100]];   // 爆裂對人原訂 115：量過死亡平均 42（舊版 27）⇒ 100（35，傷亡合計 62 對舊版 65）
+var AMMO_LIM = CFG.ammo.lim, AMMO_K0 = CFG.ammo.k;   // config/game.json 的 ammo（上下限、預設）。爆裂對人原訂 115：量過死亡平均 42（舊版 27）⇒ 100（35，傷亡合計 62 對舊版 65）
 var AMMO_K = AMMO_K0.map(function (r) { return r.slice(); });
 if (Q.has('ammo')) Q.get('ammo').split(',').forEach(function (w, i) { var v = parseFloat(w); if (i < 9 && isFinite(v)) AMMO_K[(i / 3) | 0][i % 3] = clamp(Math.round(v), AMMO_LIM[0], AMMO_LIM[1]); });
 var VS_GUN = 0, VS_SAIL = 1, VS_CREW = 2;
@@ -86,9 +83,9 @@ if (Q.has('cap')) Q.get('cap').split(',').forEach(function (w, i) { if (i < 2) C
 var LAST_MODE = null;                                // 上一場的模式（自動開砲換了模式才套預設，見 reset）
 // DIST：開局兩邊船頭相距幾公尺（主選單滑桿，範圍 LIM_DIST；網址 ?dist=）。Tim 2026-10-13：「距離改成滑桿、50～1000 m」「兩邊船頭相對互相接近，而不是直接橫排一開場就開砲」。
 //   電腦想保持的交戰距離另算（aiRange，31_sailing.js：夾在 90～220 m；⛔ 照 DIST ⇒ 開局 1000 m 時電腦在 1000 m 外繞圈、打不到）。
-var LIM_DIST = [50, 1000, 140];
-var MODE = 'pve', DIST = Q.has('dist') && isFinite(+Q.get('dist')) ? clamp(Math.round(+Q.get('dist')), LIM_DIST[0], LIM_DIST[1]) : LIM_DIST[2], SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
-var SAIL = Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto';   // 航行：auto ＝ 兩艘自動（預設）、manual ＝ 我艦手動、off ＝ 停船
+var LIM_DIST = CFG.dist;                              // config/game.json 的 dist：[下限, 上限, 預設]
+var MODE = CFG.menu.mode, DIST = Q.has('dist') && isFinite(+Q.get('dist')) ? clamp(Math.round(+Q.get('dist')), LIM_DIST[0], LIM_DIST[1]) : LIM_DIST[2], SIMT = 0, RUNNING = false, PAUSED = false, OVER = false, AMMO_I = 0;
+var SAIL = Q.has('sail') ? (Q.get('sail') === 'off' ? 'off' : Q.get('sail') === 'manual' ? 'manual' : 'auto') : CFG.menu.sail;   // 航行：auto ＝ 兩艘自動、manual ＝ 我艦手動、off ＝ 停船；沒給 ⇒ menu.sail
 var KEYS = { l: false, r: false };                    // 手動操舵：按住的舵鍵
 // 殉爆的慢動作與特寫（73_slowmo.js）：on／cam 是設定；ts 現在的時間倍率。SLOW_VIS：這一格畫面裡只給人看的效果改由 frame 走（step() 讀它決定要不要跳過）
 var SLOW = { on: Q.get('slowmo') !== '0', cam: Q.get('slowcam') !== '0', ts: 1, t: 0, min: 1, hold: 0, active: false, camSave: null, camT: 0, camMode: 0, kicks: 0 }, SLOW_VIS = false;

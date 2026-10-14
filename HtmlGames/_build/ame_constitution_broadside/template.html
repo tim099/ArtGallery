@@ -344,14 +344,19 @@
 </div>
 
 <script src="../../../VoxelKit/voxelkit.js"></script>
+<!-- 船：admin.py 照 config/game.json 的 ships 改寫這一段（匯入新船、重新匯入；⛔ 手改會被下一次 admin.py build 蓋掉）—— ships 開始 -->
 <script type="application/x-vxk" id="ship" src="../../../VoxelKit/_cache/constitution.vxk"></script>
 <script type="application/x-vxk" id="ship-ember" src="../../../VoxelKit/_cache/ember.vxk"></script>
 <script type="application/x-vxk" id="ship-falcon" src="../../../VoxelKit/_cache/falcon.vxk"></script>
+<!-- ships 結束 -->
+<!-- 設定檔（TASK-0542）：各項設定的初始值與船隻清單；js/00_config.js 讀成 CFG。設定後台：python -I admin.py serve -->
+<script type="application/x-asset" id="game-config" src="config/game.json"></script>
 <!-- 美術素材（選用）：沒交 ⇒ 遊戲用程式畫的替代品；規格見 README.md 與 TASK 的素材清單 -->
 <script type="application/x-asset" id="art-crew" src="art/crew.png" data-optional="1"></script>
 <script type="application/x-asset" id="art-fx" src="art/fx.png" data-optional="1"></script>
 <script type="application/x-asset" id="art-hud" src="art/hud.png" data-optional="1"></script>
 <!-- 遊戲本體：照功能分檔、檔名數字就是順序；vxk_inline.py 把 data-bundle="game" 的接成同一個閉包（見 js/00_core.js 檔頭） -->
+<script src="js/00_config.js" data-bundle="game"></script>
 <script src="js/00_core.js" data-bundle="game"></script>
 <script src="js/01_gl.js" data-bundle="game"></script>
 <script src="js/02_audio.js" data-bundle="game"></script>

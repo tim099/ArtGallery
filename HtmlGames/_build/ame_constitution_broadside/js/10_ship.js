@@ -99,13 +99,7 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
 // 砲種（meta gun 的代碼 ⇒ 程式裡的種類）：名字、初速（m/s）、裝填倍率、彈大不大（洞大一點）、砲班滿編／最少、重量（噸，浮力用）、每發傷害（DMG 的鍵，細節設定）。
 // 長砲 24 磅、carronade 32 磅、追擊砲 18 磅是憲法號的；32 磅長砲是給餘燼號的（basecamp TASK-0519：下層砲甲板 28 門，新做一門）；4 磅砲是夜隼號的（兩舷各 6）。
 // hole：實心彈的洞大小倍率（沒寫 ＝ 1；big ＝ 1.25）。
-var GUNS = {
-  long: { code: '24l', name: '24 磅長砲', short: '長砲', V: V0, reload: 1, big: false, crew: 5, min: 3, mass: 2.5 },
-  long32: { code: '32l', name: '32 磅長砲', short: '32 磅長砲', V: 172, reload: 1.15, big: true, crew: 6, min: 4, mass: 2.9 },
-  carr: { code: '32c', name: '32 磅 carronade', short: ' carronade ', V: 140, reload: 0.7, big: true, crew: 3, min: 2, mass: 0.9 },
-  chase: { code: '18chase', name: '18 磅追擊砲', short: '追擊砲', V: 165, reload: 1, big: false, crew: 3, min: 2, mass: 2.1 },
-  long4: { code: '4l', name: '4 磅砲', short: '4 磅砲', V: 165, reload: 0.6, big: false, hole: 0.6, crew: 2, min: 1, mass: 0.5 }   // 夜隼號（summit）：輕、裝得快、洞小（彈徑約 24 磅的 0.55 倍）；0.5 噸 ⇒ 船殼格子 68 噸＋砲 6 噸，比設計水線低約 7 cm
-};
+var GUNS = CFG.guns;   // config/game.json 的 guns（TASK-0542）：code、name、short、V 初速（m/s）、reload 裝填倍率、big、hole、crew 砲班滿編、min 最少、mass 重量（噸）
 var GUN_CODE = {}; Object.keys(GUNS).forEach(function (k) { GUN_CODE[GUNS[k].code] = k; });
 /** 砲甲板：照舷側砲（不含追擊砲）的高度（外框底）分層 —— 排好之後相差 10 格以上就是另一層（甲板有舷弧，同一層前後差 6 格）；
  *  追擊砲再歸到最近的那一層（⛔ 一起排：船尾追擊砲的高度落在兩層之間，會把上下兩層砲甲板接成一層）。

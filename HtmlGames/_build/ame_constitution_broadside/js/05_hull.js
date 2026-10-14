@@ -6,30 +6,27 @@
 // 只在被選到時才解碼（Tim 2026-10-12：預設只載憲法號，其他船選了才載）—— 資料本身還是內嵌在同一個 HTML 裡
 //   （畫廊的 iframe 只開 allow-scripts、讀不了旁邊的檔，展品也要零外部依賴），省的是解碼與網格化的時間和記憶體。
 // 公尺／格（S）每種船都要一樣（模擬裡的距離、速度、碰撞都用同一個 S）；不一樣就不載、說為什麼。
-// 認得的船（el ＝ 內嵌 .vxk 的 id）；選單只列 HTML 裡真的有內嵌資料的那幾艘 ⇒ 加一艘 ＝ template 加一個 x-vxk 標籤＋這裡一行。
 // zw0：作品沒有 `kind=ship, waterline_z` 的 meta 時用的設計水線（格的 z）。餘燼號 71 ＝ basecamp 的作品筆記（basecamp-ember-01m/todo.md「水線抬高 z 63 → 71」，
 //   Tim：船變高了水線也往上）。⛔ 沒有這一格 ⇒ 用憲法號的 63，多出來那層砲甲板的排水沒算進去（排水量 2,522 噸，跟憲法號 2,154 差不多 —— Tim 2026-10-13 發現）。meta 補上之後以 meta 為準。
 // geo：船型的高度（格的 z）與範圍 —— 這些本來寫死成憲法號的數字；沒給的照 GEO0（＝ 原本的數字 ⇒ 憲法號、餘燼號照舊）。
 //   夜隼號（summit，2026-10-13 接）只有憲法號一半高：水線 15、主甲板 z 30、後甲板 45、桅頂平台 126（前）／136（主）、桅頂 272 ⇒ 照她的作品量的。
 //   桅不在這裡：照帆桁的 meta 判斷（10_ship.js findMasts）。
-var GEO0 = {
-  spar: null,              // 露天甲板站人的高度 [z0, z1]（陸戰隊、軍官、舵手）；null ⇒ 照 carronade 推、沒有 carronade ⇒ 100–109
-  marines: [160, 220],     // 陸戰隊沿舷牆站的範圍：船尾外框 + [0] 到船頭外框 − [1]（每 37 格一個，最多 12）
-  center: 140,             // 船的中心高度（鏡頭看哪裡）
-  aim: 90,                 // 沒有目標時瞄哪個高度（21_gunnery.js）
-  aimZ: [40, 320],         // 瞄準點的高度夾在這段裡
-  deckAim: [84, 104],      // 砲長「砲甲板」模式瞄的高度（51_captain.js）
-  rigAim: [150, 300],      // 砲長「桅」模式瞄的高度
-  handsK: 1                // 預備水手的人數倍率（細節設定的人數 × 這個）
-};
-var GEO_FALCON = { spar: [28, 47], marines: [100, 60], center: 50, aim: 30, aimZ: [5, 270], deckAim: [25, 40], rigAim: [60, 240], handsK: 0.25 };
-var HULL_KNOWN = [{ id: 'constitution', el: 'ship', name: '憲法號' }, { id: 'ember', el: 'ship-ember', name: '餘燼號', zw0: 71 },
-  { id: 'falcon', el: 'ship-falcon', name: '夜隼號', geo: GEO_FALCON }];
+// 值住在 config/game.json（TASK-0542）：geo0 ＝ 預設（本來寫死成憲法號的數字），每艘船的 geo 只寫跟它不一樣的鍵。各鍵：
+//   spar  露天甲板站人的高度 [z0, z1]（陸戰隊、軍官、舵手）；null ⇒ 照 carronade 推、沒有 carronade ⇒ 100–109
+//   marines 陸戰隊沿舷牆站的範圍：船尾外框 + [0] 到船頭外框 − [1]；center 船的中心高度（鏡頭看哪裡）；aim 沒有目標時瞄的高度（21_gunnery.js）
+//   aimZ 瞄準點的高度夾在這段裡；deckAim 砲長「砲甲板」模式瞄的高度（51_captain.js）；rigAim 砲長「桅」模式瞄的高度
+// 船員配置（crew0 ＝ 預設，每艘船的 crew 只寫不一樣的；40_crew.js、23_powder.js、42_hands.js）：
+//   officers 軍官（0–4，第一個是船長）、helm 舵手（0–2）、marines 陸戰隊最多幾個、marineGap 陸戰隊沿舷牆每幾格一個、
+//   top 每根桅的桅頂水手、monkeys 送藥手（1 ＝ 每一對砲一個、0 ＝ 沒有）、handsK 預備水手的人數倍率（細節設定的人數 × 它；夜隼號 ¼）。砲班人數照砲種表（10_ship.js GUNS）。
+// 船隻清單 ＝ config/game.json 的 ships（el ＝ 內嵌 .vxk 的 id；匯入新船、重新匯入走 admin.py）；選單只列 HTML 裡真的有內嵌資料的那幾艘。
+var GEO0 = CFG.geo0, CREW0 = CFG.crew0;
+var HULL_KNOWN = CFG.ships.map(function (s) { var h = { id: s.id, el: s.el, name: s.name, geo: s.geo, crew: s.crew }; if (s.zw0) h.zw0 = s.zw0; return h; });
 var HULL_LIST = HULL_KNOWN.filter(function (h) { return !!document.getElementById(h.el); });
+var HULL_DEF = (HULL_LIST[0] || HULL_KNOWN[0]).id;                      // 預設的船：清單裡第一艘有內嵌資料的
 var HULLS = {}, HULLT = {};                                             // id → 載入中的 Promise ／ 載好的船型
 // 艦隊編成（TASK-0537）：FLEET_SET[0] ＝ 我方（第一艘是我艦）、[1] ＝ 敵方，各是一串船型；每一邊至少 1 艘、合計最多 FLEET_MAX（同時在場 FIELD_N 艘，其他的候補，52_fleet.js）。
 //   主選單編；網址 ?blue=我艦,友艦…&red=敵艦,…；舊的 ?ship=我艦,敵艦 照舊（＝ 一邊一艘；?blue／?red 給了那一邊照它）。
-var FLEET_SET = [['constitution'], ['constitution']];
+var FLEET_SET = [[HULL_DEF], [HULL_DEF]];                                // 預設 ＝ 清單第一艘（HULL_DEF）
 if (Q.has('ship')) Q.get('ship').split(',').forEach(function (w, i) { if (i < 2 && hullInfo(w)) FLEET_SET[i] = [w]; });
 ['blue', 'red'].forEach(function (k, i) { if (!Q.has(k)) return; var L = Q.get(k).split(',').filter(hullInfo); if (L.length) FLEET_SET[i] = L; });
 fleetTrim(FLEET_SET);
@@ -61,7 +58,7 @@ function buildHull(info, model, t0, C) {
   if (S && Math.abs(h.meters_per_voxel - S) > 1e-9) throw new Error(info.name + ' 是 ' + h.meters_per_voxel + ' 公尺一格，跟已經載入的船（' + S + '）不一樣 —— 模擬只吃同一個比例');
   S = h.meters_per_voxel;
   var T = { id: info.id, name: info.name, model: model, h: h, rig: h.rig || { ropes: [], sails: [] },
-    sz: h.size[2], cx: (h.bbox[0] + h.bbox[3]) / 2, cy: h.size[1] / 2, hx0: h.bbox[0], hx1: h.bbox[3], zw: hullZW(h, info), geo: Object.assign({}, GEO0, info.geo) };   // 外框：含艏斜桅與後桅帆桁
+    sz: h.size[2], cx: (h.bbox[0] + h.bbox[3]) / 2, cy: h.size[1] / 2, hx0: h.bbox[0], hx1: h.bbox[3], zw: hullZW(h, info), geo: Object.assign({}, GEO0, info.geo), crew: Object.assign({}, CREW0, info.crew) };   // 外框：含艏斜桅與後桅帆桁
   T.cached = !!C; T.keep = C ? null : {};
   T.ms = {};                                                               // 每一段花多久（毫秒；讀數 window.__vxk.ms）
   function tm(k, f) { var a = performance.now(); f(); T.ms[k] = +(performance.now() - a).toFixed(1); }
