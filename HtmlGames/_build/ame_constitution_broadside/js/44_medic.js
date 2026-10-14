@@ -1,6 +1,8 @@
 // ───────────────────────── 醫療艙：預備水手搬傷員、病床、治療（TASK-0568；Tim 2026-10-14） ─────────────────────────
 // 開戰時（medInit，makeHands 之後）：每一間醫療艙找「走得到」的病床 —— 床旁邊的走路點，從待命那一層沿梯子連得通（照區域；開戰後梯子斷了 ⇒ 那一趟照實走不到）。
-//   人手：每一間要 max(staff, ⌈床數 ÷ staffPer⌉) 個（config rooms.medical），從預備水手派（點名時跟補位一起排，pri 1）；到了就駐紮在那一間不走動。
+//   人手（Tim 2026-10-14：有病人才派）：一間有病人（躺著或正在送來）才要人 —— max(staff, ⌈病人 ÷ staffPer⌉)（config rooms.medical），沒病人 ＝ 0；
+//   從預備水手派（點名時跟補位一起排，pri 1），到了就駐紮在那一間不走動；病人少了，多出來的人放回去當預備水手（還沒到的先放）。
+//   ⛔ 以前開戰就照床數派滿：床都走得到之後憲法號要 22 人、餘燼號 29 人（預備水手 40）⇒ 補砲班、搬人都沒人了，傷員躺著等到被打死。
 // 受傷倒下（st 1）的人：船上還有走得到、還沒打壞的床 ⇒ 不再 12 秒就消失，等預備水手來搬（pri 1：交戰那一舷的砲班先補）。
 //   搬：走到傷員旁（同一層、同一塊）⇒ 扛起來（傷員跟著他走、爬梯子）⇒ 走到床旁 ⇒ 放上床（傷員還是 st 1：照樣會被打、會掉、會淹）。
 //   治療：每次點名（0.5 秒）進度 += dt ÷ HEAL_T ×（1 ＋ 那一間的 heal buff）× 人手比例（到崗 ÷ 要的，最多 1）× 床剩下的血量比例；
@@ -23,11 +25,11 @@ function medInit(sh) {
       m.med = { lv: lv, cell: ci, who: null }; beds.push(m);
     });
     if (!beds.length) return;
-    var o = { room: r, lv: lv, beds: beds, need: Math.max(F.staff || 0, Math.ceil(beds.length / (F.staffPer || 1e9))), have: 0, x: beds[0].c[0] };
+    var o = { room: r, lv: lv, beds: beds, need: 0, have: 0, x: beds[0].c[0] };   // need：點名時照病人數算（medTick）
     rooms.push(o); r.med = o;
   });
   NV.ladders.forEach(function (L) { L.q = 0; });                        // handRoute 會記排隊人數；這裡只是試走
-  if (rooms.length) sh.med = { rooms: rooms, back: F.back === undefined ? 1 : F.back, carried: 0, healed: 0, out: 0, t: SIMT, open: true };
+  if (rooms.length) sh.med = { rooms: rooms, back: F.back === undefined ? 1 : F.back, smin: F.staff || 1, sper: F.staffPer || 3, carried: 0, healed: 0, out: 0, t: SIMT, open: true };
 }
 /** 傷員的床位與扛他的人放掉（死了、落水、被放下、床被打壞）。 */
 function medRelease(c) {
@@ -50,6 +52,10 @@ function medTick(sh) {
   var M = sh.med; if (!M) return;
   var dt = SIMT - M.t, beds = 0; M.t = SIMT;
   M.rooms.forEach(function (o) {
+    var pt = 0; o.beds.forEach(function (m) { var w = m.med.who; if (w && w.st === 1 && w.medBed === m && m.alive) pt++; });
+    o.need = pt ? Math.max(M.smin, Math.ceil(pt / M.sper)) : 0;           // 有病人才要人
+    var mine = sh.crew.filter(function (c) { return c.role === ROLE.HAND && able(c) && c.hand.job && c.hand.job.med === o; });
+    if (mine.length > o.need) mine.sort(function (a, b) { return (a.hand.job.at ? 1 : 0) - (b.hand.job.at ? 1 : 0); }).slice(0, mine.length - o.need).forEach(function (c) { c.hand.job = null; c.hand.legs = []; c.hand.wait = 1; });   // 多出來的放回去（還沒到的先放）
     o.have = 0;
     sh.crew.forEach(function (c) { if (c.role === ROLE.HAND && able(c) && c.hand.job && c.hand.job.med === o && c.hand.job.at) o.have++; });
     var B = roomBuffNow(o.room), hb = B.heal ? B.heal.v : 0, staff = o.need ? Math.min(1, o.have / o.need) : 1;

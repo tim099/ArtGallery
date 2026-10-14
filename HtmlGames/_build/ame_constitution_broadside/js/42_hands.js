@@ -223,6 +223,11 @@ function makeHands(sh, crew, add) {
     else if (c.role === ROLE.HELM) H.helm0++;
   });
   var N = Ls[home].N, used = [], C0 = N.bigCells;                   // 生在待命那一層最大的那一塊（⛔ 全部的點 ⇒ 可能生在關起來的小艙裡）
+  var hr = {}; LD.forEach(function (L) { if (L.lo === home) hr[L.ra] = 1; if (L.hi === home) hr[L.rb] = 1; });   // 有梯子接著的那幾塊
+  if (Object.keys(hr).length && !hr[N.reg[C0[0]]]) {                  // 最大那一塊沒有梯子（憲法號、餘燼號的底艙：中段整片隔開，梯子落在前後兩塊）⇒ 生在有梯子的塊裡最大的那一塊
+    var br = -1, bn = 0; Object.keys(hr).forEach(function (r) { var n = N.cells.filter(function (c) { return N.reg[c] === +r; }).length; if (n > bn) { bn = n; br = +r; } });
+    if (br >= 0) C0 = N.cells.filter(function (c) { return N.reg[c] === br; });
+  }
   var NH = sh.cw.hands;                                              // 船員配置（05_hull.js shipCrew：預設 ＝ HANDS × 那一型的 handsK；夜隼號 ¼：小船）
   if (C0.length) for (var k = 0; k < NH; k++) {
     var i = -1;
