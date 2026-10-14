@@ -13,8 +13,15 @@
 | `art/`（選用） | 美術素材 `crew.png`、`fx.png`、`hud.png`；規格在 TASK-0516。沒交 ⇒ 程式畫的替代品 |
 
 ```bash
-# 建置：驗 config/game.json ⇒ 船標籤照船隻清單 ⇒ vxk_inline.py 內嵌成單檔
+# 建置：驗 config/game.json ⇒ 船標籤照船隻清單 ⇒ vxk_inline.py 內嵌成單檔 ⇒ 壓縮（預設，TASK-0583）
+#   壓縮：模型網格收成一個池子 —— 同一份（同一門砲）幾艘船只存一次、頂點去重＋差值；雕刻作品與匯出的 .vxk 格式不變，_cache 與指紋不動，遊戲讀的時候還原（05_hull.js meshPool）。
+#   寫出去之前照遊戲的讀法還原、跟 _cache 原檔逐個比（對不上 ⇒ 不寫）。六艘：成品 9.09 MB → 5.36 MB。
+#   匯入、重新匯入、同步 meta、後台「儲存並重建」都走這一條（預設壓縮）。
 python -I admin.py build
+# 原格式（不壓縮）
+python -I admin.py build --raw
+# 成品跟 _cache 原檔比（壓縮版照遊戲的讀法還原；網格三角形逐個、格子一位元組不差）
+python -I admin.py verify
 # 設定後台（只聽本機）：http://127.0.0.1:8642/ —— 改設定、儲存並重建、匯入新船、重新匯入；--open 自動開瀏覽器，已經開著 ⇒ 只開頁面
 # 一鍵：雙擊 HtmlGames/ame_constitution_broadside/ame_constitution_broadside_admin.cmd（＝ serve --open；關掉那個視窗就停）
 python -I admin.py serve --open
@@ -26,6 +33,7 @@ python -I admin.py reimport --id constitution
 
 匯出走 senate（`senate cmd sculpture --arg op=export --arg format=vxk --arg include=rig,models,parts,meta`，TASK-0518）；`.vxk` 不入版控。
 ⚠ 只改程式時，`_cache/` 裡的那份要跟版控裡成品內嵌的同一份，不然建出來換了船、縮圖 hash 也跟著變 ⇒ `python -I admin.py cache` 把缺的從版控那份成品解回來（已經有的不動；另一台機器的舊檔要先刪掉再跑）。
+⚠ 壓縮版的成品（預設）解不回原本的 .vxk（網格換成了池子編號，指紋對不上）⇒ cache 會逐艘說「要 reimport」、不寫檔；`_cache/` 掉了的船走 reimport。
 設定檔是預設值時，縮圖 `?demo=75&still=1&cam=deck` 跟改成讀設定檔之前逐位元組相同（f05b7771；夜隼號對憲法號、餘燼號對夜隼號、二對二寫實也各自相同）。
 
 ## 遊戲本體 `js/`

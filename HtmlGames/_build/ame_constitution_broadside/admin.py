@@ -519,7 +519,7 @@ def act_check():
     return ['✓ config/game.json 合法（%d 艘船、%d 個滑桿、%d 種砲）' % (len(load()['ships']), len(load()['lim']), len(load()['guns']))]
 
 
-def act_build():
+def act_build(pack=True):   # pack：壓縮版（預設，TASK-0583）；False ＝ 原格式（build --raw）
     cfg = load()
     E = validate(cfg)
     if E:
@@ -532,7 +532,180 @@ def act_build():
     log.append(out.strip())
     if code != 0:
         raise Fail('\n'.join(log) + '\n✗ 建置失敗（exit %d）' % code)
+    if pack:
+        log += pack_html(OUT)
     return log
+
+# ───────────────────────── 壓縮版成品（預設；build --raw ＝ 原格式。Tim 2026-10-14，TASK-0583：雕刻作品與匯出的 .vxk 格式不變，匯進遊戲才壓縮） ─────────────────────────
+# 量過（六艘、壓縮後）：格子合計約 0.87 MB，模型網格（砲、燈、舵輪…的三角形，header 的 rig.meshes）約 3.50 MB ⇒ 大頭是網格：
+#   ① 同一份網格（同一門砲的模型）在幾艘船上各存一份 —— 161 種裡 55 種出現在兩艘以上 ⇒ 成品裡收成一個池子（<script id="vxk-meshes">），每艘只記編號；
+#   ② 頂點逐角存（三角形的每一角一個頂點）⇒ 同一點只存一次、照順序存差值（整數 ×100：座標全是 0.01 的倍數，量過誤差 ≤ 4e-12）、三角形的索引也存差值。
+#   兩招一起：網格 3.50 → 0.85 MB。格子、繩、帆照原樣。
+# 只動成品裡內嵌的那一份：_cache 的 .vxk、指紋（vxk_lock.json）不動；遊戲讀的時候還原（05_hull.js meshPool），三角形一個一個比過、對不上的那一份照原樣留在船裡。
+# ⛔ 壓縮過的成品解不回原檔（cache 會擋）：_cache 掉了要 reimport。
+POOL_EL = 'vxk-meshes'
+POOL_Q = 100
+
+
+def _deflate(b):
+    c = zlib.compressobj(9, zlib.DEFLATED, -15)
+    return c.compress(b) + c.flush()
+
+
+def mesh_pack(m):
+    """一份網格 ⇒ 池子裡那一格（同一點只存一次、差值）；還原不回原樣（不是 0.01 的倍數）⇒ None。"""
+    V, idx, U, remap = m['verts'], {}, [], []
+    for i in range(0, len(V), 3):
+        k = (round(V[i] * POOL_Q), round(V[i + 1] * POOL_Q), round(V[i + 2] * POOL_Q))
+        if k[0] / POOL_Q != V[i] or k[1] / POOL_Q != V[i + 1] or k[2] / POOL_Q != V[i + 2]:
+            return None
+        if k not in idx:
+            idx[k] = len(U)
+            U.append(k)
+        remap.append(idx[k])
+    v, p = [], (0, 0, 0)
+    for q in U:
+        v += [q[0] - p[0], q[1] - p[1], q[2] - p[2]]
+        p = q
+    t, pt = [], 0
+    for i in m['tris']:
+        x = remap[i]
+        t.append(x - pt)
+        pt = x
+    return {'v': v, 't': t, 'tmat': m['tmat'], 'mats': m['mats']}
+
+
+def mesh_unpack(e):
+    """池子裡那一格 ⇒ 網格（跟 05_hull.js meshPoolMesh 同一個算法；驗算用）。"""
+    V, p = [], [0, 0, 0]
+    for i in range(0, len(e['v']), 3):
+        p = [p[0] + e['v'][i], p[1] + e['v'][i + 1], p[2] + e['v'][i + 2]]
+        V += [p[0] / POOL_Q, p[1] / POOL_Q, p[2] / POOL_Q]
+    T, x = [], 0
+    for d in e['t']:
+        x += d
+        T.append(x)
+    return {'verts': V, 'tris': T, 'tmat': e['tmat'], 'mats': e['mats']}
+
+
+def same_tris(a, b):
+    """兩份網格的三角形一個一個比：每一角的座標、材質都一樣（頂點的編號可以不同）。"""
+    if len(a['tris']) != len(b['tris']) or a['tmat'] != b['tmat'] or a['mats'] != b['mats']:
+        return False
+    va, vb = a['verts'], b['verts']
+    for ia, ib in zip(a['tris'], b['tris']):
+        if va[ia * 3:ia * 3 + 3] != vb[ib * 3:ib * 3 + 3]:
+            return False
+    return True
+
+
+def pack_html(path):
+    """成品（vxk_inline.py 嵌好的）⇒ 壓縮模式：每艘的網格換成池子編號、加一個池子。回傳讀數。"""
+    html = open(path, encoding='utf-8').read()
+    if 'id="%s"' % POOL_EL in html:
+        raise Fail('成品已經是壓縮模式（有 #%s）' % POOL_EL)
+    pool, where, log, keep = [], {}, [], 0
+    size0 = len(html.encode('utf-8'))
+
+    def one(mt):
+        nonlocal keep
+        if len(mt.group(2)) < 64:   # 程式註解裡的「<script type="application/x-vxk" id="…">base64</script>」不是船
+            return mt.group(0)
+        raw = zlib.decompress(base64.b64decode(mt.group(2)), -15)
+        n = struct.unpack('<I', raw[4:8])[0]
+        h = json.loads(raw[8:8 + n].decode('utf-8'))
+        ms = (h.get('rig') or {}).get('meshes')
+        if not ms:
+            return mt.group(0)
+        out = []
+        for m in ms:
+            key = hashlib.sha1(json.dumps(m, separators=(',', ':')).encode()).hexdigest()
+            if key not in where:
+                e = mesh_pack(m)
+                if e is None or not same_tris(m, mesh_unpack(e)):
+                    where[key] = -1
+                else:
+                    where[key] = len(pool)
+                    pool.append(e)
+            if where[key] < 0:
+                out.append(m)
+                keep += 1
+            else:
+                out.append({'pool': where[key]})
+        h['rig']['meshes'] = out
+        h['mesh_pool'] = POOL_EL
+        hb = json.dumps(h, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        b = base64.b64encode(_deflate(b'VXK1' + struct.pack('<I', len(hb)) + hb + raw[8 + n:])).decode('ascii')
+        return mt.group(1) + b + mt.group(3)
+
+    RX = r'(<script type="application/x-vxk" id="[^"]+">)([^<]*)(</script>)'
+    first = next(mt for mt in re.finditer(RX, html) if len(mt.group(2)) >= 64).start()   # 池子放在第一艘船前面（⛔ 照字串找第一個：voxelkit.js 的註解裡就有一模一樣的標籤 ⇒ 池子插進程式中間）
+    html2 = html[:first] + '\x00POOL\x00' + html[first:]
+    html2, k = re.subn(RX, one, html2)
+    k = sum(1 for mt in re.finditer(RX, html) if len(mt.group(2)) >= 64)
+    pb = base64.b64encode(_deflate(json.dumps({'v': 1, 'q': POOL_Q, 'meshes': pool}, separators=(',', ':')).encode('utf-8'))).decode('ascii')
+    tag = '<script type="application/x-vxk-meshes" id="%s">%s</script>\n' % (POOL_EL, pb)
+    html2 = html2.replace('\x00POOL\x00', tag, 1)
+    nv, E = pack_verify(html2)                                  # 寫出去之前：照遊戲的讀法還原、跟 _cache 原檔逐個比（對不上 ⇒ 不寫，舊成品留著）
+    if E:
+        raise Fail('壓縮版還原出來跟原檔對不上（成品沒寫）：\n' + '\n'.join('  ✗ ' + e for e in E[:12]))
+    log.append('✓ 還原驗算：%d 艘、%d 份網格的三角形跟 _cache 原檔逐個相同，格子、繩、帆一位元組不差' % (k, nv))
+    open(path, 'w', encoding='utf-8', newline='').write(html2)
+    size1 = len(html2.encode('utf-8'))
+    log.append('✓ 壓縮模式：%d 艘、網格池 %d 份（%d KB）%s；成品 %.2f MB → %.2f MB（−%.0f%%）' % (
+        k, len(pool), len(pb) // 1024, '、照原樣留在船裡 %d 份' % keep if keep else '', size0 / 1048576, size1 / 1048576, (1 - size1 / size0) * 100))
+    return log
+
+
+def pack_verify(html):
+    """壓縮版成品 ⇒ 每艘照遊戲的讀法還原（池子編號 ⇒ 池子那一格 ⇒ mesh_unpack），跟 _cache 原檔比：
+    網格的三角形逐個相同；header 其他欄位相同；格子那一段一位元組不差。回傳 (比了幾份網格, 錯誤清單)。原格式的成品 ⇒ 只比格子與 header。"""
+    m = re.search(r'<script type="application/x-vxk-meshes" id="%s">([^<]*)</script>' % POOL_EL, html)
+    P = json.loads(zlib.decompress(base64.b64decode(m.group(1)), -15)) if m else None
+    n, E = 0, []
+    for s in load()['ships']:
+        mt = re.search(r'<script type="application/x-vxk" id="%s">([^<]*)</script>' % re.escape(s['el']), html)
+        if not mt:
+            E.append('%s：成品裡沒有 #%s' % (s['id'], s['el']))
+            continue
+        a = zlib.decompress(base64.b64decode(mt.group(1)), -15)
+        b = zlib.decompress(open(os.path.join(CACHE, s['vxk']), 'rb').read(), -15)
+        na, nb = struct.unpack('<I', a[4:8])[0], struct.unpack('<I', b[4:8])[0]
+        ha, hb = json.loads(a[8:8 + na].decode('utf-8')), json.loads(b[8:8 + nb].decode('utf-8'))
+        if a[8 + na:] != b[8 + nb:]:
+            E.append('%s：格子那一段跟原檔不一樣' % s['id'])
+        ma, mb = (ha.get('rig') or {}).get('meshes') or [], (hb.get('rig') or {}).get('meshes') or []
+        if ha.pop('mesh_pool', None):
+            if P is None:
+                E.append('%s：header 說有網格池，成品裡沒有 #%s' % (s['id'], POOL_EL))
+                continue
+            ma = [mesh_unpack(P['meshes'][x['pool']]) if isinstance(x, dict) and 'pool' in x else x for x in ma]
+        if len(ma) != len(mb):
+            E.append('%s：網格 %d 份，原檔 %d 份' % (s['id'], len(ma), len(mb)))
+            continue
+        for i, (x, y) in enumerate(zip(ma, mb)):
+            n += 1
+            if not same_tris(x, y):
+                E.append('%s：第 %d 份網格的三角形跟原檔不一樣' % (s['id'], i))
+        if ha.get('rig'):
+            ha['rig'] = dict(ha['rig'], meshes=None)
+        if hb.get('rig'):
+            hb['rig'] = dict(hb['rig'], meshes=None)
+        if ha != hb:
+            E.append('%s：header（網格以外）跟原檔不一樣' % s['id'])
+    return n, E
+
+
+def act_verify():
+    """成品 ⇒ 跟 _cache 原檔比（壓縮版照遊戲的讀法還原）。"""
+    if not os.path.exists(OUT):
+        raise Fail('還沒有成品（先 build）')
+    html = open(OUT, encoding='utf-8').read()
+    n, E = pack_verify(html)
+    if E:
+        raise Fail('成品跟 _cache 原檔對不上：\n' + '\n'.join('  ✗ ' + e for e in E[:20]))
+    return ['✓ 成品（%s）跟 _cache 原檔相同：%d 份網格的三角形逐個比過，格子、header 一致' % ('壓縮版' if 'id="%s"' % POOL_EL in html else '原格式', n)]
+
 
 
 def act_cache():
@@ -540,11 +713,15 @@ def act_cache():
     log = cache_guard()
     cfg = load()
     html = open(OUT, encoding='utf-8').read() if os.path.exists(OUT) else ''
+    packed = 'id="%s"' % POOL_EL in html
     os.makedirs(CACHE, exist_ok=True)
     for s in cfg['ships']:
         p = os.path.join(CACHE, s['vxk'])
         if os.path.exists(p):
             log.append('  %s：已有（%d bytes）' % (s['vxk'], os.path.getsize(p)))
+            continue
+        if packed:   # 壓縮版（預設的 build；TASK-0583）：網格換成了池子編號，解出來的不是原檔（指紋對不上）
+            log.append('  %s：成品是壓縮模式，解不回原本的 .vxk ⇒ 要 reimport' % s['vxk'])
             continue
         m = re.search(r'<script type="application/x-vxk" id="%s">([^<]*)</script>' % re.escape(s['el']), html)
         if not m:
@@ -760,7 +937,9 @@ def main():
     ap = argparse.ArgumentParser(description='《憲法號對轟》設定後台（TASK-0542）')
     sp = ap.add_subparsers(dest='op', required=True)
     sp.add_parser('check')
-    sp.add_parser('build')
+    s = sp.add_parser('build')
+    s.add_argument('--raw', action='store_true', help='原格式（不壓縮）；預設是壓縮版：模型網格收成一個池子（同一份只存一次、頂點去重＋差值），_cache 不動')
+    sp.add_parser('verify', help='成品跟 _cache 原檔比（壓縮版照遊戲的讀法還原）')
     sp.add_parser('cache')
     sp.add_parser('fmt')
     s = sp.add_parser('serve')
@@ -787,7 +966,9 @@ def main():
         if o.op == 'check':
             log = act_check()
         elif o.op == 'build':
-            log = act_build()
+            log = act_build(not o.raw)
+        elif o.op == 'verify':
+            log = act_verify()
         elif o.op == 'cache':
             log = act_cache()
         elif o.op == 'fmt':

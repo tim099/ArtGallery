@@ -77,9 +77,24 @@ function loadHull(id) {
   if (!info) return Promise.reject(new Error('沒有這艘船：' + id));
   var t0 = performance.now();
   hullSay(info.name + '：解碼…');
-  return (HULLS[id] = yieldUI().then(function () { return Promise.all([VK.loadEmbedded(info.el), cacheGet(info)]); })   // 解碼與讀快取一起跑（06_cache.js）
+  return (HULLS[id] = yieldUI().then(function () { return Promise.all([VK.loadEmbedded(info.el).then(meshPool), cacheGet(info)]); })   // 解碼與讀快取一起跑（06_cache.js）
     .then(function (r) { return buildHull(info, r[0], t0, r[1]); })
     .then(function (T) { HULLT[id] = T; cachePut(T, info); return T; }));
+}
+/** 壓縮版的成品（admin.py build 預設；--raw ＝ 原格式；TASK-0583）：header 有 mesh_pool ⇒ rig.meshes 是池子編號 { pool: i }，從 <script id=mesh_pool> 還原（池子只解一次、幾艘船共用）。
+ *  池子裡一份 ＝ { v: 不重複的頂點（整數 × q，跟前一點的差值）, t: 三角形的頂點編號（跟前一個的差值）, tmat, mats }；還原成跟原本一樣的三角形（頂點去重過，法線照三角形算 ⇒ 畫出來一樣）。 */
+var MESH_POOL = null, MESH_POOL_M = {};
+function meshPool(model) {
+  var h = model.header, id = h.mesh_pool; if (!id || !h.rig || !h.rig.meshes) return model;
+  if (!MESH_POOL) { var el = document.getElementById(id); if (!el) return Promise.reject(new Error('找不到網格池 #' + id)); MESH_POOL = VK.inflateRaw(VK.b64ToBytes(el.textContent)).then(function (u) { return JSON.parse(new TextDecoder().decode(u)); }); }
+  return MESH_POOL.then(function (P) { h.rig.meshes = h.rig.meshes.map(function (m) { return m && m.pool !== undefined ? meshPoolMesh(P, m.pool) : m; }); return model; });
+}
+function meshPoolMesh(P, i) {
+  if (MESH_POOL_M[i]) return MESH_POOL_M[i];
+  var e = P.meshes[i], q = P.q, v = new Array(e.v.length), t = new Array(e.t.length), x = 0, y = 0, z = 0, k, a = 0;
+  for (k = 0; k < e.v.length; k += 3) { x += e.v[k]; y += e.v[k + 1]; z += e.v[k + 2]; v[k] = x / q; v[k + 1] = y / q; v[k + 2] = z / q; }
+  for (k = 0; k < e.t.length; k++) { a += e.t[k]; t[k] = a; }
+  return (MESH_POOL_M[i] = { verts: v, tris: t, tmat: e.tmat, mats: e.mats });
 }
 /** 讓出一次（MessageChannel：一個新的工作 ⇒ 瀏覽器可以先畫一格、處理點擊）。⛔ 不用 setTimeout：分頁在背景時會被壓到一秒一次。 */
 function yieldUI() { return new Promise(function (r) { var ch = new MessageChannel(); ch.port1.onmessage = function () { r(); }; ch.port2.postMessage(0); }); }
