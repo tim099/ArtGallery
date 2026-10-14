@@ -6893,7 +6893,7 @@ function hud(dt) {
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
   var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
-  $('guns').innerHTML = gunRow(me, bs || me.side) + warn;                       // 鏡頭名稱改成按 C 時廣播、停格改看 P 那顆按鈕（Tim 2026-10-14：這兩段字不用常駐）
+  $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode];   // 停格改看 P 那顆按鈕（Tim 2026-10-14）；鏡頭名稱照舊常駐（Tim：拿掉之後看不出現在是哪個鏡頭 ⇒ 補回）
   pauseLabel();
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
   var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (!handAim(me) ? '砲長' : (AUTOFIRE ? '手動一舷・' : '') + AIM_NAME[me.pMode || 'free']);
@@ -7192,7 +7192,7 @@ function doKey(k, repeat) {
   else if (k === 'f') { if (!PAUSED) fireOne(me, AMMO_I); }
   else if (k === '1' || k === '2' || k === '3') AMMO_I = +k - 1;
   else if (k === 'q') { me.pMode = AIM_P = AIM_CYCLE[(AIM_CYCLE.indexOf(me.pMode || 'free') + 1) % AIM_CYCLE.length]; note(me, '瞄準：' + AIM_NAME[me.pMode] + (me.pMode === 'free' ? '（點敵艦設瞄準點）' : '')); }   // 瞄準模式（51_captain.js）
-  else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } note(me, '鏡頭：' + CAM_NAMES[CAM.mode]); }   // 鏡頭名稱只在換的時候廣播（下方不再常駐）
+  else if (k === 'c') { CAM.mode = CAM_ORDER[(CAM_ORDER.indexOf(CAM.mode) + 1) % CAM_ORDER.length]; CAM.follow = null; if (CAM.mode === 2 || CAM.mode === 3) { CAM.dist = 75; } else if (CAM.mode === 0) CAM.dist = DIST + 40; else if (CAM.mode === 4) { CAM.dist = 78; CAM.aoff = 0.35; } }
   else if (k === 'p') { PAUSED = !PAUSED; frzShow(); pauseLabel(); }                               // 停格（72_floodui.js：停格時上方一條、進水細節頁）
   else if (k === 'i') { if (PAUSED) floodToggle(); }                 // 停格時：進水圖表／透視（72_floodui.js）
   else if (k === 'x') xrayToggle();
