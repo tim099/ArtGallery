@@ -36,12 +36,16 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
     if (kind === 'yard' && pv) foot = anchorNear(T, pv[0], pv[1], pv[2], 8);   // 帆桁：「腳」是轉軸旁最近的那一格桅（桅斷了跟著走、被打掉就掉）；⛔ 往下找：艏斜桅下面是空的，spritsail 一開局就掉
     var st = (m.points || {})['stock-top'];
     if (kind === 'rudder' && st) foot = anchorNear(T, st[0], st[1], st[2], 8);   // 舵：掛在艉柱上 ⇒「腳」是舵頭旁的船尾（⛔ 往下找：舵底在 z 0，腳落到 z −1 ⇒ 開局就掉）
-    if (foot < 0) { while (fz > 0 && !T.base.get(cx, cy, fz)) fz--; foot = VK.pack(cx, cy, fz); }   // 腳下那一格甲板（被打掉 ⇒ 掉下去）
+    var hang = false;
+    if (foot < 0) { var z0 = fz; while (fz > 0 && !T.base.get(cx, cy, fz)) fz--; if (z0 - fz <= 12 || kind !== 'model') foot = VK.pack(cx, cy, fz); else hang = true; }   // 腳下那一格甲板（被打掉 ⇒ 掉下去）
+    // 掛著的（吊艇架上的小艇；Tim 2026-10-14：一開場就掉）：底下 1.2 m 內沒有甲板 ⇒ 掛在吊索上（下面 hangFalls 找；吊索全斷才掉）。
+    //   ⛔ 照舊往下找 ⇒ 找到海底 z 0 ⇒ 第一次 survey 就掉。foot 暫時是正下方（找到吊索之後換成吊索上端的那一格 ⇒ 吊艇架被打斷帶走時跟著走）
+    if (foot < 0) foot = VK.pack(cx, cy, fz);
     var hpm = kind === 'powder' ? powderHP() : kind === 'wheel' ? Math.round(GUN_HP * 0.6) : kind === 'model' ? 1 : GUN_HP;   // 細節設定的血量；舵輪 6 成；帆桁、舵跟砲一樣
     var mt = m.meta || {};
     return { T: T, k: k, name: m.name.split('/').pop(), path: m.name, kind: kind, hp: hpm, hpMax: hpm, mesh: m.mesh, origin: m.origin, bb: b, pts: m.points || {}, meta: mt,
       c: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2], foot: foot, alive: true,
-      rot: 0, r0: (+mt.rotate_z_deg || 0) * Math.PI / 180, piv: pv, yk: mt.yard, sail: mt.sail };   // 帆桁：rot ＝ 在作品的角度（r0）之外又轉了多少（追風，30_rig_physics.js）
+      rot: 0, r0: (+mt.rotate_z_deg || 0) * Math.PI / 180, piv: pv, yk: mt.yard, sail: mt.sail, hang: hang };   // 帆桁：rot ＝ 在作品的角度（r0）之外又轉了多少（追風，30_rig_physics.js）
   });
   sh.yards = sh.models.filter(function (m) { return m.kind === 'yard' && m.piv; });
   // 砲：長砲（24 磅，兩舷各 14）、carronade（32 磅，兩舷各 12）、追擊砲（18 磅，船頭兩舷各 1）都是模型。
@@ -65,6 +69,7 @@ function makeShip(i, team, yaw, pz, T, px) {                          // T：船
     sh.ropes.push({ pts: r.pts, col: r.color, bb: ropeBox(r.pts), a: anchorNear(T, r.pts[0], r.pts[1], r.pts[2], 5), b: anchorNear(T, r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1], 5), name: r.name, meta: r.meta || null });
   });
   linkRopes(T, sh.ropes, sh.models);
+  hangFalls(sh);
   T.rig.sails.forEach(function (s) {
     var vz = -1e9, ax = 0, ay = 0, az = 0, k = 0, j;
     for (j = 2; j < s.verts.length; j += 3) vz = Math.max(vz, s.verts[j]);
@@ -194,6 +199,23 @@ function modelIndex(models) {
   return idx;
 }
 /** 兩端附近沒有實心格的繩（ratline 掛在 shroud 上）⇒ 掛在端點旁邊那條繩上：那條斷了它也斷、那條跟著桅倒它也跟著倒。 */
+/** 掛著的模型（m.hang：吊艇架上的小艇）的吊索 ＝ 一端落在它外框（外擴 0.4 m）裡、或綁在它上面的繩 ⇒ m.falls（繩的序號）；
+ *  survey（32_hull.js）：吊索全斷 ⇒ 掉下去。foot 換成吊索另一端（上端）的那一格（吊艇架）⇒ 那一截被打斷帶走時跟著走（22_pieces.js）。找不到吊索 ⇒ 照舊（腳下沒東西 ⇒ 掉）。 */
+function hangFalls(sh) {
+  sh.models.forEach(function (m) {
+    if (!m.hang) return;
+    var b = m.bb; m.falls = [];
+    function inBox(P) { return P[0] > b[0] - 4 && P[0] < b[3] + 4 && P[1] > b[1] - 4 && P[1] < b[4] + 4 && P[2] > b[2] - 4 && P[2] < b[5] + 4; }
+    sh.ropes.forEach(function (r, j) {
+      var n = r.pts.length / 3, A = [r.pts[0], r.pts[1], r.pts[2]], Bp = [r.pts[n * 3 - 3], r.pts[n * 3 - 2], r.pts[n * 3 - 1]];
+      var atA = r.ma === m.k || inBox(A), atB = r.mb === m.k || inBox(Bp);
+      if (atA === atB) return;                                            // 兩端都不在（別的繩）或都在（小艇自己身上的繩）
+      m.falls.push(j);
+      var top = atA ? r.b : r.a; if (top >= 0 && m.falls.length === 1) m.foot = top;
+    });
+    if (!m.falls.length) m.falls = null;
+  });
+}
 function linkRopes(T, ropes, models) {
   ropes.forEach(function (r, i) {
     if (r.a >= 0 && r.b >= 0) return;
