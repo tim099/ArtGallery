@@ -56,6 +56,9 @@
   .kb b, .chip b{ color:var(--gold); } .chip.on b{ color:#4a3500; }
   .kb:active, .kb.down{ background:rgba(232,194,106,.38); }
   #keys .hint{ color:var(--dim); font-size:12px; margin-right:4px; }
+  #modeT{ font-size:13px; line-height:1.2; white-space:nowrap; color:#f2f2f2; margin:-2px 0 -1px;   /* 羅盤底下：瞄準模式＋鏡頭，空心字直接壓在海上（Tim 2026-10-14） */
+    text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000, 0 0 4px rgba(0,0,0,.8); }
+  #modeT b{ color:var(--gold); font-weight:normal; }
   .chip{ display:inline-block; margin:2px 3px 0; padding:0 8px; border-radius:10px; border:1px solid rgba(255,255,255,.2); color:var(--dim); font-size:12px; }
   .chip.on{ color:#111; background:#9fc7ff; border-color:#9fc7ff; }
   #guns{ margin-top:4px; font-size:12px; }
@@ -89,7 +92,7 @@
     .kb.hb{ width:46px; height:46px; font-size:10px; } .kb.hb b{ font-size:9px; }
     #botC{ bottom:6px; width:calc(100vw - 106px); max-width:none; gap:4px; } #topC{ top:6px; }   /* 面板撐滿兩組大圓鈕之間（兩邊各留 2 px；Tim：⛔ 留太寬 ⇒ 按鈕被擠得換行） */ .sb{ width:38px; height:38px; } .sbres{ font-size:10px; padding:1px 5px; }
     #topC{ width:calc(100vw - 96px); } #info{ font-size:11px; padding:5px 8px; } #info h3{ font-size:12px; } #info .pcols{ gap:2px 8px; } #info .pc{ flex-basis:110px; } #info .legend{ display:none; } #irow{ gap:4px; }   /* 手機：砲位圖窄（船頭朝上），跟卡片並排 */   /* 砲列在窄的卡片裡換行（⛔ 不換 ⇒ 伸到右邊的按鈕底下） */
-    #navc{ width:84px; height:84px; }
+    #navc{ width:84px; height:84px; } #modeT{ font-size:12px; }
     #ctl{ width:100%; padding:5px 3px; } #ctl .kb, #ctl .chip{ font-size:12px; padding:4px 5px; margin-left:1px; margin-right:1px; } #ammo span{ margin:0 2px; padding:1px 6px; } #keys .hint{ display:none; } #guns .gr{ white-space:normal; word-break:break-all; } #tip{ display:none; }   /* 砲列在窄面板裡換行 */
     #msg{ font-size:13px; } #msg div:last-child{ font-size:15px; }   /* 廣播：跟資訊同一欄（頂端中間，兩邊艦隊按鈕之間） */
     .hud h3 .disp{ display:block; margin-left:0; } }                                     /* 排水量換到船名下一行（⛔ 同一行 ⇒ 面板縮半之後「現在 …」被切掉） */
@@ -165,9 +168,9 @@
   <div id="topC" class="hud"><div id="fps" class="hud"></div><div id="irow"><div id="info" class="panel"></div><canvas id="gmap"></canvas></div><div id="msg"></div></div>
   <div id="helmL" class="hud helm"><span class="kb hb" data-k="a" data-hold="1"><b>A</b>◀ 左舵</span><span class="kb hb" data-k="s"><b>S</b>收帆</span><span class="kb hb" data-k="w"><b>W</b>加帆</span></div>
   <div id="helmR" class="hud helm"><span class="kb hb" data-k="f"><b>F</b>單門</span><span class="kb hb" data-k=" "><b>空白</b>齊射</span><span class="kb hb" data-k="d" data-hold="1"><b>D</b>右舵 ▶</span></div>
-  <div id="botC" class="hud"><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div></div>
+  <div id="botC" class="hud"><div id="nav" class="panel"><canvas id="navc"></canvas><div id="navt"></div></div><div id="modeT"></div>
   <div id="ctl" class="panel">
-    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準：自由</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p" id="pauseK"><b>P</b> 停格</span><span class="kb" id="setB"><b>O</b> 設定</span></div>
+    <div id="keys"><span class="hint">點敵艦瞄準</span><span class="kb" data-k="q" id="aimk"><b>Q</b> 瞄準</span><span class="kb" data-k="c"><b>C</b> 鏡頭</span><span class="kb" data-k="p" id="pauseK"><b>P</b> 停格</span><span class="kb" id="setB"><b>O</b> 設定</span></div>
     <div id="guns"></div>
     <div id="ammo"><span data-a="0"><b>1</b> 實心彈</span><span data-a="1"><b>2</b> 爆裂彈</span><span data-a="2"><b>3</b> 鏈彈</span></div>
     <div id="hudctl">航行 <span class="chip" data-s="auto"><b>4</b> 自動</span><span class="chip" data-s="manual"><b>5</b> 手動</span><span class="chip" data-s="off"><b>6</b> 停船</span>　<span class="chip" id="autoF"><b>G</b> 自動開砲</span></div>

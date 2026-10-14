@@ -362,10 +362,12 @@ function hud(dt) {
   // 下方：我艦的砲列（跟面板同一支）＋ 射界外警告；觀戰只顯示鏡頭
   var aw = aimPoint(me), bs = anyBears(me, aw, 'S') ? 'S' : anyBears(me, aw, 'P') ? 'P' : null;
   var warn = bs || !handAim(me) ? '' : '　<b style="color:#ff9a7a">⚠ 射界外</b>';
-  $('guns').innerHTML = gunRow(me, bs || me.side) + warn + '　' + CAM_NAMES[CAM.mode];   // 停格改看 P 那顆按鈕（Tim 2026-10-14）；鏡頭名稱照舊常駐（Tim：拿掉之後看不出現在是哪個鏡頭 ⇒ 補回）
+  $('guns').innerHTML = gunRow(me, bs || me.side) + warn;
   pauseLabel();
   [].forEach.call(document.querySelectorAll('#ammo span'), function (s) { s.className = +s.dataset.a === AMMO_I ? 'on' : ''; });
-  var ak = $('aimk'); if (ak) ak.innerHTML = '<b>Q</b> 瞄準：' + (!handAim(me) ? '砲長' : (AUTOFIRE ? '手動一舷・' : '') + AIM_NAME[me.pMode || 'free']);
+  // 瞄準模式＋鏡頭名稱：羅盤底下一行空心字（Tim 2026-10-14；Q 那顆按鈕只寫「瞄準」）；鏡頭名稱要常駐（Tim：拿掉之後看不出現在是哪個鏡頭）
+  var mt = $('modeT'), ms = '瞄準 <b>' + (!handAim(me) ? '砲長' : (AUTOFIRE ? '手動一舷・' : '') + AIM_NAME[me.pMode || 'free']) + '</b>　鏡頭 <b>' + CAM_NAMES[CAM.mode] + '</b>';
+  if (mt && mt.innerHTML !== ms) mt.innerHTML = ms;
   var t = DEBUG ? '格：' + SHIPS.map(function (s) { return s.grid.count; }).join('／') + '　四邊形：' + SHIPS.map(function (s) { return s.rs.quads(); }).join('／') + '　碎片 ' + D.n + '　粒子 ' + PT.n + '　脫落 ' + PIECES.length + (PHYS ? '　物理 ' + PHYS_MS.toFixed(2) + ' ms/步、垂繩 ' + SHIPS.map(function (s) { return s.loose.length; }).join('／') : '') + '　' + FPS.toFixed(0) + ' fps' : '';
   $('tip').textContent = t;
   drawNav(me);
