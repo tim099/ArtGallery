@@ -50,10 +50,10 @@ function sbDraw() {
   // 清單
   $('ships').innerHTML = W.ships.map(function (s) {
     var o = W.orders[s.id];
-    return '<div class="sr ' + s.team + (s.out ? ' out' : '') + '"><b>' + s.id + '</b> ' + s.H.name + '　船殼 ' + Math.round(Math.max(0, s.hp) * 100) + '%　砲 ' + (s.guns.P + s.guns.S) + '　人 ' + Math.round(s.crew * 100) + '%　' + s.spd.toFixed(1) + ' m/s' +
+    return '<div class="sr ' + s.team + (s.out ? ' out' : '') + '"><b>' + s.id + '</b> ' + s.H.name + '　船殼 ' + Math.round(Math.max(0, s.hp) * 100) + '%　砲 ' + (s.guns.P + s.guns.S) + '　人 ' + Math.round(s.crew * 100) + '%　帆 ' + Math.round(s.sail * 100) + '%' + (function (n) { return n ? '（倒桅 ' + n + '）' : ''; })(s.masts.filter(function (m) { return !m.up; }).length) + '　' + s.spd.toFixed(1) + ' m/s' +
       (s.out ? '　<i>' + s.fate + '</i>' : '　→ ' + (s.foe ? s.foe.id : '-') + (o ? '（' + (o.mode === 'line' ? '跟 ' + o.leader : '交戰') + (o.throttle !== undefined && o.throttle < 1 ? '・慢' : '') + '）' : '')) + '</div>';
   }).join('');
-  $('stat').textContent = W.t.toFixed(0) + ' 秒' + (W.over ? '　' + (W.over.winner === 'blue' ? '藍' : '紅') + '方勝（' + W.over.t.toFixed(0) + ' 秒）' : '');
+  $('stat').textContent = W.t.toFixed(0) + ' 秒　風速 ×' + W.windSpd.toFixed(2) + (W.over ? '　' + (W.over.winner === 'blue' ? '藍' : '紅') + '方勝（' + W.over.t.toFixed(0) + ' 秒）' : '');
 }
 function sbLoop() {
   if (UI.W && UI.run && !UI.W.over) { var n = Math.round(UI.speed / 60 / SB_DT) || 1; for (var i = 0; i < n && !UI.W.over; i++) sbStep(UI.W); }

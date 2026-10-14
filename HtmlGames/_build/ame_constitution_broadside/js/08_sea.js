@@ -1,6 +1,10 @@
 // ───────────────────────── 海浪（TASK-0522） ─────────────────────────
 // 物理與畫面共用同一組浪（WAVES）：水面高度 h(x, z, t) ＝ SEA_K × Σ a·sin(kx·x ＋ kz·z − ω·t ＋ φ)，深水色散 ω ＝ √(g·k)。
 //   浪向跟著風（WIND，開局固定）：主浪順風，其他幾道偏一點 ⇒ 海面不會整片一條一條。SEA_K ＝ 細節設定的「浪」（0 ＝ 平靜的海）。
+//   WAVES 照載入時的風（WIND0）建一次；每一場開局的風向不同（08_weather.js windInit）⇒ 整組浪跟著轉 SEA_A（rad）：
+//   水面高度在 p 點 ＝ 原本那組浪在「p 反轉 SEA_A」那一點的高度、坡度再轉回來。SEA_A ＝ 0 ⇒ 跟以前逐位元組相同。
+//   著色器是同一個轉法（uniform uSeaA，setCommon 給；⛔ 沒給的程式預設 0 ＝ 不轉，浪不會塌）。
+var SEA_A = 0;
 // 用到水面高度的（seaH）：砲彈落水與打水漂（21_gunnery.js；03_camera.js 的推算）、碎片與斷開的一團浮沉（12／21／22）、
 //   落水的人（40）、垂到水裡的繩（30）、航跡（31）、船的起伏與搖晃（stepWaves，32_hull.js 每步呼叫）。
 // 船的起伏：船底 5（船長）× 2（兩舷）個點的水面擬合一個平面 ⇒ 平均高度、縱向坡度、橫向坡度，彈簧阻尼跟過去（船有慣性）。
@@ -24,8 +28,8 @@ var WAVES = [                                   // a 振幅（m，再乘 SEA_K�
 /** 水面高度（世界座標 x, z、時間 t）。 */
 function seaH(x, z, t) {
   if (!(SEA_K > 0)) return 0;
-  var h = 0;
-  for (var i = 0; i < WAVES.length; i++) { var w = WAVES[i]; h += w.a * Math.sin(w.kx * x + w.kz * z - w.w * t + w.ph); }
+  var c = Math.cos(SEA_A), s = Math.sin(SEA_A), rx = c * x + s * z, rz = c * z - s * x, h = 0;
+  for (var i = 0; i < WAVES.length; i++) { var w = WAVES[i]; h += w.a * Math.sin(w.kx * rx + w.kz * rz - w.w * t + w.ph); }
   return h * SEA_K * WX.sea;                    // 天氣（08_weather.js）：暴風雨 ×2.5；晴天 ×1（逐位元組不變）
 }
 // 著色器用的同一組浪（常數照 WAVES 生成；uSeaK、uSeaT 在 setCommon 給）。seaH ＝ 高度，seaG ＝ 坡度（∂h/∂x, ∂h/∂z）；
@@ -41,12 +45,14 @@ var SEA_GLSL = (function () {
     hs.push(f(w.a) + '*(1.0-smoothstep(' + f(w.L * 0.18) + ',' + f(w.L * 0.3) + ',s))*sin(' + arg + ')');
     gf.push(f(w.a) + '*(1.0-smoothstep(' + f(w.L * 0.25) + ',' + f(w.L * 0.6) + ',fp))*cos(' + arg + ')*vec2(' + f(w.kx) + ',' + f(w.kz) + ')');
   });
-  return 'uniform float uSeaK, uSeaT;\n' +
-    'float seaH(vec2 p){ return uSeaK*(' + h.join('+') + '); }\n' +
-    'vec2 seaG(vec2 p){ return uSeaK*(' + g.join('+') + '); }\n' +
-    'float seaHs(vec2 p,float s){ return uSeaK*(' + hs.join('+') + '); }\n' +
-    'vec2 seaGf(vec2 p,float fp){ return uSeaK*(' + gf.join('+') + '); }\n' +
-    'const float SEA_WA=' + f(Math.atan2(WIND[2], WIND[0])) + ';\n';
+  return 'uniform float uSeaK, uSeaT, uSeaA;\n' +
+    'vec2 seaP(vec2 p){ float c=cos(uSeaA), s=sin(uSeaA); return vec2(c*p.x+s*p.y,c*p.y-s*p.x); }\n' +   // 世界 ⇒ 原本那組浪的座標（反轉 uSeaA）
+    'vec2 seaV(vec2 g){ float c=cos(uSeaA), s=sin(uSeaA); return vec2(c*g.x-s*g.y,s*g.x+c*g.y); }\n' +   // 坡度轉回世界
+    'float seaH(vec2 p){ p=seaP(p); return uSeaK*(' + h.join('+') + '); }\n' +
+    'vec2 seaG(vec2 p){ p=seaP(p); return seaV(uSeaK*(' + g.join('+') + ')); }\n' +
+    'float seaHs(vec2 p,float s){ p=seaP(p); return uSeaK*(' + hs.join('+') + '); }\n' +
+    'vec2 seaGf(vec2 p,float fp){ p=seaP(p); return seaV(uSeaK*(' + gf.join('+') + ')); }\n' +
+    '#define SEA_WA (' + f(Math.atan2(WIND[2], WIND[0])) + '+uSeaA)\n';
 })();
 // 彈簧 [k, c]（k ＝ ωn²、c ＝ 2ζωn）：起伏、縱搖週期 2.5 秒、阻尼比 0.6 ⇒ 長浪（6.9 秒）幾乎同相跟著走；橫搖週期 5 秒、阻尼比 0.35 ⇒ 會晃、會落後一點。
 //   ⛔ 起伏設成 5 秒（照巡防艦的固有週期）⇒ 跟主浪差不多快、落後 60°，船身對水面的上下跟浪本身一樣大（量過：相對 0.33 m 對浪 0.32 m），看起來像沒在跟

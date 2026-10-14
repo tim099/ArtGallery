@@ -31,7 +31,7 @@ function foeOf(sh) { if (sh.foe === undefined) pickFoes(); return sh.foe; }
 // 收命令的：電腦開的船（觀戰時玩家那艘也是）；對戰電腦／沙盒裡玩家自己那艘不收（Tim 2026-10-14：玩家對友艦下令之後再說），但算在配對與戰列裡（可以當排頭）。
 // 一對一：配對 ⇒ 目標就是唯一那艘敵艦 ＝ 本來就挑到的那艘 ⇒ 一位元都不差。
 var CMD_SIDE = { blue: 'pair', red: 'pair' }, CMD_MEM = { blue: {}, red: {} }, ORDERS = {}, CMD_EVERY = 180;
-if (Q.has('cmd')) Q.get('cmd').split(',').forEach(function (w, i) { if (i < 2 && CMD_NAMES[w]) CMD_SIDE[i ? 'red' : 'blue'] = w; });
+// ?cmd=我方,敵方 在 69_prefs.js 讀（要等 53_commander.js 的 CMD_NAMES）
 /** 遊戲的船 ⇒ 指揮官看的局勢（53_commander.js 開頭的格式）。 */
 function cmdView(side) {
   var W = norm(WIND);
