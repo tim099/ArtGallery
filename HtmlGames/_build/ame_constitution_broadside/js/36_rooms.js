@@ -113,7 +113,7 @@ function roomGrid(T, r) {
   if (r.grid) return r.grid;
   var g = T.base, X = r.max[0] - r.min[0] + 1, Y = r.max[1] - r.min[1] + 1, nx = Math.floor(X / ROOM_TILE), ny = Math.floor(Y / ROOM_TILE);
   var G = { nx: nx, ny: ny, x0: r.min[0] + Math.floor((X - nx * ROOM_TILE) / 2), y0: r.min[1] + Math.floor((Y - ny * ROOM_TILE) / 2), z: r.min[2], s: new Uint8Array(nx * ny) };
-  var doors = roomDoors(g, r), z = G.z, head = Math.min(ROOM_HEAD, r.max[2] - z + 1);
+  var doors = roomDoors(g, r).concat(r.door ? [[r.door[0], r.door[1]]] : []), z = G.z, head = Math.min(ROOM_HEAD, r.max[2] - z + 1);   // 標了 <房名>.door ⇒ 也算門（夜隼號 2 號：前後各差一階，牆上找不到門）
   for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
     var ok = 1, cx = G.x0 + i * ROOM_TILE + (ROOM_TILE - 1) / 2, cy = G.y0 + j * ROOM_TILE + (ROOM_TILE - 1) / 2;
     var aisle = doors.some(function (d) { return Math.abs(d[0] - cx) <= ROOM_AISLE && Math.abs(d[1] - cy) <= ROOM_AISLE; });
