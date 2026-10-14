@@ -46,13 +46,30 @@ function slowTick(dt) {
   }
   return SLOW.ts;
 }
+// ── 物理減速（Tim 2026-10-14：物理計算量超過一定時降低模擬速度 —— 慢動作，參考殉爆；可以開關、預設關）──
+// 每一格畫面量 step() 平均一步幾毫秒（PSLOW.ms，指數平均）；1× 要每秒 60 步 ⇒ 模擬佔真實時間的比例 L ＝ ms × 60 ÷ 1000。
+//   L 超過門檻 PSLOW.budget（物理設定頁的滑桿，預設 0.5：至少留一半給畫面）⇒ 倍率 ＝ 門檻 ÷ L（最低 PSLOW_MIN）；往下立刻跟（開戰第一輪、殉爆挖彈坑那種尖峰），往上 PSLOW_UP 秒才回到 1×（不忽快忽慢）。
+//   跟殉爆慢動作取比較慢的；一樣只改「每格畫面走幾步」⇒ 開或關同一個種子走出同一局；只給人看的照畫面的時間走（slowVisStep）。?demo、__game.run 不經過 frame ⇒ 不受影響。
+// 開關：遊戲內設定面板與主選單的物理設定頁；門檻：物理設定頁的滑桿（config lim.pslowb）。都跟著存檔；網址 ?pslow=1、?pslowb=0.4。
+//   量過（8 艘 4 對 4、門檻 0.5）：一步 12–24 ms ⇒ L 0.75–1.44 ⇒ 0.33–0.66×。
+var PSLOW_MIN = 0.2, PSLOW_UP = 1.5;
+function pslowMeasure(ms) { PSLOW.ms = PSLOW.ms ? PSLOW.ms * 0.85 + ms * 0.15 : ms; }
+/** 每一格畫面：照量到的一步幾毫秒算這一格的倍率（關 ⇒ 1）。 */
+function pslowTick(dt) {
+  if (!PSLOW.on) { PSLOW.ts = 1; return 1; }
+  var L = PSLOW.ms * 60 / 1000, want = L > PSLOW.budget ? Math.max(PSLOW_MIN, PSLOW.budget / L) : 1;
+  PSLOW.ts = want < PSLOW.ts ? want : Math.min(want, PSLOW.ts + dt / PSLOW_UP);
+  return PSLOW.ts;
+}
+function pslowToggle() { PSLOW.on = !PSLOW.on; if (!PSLOW.on) PSLOW.ts = 1; gsetShow(); if (typeof phxShow === 'function') phxShow(); }
 /** 慢動作中，只給人看的效果照畫面的時間走（step() 那邊跳過）。 */
 function slowVisStep(dt) { stepDebris(dt); stepPts(dt); stepWater(dt, 'fly'); }
 /** 慢動作的提示（畫面上方中間）：倍率 < 0.98 才顯示。 */
 function slowShow() {
   var el = $('slowB'); if (!el) return;
-  var on = RUNNING && SLOW.active && SLOW.ts < 0.98;
-  el.classList.toggle('on', on); if (on) el.textContent = '慢動作 ×' + SLOW.ts.toFixed(2);
+  var on = RUNNING && SLOW.active && SLOW.ts < 0.98, ph = RUNNING && !on && PSLOW.on && PSLOW.ts < 0.98;   // 殉爆的慢動作優先；不然物理減速
+  el.classList.toggle('on', on || ph); if (on) el.textContent = '慢動作 ×' + SLOW.ts.toFixed(2); else if (ph) el.textContent = '物理減速 ×' + PSLOW.ts.toFixed(2);
 }
 $('slowT').onclick = function () { SLOW.on = !SLOW.on; if (!SLOW.on) { SLOW.active = false; SLOW.ts = 1; } gsetShow(); };
 $('slowCamT').onclick = function () { SLOW.cam = !SLOW.cam; gsetShow(); };
+$('pslowT').onclick = pslowToggle;

@@ -152,7 +152,7 @@ function gsetShow() {
   [].forEach.call(document.querySelectorAll('#gset [data-gx]'), function (b) { b.classList.toggle('on', b.dataset.gx === xl); });
   $('gsGfx').textContent = gl === 'custom' ? '（自訂）' : ''; $('gsPhx').textContent = xl === 'custom' ? '（自訂）' : '';
   $('muteT').classList.toggle('on', muted); $('fpsT').classList.toggle('on', GFX_FPS);
-  $('slowT').classList.toggle('on', SLOW.on); $('slowCamT').classList.toggle('on', SLOW.cam); $('boomB').classList.toggle('dis', !canSelfDestruct());
+  $('slowT').classList.toggle('on', SLOW.on); $('slowCamT').classList.toggle('on', SLOW.cam); $('pslowT').classList.toggle('on', PSLOW.on); $('boomB').classList.toggle('dis', !canSelfDestruct());
   $('fullT').classList.toggle('on', fsOn()); $('fullT').classList.toggle('dis', !fsCan()); $('gsFull').textContent = fsCan() ? '' : '（這裡不給全螢幕：iPhone 的 Safari 只給影片）';
 }
 $('setB').onclick = gsetToggle;
@@ -590,8 +590,11 @@ function phxUI() {
   var box = $('phxItems');
   box.innerHTML = PHX_ITEMS.map(function (it) {
     return '<div class="row"><label>' + it.name + '</label>' + it.opt.map(function (o, v) { return '<button data-k="' + it.k + '" data-v="' + v + '">' + o + '</button>'; }).join('') + '</div>';
-  }).join('');
-  [].forEach.call(box.querySelectorAll('button'), function (b) { b.onclick = function () { PHX[b.dataset.k] = +b.dataset.v; phxSync(); }; });
+  }).join('') + '<div class="row"><label>物理減速</label><button data-pslow="0">關</button><button data-pslow="1">開（計算量大時放慢模擬）</button></div>'   // 不跟四檔走（73_slowmo.js PSLOW）
+    + '<div class="row slide"><label for="pslowR">減速門檻</label><input type="range" id="pslowR" min="' + LIM.pslowb[0] + '" max="' + LIM.pslowb[1] + '" step="0.05" aria-label="模擬最多佔真實時間幾成，超過就放慢"><span id="pslowV"></span></div>';
+  [].forEach.call(box.querySelectorAll('button[data-k]'), function (b) { b.onclick = function () { PHX[b.dataset.k] = +b.dataset.v; phxSync(); }; });
+  [].forEach.call(box.querySelectorAll('button[data-pslow]'), function (b) { b.onclick = function () { if ((b.dataset.pslow === '1') !== PSLOW.on) pslowToggle(); }; });
+  var pr = $('pslowR'); pr.oninput = function () { PSLOW.budget = Math.round(+pr.value * 100) / 100; phxShow(); };
   [].forEach.call(document.querySelectorAll('#phxs button[data-x], #phxPre button'), function (b) { b.onclick = function () { phxSet(b.dataset.x); phxSync(); }; });
   phxShow();
 }
@@ -600,7 +603,9 @@ function phxShow() {
   var lv = phxLevel();
   [].forEach.call(document.querySelectorAll('#phxs button[data-x], #phxPre button'), function (b) { b.className = b.dataset.x === lv ? 'on' : ''; });
   var pb = $('phxB'); pb.textContent = lv === 'custom' ? '自訂（物理設定…）' : '物理設定…'; pb.className = lv === 'custom' ? 'on' : '';
-  [].forEach.call(document.querySelectorAll('#phxItems button'), function (b) { b.className = PHX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
+  [].forEach.call(document.querySelectorAll('#phxItems button[data-k]'), function (b) { b.className = PHX[b.dataset.k] === +b.dataset.v ? 'on' : ''; });
+  [].forEach.call(document.querySelectorAll('#phxItems button[data-pslow]'), function (b) { b.className = (b.dataset.pslow === '1') === PSLOW.on ? 'on' : ''; });
+  $('pslowR').value = PSLOW.budget; $('pslowV').textContent = '模擬最多佔 ' + Math.round(PSLOW.budget * 100) + '% 的時間' + (PSLOW.budget === LIM.pslowb[2] ? '（預設）' : '') + '：越低越早放慢、畫面越順' + (PSLOW.on ? '' : '（物理減速關著）');
   $('phxLv').textContent = '現在：' + PHX_NAME[lv];
   if (typeof gsetShow === 'function') gsetShow();
 }

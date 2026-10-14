@@ -5,9 +5,10 @@ function frame(ts, noRaf) {                                         // noRaf：_
   var dt = last ? Math.min(0.1, (ts - last) / 1000) : DT; last = ts;
   FPS = FPS * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
   if (RUNNING && !PAUSED) {
-    var sk = slowTick(dt); SLOW_VIS = sk < 1;                         // 殉爆的慢動作（73_slowmo.js）：模擬一步照舊 DT，只是每格累積的時間 × 倍率
-    acc += dt * sk; var n = 0;
+    var sk = Math.min(slowTick(dt), pslowTick(dt)); SLOW_VIS = sk < 1;   // 殉爆的慢動作、物理減速（73_slowmo.js）：模擬一步照舊 DT，只是每格累積的時間 × 倍率（取比較慢的）
+    acc += dt * sk; var n = 0, st0 = performance.now();
     while (acc >= DT && n < 4) { step(); acc -= DT; n++; }
+    if (n) pslowMeasure((performance.now() - st0) / n);                // 一步平均幾毫秒（物理減速照它算）
     if (n === 4) acc = 0;
     if (SLOW_VIS) { if (PF) PF.t = performance.now(); slowVisStep(dt * sk); if (PF) pfLap('slowvis'); }
     SLOW_VIS = false;                                                 // 快轉（__game.run）不經過這裡 ⇒ 照常在 step() 走
@@ -127,6 +128,7 @@ if (DEBUG) window.__game = {
     return out;
   },
   /** 殉爆的慢動作與特寫（73_slowmo.js）：給 { on, cam } 就改設定；回現在的倍率、狀態、殉爆幾次。 */
+  pslow: function (o) { if (o && 'budget' in o) PSLOW.budget = +o.budget; if (o && 'on' in o) { PSLOW.on = !!o.on; if (!PSLOW.on) PSLOW.ts = 1; gsetShow(); } return { on: PSLOW.on, ts: +PSLOW.ts.toFixed(3), ms: +PSLOW.ms.toFixed(2), load: +(PSLOW.ms * 60 / 1000).toFixed(3), budget: PSLOW.budget, min: PSLOW_MIN }; },   // 物理減速（73_slowmo.js）
   slow: function (o) { if (o) { if ('on' in o) SLOW.on = !!o.on; if ('cam' in o) SLOW.cam = !!o.cam; gsetShow(); } return { on: SLOW.on, cam: SLOW.cam, active: SLOW.active, ts: +SLOW.ts.toFixed(3), min: SLOW.min, hold: SLOW.hold, t: +SLOW.t.toFixed(2), kicks: SLOW.kicks, camHeld: !!SLOW.camSave }; },
   /** 3D 雨滴（14_rain.js）：現在幾滴、上一格畫了幾條、水花幾個、開了以來落海與打到船幾次。{ bench: n } ⇒ 量 n 格（走一格＋填緩衝畫一次）各花幾 ms。 */
   rain: function (o) {
