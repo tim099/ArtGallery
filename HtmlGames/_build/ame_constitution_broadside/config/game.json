@@ -152,6 +152,14 @@
       "geo": {"spar": [84, 118], "marines": [90, 110], "center": 110, "aim": 80, "aimZ": [30, 380], "deckAim": [66, 96], "rigAim": [150, 380]},
       "rooms": {"甲板-上/艙房/1": "medical", "甲板-上/艙房/2": "medical", "甲板-上/艙房/3": "medical"},
       "cfg": {"base": 6}
+    },
+    {
+      "id": "nightlamp",
+      "el": "ship-nightlamp",
+      "name": "夜燈號",
+      "vxk": "nightlamp.vxk",
+      "work": "basecamp-nightlamp-01m-assembly",
+      "geo": {"spar": [130, 146], "marines": [60, 330], "center": 160, "aim": 100, "aimZ": [35, 430], "deckAim": [103, 130], "rigAim": [170, 480]}
     }
   ],
   "furniture": {

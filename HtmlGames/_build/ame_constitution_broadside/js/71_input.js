@@ -71,6 +71,7 @@ window.addEventListener('keydown', function (e) {
   if (k === 'escape') { e.preventDefault(); if (HELP.open) helpClose(); else if (FLX) floodClose(); else if (FLX3) xrayToggle(); else gsetToggle(); return; }   // 遊戲內的設定面板
   if (k === ' ' || k === 'a' || k === 'd' || k === 'w' || k === 's' || k.indexOf('arrow') === 0) e.preventDefault();
   kbLit(k, true);
+  if (!e.repeat) astHold(k);
   doKey(k, e.repeat);
 });
 /** 鍵盤按著的時候，畫面上對應的按鈕也亮成按下的顏色（Tim 2026-10-14；跟手指按住同一個 .down）；方向鍵照 A／D／W／S 的按鈕。 */
@@ -106,14 +107,16 @@ function doKey(k, repeat) {
     if (!repeat) setSails(me, me.sailSet + (k === 'w' || k === 'arrowup' ? 1 : -1));
   }
 }
-function keyUp(k) { if (k === 'a' || k === 'arrowleft') KEYS.l = false; if (k === 'd' || k === 'arrowright') KEYS.r = false; }
+function keyUp(k) { if (k === 'a' || k === 'arrowleft') KEYS.l = false; if (k === 'd' || k === 'arrowright') KEYS.r = false; if (k === 's' || k === 'arrowdown') KEYS.b = null; if (k === 'w' || k === 'arrowup') KEYS.f = null; }
+/** 加帆（W）／收帆（S）按下：記下那一刻（按住 ASTERN_HOLD 秒 ⇒ 有額外動力的船油門 前進／倒車，31_sailing.js）。只從鍵盤與按住型按鈕記（⛔ 說明裡點一下的 kbd 收不到放開）。 */
+function astHold(k) { if (k === 's' || k === 'arrowdown') KEYS.b = SIMT; if (k === 'w' || k === 'arrowup') KEYS.f = SIMT; }
 window.addEventListener('keyup', function (e) { var k = e.key.toLowerCase(); if (e.code === 'Space') k = ' '; kbLit(k, false); keyUp(k); });
-window.addEventListener('blur', function () { KEYS.l = KEYS.r = false; [].forEach.call(document.querySelectorAll('.kb.down'), function (b) { b.classList.remove('down'); }); });   // 切走視窗 ⇒ 收不到 keyup，按下的顏色一起清掉
+window.addEventListener('blur', function () { KEYS.l = KEYS.r = false; KEYS.f = KEYS.b = null; [].forEach.call(document.querySelectorAll('.kb.down'), function (b) { b.classList.remove('down'); }); });   // 切走視窗 ⇒ 收不到 keyup，按下的顏色一起清掉
 // 畫面上的按鍵提示（下方控制列 .kb、說明裡的 kbd[data-k]）：點 ＝ 按那個鍵；data-hold 的（打舵）按住才算
 [].forEach.call(document.querySelectorAll('[data-k]'), function (b) {
   var k = b.dataset.k;
   if (b.dataset.hold) {
-    b.addEventListener('pointerdown', function (e) { e.preventDefault(); b.classList.add('down'); doKey(k, false); try { b.setPointerCapture(e.pointerId); } catch (x) { } });   // 手指滑出按鈕也算按著，放開才鬆舵
+    b.addEventListener('pointerdown', function (e) { e.preventDefault(); b.classList.add('down'); astHold(k); doKey(k, false); try { b.setPointerCapture(e.pointerId); } catch (x) { } });   // 手指滑出按鈕也算按著，放開才鬆舵
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { b.addEventListener(ev, function () { b.classList.remove('down'); keyUp(k); }); });
   } else b.addEventListener('click', function (e) { e.preventDefault(); doKey(k, false); });
 });
@@ -242,7 +245,7 @@ function sliders() {
     el.innerHTML = '<div class="h">' + h.name + '</div>' +
       '排水量 <b>' + Math.round(T.disp).toLocaleString() + '</b> 噸<span class="n">（設計水線）</span><br>' +
       '航速 順風 <b>' + Math.hypot(kn * polar(0), +c.base || 0).toFixed(1) + '</b>・側順風 <b>' + Math.hypot(kn, +c.base || 0).toFixed(1) + '</b>（最快）・逆風 <b>' + Math.hypot(kn * polar(dz), +c.base || 0).toFixed(1) + '</b> 節<br>' +
-      (c.base ? '基底航速 <b>' + (+c.base).toFixed(1) + '</b> 節<span class="n">（額外動力，推力跟帆相加 ⇒ 上面三格 ＝ √(帆² ＋ 基底²)：不看風向與帆，頂風、收帆也走得動）</span><br>' : '') +
+      (c.base ? '基底航速 <b>' + (+c.base).toFixed(1) + '</b> 節<span class="n">（額外動力，推力跟帆相加 ⇒ 上面三格 ＝ √(帆² ＋ 基底²)：不看風向與帆，頂風、收帆也走得動；手動操舵時按住 W 才往前推、按住 S 倒車）</span><br>' : '') +
       '<span class="n">標準風、滿帆；逆風 ＝ 離風 ' + Math.round(stall) + '° 時（再頂就開始失速）' + (PLAY === 'fun' ? '；含娛樂玩法的加成' : '') + '</span><br>' +
       '砲 <b>' + hc.n + '</b> 門<span class="n">（' + gl + '）</span><br>' +
       '船員 約 <b>' + crewTotal(shipCrew(CFG_ID), hc) + '</b> 人<span class="n">（含預備水手 ' + shipCrew(CFG_ID).hands + '）</span><br>' +
@@ -458,7 +461,7 @@ function sliders() {
     var fun = PLAY === 'fun' ? '（娛樂：' : '（', SPE = SPEEDK * playK('speed'), AGE = AGILK * playK('agile');   // 娛樂 ⇒ 括號裡寫乘過加成的實際值
     $('speedV').textContent = SPEEDK.toFixed(2) + '×' + fun + '最快約 ' + (VMAX * SPE * 1.944).toFixed(0) + ' 節）';
     $('agileV').textContent = AGILK.toFixed(2) + '×' + fun + '滿帆側風約 ' + ((0.012 + 0.016 * VMAX * 0.92) * AGE * 57.3).toFixed(1) + '°/秒）';
-    var BKV = K.base || 0; $('baseV').textContent = BKV ? BKV.toFixed(1) + ' 節（額外動力，推力跟帆相加：實際 ＝ √(帆² ＋ 基底²)；不看風向、風速、帆，頂風、收帆也走得動）' : '0（沒有：照帆與風走）';
+    var BKV = K.base || 0; $('baseV').textContent = BKV ? BKV.toFixed(1) + ' 節（額外動力，推力跟帆相加：實際 ＝ √(帆² ＋ 基底²)；不看風向、風速、帆，頂風、收帆也走得動；手動操舵時是油門：按住 W 前進、按住 S 倒車）' : '0（沒有：照帆與風走）';
     var UPK = K.upwind; $('upwindV').textContent = UPK.toFixed(2) + '×（' + (UPK === 1 ? '照舊：' : '') + '風從船頭 ' + (90 - (90 - NOGO_DEG) * UPK).toFixed(0) + '° 開始失速、' + (90 - (90 - NOGO_FULL) * UPK).toFixed(0) + '° 全失速（手動操舵）；近迎風轉向最多 ×' + UPK.toFixed(2) + '）';
     var SK = STALL_K * playK('stall'), WA = WAVES.reduce(function (a, w) { return a + w.a; }, 0) * SEA_K;   // WA：幾道浪疊在一起最高的那一下（振幅）
     $('seaV').textContent = SEA_K <= 0 ? '0（平靜）' : SEA_K.toFixed(2) + '×（浪高最多約 ' + (WA * 2).toFixed(1) + ' m，主浪週期 ' + (2 * Math.PI / WAVES[0].w).toFixed(1) + ' 秒）';

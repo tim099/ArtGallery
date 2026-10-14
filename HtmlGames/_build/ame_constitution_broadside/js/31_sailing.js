@@ -70,19 +70,28 @@ function setSails(sh, k) {
   sh.sailSet = k; applySailSet(sh); note(sh, '帆裝：' + SAILSETS[k]);
 }
 function sideGuns(sh, side) { return sh.guns.filter(function (g) { return g.alive && gunRate(g) > 0 && g.side === side; }).length; }   // 這一舷開得動的砲
+// 額外動力的油門（Tim 2026-10-14：持續按住收帆 ＝ 往後推的動力；往前也是按住才有 ＝ 油門，獨立於帆之外）：我艦 cfg.base > 0、手動操舵時
+//   按住 W／加帆鈕 ASTERN_HOLD 秒以上 ⇒ 往前推、按住 S／收帆鈕 ⇒ 往後推、都沒按（或兩個一起按）⇒ 不推，只靠帆。點一下照舊是加帆／收帆。
+//   帆照樣往前推 ⇒ 淨推力 ＝ 帆² ± 基底²，航速 ＝ ±√|淨|（帆全收＋倒車 ⇒ 倒退基底那麼快）。自動航行中按住 ⇒ 換手動（跟 A／D 一樣）；倒退時舵效反過來（像倒車）。
+//   自動航行、電腦的船 ⇒ 一直往前推（跟以前一樣）；停船（6）照舊停。
+var ASTERN_HOLD = 0.4;
 function sail(sh, dt) {
   var F = fwd(sh.yaw), W = norm(WIND), deg = Math.acos(clamp(dot(F, W), -1, 1)) * 57.2958;
   var UP = sh.cfg.upwind || 1, dU = UP === 1 || deg <= 90 ? deg : 90 + (deg - 90) / UP;   // 逆風性能：迎風那一半的角度壓縮（1.25 ⇒ 風從船頭 52.5° 才開始失速、45° 跑得像 36° 的船…）；1 ⇒ 一位元都不動
   sh.sailFrac = sh.sails.reduce(function (a, s) { return a + (s.dead || s.furled ? 0 : s.area * s.hp / s.hpMax); }, 0) / sh.sailArea0;   // 被打中還沒掉的帆：照剩下的血量算推力
   sh.pos = pointName(deg);
   var stop = SAIL === 'off', manual = SAIL === 'manual' && sh.i === PLAYER_I;
+  var BK = sh.cfg.base || 0, ME = BK > 0 && !stop && sh.i === PLAYER_I && !sh.struck && !sh.sunk;
+  var kF = ME && KEYS.f !== null && SIMT - KEYS.f >= ASTERN_HOLD, kB = ME && KEYS.b !== null && SIMT - KEYS.b >= ASTERN_HOLD;   // 按住 W／S
+  if ((kF || kB) && !manual) { setSailMode('manual'); manual = true; }
+  var THR = manual && BK > 0 ? (kF === kB ? 0 : kF ? 1 : -1) : 1;   // 油門：手動 ⇒ 按住才有；自動、電腦的船 ⇒ 1
+  sh.thr = BK > 0 ? THR : null;
   sh.manual = manual;
   var SPK = sh.cfg.speed * playK('speed') * WX.speed;                 // 航速倍率（船隻設定 × 玩法的加成 × 天氣：暴風雨風大 ×1.15）
   var nogo = manual && !stop && !sh.sunk ? STALL_K * playK('stall') * clamp((NOGO_DEG - (180 - dU)) / (NOGO_DEG - NOGO_FULL), 0, 1) : 0;   // 頂風失速的程度
   sh.irons = nogo;
   var target = sh.sunk || stop ? 0 : VMAX * SPK * Math.sqrt(WIND_SPD) * sh.sailFrac * polar(dU) * (1 - nogo) * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1);   // throttle：讓開友艦砲線時放慢（52_fleet.js lineClear；平常 1）
-  var BK = sh.cfg.base || 0;
-  if (BK > 0 && !sh.sunk && !stop) { var vb = BK / 1.9438 * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1); target = Math.sqrt(target * target + vb * vb); }   // 基底航速（節 ⇒ m/s）：額外動力，推力跟帆相加 ⇒ √(帆² ＋ 基底²)；進水、降旗、讓砲線照樣慢
+  if (BK > 0 && !sh.sunk && !stop && THR) { var vb = BK / 1.9438 * (1 - clamp(sh.sink / 9, 0, 0.8)) * (sh.struck ? 0.15 : 1) * (sh.throttle || 1); var NT = target * target + THR * vb * vb; target = NT >= 0 ? Math.sqrt(NT) : -Math.sqrt(-NT); }   // 基底航速（節 ⇒ m/s）：額外動力，推力跟帆相加 ⇒ √(帆² ＋ 基底²)；倒車 ⇒ 帆² − 基底²（負 ＝ 往後）；手動沒按住 ⇒ 只有帆；進水、降旗、讓砲線照樣慢
   if (sh.spd0) { sh.spd = target; sh.spd0 = false; }                    // 開局就在走
   sh.spd += (target - sh.spd) * Math.min(1, dt / (stop || sh.throttle < 1 ? 6 : 20));     // 停船：收帆、轉進風裡，6 秒內停下
   // 舵
@@ -90,12 +99,12 @@ function sail(sh, dt) {
   var foe = foeOf(sh), tY = sh.yaw, rate = 0;
   var wheel = sh.models.some(function (m) { return m.kind === 'wheel' && m.alive; });
   var rud = sh.models.filter(function (m) { return m.kind === 'rudder'; }), rudK = rud.length && !rud.some(function (m) { return m.alive; }) ? 0.12 : 1;   // 舵是模型（夜隼號）而且被打掉了 ⇒ 只剩調帆轉向
-  var rmax = (0.012 + 0.016 * sh.spd / SPK) * (wheel ? 1 : 0.35) * rudK * (UP === 1 ? 1 : 1 + (UP - 1) * clamp((deg - 90) / 45, 0, 1)) * sh.cfg.agile * playK('agile') * WX.agile;   // 天氣：暴風雨浪大、舵難使 ×0.8。⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
+  var rmax = (0.012 + 0.016 * Math.abs(sh.spd) / SPK) * (wheel ? 1 : 0.35) * rudK * (UP === 1 ? 1 : 1 + (UP - 1) * clamp((deg - 90) / 45, 0, 1)) * sh.cfg.agile * playK('agile') * WX.agile;   // 天氣：暴風雨浪大、舵難使 ×0.8。⛔ 用 sh.spd 直接算 ⇒ 調快航速連帶變得更會轉
   if (stop) { sh.rudder = 0; rate = 0; }
   else if (manual && !sh.struck && !sh.sunk) {
     var want = (KEYS.l ? 1 : 0) - (KEYS.r ? 1 : 0);                    // 舵角正 ＝ yaw 變大 ＝ 畫面上左轉
     sh.rudder += clamp(want - sh.rudder, -1.5 * dt, 1.5 * dt);
-    rate = sh.rudder * rmax;
+    rate = sh.rudder * rmax * (sh.spd < 0 ? -1 : 1);                   // 倒退 ⇒ 舵效反過來（左舵 ⇒ 船尾往左、船頭往右）
     if (nogo > 0) {                                                     // 船頭被風推開：往讓船頭離開風的那一側（正頂風 ⇒ 照上次那一側）
       var off = -Math.sin(sh.yaw) * W[0] - Math.cos(sh.yaw) * W[2];     // d(船頭·風吹去的方向)/d(yaw)：正 ＝ yaw 變大會離開風
       if (Math.abs(off) > 0.02) sh.ironSide = off > 0 ? 1 : -1;
