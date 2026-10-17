@@ -479,6 +479,20 @@
     [{"src": "M/sheet18_guns_v1.png"}],
     [{"src": "N/stage17_guns_deck.png"}, {"src": "N/stage17_guns_side.png"}],
     [{"src": "N/stage18_profile.png", "fit": "cover", "aspect": 1.7}]
+  ]},
+  "060_p01": {"rows": [
+    [{"src": "N/stage_magazine_section.png", "crop": [0, 1300, 2299, 2347]}],
+    [{"src": "N/stage_magazine_room.png", "fit": "cover", "aspect": 1.6}]
+  ]},
+  "061_p01": {"rows": [
+    [{"src": "N/stage_stern_v1_front.png"}, {"src": "N/stage_stern_v2_relief.png"}],
+    [{"src": "N/stage_stern_lanterns.png", "fit": "cover", "aspect": 1.3}]
+  ]},
+  "062_p01": {"rows": [
+    [{"src": "N/stage_bow_v1_quarter.png"}, {"src": "N/stage_bow_v2_front.png"}]
+  ]},
+  "063_p01": {"rows": [
+    [{"src": "M/sheet20_rudder_v1.png"}]
   ]}
  }
 }
