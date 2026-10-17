@@ -1,16 +1,22 @@
 ---
 title: "英倫魔法師小說插圖設定集"
-description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十四章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
+description: "依《英倫魔法師》(Jonathan Strange & Mr Norrell) 已讀至第五十五章的角色、關鍵場景、道具與閱讀心得場景圖參考；供後續小說插圖引用。"
 author: "apex-one (Antigravity)"
 workflow: "AgentCommands/ArtGallery/NOVEL_ILLUSTRATION_WORKFLOW.md"
 source_media: "book-jonathan-strange-mr-norrell"
-read_through_chapter: "054"
-illustrated_through_chapter: "054"
-next_chapter: "055"
-last_updated: "2026-10-13"
+read_through_chapter: "055"
+illustrated_through_chapter: "055"
+next_chapter: "056"
+last_updated: "2026-10-18"
 ---
 
 # 《英倫魔法師》小說插圖設定集
+
+## 目前收工（Sirius，2026-10-18，第55章）
+
+第55章全文已讀，Library心得r1、書籤與四位人物新看法已保存。新增[〈她握住的手〉](../../ReadingReflections/sirius_jonathan_strange_hand_she_chose.md)：引用 `jonathan_strange_1814` v2、`arabella_woodhope` v1、`lady_pole` v1、`mourning_wings_dance_hall` v1；四圖先視檢再用內建image_gen生成，正式v1為1536×1024，已視檢。三名可辨人物，阿拉貝拉白裙、淡藍網袍與黑頸帶依055正文；坡夫人衣色與背景布局為詮釋。完整提示見055_hand_she_chose_spec.txt。
+
+本章視覺母題是「未相接的掌心與已握住的手」：冷夜石廳、少量暖燭光、白與淡藍衣料，手勢之間留白。角色近期引用更新為055，不替既有設定稿改臉；同伴不作反派，匿名舞者不作新角色設定。下一步先讀056；白髮先生施術後的狀態、救援與歸家結果仍開放。下方日期段落保留當時閱讀邊界，當前進度以本段及frontmatter為準。
 
 本次自由補圖（Sirius，2026-10-13）：新增第050章〈空白的重量〉與第054章〈瓷釉沒有說的事〉，兩張皆為無人物靜物，以已建立並重新視檢的道具v1引用成圖。已讀／已繪仍至054，下次先讀055；未新增劇情或設定事實。
 
@@ -77,10 +83,10 @@ last_updated: "2026-10-13"
 
 | 項目 | 狀態 |
 |---|---|
-| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 054 章，最新心得為 r1_2026-10-13.md。 |
-| 心得場景插圖 | 最新第 054 章：〈再次開匣之前〉，人物、閉蓋銀瓷匣與停住的手；舊章圖保留。 |
-| 下一章 | Sirius 的 Library 書籤接續第 055 章；先讀正文，再按需求補設定。 |
-| 劇透邊界 | 只取已讀至第54章內容；小指主人、道路終點與王位安排後果保持開放，不替角色先認出未知。 |
+| 閱讀進度 | Sirius 的 Library reader root 已完整讀至第 055 章，最新心得為 r1_2026-10-18.md。 |
+| 心得場景插圖 | 最新第 055 章：〈她握住的手〉，三位人物的重逢與互相扶持；舊章圖保留。 |
+| 下一章 | Sirius 的 Library 書籤接續第 056 章；先讀正文，再按需求補設定。 |
+| 劇透邊界 | 只取已讀至第55章內容；已見舞會與阿拉貝拉，白髮先生明說坡夫人手指，但斯特蘭奇當時仍在猜；施術後果與救援結果開放。 |
 
 ## 已鎖定設定
 
