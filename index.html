@@ -69,6 +69,12 @@
      影片欄吃掉剩下的寬；高度另設上限 —— 視窗矮而寬時 16:9 會比 88vh 高，那時改由高度決定寬並置中。 */
   .sheet.video{ width:min(1560px,96vw); grid-template-columns:minmax(0,1fr) minmax(320px,400px); }
   .sheet.video .player{ width:min(100%, calc(88vh * 16 / 9)); justify-self:center; }
+  /* HTML 遊戲：彈窗只放海報，點了開新分頁玩（Tim 2026-10-17：「直接顯示預覽圖 實際要開連結玩」「不直接在彈窗玩」）。
+     連結才是格線的子項 ⇒ 置中掛在連結上；圖照 `.sheet img` 那一套（後代選擇器，包在連結裡照樣吃得到）。 */
+  .sheet .poster{ position:relative; display:block; justify-self:center; align-self:center; max-width:100%; }
+  .sheet .poster .pplay{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,.72); color:#fff;
+                         border:1px solid rgba(255,255,255,.6); border-radius:10px; padding:10px 20px; font-size:18px; white-space:nowrap; }
+  .sheet .poster:hover .pplay{ background:rgba(0,0,0,.88); }
   .t{ font-size:14px; font-weight:600; margin:0 0 4px; }
   .m{ color:var(--dim); font-size:12px; display:flex; gap:8px; flex-wrap:wrap; }
   .tag{ border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
@@ -410,7 +416,7 @@
         img.className = "thumb"; img.loading = "lazy"; img.alt = it.title; img.src = it.image;
         if(it.video || it.model_viewer){
           var vw = document.createElement("div"); vw.className = "vwrap"; vw.appendChild(img);
-          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = it.model_viewer ? "◇ 3D · 可旋轉" : it.game ? "🎮 HTML 遊戲 · 可以玩" : "▶ HTML 影片";
+          var vb = document.createElement("span"); vb.className = "vbadge"; vb.textContent = it.model_viewer ? "◇ 3D · 可旋轉" : it.game ? "🎮 HTML 遊戲 · 開新分頁玩" : "▶ HTML 影片";
           vw.appendChild(vb); card.appendChild(vw);
         }else card.appendChild(img);
       }else if(it.video){
@@ -479,8 +485,16 @@
   function open(it){
     var sheet = $("sheet");
     sheet.textContent = "";
-    sheet.className = (it.video || it.model_viewer) ? "sheet video" : it.image ? "sheet" : "sheet noimg";
-    if(it.video || it.model_viewer){
+    var play = it.game && it.video;     // HTML 遊戲：彈窗只放海報、點了開新分頁玩，不在彈窗裡跑（Tim 2026-10-17）
+    sheet.className = ((it.video && !play) || it.model_viewer) ? "sheet video" : (it.image || play) ? "sheet" : "sheet noimg";
+    if(play){
+      var pa = document.createElement("a"); pa.className = "poster"; pa.href = it.video;
+      pa.target = "_blank"; pa.rel = "noopener"; pa.title = "開新分頁玩";
+      if(it.image){ var pi = document.createElement("img"); pi.src = it.image; pi.alt = it.title; pa.appendChild(pi); }
+      else{ var pt = document.createElement("div"); pt.className = "thumb text"; pt.textContent = "🎮 HTML 遊戲"; pa.appendChild(pt); }
+      var pp = document.createElement("span"); pp.className = "pplay"; pp.textContent = "▶ 開新分頁玩"; pa.appendChild(pp);
+      sheet.appendChild(pa);
+    }else if(it.video || it.model_viewer){
       // 直接在彈窗裡播：sandbox 只開 allow-scripts —— 展品是一份會跑腳本的 HTML，
       // 不給 allow-same-origin 它就碰不到本頁的 DOM 與儲存。關彈窗時清掉 src，聲音才會停。
       var fr = document.createElement("iframe");
@@ -519,7 +533,7 @@
     if(it.video){
       var va = document.createElement("a");
       va.className = "btn"; va.target = "_blank"; va.rel = "noopener"; va.href = it.video;
-      var vbtn = document.createElement("button"); vbtn.textContent = it.game ? "🎮 新分頁全螢幕遊玩" : "🎬 新分頁全螢幕播放";
+      var vbtn = document.createElement("button"); vbtn.textContent = it.game ? "🎮 開新分頁玩" : "🎬 新分頁全螢幕播放";
       va.appendChild(vbtn); row.appendChild(va);
     }
     if(DATA.repo_web_base){                       // 取不到 remote 就不生按鈕（壞連結比沒連結難查）

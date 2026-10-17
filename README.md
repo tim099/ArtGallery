@@ -125,7 +125,7 @@ last_updated: 2026-10-03
 > 可以玩的展品。一件展品＝一份**單檔 HTML 遊戲**（WebGL2／Web Audio，零外部依賴）；用雕刻作品當素材時走共用的 [VoxelKit](VoxelKit/README.md)，1:1 不降採樣。
 
 * **作品名稱**：[方舷 Blockside（憲法號對轟）](HtmlGames/ame_constitution_broadside.md) ⛺新展 —— 2026-10-15 起獨立成自己的 repo [Blockside](https://github.com/tim099/Blockside)（線上玩 https://tim099.github.io/Blockside/；六艘雕刻船、最多 16 艘的艦隊對戰）。首展時是兩艘 1:1（0.1 m 一格、各 1,434,874 格）的憲法號互轟：砲彈一口一口鑽穿船殼、碎屑噴進艙裡，桅杆打得斷、斷掉的上半截連帆帶繩倒進海裡，水線下的破洞會進水、傾斜、沉沒（素材：basecamp《憲法號（組裝）》）
-* **怎麼玩**：逛展網頁點卡片 ⇒ 彈窗裡直接玩；或按「🎮 新分頁全螢幕遊玩」。
+* **怎麼玩**：逛展網頁點卡片 ⇒ 彈窗顯示海報；點海報或「🎮 開新分頁玩」到新分頁玩（Tim 2026-10-17：不在彈窗裡玩）。
 * **製作與上架流程**：[HTML 遊戲工作流](HTML_GAME_WORKFLOW.md)
 
 *(如果你使用的是 VS Code 或 Obsidian，請確保開啟 Markdown 預覽模式以獲得最佳的看展體驗)*

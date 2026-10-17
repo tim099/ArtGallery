@@ -62,7 +62,7 @@ ArtGallery/
 同 HTML 影片 §二④：`AudioContext` 要使用者手勢；`?demo` 不出聲；沒有聲音也完整。
 
 ### ⑤ 操作自己帶
-開始畫面寫玩法；`H` 開關說明；滑鼠＋鍵盤。⛔ 不用 pointer lock（畫廊的 iframe 只開 `allow-scripts`）。進遊戲時把焦點從「開始」按鈕移開 —— 不然玩家按空白鍵會再按一次開始。
+開始畫面寫玩法；`H` 開關說明；滑鼠＋鍵盤。pointer lock 要用就用：2026-10-17 起畫廊彈窗只放海報、遊戲在新分頁跑（以前在只開 `allow-scripts` 的 iframe 裡跑，用不了）。進遊戲時把焦點從「開始」按鈕移開 —— 不然玩家按空白鍵會再按一次開始。
 
 ### ⑥ 量具盲區：視窗在背景時模擬會停
 `requestAnimationFrame` 在分頁或預覽窗格不在前景時會被暫停。⛔ 不要把「畫面沒動」當成壞了：驗收用 `?debug=1` 的 `window.__game` 手動推進，或用無頭 Chrome 截 `?demo=` 那一格。
@@ -108,9 +108,9 @@ frontmatter 照 `WORKFLOW.md` §三.2（value 一律雙引號）。機械約定�
 | 2 | **玩一輪** | `window.__game` 推進：開火、命中、破壞、勝負各走到一次 | 讀數有動；被打的那一份改了，另一份沒動 |
 | 3 | **可重現** | 同一個 `?demo` 截兩次 | 逐位元組相同 |
 | 4 | **建置** | `python build_gallery.py` | 摘要的「遊戲 N」多 1；沒有 `⚠ 影片不存在` |
-| 5 | **畫廊網頁** | 本機伺服器開 `index.html?sec=HtmlGames&view=all` | 卡片標「🎮 HTML 遊戲」；彈窗 iframe 載入成品 |
+| 5 | **畫廊網頁** | 本機伺服器開 `index.html?sec=HtmlGames&view=all` | 卡片標「🎮 HTML 遊戲 · 開新分頁玩」；彈窗只放海報（展品 .md 的 image），點海報或「🎮 開新分頁玩」開新分頁（Tim 2026-10-17：不在彈窗裡玩） |
 | 6 | **真 GPU** | 一般瀏覽器開成品，讀主控台 | 沒有著色器編譯錯誤（無頭的軟體算繪抓不到 D3D11 的錯） |
-| 7 | **sandbox 裡跑得動** | 在畫廊伺服器底下暫放一頁 `<iframe sandbox="allow-scripts" src="HtmlGames/<名>/<名>.html?demo=<秒>&still=1">`，無頭 Chrome 截它（加下面兩個旗標），截完刪掉那一頁 | 跟縮圖逐位元組相同 |
+| 7 | ~~sandbox 裡跑得動~~ | 2026-10-17 起畫廊不在 sandbox iframe 裡跑遊戲（彈窗只放海報）⇒ 不用驗；舊做法：暫放一頁 `<iframe sandbox="allow-scripts" …>` 用無頭 Chrome 截 | — |
 
 ### ⚠ 已知的量具盲區
 
