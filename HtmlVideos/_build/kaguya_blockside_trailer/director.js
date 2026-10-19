@@ -189,9 +189,11 @@ function trFrame(ts) {
   if (!TR.ready) { trUI(); return; }
   var dt = TR.last ? (ts - TR.last) / 1000 : 0; TR.last = ts;
   var free = TR.S[trSceneIx(TR.t)].free;                                // 序幕（沒有船、沒有模擬）：長格照真實時間跳過去（背景載船卡住的那一下只是畫面頓一下，字幕與配樂照走）
+  // 長格（換幕的那一口氣、背景載船的最後一段、模擬一時跟不上）：≤ 1.4 秒 ⇒ 畫面照實際過去的時間跳過去、下一格加大預算補算，配樂不停（audio.js 往前排了 1.5 秒）；
+  //   更長 ⇒ 時鐘停在走得到的那一步、配樂停了從那一秒重接（TR.resync）。⛔ 以前一律停住重接 ⇒ 每次換幕、每艘船載完都斷一下（Tim 2026-10-19：「切換場景會卡很久」）。
+  var catchup = false;
   if (free && dt > 0.25) dt = Math.min(dt, 1.5);
-  else if (dt > 0.25 && !(TR.cutStall && dt < 0.75)) { dt = 1 / 60; if (TR.playing) TR.resync = true; }
-  TR.cutStall = false;
+  else if (dt > 0.25) { if (TR.playing && dt <= 1.4 && !TR.resync && !TR.waitLoad) catchup = true; else { dt = 1 / 60; if (TR.playing) TR.resync = true; } }
   var t = TR.t;
   if (TR.playing && !TR.waitLoad) t = Math.min(TR.DUR, t + dt);
   var A = trAt(t), prevT = TR.t;
@@ -205,9 +207,12 @@ function trFrame(ts) {
   }
   TR.live = TR.playing && !TR.resync;
   var cut = TR.cur !== A.i || A.n < TR.k;
-  var done = trStepTo(A.i, A.n, TR.still ? 0 : 28);
+  // 換幕：重開一局＋預跑一口氣做完（黑場裡，中間不畫）⇒ 停一次（0.2–0.5 秒），下一格照實際過去的時間跳過去（上面的 catchup）、配樂不斷。
+  //   ⛔ 以前預跑也照 28 ms 分格做、每格還畫一次 ⇒ 預跑一超過 28 ms 時鐘就停住、配樂停了重接 —— 幾乎每次換幕都斷一下。
+  //   補算那一格放寬到 400 ms（照 28 ms 算不完 ⇒ 又是時鐘停住、配樂重接）；模擬比即時快（2026-10-19 逐幕量：全艦隊最重 0.57 倍）⇒ 補得回來。
+  if (cut && !TR.still && TR.playing) trStepTo(A.i, Math.min(A.n, Math.floor(A.sc.pre / DT + 1e-6)), 0);
+  var done = trStepTo(A.i, A.n, TR.still ? 0 : cut || catchup ? 400 : 28);
   TR.live = false;
-  if (cut && TR.playing) TR.cutStall = true;
   if (!done) { t = trTimeOfStep(A.sc, TR.k); A = trAt(t); TR.buffering = true; if (TR.playing) TR.resync = true; } else TR.buffering = TR.waitLoad;
   TR.t = t;
   if (TR.playing && TR.resync && !TR.buffering && !TR.waitLoad) { TR.resync = false; trMusicAt(t); }
@@ -249,6 +254,21 @@ function trHulls(onlyI) {
 //   播到某一幕、它的船還沒載好 ⇒ 時鐘停在上一幕最後一格（黑場）、配樂停，右上角寫「載入船隻…」；載好從同一秒接著播。
 //   ?t=（縮圖、驗收）⇒ 只載那一幕的船。
 function trSceneLoaded(i) { return TR.S[i].fleet.every(function (f) { return !!HULLT[f.hull]; }); }
+/** 熱身（只在序幕、沒有船的時候）：一種船第一次出場要算一堆跟著船型快取的東西（房間、繩的綁點、水泵……）——
+ *  2026-10-19 量：三叉戟號第一次重開 677 ms（makeShip 508）、第二次 47 ms；餘燼號＋夜隼號 678 → 79；拿破崙號 492 → 37。
+ *  ⇒ 載好就挑一幕有它、船都載好了、船最少的開一次局（不走模擬、不畫），再丟掉；序幕下一格自己重開。快取只跟船型有關 ⇒ 之後每一格照舊是 F(t)。 */
+function trWarm(id) {
+  var sc = TR.S.filter(function (s) { return !s.free && s.fleet.some(function (f) { return f.hull === id; }) && trSceneLoaded(s.i); })
+    .sort(function (a, b) { return a.fleet.length - b.fleet.length || a.i - b.i; })[0];
+  if (!sc) return;                                                      // 有它的幕都還差別的船 ⇒ 第一次出場時再算
+  var live = TR.live, t0 = performance.now(), cur = TR.cur, k = TR.k, simt = SIMT;
+  TR.live = false; trSetup(sc);
+  // 序幕接回原狀：⛔ 只標 TR.cur = -1 ⇒ 序幕下一格從第 0 步重算到現在（~900 步），算不完時鐘就退回算到的那一步（2026-10-19 模擬播放量到：序幕從 15 秒退回 1 秒重播）。
+  //   序幕沒有船 ⇒ 世界只有時間（SIMT、步數）⇒ 重開序幕、把兩個接回去就是同一格。
+  if (cur >= 0 && TR.S[cur].free) { trSetup(TR.S[cur]); TR.k = k; SIMT = simt; } else TR.cur = -1;
+  TR.live = live;
+  (TR.warmLog = TR.warmLog || []).push([id, sc.id, Math.round(performance.now() - t0)]);
+}
 function trBoot() {
   trWire();
   if (DEBUG) (function gap(prev) { requestAnimationFrame(function (ts) { if (prev && ts - prev > 50) (TR.gapLog = TR.gapLog || []).push([Math.round(ts), Math.round(ts - prev), TR.loadName, TR.loadN]); gap(ts); }); })(0);   // 量：長格（> 50 ms）在載哪一艘時出現
@@ -263,6 +283,7 @@ function trBoot() {
     return p.then(function () { TR.loadName = (hullInfo(id) || {}).name || id; trUI(); t0 = performance.now(); return loadHull(id); }).then(function () {
       TR.loadN++; (TR.loadLog = TR.loadLog || []).push([id, Math.round(performance.now() - t0)]);   // 每艘從開始載到載好幾毫秒（?debug=1：__tr.ev('TR.loadLog')）
       if (!TR.ready && first.every(function (h) { return !!HULLT[h]; })) trReady();
+      if (!TR.still && TR.S[trSceneIx(TR.t)].free) trWarm(id);           // 熱身只在序幕裡（播到別幕熱身 ⇒ 要把正在演的那一局丟掉）
       trUI();
       return new Promise(function (r) { setTimeout(r, 0); });              // 讓一格畫面出去再載下一艘
     });
