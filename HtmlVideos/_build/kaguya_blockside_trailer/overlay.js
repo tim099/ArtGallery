@@ -157,6 +157,89 @@ function trTimberArt(g, u, al, x0, y0) {
   trText(g, '轉角的木紋被切斷，從那裡裂開', x0 + W * 1.5 + 120, y0 + H + 84, '400 24px ' + TR_SANS, '#e6dcc6', al, 'center', 1);
 }
 
+/** 序幕的插圖（沒有船的那一段，Tim 2026-10-19：「開頭要有一些動畫或可播放的東西 可以多加一些科普內容在開頭」）：暗底＋金線的剪影，全是 u 的純函數。 */
+function trArtPanel(g, x, y, w, h) { g.fillStyle = 'rgba(8,10,14,0.66)'; g.fillRect(x, y, w, h); g.strokeStyle = 'rgba(214,180,110,0.45)'; g.lineWidth = 2; g.strokeRect(x + 8, y + 8, w - 16, h - 16); }
+function trWaterLine(g, x0, x1, y, u, s) {
+  g.strokeStyle = 'rgba(214,190,140,0.6)'; g.lineWidth = 2 * s; g.beginPath();
+  for (var x = x0; x <= x1; x += 8 * s) { var yy = y + Math.sin(x * 0.02 / s + u * 2.2) * 3 * s; if (x === x0) g.moveTo(x, yy); else g.lineTo(x, yy); }
+  g.stroke();
+}
+/** 三列槳座戰船（trireme）：側面剪影（左 ＝ 船尾、右 ＝ 船首的包銅撞角與畫上的眼睛）、上中下三層槳 —— 每舷 31／27／27 支（共 170 名槳手），三層一起划：
+ *  划水時槳葉在水裡往船尾拉，回槳時抬出水面往前送。 */
+function trTrireme(g, u, al, cx, cy, s) {
+  if (al <= 0.003) return;
+  s = s || 1;
+  var L = 900 * s, x0 = cx - L / 2, x1 = cx + L / 2, wl = cy + 64 * s, ph = u * 2.6;
+  g.save(); g.globalAlpha = al; g.lineJoin = 'round'; g.lineCap = 'round';
+  trArtPanel(g, x0 - 120 * s, cy - 170 * s, L + 260 * s, 340 * s);
+  g.beginPath();                                                        // 船身：船尾翹起（左）、龍骨、船首水線上的撞角（右）
+  g.moveTo(x0 - 30 * s, cy - 120 * s);
+  g.quadraticCurveTo(x0 + 10 * s, wl + 6 * s, x0 + 110 * s, wl + 8 * s);
+  g.lineTo(x1 - 60 * s, wl + 8 * s); g.lineTo(x1 - 20 * s, wl - 6 * s);
+  g.lineTo(x1 - 10 * s, cy - 50 * s); g.lineTo(x0 + 70 * s, cy - 50 * s);
+  g.quadraticCurveTo(x0 + 10 * s, cy - 56 * s, x0 - 6 * s, cy - 104 * s); g.closePath();
+  g.fillStyle = 'rgba(22,16,12,0.95)'; g.fill(); g.strokeStyle = 'rgba(232,200,130,0.9)'; g.lineWidth = 2.5 * s; g.stroke();
+  g.beginPath(); g.moveTo(x1 - 60 * s, wl + 8 * s); g.lineTo(x1 + 60 * s, wl + 4 * s); g.lineTo(x1 - 20 * s, wl - 10 * s); g.closePath();   // 包銅的撞角
+  g.fillStyle = '#c8913a'; g.fill(); g.strokeStyle = 'rgba(250,226,170,0.9)'; g.lineWidth = 1.5 * s; g.stroke();
+  g.fillStyle = '#efe6d0'; g.beginPath(); g.ellipse(x1 - 40 * s, cy - 18 * s, 13 * s, 7 * s, 0, 0, Math.PI * 2); g.fill();   // 船首畫的眼睛
+  g.fillStyle = '#1a120c'; g.beginPath(); g.arc(x1 - 37 * s, cy - 18 * s, 4.5 * s, 0, Math.PI * 2); g.fill();
+  var tiers = [[31, -40], [27, -22], [27, -4]];                         // [每舷支數, 槳孔高度（相對 cy）]
+  var th = 0.38 * Math.cos(ph), lift = trSmooth(-0.3, 0.3, -Math.sin(ph));   // 槳的前後角（+ ＝ 往船首）；回槳那半拍（角度往前走）抬出水面
+  tiers.forEach(function (T, k) {
+    var n = T[0], y = cy + T[1] * s, off = (k % 2 ? 11 : 0) * s, reach = wl + 44 * s - lift * 52 * s;   // 槳伸出船外、往下插進水裡（划水）／抬出水面（回槳）
+    g.strokeStyle = ['rgba(240,214,150,0.95)', 'rgba(222,190,124,0.95)', 'rgba(200,164,100,0.95)'][k]; g.lineWidth = 2.4 * s;
+    for (var i = 0; i < n; i++) {
+      var px = x0 + 150 * s + (L - 330 * s) * i / (n - 1) + off, dy = reach - y, ex = px + Math.tan(th) * dy;
+      g.beginPath(); g.moveTo(px, y); g.lineTo(ex, reach); g.stroke();
+      g.save(); g.lineWidth = 6 * s; g.beginPath(); g.moveTo(ex - Math.tan(th) * 14 * s, reach - 14 * s); g.lineTo(ex, reach); g.stroke(); g.restore();   // 槳葉
+      g.fillStyle = '#0c0806'; g.beginPath(); g.arc(px, y, 2.6 * s, 0, Math.PI * 2); g.fill();   // 槳孔
+    }
+  });
+  g.fillStyle = 'rgba(40,70,92,0.62)'; g.fillRect(x0 - 90 * s, wl, L + 210 * s, 58 * s);   // 水（半透明，蓋在槳葉上 ⇒ 划水那半拍槳葉在水裡）
+  trWaterLine(g, x0 - 90 * s, x1 + 120 * s, wl, u, s);
+  g.restore();
+  trText(g, '上層 31 支・中層 27 支・下層 27 支（每舷）⇒ 一艘約 170 名槳手', cx, wl + 82 * s, '400 26px ' + TR_SANS, '#e6dcc6', al, 'center', 1);
+  trText(g, '撞角', x1 + 40 * s, wl - 44 * s, '600 26px ' + TR_SANS, '#f0c070', al, 'center', 1);
+}
+/** 烏鴉（corvus）：羅馬船船頭立一根柱子，吊著一座帶尖釘的吊橋；放下來釘進敵船的甲板，步兵從橋上衝過去 —— 把海戰打成陸戰。 */
+function trCorvus(g, u, al, cx, cy, s) {
+  if (al <= 0.003) return;
+  s = s || 1;
+  var wl = cy + 70 * s, deckR = cy, deckE = cy + 10 * s;
+  g.save(); g.globalAlpha = al; g.lineJoin = 'round'; g.lineCap = 'round';
+  trArtPanel(g, cx - 640 * s, cy - 300 * s, 1280 * s, 440 * s);
+  trWaterLine(g, cx - 600 * s, cx + 600 * s, wl, u, s);
+  function hull(xa, xb, dk, bowRight, col) {                            // 船身：bowRight ⇒ 船首在右
+    g.beginPath();
+    var xs = bowRight ? xa : xb, xf = bowRight ? xb : xa, d = bowRight ? 1 : -1;
+    g.moveTo(xs, dk - 40 * s); g.quadraticCurveTo(xs + d * 10 * s, wl + 4 * s, xs + d * 90 * s, wl + 6 * s);
+    g.lineTo(xf - d * 50 * s, wl + 6 * s); g.lineTo(xf, dk); g.lineTo(xs + d * 40 * s, dk); g.closePath();
+    g.fillStyle = col; g.fill(); g.strokeStyle = 'rgba(232,200,130,0.85)'; g.lineWidth = 2.5 * s; g.stroke();
+  }
+  hull(cx - 580 * s, cx - 40 * s, deckR, true, 'rgba(26,18,12,0.95)');   // 羅馬船（左，船首朝右）
+  hull(cx + 60 * s, cx + 580 * s, deckE, false, 'rgba(40,22,18,0.95)');  // 迦太基船（右）
+  var px = cx - 170 * s, py = deckR - 6 * s, top = deckR - 250 * s, Lb = 300 * s;
+  g.strokeStyle = 'rgba(214,180,110,0.95)'; g.lineWidth = 7 * s; g.beginPath(); g.moveTo(px, deckR); g.lineTo(px, top); g.stroke();   // 柱子
+  var k = trSmooth(1.4, 1.95, u), fall = k * k, ang = (78 - 82 * fall) * Math.PI / 180;   // 吊著（78°）⇒ 放下（−4°，落在敵船甲板上），越落越快
+  if (u > 1.95 && u < 2.3) ang += Math.sin((u - 1.95) / 0.35 * Math.PI) * 0.04;   // 落下那一下彈一點
+  var ex = px + Math.cos(ang) * Lb, ey = py - Math.sin(ang) * Lb;
+  if (ang > 0.15) { g.strokeStyle = 'rgba(220,206,170,0.7)'; g.lineWidth = 2 * s; g.beginPath(); g.moveTo(px, top); g.lineTo(ex, ey); g.stroke(); }   // 吊索
+  g.strokeStyle = '#b07a3c'; g.lineWidth = 14 * s; g.beginPath(); g.moveTo(px, py); g.lineTo(ex, ey); g.stroke();   // 橋面
+  var nx = Math.sin(ang), ny = Math.cos(ang);                           // 橋面的法線（朝下那一側）
+  g.fillStyle = '#d8d8d8'; g.beginPath(); g.moveTo(ex - 6 * s, ey); g.lineTo(ex + 6 * s, ey); g.lineTo(ex + nx * 30 * s, ey + ny * 30 * s); g.closePath(); g.fill();   // 尖釘（烏鴉的「嘴」）
+  for (var i = 0; i < 9; i++) {                                         // 步兵：落橋之後一個接一個衝過去
+    var t0 = 2.5 + i * 0.32, w = trClamp01((u - t0) / 1.5); if (u < t0) continue;
+    var hx = px - 40 * s + (Lb + 120 * s) * w, hy = (hx < px ? deckR : hx < ex ? py - (hx - px) * Math.tan(ang) : deckE) - 30 * s;
+    g.fillStyle = '#e8d6a8'; g.beginPath(); g.arc(hx, hy - 16 * s, 7 * s, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#e8d6a8'; g.lineWidth = 4 * s; g.beginPath(); g.moveTo(hx, hy - 9 * s); g.lineTo(hx, hy + 16 * s); g.stroke();
+    g.fillStyle = '#a8322a'; g.fillRect(hx + 3 * s, hy - 8 * s, 9 * s, 18 * s);   // 盾
+  }
+  g.restore();
+  trText(g, '烏鴉　corvus', px - 30 * s, top + 20 * s, '600 30px ' + TR_SANS, '#f0c070', al, 'right', 2);
+  trText(g, '羅馬', cx - 330 * s, wl + 44 * s, '400 26px ' + TR_SANS, '#e6dcc6', al, 'center', 1);
+  trText(g, '迦太基', cx + 330 * s, wl + 44 * s, '400 26px ' + TR_SANS, '#e6dcc6', al, 'center', 1);
+}
+
 /** 古海圖（Tim：「此處有龍 的由來 以及那時代的海圖測繪」「可以放在魔法篇(奇幻又有科普)」）：羊皮紙、羅盤玫瑰與恆向線（波特蘭海圖）、海岸、
  *  會扭動的海蛇、HIC SVNT DRACONES；k2（0→1）之後浮出水深數字與測深錘。全是 u 的純函數。 */
 function trChart(g, u, al, x0, y0, W, H, k2) {
@@ -248,6 +331,7 @@ function trOverlay(t, A) {
   if (fo > 0) b = Math.max(b, trSmooth(sc.dur - fo, sc.dur, u));
   if (sc.black) b = Math.max(b, sc.black(u));
   trBlack(g, b);
+  if (sc.over) { try { sc.over(g, u); } catch (e) { if (!TR.capErr) { TR.capErr = 1; console.error('字卡（' + (sc.id || sc.i) + '）：', e); } } }   // 壓在黑場上面的字（字卡前導 sc.lead）
 }
 
 // ── 播放器 ──

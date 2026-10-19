@@ -55,17 +55,18 @@ function trAzOf(sh) { return -sh.yaw; }
 
 // ── 時間軸 ──
 /** 加一幕。sc：{ dur, seed, wx, wind:[度, 倍], fleet:[{team, hull, x, z, yaw, hold, sail, tele}], mode, rig, flood, pre（開幕時模擬已經走了幾秒）, rate（模擬秒／片長秒）,
- *  cues:[{at: 模擬秒, fn(S)}], cam(u, τ, S) ⇒ {eye, look, fov}, look（只改畫面的天色）, sun, cut, fx(push, τ, S), cap(g, u, sc) } */
-function trAdd(sc) { sc.i = TR.S.length; sc.t0 = TR.DUR; TR.DUR += sc.dur; sc.rate = sc.rate || 1; sc.pre = sc.pre || 0; TR.S.push(sc); return sc; }
+ *  lead（開頭幾秒是黑底字卡：模擬停在 pre、預跑分到這幾格做；over 畫字卡）,
+ *  cues:[{at: 模擬秒, fn(S)}], cam(u, τ, S) ⇒ {eye, look, fov}, look（只改畫面的天色）, sun, cut, fx(push, τ, S), cap(g, u, sc), over(g, u)（壓在黑場上面的字） } */
+function trAdd(sc) { sc.i = TR.S.length; sc.t0 = TR.DUR; TR.DUR += sc.dur; sc.rate = sc.rate || 1; sc.pre = sc.pre || 0; sc.lead = sc.lead || 0; TR.S.push(sc); return sc; }
 function trSceneIx(t) { for (var i = 0; i < TR.S.length; i++) if (t < TR.S[i].t0 + TR.S[i].dur) return i; return TR.S.length - 1; }
 /** 片長 t ⇒ 那一幕、模擬秒 τ、要走到第幾步 n、兩步之間的比例 a。 */
 function trAt(t) {
-  var i = trSceneIx(t), sc = TR.S[i], u = Math.min(sc.dur, Math.max(0, t - sc.t0)), tau = sc.pre + u * sc.rate;
+  var i = trSceneIx(t), sc = TR.S[i], u = Math.min(sc.dur, Math.max(0, t - sc.t0)), tau = sc.pre + Math.max(0, u - sc.lead) * sc.rate;
   var n = Math.floor(tau / DT + 1e-6);
   return { i: i, sc: sc, u: u, tau: tau, n: n, a: Math.min(1, Math.max(0, tau / DT - n)) };
 }
 /** 第 i 幕走到第 k 步時，片長是幾秒（時鐘停在走得到的那一步時用）。 */
-function trTimeOfStep(sc, k) { return sc.t0 + Math.max(0, (k * DT - sc.pre) / sc.rate); }
+function trTimeOfStep(sc, k) { return sc.t0 + sc.lead + Math.max(0, (k * DT - sc.pre) / sc.rate); }
 
 // ── 開一幕（跟擬真沙盒 flabSetup 同一條：照參數設好全域 ⇒ reset）──
 var trSpawn0 = spawnFleet;
@@ -198,27 +199,39 @@ function trFrame(ts) {
   if (TR.playing && !TR.waitLoad) t = Math.min(TR.DUR, t + dt);
   var A = trAt(t), prevT = TR.t;
   TR.waitLoad = false;
-  if (!trSceneLoaded(A.i)) {                                            // 這一幕的船還沒載好 ⇒ 停在上一幕的最後一格（黑場）
+  // 這一幕的船還沒載好 ⇒ 停在上一幕的最後一格（黑場），右上角寫「載入船隻 n／17」；
+  //   needAll 那一幕（序幕之後的第一幕；Tim 2026-10-19：「在一開頭就載入全部」）⇒ 十七艘全部載好、熱身完才進場 ⇒ 之後整支片不再載船。
+  var need = !trSceneLoaded(A.i) || (A.sc.needAll && !TR.loadDone && !TR.still);
+  TR.needLoad = need;                                                   // 載船的閘（trLoadGate）：播到有船的幕就停，這一幕缺船時開
+  //   封面上按 ▶ 的時候手上正在載一艘 ⇒ 等它載完再開始（⛔ 不然剩下那一段在開場的對轟裡做完，開場就頓一下）；只等手上這一艘，閘不開（下一艘等序幕）
+  var busy = TR.loadBusy && TR.playing && !A.sc.free && !TR.still;
+  if (need || busy) {
     TR.waitLoad = true;
     if (!TR.playing) { TR.buffering = true; trUI(); return; }             // 停著（剛拖過去）⇒ 時間留在要看的那一秒，載好再畫
     TR.resync = true;
     t = Math.max(0, Math.min(t, A.sc.t0 - 1e-3)); A = trAt(t);
-    if (!trSceneLoaded(A.i)) { trUI(); return; }
+    if (!trSceneLoaded(A.i)) { TR.needLoad = true; trUI(); return; }
   }
-  TR.live = TR.playing && !TR.resync;
   var cut = TR.cur !== A.i || A.n < TR.k;
+  // 字卡前導（sc.lead；全艦隊那一幕）：黑底字卡的那幾秒 ⇒ 這一格只重開（不預跑）、預跑照 50 ms 一格分著做、時鐘照走（黑場上沒有東西會停）；快到字卡尾還沒做完 ⇒ 一格給 400 ms 做完（下一格 catchup 跳過去）。
+  //   2026-10-19 量（JIT 熱了以後）：十七艘重開 0.37–0.42 秒、模擬 1 秒要 0.34 秒 ⇒ 預跑 3 秒＋重開 ≈ 1.4 秒 —— 一口氣做 ⇒ 剛好卡在 catchup 的 1.4 秒上，慢一點的機器就停住、配樂重接（片子的最高潮那一下）。
+  var lead = !TR.still && TR.playing && A.u < A.sc.lead;
+  TR.live = TR.playing && !TR.resync && !lead && !cut;                  // 預跑（換幕那一口、字卡前導）不出聲：⛔ 幾秒的砲聲擠在一格裡發
   // 換幕：重開一局＋預跑一口氣做完（黑場裡，中間不畫）⇒ 停一次（0.2–0.5 秒），下一格照實際過去的時間跳過去（上面的 catchup）、配樂不斷。
   //   ⛔ 以前預跑也照 28 ms 分格做、每格還畫一次 ⇒ 預跑一超過 28 ms 時鐘就停住、配樂停了重接 —— 幾乎每次換幕都斷一下。
   //   補算那一格放寬到 400 ms（照 28 ms 算不完 ⇒ 又是時鐘停住、配樂重接）；模擬比即時快（2026-10-19 逐幕量：全艦隊最重 0.57 倍）⇒ 補得回來。
-  if (cut && !TR.still && TR.playing) trStepTo(A.i, Math.min(A.n, Math.floor(A.sc.pre / DT + 1e-6)), 0);
-  var done = trStepTo(A.i, A.n, TR.still ? 0 : cut || catchup ? 400 : 28);
+  if (cut && !TR.still && TR.playing) { trStepTo(A.i, lead ? 0 : Math.min(A.n, Math.floor(A.sc.pre / DT + 1e-6)), 0); TR.live = TR.playing && !TR.resync && !lead; }
+  //   平常那一格 100 ms（以前 28）：全艦隊那一幕畫一格 26 ms、開戰後模擬一步 12 ms（2026-10-19 量）⇒ 每格模擬 ~20 ms，28 ms 只差一點 —— 中間頓一下（GC、建網格）下一格就算不完 ⇒ 時鐘停、配樂重接。
+  //   寧可那一格長一點（畫面頓一下），配樂不斷。
+  var done = trStepTo(A.i, A.n, TR.still ? 0 : lead ? (A.u > A.sc.lead - 0.5 ? 400 : 50) : cut || catchup ? 400 : 100);
   TR.live = false;
-  if (!done) { t = trTimeOfStep(A.sc, TR.k); A = trAt(t); TR.buffering = true; if (TR.playing) TR.resync = true; } else TR.buffering = TR.waitLoad;
+  if (lead) TR.buffering = TR.waitLoad;                                 // 字卡上做不完不停（下一格接著做）
+  else if (!done) { t = trTimeOfStep(A.sc, TR.k); A = trAt(t); TR.buffering = true; if (TR.playing) TR.resync = true; } else TR.buffering = TR.waitLoad;
   TR.t = t;
   if (TR.playing && TR.resync && !TR.buffering && !TR.waitLoad) { TR.resync = false; trMusicAt(t); }
   else if (TR.playing && TR.resync) trMusicStop();
   if (TR.playing) trAudioTick(prevT, t);
-  if (TR.drawnT !== t || TR.dirty) { trDraw(A); TR.drawnT = t; TR.dirty = false; }
+  if (TR.drawnT !== t || TR.dirty) { if (!lead) trDraw(A); TR.drawnT = t; TR.dirty = false; }   // 字卡前導：整片黑，3D 不畫（模擬還在預跑的半路）
   trOverlay(t, A);
   if (TR.playing && t >= TR.DUR) trPause(true);
   trUI();
@@ -254,6 +267,10 @@ function trHulls(onlyI) {
 //   播到某一幕、它的船還沒載好 ⇒ 時鐘停在上一幕最後一格（黑場）、配樂停，右上角寫「載入船隻…」；載好從同一秒接著播。
 //   ?t=（縮圖、驗收）⇒ 只載那一幕的船。
 function trSceneLoaded(i) { return TR.S[i].fleet.every(function (f) { return !!HULLT[f.hull]; }); }
+/** 載下一艘之前等：⛔ 播到有船的幕不載（每艘最後一段一口氣 0.5–1 秒 ⇒ 畫面停、開場的對轟也會頓）；沒在播（封面）、序幕、這一幕缺船（needLoad）才載。 */
+function trLoadGate() {
+  return new Promise(function (r) { (function poll() { if (TR.still || !TR.playing || TR.needLoad || TR.S[trSceneIx(TR.t)].free) r(); else setTimeout(poll, 40); })(); });
+}
 /** 熱身（只在序幕、沒有船的時候）：一種船第一次出場要算一堆跟著船型快取的東西（房間、繩的綁點、水泵……）——
  *  2026-10-19 量：三叉戟號第一次重開 677 ms（makeShip 508）、第二次 47 ms；餘燼號＋夜隼號 678 → 79；拿破崙號 492 → 37。
  *  ⇒ 載好就挑一幕有它、船都載好了、船最少的開一次局（不走模擬、不畫），再丟掉；序幕下一格自己重開。快取只跟船型有關 ⇒ 之後每一格照舊是 F(t)。 */
@@ -280,12 +297,15 @@ function trBoot() {
   hullSay = function (s) { TR.loadStep = s; trUI(); };
   L.reduce(function (p, id) {
     var t0;
-    return p.then(function () { TR.loadName = (hullInfo(id) || {}).name || id; trUI(); t0 = performance.now(); return loadHull(id); }).then(function () {
+    return p.then(trLoadGate).then(function () { TR.loadBusy = true; TR.loadName = (hullInfo(id) || {}).name || id; trUI(); t0 = performance.now(); return loadHull(id); }).then(function () {
       TR.loadN++; (TR.loadLog = TR.loadLog || []).push([id, Math.round(performance.now() - t0)]);   // 每艘從開始載到載好幾毫秒（?debug=1：__tr.ev('TR.loadLog')）
       if (!TR.ready && first.every(function (h) { return !!HULLT[h]; })) trReady();
-      if (!TR.still && TR.S[trSceneIx(TR.t)].free) trWarm(id);           // 熱身只在序幕裡（播到別幕熱身 ⇒ 要把正在演的那一局丟掉）
       trUI();
-      return new Promise(function (r) { setTimeout(r, 0); });              // 讓一格畫面出去再載下一艘
+      return new Promise(function (r) { setTimeout(r, 20); });             // 讓一格畫面出去（配樂照這一格往前排）再熱身：⛔ 載完的最後一段＋熱身接著做 ⇒ 一口氣 1.5 秒以上，配樂排的音用完、斷一下
+    }).then(function () {
+      if (!TR.still && (!TR.playing || TR.waitLoad || TR.S[trSceneIx(TR.t)].free)) trWarm(id);   // 熱身只在沒在播、停著等船（黑場）、或序幕裡（播到有船的幕熱身 ⇒ 要把正在演的那一局丟掉）
+      TR.loadBusy = false;
+      return new Promise(function (r) { setTimeout(r, 20); });             // 再讓一格才載下一艘
     });
   }, Promise.resolve()).then(function () { TR.loadDone = true; if (!TR.ready) trReady(); trUI(); })
     .catch(function (e) { TR.err = String(e && e.message || e); console.error(e); trUI(); });

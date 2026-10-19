@@ -2,7 +2,7 @@
 // Tim 2026-10-18：「可以安排多個場景 然後有歷史的厚重&魔法的神秘(魔法船)」「可以的話 讓所有船都出場」「儘可能在影片中展現遊戲各種特色(包含體素破壞 進水模擬 撞擊傷害等)」
 //   「加上一些歷史故事介紹」「時長可以拉長一些」「例如南北戰爭的海戰」「船的演化」「船的各種資訊介紹(六分儀」「帆的發明」「各種船隻的專有名詞等 帶點科普教育意義」
 //   「黑船打開日本國門」「造船的取材(需要用原本就彎曲的木材造彎曲部分才有足夠強度)」「獎帆船與拜占庭的覆滅」
-// 八段：序幕（沒有船：帆的發明、最早的海戰 —— 放映時背景載第一幕的船）→ 一、槳與帆 → 二、風帆的極致 → 三、蒸汽與鐵 → 四、1862 漢普頓錨地 → 五、每一格都算數（引擎）→ 六、傳說與魔法 → 七、全艦隊與片名。
+// 九段：開場（先打一場：憲法號對餘燼號）→ 序幕（沒有船：帆的發明、最早的海戰、三列槳座戰船、烏鴉 —— 放映時背景把十七艘全部載好）→ 一、槳與帆 → 二、風帆的極致 → 三、蒸汽與鐵 → 四、1862 漢普頓錨地 → 五、每一格都算數（引擎）→ 六、傳說與魔法 → 七、全艦隊與片名。
 // 十七艘一艘不漏（持火號、皇家號、收穫號、三叉戟號、憲法號、拿破崙號、蘇士奎哈納號、光榮號、維吉尼亞號、莫尼特號、哨兵號、炎羽號、餘燼號、夜隼號、風暴角號、潮墓號、夜燈號）。
 //   出自十三位雕刻者（遊戲 config/game.json 的 ships[].author，2026-10-19 數：basecamp 三艘、summit 兩艘、meadow 兩艘，其餘一人一艘）；每一位都要在畫面上署名一次（炎羽號 kiara 只在撞角那幕出場 ⇒ 寫在代演那行）。
 // 史實：各作品的研究檔（Sculpture/works/<作品>/references、notes.md）寫的照寫；研究檔沒有的只寫公認、確定的（年份、事件），沒把握的數字不寫。
@@ -89,7 +89,7 @@ function trScenes() {
   function hist(o) {
     var h = o.h;
     return trAdd({ id: o.id, dur: o.dur, seed: o.seed, wx: o.wx || 'clear', wind: o.wind || trWind(h, o.wOff, o.wS), mode: o.mode || 'sandbox', pre: o.pre === undefined ? 1.0 : o.pre,
-      phx: o.phx, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, era: o.era, portWant: o.portWant, ports: o.ports,
+      phx: o.phx, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
       fleet: o.fleet || one(o.hull, h, o.ext), look: o.look, year: o.year, marks: o.marks, cut: o.cut, cues: o.cues, setup: o.setup, fadeIn: o.fadeIn, fadeOut: o.fadeOut, black: o.black, fx: o.fx,
       cam: o.cam,
       cap: function (g, u, tau, S, sc) {
@@ -103,26 +103,51 @@ function trScenes() {
       } });
   }
 
-  // ═════ 序幕：沒有船（Tim 2026-10-19：「開頭播一段科普 不用船隻的 趁這段時間載入第一幕的船隻」）—— 只有海；這一幕放映的時候背景載持火號 ═════
-  var hP = trSunAz(DUSK_SUN);
-  trAdd({ id: 'prologue', free: true, dur: 15.2, seed: 3000, wind: trWind(hP, 2.4, 0.55), mode: 'sandbox', pre: 0.5, fadeIn: 0, fadeOut: 0, fleet: [], look: L(TR_LOOK.dusk, DUSK_SUN),
+  // ═════ 開場：先打一場（Tim 2026-10-19：「可以多加一些戰鬥畫面(最好一開始就有 抓住玩家目光)」）═════
+  //   只用兩艘：憲法號（遊戲內建，不用載）、餘燼號（封面時先載）⇒ 按下 ▶ 就有；這一幕播的時候不載別的船（trLoadGate），對轟不會頓。慢動作 0.6 倍看木屑。
+  var hK0 = trSunAz(DUSK_SUN) - PI / 2 + 0.35;
+  hist({ id: 'hook', dur: 10, seed: 1812, h: hK0, wind: trWind(hK0, 0.6, 0.8), pre: 1.0, rate: 0.6, fadeIn: 0.5, look: L(TR_LOOK.dusk, DUSK_SUN),
+    fleet: [{ team: 'blue', hull: 'constitution', x: 0, z: 0, yaw: trYaw(hK0), hold: 1, sail: 1 },
+            { team: 'red', hull: 'ember', x: Math.cos(hK0 - PI / 2) * 58, z: Math.sin(hK0 - PI / 2) * 58, yaw: trYaw(hK0), hold: 1, sail: 1 }],
+    cues: [{ at: 1.0 + 0.5, fn: function (S) { trVolley(S[1], S[0], 0); } },
+           { at: 1.0 + 2.4, fn: function (S) { trVolley(S[0], S[1], 0); } }],
+    cam: function (u, tau, S) { var a = S[0], b = S[1], c = [(a.px + b.px) / 2, 0, (a.pz + b.pz) / 2], f = fwd(a.yaw), az = trAzOf(a) + trK2(u, 10, 0.50, 0.30);
+      return trAbove({ eye: trOrbit([c[0] + f[0] * 8, 6, c[2] + f[2] * 8], az, trK2(u, 10, 0.06, 0.10), trK2(u, 10, 72, 60)), look: [c[0] - f[0] * 8, 6, c[2] - f[2] * 8] }, 2); },
+    note: '遊戲裡的對戰（虛構）',
+    cap2: function (g, u) { trLine(g, '每一發砲彈、每一塊木屑，都是遊戲當下算出來的。', trFade(u, 5.4, 9.6, 0.6), TR_CH * 0.80); } });
+
+  // ═════ 序幕：沒有船（Tim 2026-10-19：「開頭播一段科普 不用船隻的 趁這段時間載入第一幕的船隻」「那或是在一開頭就載入全部 … 可以多加一些科普內容在開頭」）═════
+  //   只有海＋會動的插圖；十七艘全部在這一幕載好、熱身完（序幕之後那一幕 needAll）⇒ 之後整支片不再載船。2026-10-19 量：冷載全部 ~20 秒＋熱身 ~5 秒 ⇒ 31 秒。
+  //   史實（沒把握的數字不寫）：薩拉米斯海戰 西元前 480 年；三列槳座戰船每舷上中下 31／27／27 支槳、約 170 名槳手、船首包銅撞角；米列海戰 西元前 260 年，羅馬人的「烏鴉」吊橋。
+  var hP = trSunAz(DUSK_SUN), DP = 31;
+  trAdd({ id: 'prologue', free: true, dur: DP, seed: 3000, wind: trWind(hP, 2.4, 0.55), mode: 'sandbox', pre: 0.5, fadeIn: 0, fadeOut: 0, fleet: [], look: L(TR_LOOK.dusk, DUSK_SUN),
     cam: function (u) {
       var f = [Math.cos(hP), 0, Math.sin(hP)], d = 2.6 * u, e = [f[0] * d, 2.4 + 0.5 * Math.sin(u * 0.35), f[2] * d];   // 貼著海面往夕陽慢慢滑
-      return trAbove({ eye: e, look: [e[0] + f[0] * 300, e[1] - 9 + 3 * trSmooth(0, 15, u), e[2] + f[2] * 300], fov: 0.95 }, 1.6);
+      return trAbove({ eye: e, look: [e[0] + f[0] * 300, e[1] - 9 + 3 * trSmooth(0, DP, u), e[2] + f[2] * 300], fov: 0.95 }, 1.6);
     },
-    black: function (u) { return Math.max(1 - trSmooth(0, 1.6, u), trSmooth(14.5, 15.2, u)); },
+    black: function (u) { return Math.max(1 - trSmooth(0, 1.6, u), trSmooth(DP - 0.7, DP, u)); },
     cap: function (g, u) {
       trLine(g, '約五千年前，尼羅河上，有人第一次把布掛上了桅杆。', trFade(u, 0.8, 4.9, 0.6), TR_CH * 0.46);
       trLine(g, '從此，人類借著風，去了遠方。', trFade(u, 2.3, 4.9, 0.6), TR_CH * 0.54);
       trLine(g, '約西元前 1175 年，埃及神廟的牆上刻下了一場海戰：', trFade(u, 5.4, 9.9, 0.6), TR_CH * 0.46);
       trLine(g, '法老拉美西斯三世的船隊，迎戰「海上民族」。', trFade(u, 6.7, 9.9, 0.6), TR_CH * 0.54);
-      trLine(g, '接下來將近兩千年，海戰靠的是槳、撞角與接舷肉搏 ——', trFade(u, 10.4, 14.5, 0.6), TR_CH * 0.46);
-      trLine(g, '直到有一種船，從船首噴出了火。', trFade(u, 11.8, 14.5, 0.6), TR_CH * 0.54);
+      trTrireme(g, u - 10.4, trFade(u, 10.4, 18.0, 0.6), TR_CW * 0.46, TR_CH * 0.45, 1);   // 名詞卡在右上 ⇒ 插圖放低一點（底板上緣 ≥ 卡片下緣）
+      trTerm(g, { zh: '三列槳座戰船', en: 'trireme', def: ['槳手分上、中、下三層坐，', '一層層錯開，槳才不會打架。'] }, trFade(u, 12.2, 18.0, 0.5));
+      trLine(g, '西元前 480 年，薩拉米斯海峽。', trFade(u, 10.8, 18.0, 0.6), TR_CH * 0.72);
+      trLine(g, '雅典的三列槳座戰船，用船首包銅的撞角，', trFade(u, 12.0, 18.0, 0.6), TR_CH * 0.78);
+      trLine(g, '撞沉了波斯的戰船。', trFade(u, 13.2, 18.0, 0.6), TR_CH * 0.84);
+      trCorvus(g, u - 18.6, trFade(u, 18.6, 25.6, 0.6), TR_CW * 0.47, TR_CH * 0.40, 0.85);
+      trLine(g, '西元前 260 年，不擅海戰的羅馬人，在船頭立起一座吊橋「烏鴉」：', trFade(u, 19.0, 25.6, 0.6), TR_CH * 0.72);
+      trLine(g, '放下來，尖釘釘住敵船，步兵衝過去 ——', trFade(u, 20.4, 25.6, 0.6), TR_CH * 0.78);
+      trLine(g, '把海戰打成了陸戰。', trFade(u, 21.8, 25.6, 0.6), TR_CH * 0.84);
+      trLine(g, '這一千多年裡，海戰靠的是槳、撞角與接舷肉搏 ——', trFade(u, 26.1, 30.3, 0.6), TR_CH * 0.46);
+      trLine(g, '直到有一種船，從船首噴出了火。', trFade(u, 27.4, 30.3, 0.6), TR_CH * 0.54);
     } });
 
   // ═════ 一、槳與帆（持火號）═════
   var hD = trSunAz(DUSK_SUN) - PI / 2 + 0.25;
   hist({ id: 'open-dromon', dur: 8.6, seed: 911, h: hD, wind: trWind(hD, 2.4, 0.6), pre: 5.4, fadeIn: 0, hull: 'dromon', ext: { tele: 0 }, look: L(TR_LOOK.dusk, DUSK_SUN), year: 950,
+    needAll: true,   // 十七艘全部載好才進場（序幕載；director.js trFrame）
     cues: [7.0, 7.15, 7.3, 7.45, 7.6, 7.75, 7.9].map(function (s) { return { at: 1.0 + s, fn: function (S) { var sh = S[0], g = sh.guns.filter(function (q) { return GUNS[q.type] && GUNS[q.type].close; })[0] || sh.guns[0]; if (!g) return; evEmit('gfJet', M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), norm(add(gunAxis(sh, g), [0, 0.12, 0])), sh.vel); } }; }),
     // 2026-10-19：前 4.4 秒的黑底字幕搬到序幕（沒有船）⇒ 這一幕從船出現那一刻開始；pre 1.0 → 5.4（模擬時間跟以前同一條：希臘火照樣在模擬第 8 秒噴），鏡頭照舊的時間（u ＋ 4.4）
     cam: function (u, tau, S) { u += 4.4; return trAbove(trRel(S[0], trK2(u, 13, 1.2, 0.5), 0.05, trK2(u, 13, 36, 24), 1.5, 4)); },
@@ -260,7 +285,8 @@ function trScenes() {
     cap2: function (g, u) {
       trTag(g, '砲門開關', '交戰才掀蓋推砲；砲口一碰水就關上', trFade(u, 2.2, 7.4, 0.4));
       trStory(g, ['1859 年下水的光榮號，砲門下緣只高出水線 1.88 公尺，', '以「很濕」出名。'], u, 0.6, 7.4, 0.5);
-      trStory(g, ['1545 年，瑪麗玫瑰號轉彎時傾側，海水從開著的砲門灌進去。', '遊戲裡也一樣：船一傾，低的那一舷砲口入水 ——', '入水的砲門自己闔上，那幾門砲也打不了。'], u, 8.4, 14.8, 1.2);
+      // ⛔ 舊字幕「遊戲裡也一樣：…」緊接在瑪麗玫瑰號後面，讀起來像遊戲裡砲門也會灌水（ame 2026-10-19 照這個讀法問「闔上之前灌進多少噸」）—— 遊戲的破口拿原本的船殼比，砲門開口不算洞 ⇒ 0 噸
+      trStory(g, ['1545 年，瑪麗玫瑰號轉彎時傾側，海水從開著的砲門灌進去。', '遊戲裡，水只從打出來的破口進來；船一傾，低的那一舷砲口入水 ——', '那幾片蓋板自己闔上，那幾門砲也打不了。'], u, 8.4, 14.8, 1.2);
       trNote(g, '水線下的破口由導演開（示範側傾）；之後的進水、側傾、關砲門都是遊戲算的', trFade(u, 8.0, 14.8, 0.4));
     } });
 
@@ -457,10 +483,16 @@ function trScenes() {
   // ═════ 七、全艦隊與片名 ═════
   var fleetAll = ['constitution', 'tridente', 'ember', 'napoleon', 'gloire', 'susquehanna', 'virginia', 'monitor', 'reale',
                   'nightlamp', 'stormkaap', 'tidegrave', 'cosecha', 'phoenix', 'falcon', 'sentinel', 'dromon'];
-  trAdd({ id: 'fleet', dur: 11, seed: 17, wind: [20, 1.1], mode: 'eve', autoFire: true, pre: 3, dist: 200, gap: 85, cmd: ['line', 'line'], phx: { rig: 0 }, rate: 0.6,
+  //   開頭 1.8 秒是黑底字卡（lead）：十七艘重開＋預跑 3 秒 ≈ 1.4 秒（2026-10-19 量），藏在字卡底下分格做 ⇒ 片子最高潮那一下不停、配樂不斷（director.js trFrame）。
+  var FL = 1.8;
+  trAdd({ id: 'fleet', dur: 11 + FL, lead: FL, seed: 17, wind: [20, 1.1], mode: 'eve', autoFire: true, pre: 3, dist: 200, gap: 85, cmd: ['line', 'line'], phx: { rig: 0 }, rate: 0.6, fadeIn: 0,
     fleet: fleetAll.map(function (h, i) { return { team: i % 2 ? 'red' : 'blue', hull: h }; }),
-    cam: function (u, tau, S) { var a = trK2(u, 11, -0.9, -0.2); return { eye: trOrbit([0, 0, 0], a, trK2(u, 11, 0.42, 0.30), trK2(u, 11, 500, 420)), look: [0, 0, 0] }; },
-    cap: function (g, u) { trLine(g, '十七艘船　十三位造船者', trFade(u, 0.6, 5.2, 0.6), TR_CH * 0.80); trLine(g, '每一艘，都是一格一格雕出來的。', trFade(u, 5.6, 10.6, 0.6), TR_CH * 0.80); } });
+    cam: function (u, tau, S) { var v = Math.max(0, u - FL), a = trK2(v, 11, -0.9, -0.2); return { eye: trOrbit([0, 0, 0], a, trK2(v, 11, 0.42, 0.30), trK2(v, 11, 500, 420)), look: [0, 0, 0] }; },
+    black: function (u) { return 1 - trSmooth(FL, FL + 0.7, u); },
+    over: function (g, u) {
+      trText(g, '十七艘船　十三位造船者', TR_CW / 2, TR_CH * 0.47, '600 64px ' + TR_SERIF, '#f2e6c8', trFade(u, 0.15, FL + 0.1, 0.45), 'center', 6);   // 黑場掀開前就淡完（⛔ 疊在淡入的艦隊上會糊）
+    },
+    cap: function (g, u) { trLine(g, '每一艘，都是一格一格雕出來的。', trFade(u, FL + 4.6, FL + 10.6, 0.6), TR_CH * 0.80); } });
   var hZ = trSunAz(DUSK_SUN) + PI * 0.85;
   trAdd({ id: 'title', dur: 14, seed: 1812, wind: trWind(hZ), mode: 'sandbox', pre: 2.0, fadeOut: 0, fleet: one('constitution', hZ), look: L(TR_LOOK.dusk, DUSK_SUN),
     cam: function (u, tau, S) { return trAbove(trRel(S[0], trK2(u, 14, 2.6, 2.9), 0.08, trK2(u, 14, 120, 150), 14)); },
@@ -480,8 +512,11 @@ function trScenes() {
     return { at: at, tune: tune, from: from, to: from + L, loops: Math.ceil((from + L) / pl) + 1, fin: o.fin || 0.8, fout: o.fout || 0.8, gain: o.gain || 1 };
   }
   TR_SCORE = [
-    { at: 0.2, bell: 147, v: 0.9 },
-    { at: 0.6, pad: [38, 45, 50], len: T['open-dromon'] - 0.2, v: 0.42, fin: 3, fout: 1.6, inst: 'drone' },   // 序幕：伊頌那種持續音（沒有船、只有海）
+    { at: T.hook + 0.1, tune: 'nightlamp', from: 20.857, to: 20.857 + T.prologue - T.hook + 0.4, fin: 0.3, fout: 1.4, gain: 1.0 },   // 開場：片尾那一段主題（頭尾呼應）
+    { at: T.hook + 0.83, hit: 1, v: 1.1, f0: 60, f1: 28, len: 2.4 }, { at: T.hook + 4.0, hit: 1, v: 1.1, f0: 60, f1: 28, len: 2.4 },   // 兩輪齊射（模擬 τ 1.5、3.4 ⇒ 慢動作 0.6 倍）
+    { at: T.prologue + 0.2, bell: 147, v: 0.9 },
+    { at: T.prologue + 0.6, pad: [38, 45, 50], len: T['open-dromon'] - T.prologue - 0.8, v: 0.42, fin: 3, fout: 1.6, inst: 'drone' },   // 序幕：伊頌那種持續音（沒有船、只有海）
+    { at: T.prologue + 10.4, bell: 196, v: 0.4 }, { at: T.prologue + 18.6, bell: 196, v: 0.4 }, { at: T.prologue + 26.1, bell: 147, v: 0.5 },   // 序幕換一段（三列槳座、烏鴉、希臘火）
     seg('methimon', T['open-dromon'] - 1.2, T.byzantium, { x: 0, fin: 2.0, fout: 1.0 }),
     { at: T['open-dromon'] + 1.2, hit: 1, v: 0.9, f0: 60, f1: 30, len: 2.2 },
     seg('zoientafo', T.byzantium, T.cosecha), { at: T.byzantium, hit: 1, v: 0.8, f0: 50, f1: 25, len: 3 },
