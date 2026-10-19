@@ -118,9 +118,35 @@ helmSteer = function (sh, foe) {
 };
 friendAvoid = function (sh, L, T) { return TRAILER && sh.trRam ? null : trFriendAv0(sh, L, T); };
 foeAvoid = function (sh) { return TRAILER && sh.trRam ? null : trFoeAv0(sh); };
+// 擱淺那一幕（sc.fleet[].noAvoid）：艦長不避淺（遊戲的艦長看到前面淺就轉開 ⇒ 開不上礁；54_helm.js bedAvoid）
+var trBedAv0 = bedAvoid;
+bedAvoid = function (sh) { return TRAILER && sh.trNoAvoid ? null : trBedAv0(sh); };
+// ── 海圖（sc.map ＝ { area, at: [往東, 往南]（海域座標，m）＝ 世界原點 }；Tim 2026-10-19：「是否可以讓影片中包含Blocksail的沿岸地形」「可以只匯入一小部分要用到的海圖」）──
+//   資料：splice.py 從 maps/<海域>/ 內嵌成 TR_MAPS（只放要用的那幾塊；沒放的當深海）。遊戲平常是 <script> 一塊塊背景載、跟著船換中心（08_seabed.js bedFocus）、
+//   遠景在背景讀（63_bed_gl.js bedFarStep）、網格一格只建 2 塊 ⇒ 都不是 t 的函數。這裡改成：開一幕時一口氣解碼全部內嵌的塊、網格全建好，整幕不換、不丟；遠景不讀。
+//   ⇒ ?t= 停在換幕那一秒，地形也已經在（同一個 t 同一格）。同一份海圖、同一個原點 ⇒ 第二次直接用（TR_BED）；沒有 sc.map ⇒ BED ＝ null（每一處跟沒有海圖一樣）。
+var TR_BED = {};
+function trBedOn(m) {
+  if (!m) { BED = null; return; }
+  var key = m.area + '@' + m.at.join(',');
+  if (TR_BED[key]) { BED = TR_BED[key]; return; }
+  Object.keys(TR_BED).forEach(function (k0) { BED = TR_BED[k0]; Object.keys(BED.ch).forEach(function (k) { var C = BED.ch[k]; evEmit('bedDrop', C.cx, C.cy); }); delete TR_BED[k0]; });   // 網格、樹照塊的編號存 ⇒ 換一份海圖先丟掉舊的
+  var src = TR_MAPS[m.area]; if (!src) throw new Error('沒有內嵌海圖：' + m.area);
+  var A = JSON.parse(JSON.stringify(src.area)), have = src.chunks;
+  A.chunks = A.chunks.map(function (c) { return [c[0], c[1], c[2] && have[bedKey(c[0], c[1])] ? 1 : 0]; });   // 沒內嵌的塊當深海（⛔ 不去讀檔）
+  var D = BED = { wantArea: A.id, host: null, ask: {}, A: A, ch: {}, pend: {}, peek: {}, idx: null, top: -Infinity, miss: 0, loads: 0, drops: 0, site: -1 };
+  D.G = A.chunk / A.step; D.n = A.n; D.nx = A.x[1] - A.x[0] + 1; D.has = new Uint8Array(D.nx * (A.y[1] - A.y[0] + 1));
+  A.chunks.forEach(function (c) { var i = bedIdx(c[0], c[1]); if (i >= 0) D.has[i] = c[2]; });
+  D.slot = new Array(D.has.length); D.ax = m.at[0]; D.az = m.at[1]; D.cx = Math.floor(D.ax / A.chunk); D.cy = Math.floor(D.az / A.chunk);
+  BEDFAR.todo = [];                                                      // 遠景不讀（要的塊都是細的）
+  Object.keys(have).sort().forEach(function (k) { var C = bedDecode(have[k]), i = bedIdx(C.cx, C.cy); D.slot[i] = C; D.ch[k] = C; D.top = Math.max(D.top, C.max); D.loads++; evEmit('bedChunk', C.cx, C.cy, C); });
+  while (BEDGL_Q.length) { var k = BEDGL_Q.shift(), C = D.ch[k]; if (C) bedUpload(k, C, bedLod(C)); }   // 網格全建好（⛔ 遊戲一格 2 塊 ⇒ 換幕後幾格地形一塊塊長出來）
+  TR_BED[key] = D;
+}
 var TR_PHX0 = null;
 function trSetup(sc) {
   if (!TR_PHX0) TR_PHX0 = Object.assign({}, PHX);
+  trBedOn(sc.map);                                                       // 海圖先（setWeather ⇒ vxInit 會照 BED 重烤漩渦）
   SEED = (sc.seed || 1797) >>> 0;
   WIND_FIX = { rot: sc.wind ? sc.wind[0] : 0, s0: sc.wind ? sc.wind[1] : 1 };   // ⛔ 兩個鍵都要給（少一個 ⇒ 風是 NaN）
   setWeather(sc.wx || 'clear');
@@ -141,7 +167,7 @@ function trSetup(sc) {
     if (f.sail !== undefined) { sh.sailSet = f.sail; applySailSet(sh); }
     if (f.tele !== undefined && sh.cfg.base > 0) { sh.tele = f.tele; sh.power = TELE[f.tele]; sh.teleHand = true; }
   });
-  SHIPS.forEach(function (sh, i) { var f = sc.fleet[i]; sh.trRam = !!(f && f.ram); });
+  SHIPS.forEach(function (sh, i) { var f = sc.fleet[i]; sh.trRam = !!(f && f.ram); sh.trNoAvoid = !!(f && f.noAvoid); });
   SHIPS.forEach(function (sh) { sh.portWant = sc.portWant === undefined ? 1 : sc.portWant; });   // 砲門（TASK-0719，62_ports.js）：預設開著（＝ 低畫質的樣子）⇒ 遊戲照交戰自己開關的那一套不會讓 ?t= 跳到的一格跟順著播的不一樣
   CUTV.half = !!(sc.cut && sc.cut.half); CUTV.deck = sc.cut && sc.cut.deck || 0; FLX3 = !!sc.xray;
   TR.cur = sc.i; TR.k = 0; TR.sk = 0; TR.cue = 0;

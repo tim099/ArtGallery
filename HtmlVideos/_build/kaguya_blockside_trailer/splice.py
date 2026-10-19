@@ -15,6 +15,7 @@
 ⛔ 不改遊戲本體的原始碼：補丁只打在這份複製上。遊戲照舊在 Blockside repo 裡建置。
 """
 import hashlib
+import json
 import os
 import re
 import sys
@@ -66,6 +67,36 @@ def fail(msg):
     sys.exit(1)
 
 
+def trailer_maps():
+    """海圖（Tim 2026-10-19：「是否可以讓影片中包含Blocksail的沿岸地形」「可以只匯入一小部分要用到的海圖」）：
+    maps/<海域>/ 只放要用的那幾塊（照 Blockside maps/ 的同一份檔：area.js ＋ <cx>_<cy>.js，Blocksail 匯出）⇒ 內嵌成 TR_MAPS（director.js trBedOn 讀）。
+    ⛔ 不走遊戲的 <script> 載入（外部檔 ⇒ 不是單檔、也不同步）。"""
+    root = os.path.join(HERE, 'maps')
+    if not os.path.isdir(root):
+        return ''
+    out, total = {}, 0
+    for area in sorted(os.listdir(root)):
+        d = os.path.join(root, area)
+        with open(os.path.join(d, 'area.js'), 'r', encoding='utf-8') as f:
+            A = json.loads(re.search(r'\{.*\}', f.read(), re.S).group(0))
+        ch = {}
+        for name in sorted(os.listdir(d)):
+            m = re.match(r'(-?\d+)_(-?\d+)\.js$', name)
+            if not m:
+                continue
+            with open(os.path.join(d, name), 'r', encoding='utf-8') as f:
+                t = f.read()
+            c = re.search(r'BSMAP\.chunk\(\s*"([^"]+)"\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*"([A-Za-z0-9+/=]+)"', t)
+            if not c or c.group(1) != A['id'] or (c.group(2), c.group(3)) != m.groups():
+                fail('海圖塊 %s/%s 的內容跟檔名對不上' % (area, name))
+            ch['%s_%s' % m.groups()] = c.group(4)
+            total += len(c.group(4))
+        out[area] = {'area': A, 'chunks': ch}
+        print('  ✓ 海圖 %s：%d 塊（%s）' % (area, len(ch), '、'.join(sorted(ch))))
+    print('  ✓ 海圖內嵌 %.2f MB' % (total / 1e6))
+    return '// ── trailer/maps（內嵌海圖） ──\nvar TR_MAPS = ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n'
+
+
 def main(argv):
     if len(argv) < 3:
         fail('用法：python -I splice.py <遊戲成品 index.html> <輸出 .html>')
@@ -92,7 +123,7 @@ def main(argv):
     for name in DIRECTOR_FILES:
         with open(os.path.join(HERE, name), 'r', encoding='utf-8') as f:
             parts.append('// ── trailer/%s ──\n' % name + f.read().rstrip('\n') + '\n')
-    director = ''.join(parts)
+    director = trailer_maps() + ''.join(parts)
     # 語法先擋（node --check）：導演程式一行壞掉，整個遊戲閉包都不跑 —— 畫面只剩「準備遊戲引擎…」，主控台才看得到
     import shutil, subprocess, tempfile
     if shutil.which('node'):

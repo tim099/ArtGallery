@@ -103,7 +103,7 @@ function trScenes() {
   function hist(o) {
     var h = o.h;
     return trAdd({ id: o.id, dur: o.dur, seed: o.seed, wx: o.wx || 'clear', wind: o.wind || trWind(h, o.wOff, o.wS), mode: o.mode || 'sandbox', pre: o.pre === undefined ? 1.0 : o.pre,
-      phx: o.phx, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
+      phx: o.phx, map: o.map, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
       fleet: o.fleet || one(o.hull, h, o.ext), look: o.look, year: o.year, marks: o.marks, cut: o.cut, cues: o.cues, setup: o.setup, fadeIn: o.fadeIn, fadeOut: o.fadeOut, black: o.black, fx: o.fx,
       cam: o.cam,
       cap: function (g, u, tau, S, sc) {
@@ -511,6 +511,32 @@ function trScenes() {
       trTerm(g, { zh: '水密艙', en: 'watertight compartment', def: ['用隔艙板把船身分成一格一格，', '一格破了，水不會流進別格。', '中國的帆船很早就這樣造。'] }, trFade(u, 8.6, 13.6, 0.5));
     } });
   TR.S[TR.S.length - 1].rate = 1.3;
+  // 擱淺（Tim 2026-10-19：「先換新版遊戲，接好海圖的四個接點，排擱淺那一幕」）：伊斯帕尼奧拉島北岸、托爾圖加海峽南側的一片礁（Blocksail 世界地圖匯出的海圖，只內嵌 3×3 塊；director.js trBedOn）。
+  //   原點 ＝ 海域座標 (4175, 11000)：北邊（−z）是 10 m 深的沙底；z ≈ 0 到 +75 是一片 50 m 寬的珊瑚礁，礁頂露出水面 1 m；南邊是 4 m 的沙底瀉湖，+500 m 是沙灘、往南是島（2026-10-19 解碼量）。
+  //   ⛔ 第一版放在托爾圖加島南岸（礁頂 −1～−2 m、前面是一道沙坡）：收穫號吃水 5.3 m，在 −5.9 m 的沙坡上就停住了，根本碰不到礁 ⇒ 換成前面是平的 10 m 沙底、礁直接冒出來的這一片。
+  //   收穫號（大帆船）往南直直開上礁（艦長不避淺：noAvoid）；之後減速、船底刮掉幾格、進水，都是遊戲算的（32_ground.js：珊瑚礁硬度 1、沙底 0.25）。
+  var hR2 = PI / 2, RF = 16, RF_SUN = norm([0.85, 0.38, -0.2]), RF_CUT = [4.2, 9.4], RF_WARP = [[0, 1], [3.6, 1], [3.8, 0.3], [6.4, 0.3], [6.8, 1]];   // 撞上 ≈ 5.1、停住 ≈ 6.7（片長秒）         // 太陽在東邊偏北 ⇒ 從東北看過去，船和礁是亮的
+  hist({ id: 'reef', dur: RF, seed: 1492, h: hR2, wind: trWind(hR2, 0.5, 1.3), pre: 1.0, look: L(TR_LOOK.gold, RF_SUN), year: 1492,
+    map: { area: 'tortuga', at: [4175, 11000] },
+    fleet: [{ team: 'blue', hull: 'cosecha', x: 0, z: -60, yaw: trYaw(hR2), hold: 1, sail: 3, noAvoid: 1 }],
+    //   2026-10-19 量（無頭 Chrome）：不放慢時第 4.1 秒船頭撞上礁（底質 2）、0.4 秒內從 6 m/s 停住、船底刮掉 40 格 ⇒ 撞上那一下 0.3 倍（3.8–5.6），鏡頭三段：遠景 → 船頭貼水面 → 拉高看船擱在礁上。
+    warp: RF_WARP,
+    cam: function (u, tau, S) {
+      var sh = S[0], c = shipCenter(sh), f = fwd(sh.yaw), e = [-f[2], 0, f[0]], p;   // e：船的右舷（往東）
+      if (u < RF_CUT[0]) return trAbove({ eye: [c[0] + 60, 8, c[2] - 55], look: [c[0] - 5, 2, c[2] + 25], fov: 0.85 }, 2);
+      if (u < RF_CUT[1]) { p = (u - RF_CUT[0]) / (RF_CUT[1] - RF_CUT[0]); var b = M4.pt(sh.M, sh.T.wl1, sh.T.cy, sh.T.zw); b[1] = 0;   // 船頭（水線前端；⛔ 這裡的 S 是船的陣列、不是格的大小 ⇒ 第一版算出 NaN、整格空白）
+        //   ⛔ 第一版從船頭右舷正側看 ⇒ 船頭只露在畫面左邊、大半是礁 ⇒ 改從船頭前方斜側往回看
+        return trAbove({ eye: [b[0] + f[0] * trMix(16, 13, p) + e[0] * trMix(20, 17, p), trMix(4.0, 5.0, p), b[2] + f[2] * trMix(16, 13, p) + e[2] * trMix(20, 17, p)], look: [b[0] - f[0] * 8, 2.5, b[2] - f[2] * 8], fov: 0.85 }, 1.2); }
+      p = trSmooth(RF_CUT[1], RF, u);
+      return trAbove({ eye: [c[0] + trMix(45, 70, p), trMix(14, 48, p), c[2] - trMix(50, 95, p)], look: [c[0] - 5, 0, c[2] + trMix(15, 40, p)], fov: 0.85 }, 2);
+    },
+    note: '遊戲裡的擱淺（示範）：船由導演開向礁石；之後減速、刮掉的木頭、進水都是遊戲算的',
+    term: { zh: '珊瑚礁', en: 'coral reef', def: ['珊瑚蟲一代代留下的石灰質骨骼，堆成的礁。', '頂端常常離水面只有一兩公尺。'] }, termAt: 1.0, termEnd: 7.5,
+    cap2: function (g, u) {
+      trTag(g, '擱淺', 'running aground', trFade(u, 0.4, RF - 0.4, 0.4));
+      trStory(g, ['從遠處看，礁上的海水只是顏色淺一點。', '遊戲裡，珊瑚礁比沙底硬四倍：撞礁刮掉的木頭多得多。'], u, 1.4, 7.6);
+      trStory(g, ['1492 年聖誕夜，哥倫布的旗艦聖瑪利亞號在這段海岸觸礁，', '船沒救回來 —— 拆下的木頭，在岸上蓋了一座堡壘。', '這一段海岸照真的地形生成：伊斯帕尼奧拉島北岸。'], u, 9.0, RF - 0.4);   // ⛔ 第一版地點另外一行 trLine ⇒ 疊在故事上
+    } });
   var hH = SA - PI / 2 + 0.3;
   hist({ id: 'greekfire', dur: 11, seed: 672, h: hH, wind: trWind(hH, 1.0, 0.8), pre: 0.8, mode: 'sandbox',
     // 持火號船頭對著三叉戟號的右舷、停在 34 m 外（船心量；siphon 朝船首、射程 ~30 m；觀戰模式的艦長沒對準就不開）⇒ 照時間噴
@@ -679,7 +705,7 @@ function trScenes() {
     { at: T.ram + 3.6, hit: 1, v: 1.1 }, { at: T.congress, hit: 1, v: 0.8 }, { at: T.congress + 11.0, hit: 1, v: 1.3, f0: 45, f1: 22, len: 3.5 }, { at: T.monitor, hit: 1, v: 0.9 },
     { at: T.voxel - 1.6, rise: 1.6, v: 1 }, { at: T.voxel, hit: 1, v: 1.2, f0: 80, f1: 34, len: 1.8 },
     { at: T.voxel + 0.3, tune: 'blowtheman', from: 0, to: T.stormkaap - T.voxel - 0.3, loops: 8, fin: 0.3, fout: 1.2, gain: 1.05 },
-    { at: T.flood, hit: 1, v: 0.9 }, { at: T.greekfire, hit: 1, v: 0.9 }, { at: T.magazine, hit: 1, v: 0.9 },
+    { at: T.flood, hit: 1, v: 0.9 }, { at: T.reef + 5.1, hit: 1, v: 1.0, f0: 55, f1: 26, len: 2.4 }, { at: T.greekfire, hit: 1, v: 0.9 },   // 擱淺：船頭撞上礁（慢動作裡，片長 5.1 秒） { at: T.magazine, hit: 1, v: 0.9 },
     { at: T.stormkaap - 0.4, hit: 1, v: 1, f0: 50, f1: 26, len: 3 },
     seg('dutchman', T.stormkaap, T.charts, { x: 0.2, fin: 0.6, fout: 1.6 }),
     seg('stormkaap', T.charts, T.fleet, { fin: 1.5, fout: 1.5, gain: 1.15 }),   // 遍數照長度算（⛔ 以前寫死 2 遍；大漩渦拉長到 21 秒後可能不夠 ⇒ 尾巴沒聲音）
