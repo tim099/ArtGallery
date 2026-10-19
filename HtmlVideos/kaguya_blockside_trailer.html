@@ -25773,6 +25773,71 @@ function trScenes() {
     yl: '十世紀 · 東羅馬帝國', name: '持火號', line: '雙層槳、三角帆，船首青銅噴口，甲板上弩砲與投石機', by: BY('erina'), lowAt: 2.2, storyAt: 3.2,
     story: ['東羅馬帝國的戰艦，從船首的銅管噴出「希臘火」。', '配方是帝國的最高機密，至今沒有人知道它確切的成分。'],
     term: { zh: '三角帆', en: 'lateen sail', def: ['斜掛在長帆桁上的三角形帆。', '比方帆更能斜著逆風前進。'] }, termAt: 5.4 });
+  // 弩砲（Tim 2026-10-19：「弩炮可以排(可以延長獎帆船出場 安排有弩炮特寫的戰鬥)」；erina 的持火號：艏樓一座、兩座木塔各一座，弦是繩、放箭時彈過頭再絞回來 —— 遊戲 26_gunanim.js）：
+  //   遊戲裡的對戰（虛構）：持火號對另一艘持火號（代演敵船）。四段鏡頭（換鏡的片長秒 BL）：兩船之間的遠景 → 艏樓弩砲背後的特寫（放箭那一下 0.3 倍：弦 0.25 模擬秒彈出去、過頭再回來 ⇒ 0.83 秒）
+  //   → 跟著木塔射出的那支箭飛過去（0.35 倍）→ 拉開看敵船的弩砲與投石機還擊。每一發都由導演指定哪一座開（trBolt），之後飛、打中、壞掉都是遊戲算的。
+  var hA = hD + 0.15, BL = [3.6, 8.4, 12.4], BLD = 16;
+  var BL_WARP = [[0, 1], [4.3, 1], [4.5, 0.3], [5.6, 0.3], [6.0, 1], [8.6, 1], [8.8, 0.35], [10.6, 0.35], [11.0, 1]];
+  var blTmp = { pre: 1.0, warp: BL_WARP };
+  /** sh 的弩砲（k：0 艏樓、1 左塔、2 右塔 —— 照砲口在船上的前後、左右排）。 */
+  function blGun(sh, k) {
+    var c = shipCenter(sh), f = fwd(sh.yaw), r = [-f[2], 0, f[0]];
+    var L = sh.guns.filter(function (q) { return q.type === 'ballista'; }).map(function (q) { var m = M4.pt(sh.M, q.muz[0], q.muz[1], q.muz[2]), d = sub(m, c); return { g: q, x: dot(d, f), y: dot(d, r) }; });
+    L.sort(function (a, b) { return b.x - a.x; });
+    var bow = L.shift(); if (k === 0) return bow ? bow.g : null;
+    L.sort(function (a, b) { return a.y - b.y; });
+    return L[k - 1] ? L[k - 1].g : null;
+  }
+  /** 讓 sh 的第 k 座弩砲對 foe 放一支箭；射出去的那支記在 sh.trBolts（鏡頭跟著它）。 */
+  function trBolt(sh, foe, k, ammo) {
+    var g = blGun(sh, k); if (!g) return false;
+    setAim(sh, [foe.T.cx, foe.T.cy, foe.T.geo.aim], foe); gunAims(sh, true);
+    g.reload = 0; var n = BALLS.length, ok = fireGun(sh, g, g.aimT || aimPoint(sh), ammo === undefined ? AMMO_BOLT : ammo);
+    (sh.trBolts = sh.trBolts || []).push(ok && BALLS.length > n ? BALLS[BALLS.length - 1] : null);
+    return ok;
+  }
+  /** 第 k 座弩砲的特寫：眼睛在砲口前斜方（fwd 公尺往敵船、side 往右）、回頭看弓臂與弦 —— ⛔ 從砲後面看 ⇒ 整個畫面是操砲的人（第一版截到）。 */
+  function blFront(sh, foe, k, fwdM, side, up, fov) {
+    var g = blGun(sh, k); if (!g) return trRel(sh, 0.4, 0.1, 30, 3);
+    var p = M4.pt(sh.M, g.muz[0], g.muz[1], g.muz[2]), e = shipCenter(foe), d = norm([e[0] - p[0], 0, e[2] - p[2]]), r = [-d[2], 0, d[0]];
+    return trAbove({ eye: [p[0] + d[0] * fwdM + r[0] * side, p[1] + up, p[2] + d[2] * fwdM + r[2] * side], look: [p[0] - d[0] * 0.9, p[1] - 0.3, p[2] - d[2] * 0.9], fov: fov }, 1);
+  }
+  hist({ id: 'ballista', dur: BLD, seed: 960, h: hA, wind: trWind(hA, 2.4, 0.6), pre: 1.0, warp: BL_WARP, look: L(TR_LOOK.dusk, DUSK_SUN), year: 960,
+    // 俥鐘 3 ＝ 前進微速（⛔ 0 是全速：開場就 8 m/s，放箭時敵船已經跑到正橫、弩砲轉不過去 —— 2026-10-19 第一版量到）
+    //   帆收起來（sail 0）：⛔ 張著帆 ⇒ 順風的那艘一開場就 7 m/s 跑走（第二版量到）；兩艘都划槳、船頭大致對著對方（弩砲只轉得了 ±35°／±45°）
+    fleet: [{ team: 'blue', hull: 'dromon', x: 0, z: 0, yaw: trYaw(hA), hold: 1, tele: 3, sail: 0 },
+            { team: 'red', hull: 'dromon', x: Math.cos(hA) * 60 + Math.cos(hA + PI / 2) * 8, z: Math.sin(hA) * 60 + Math.sin(hA + PI / 2) * 8, yaw: trYaw(hA + PI - 0.25), hold: 1, tele: 3, sail: 0 }],
+    setup: function (S) { S.forEach(function (sh, i) { var foe = S[1 - i]; setAim(sh, [foe.T.cx, foe.T.cy, foe.T.geo.aim], foe); }); },   // 弩砲座一開場就轉向敵船（⛔ 放箭那一刻才瞄 ⇒ 座還在轉、射不出去）
+    cues: [[4.6, 0, 0], [8.8, 0, 2], [12.7, 1, 0], [13.2, 1, 2], [13.6, 1, -1]].map(function (q) {
+      return { at: trTau(blTmp, q[0]), fn: function (S) { var sh = S[q[1]], foe = S[1 - q[1]];
+        if (q[2] < 0) { sh.guns.forEach(function (g) { if (g.type === 'mangonel') { g.reload = 0; setAim(sh, [foe.T.cx, foe.T.cy, foe.T.geo.aim], foe); gunAims(sh, true); fireGun(sh, g, g.aimT || aimPoint(sh), AMMO_STONE); } }); return; }
+        trBolt(sh, foe, q[2]); } }; }),
+    cam: function (u, tau, S) {
+      var a = S[0], b = S[1], ca = shipCenter(a), cb = shipCenter(b), f = norm([cb[0] - ca[0], 0, cb[2] - ca[2]]), r = [-f[2], 0, f[0]], p;
+      if (u < BL[0]) { p = u / BL[0]; return trAbove({ eye: [ca[0] - f[0] * trMix(42, 34, p) + r[0] * 22, ca[1] + trMix(16, 12, p), ca[2] - f[2] * trMix(42, 34, p) + r[2] * 22], look: [cb[0], cb[1] + 2, cb[2]], fov: 0.8 }, 2); }
+      if (u < BL[1]) { p = (u - BL[0]) / (BL[1] - BL[0]); return blFront(a, b, 0, trMix(2.2, 2.8, p), trMix(3.2, 3.6, p), trMix(4.0, 4.4, p), trMix(0.5, 0.58, p)); }   // 火箭的光團很大 ⇒ 鏡頭離箭道 3 m 以上、從上面看（⛔ 2.2 m：光團蓋住半個弩砲）
+      if (u < BL[2]) {
+        // 跟著右塔那支箭：站在箭的側邊（右舷外 ⇒ 不會被塔上的人擋住）一起飛；放之前照砲口、打中之後停在打中的地方
+        var bo = (a.trBolts || [])[1], g2 = blGun(a, 2), bp, v;
+        if (bo) { bp = bo.p; v = norm([bo.v[0], 0, bo.v[2]]); }
+        else if (g2) { bp = M4.pt(a.M, g2.muz[0], g2.muz[1], g2.muz[2]); v = norm([cb[0] - bp[0], 0, cb[2] - bp[2]]); }
+        else return trRel(a, 0.4, 0.1, 30, 3);
+        var sd = [-v[2], 0, v[0]], q = trSmooth(10.1, 11.6, u);   // 打中（片長 ≈ 10.2）之後退開、抬高，看得到整段船舷
+        return trAbove({ eye: [bp[0] + sd[0] * trMix(6, 16, q) - v[0] * trMix(3, 12, q), bp[1] + trMix(1.2, 5, q), bp[2] + sd[2] * trMix(6, 16, q) - v[2] * trMix(3, 12, q)], look: [bp[0] + v[0] * trMix(4, 0, q), bp[1], bp[2] + v[2] * trMix(4, 0, q)], fov: 0.8 }, 1);
+      }
+      p = trSmooth(BL[2], BLD, u); var m = [(ca[0] + cb[0]) / 2, 0, (ca[2] + cb[2]) / 2];
+      return trAbove({ eye: [m[0] + r[0] * trMix(48, 80, p) - f[0] * trMix(8, 20, p), trMix(8, 20, p), m[2] + r[2] * trMix(48, 80, p) - f[2] * trMix(8, 20, p)], look: [m[0], 3, m[2]], fov: 0.9 }, 2);
+    },
+    term: { zh: '弩砲', en: 'ballista', def: ['把弓做得跟人一樣大，架在船上。', '絞盤把弦拉回來扣住，一放就射出一支粗箭。'] }, termAt: 4.0, termEnd: 9.6,
+    note: '遊戲裡的對戰（虛構）；敵船由另一艘持火號代演',
+    cap2: function (g, u) {
+      trTag(g, '弩砲', 'ballista', trFade(u, 0.4, BL[0] - 0.2, 0.4));
+      trStory(g, ['希臘火要貼到幾步之內才噴得到；', '艏樓與兩座木塔上的弩砲，在幾十步外就先射。'], u, 0.8, BL[0] - 0.2);
+      trLine(g, '放慢成 0.3 倍：弦放開的那一下，會彈過頭再回來。', trFade(u, 4.4, 6.6, 0.4), TR_CH * 0.80);
+      trLine(g, '射完，絞盤再把弦一圈圈拉回去 —— 下一支要等好幾秒。', trFade(u, 6.4, BL[1] - 0.1, 0.5), TR_CH * 0.80);
+      trLine(g, '跟著右塔射出的那一支（0.35 倍）：箭頭裹著點著的油布。', trFade(u, BL[1] + 0.3, BL[2] - 1.2, 0.4), TR_CH * 0.80);
+      trStory(g, ['對面也有弩砲，還有一座投石機。', '火箭射進木頭船，一燒起來，划槳的人就得先放下槳去救火。'], u, BL[2] + 0.4, BLD - 0.3);
+    } });
   // 東羅馬帝國的覆滅（1453；Tim：「拜占庭 改稱為東羅馬帝國」）：持火號往霧裡退去
   hist({ id: 'byzantium', dur: 8, seed: 1453, h: hD + 0.4, wind: trWind(hD + 0.4, 2.4, 0.5), pre: 1.0, hull: 'dromon', ext: { tele: 0 }, look: L(trLookMix(TR_LOOK.dusk, TR_LOOK.fog, 0.6), DUSK_SUN), year: 1453,
     cam: function (u, tau, S) { return trAbove(trRel(S[0], trK2(u, 8, PI - 0.5, PI - 0.25), 0.06, trK2(u, 8, 40, 75), 2)); },
@@ -26164,7 +26229,7 @@ function trScenes() {
     },
     cap2: function (g, u) {
       trLower(g, { year: '傳說 · 虛構', name: '夜燈號　對　風暴角號', line: '在大漩渦的壁上，隔著漩渦眼對轟', by: BY('basecamp · summit') }, trFade(u, 0.5, 3.5, 0.4));
-      trNote(g, '遊戲裡的對戰（虛構）　向電影《神鬼奇航：世界的盡頭》的漩渦之戰致敬', trFade(u, 3.7, 20.7, 0.4));   // 下三分之一淡掉才出（⛔ 跟署名疊在右下）
+      trNote(g, '遊戲裡的對戰（虛構）', trFade(u, 3.7, 20.7, 0.4));   // 下三分之一淡掉才出（⛔ 跟署名疊在右下）；Tim 2026-10-19：致敬電影那半句不顯
       trLine(g, '海的盡頭，還有更深的海。', trFade(u, 17.6, 20.6, 0.6), TR_CH * 0.80);
     } });
 
