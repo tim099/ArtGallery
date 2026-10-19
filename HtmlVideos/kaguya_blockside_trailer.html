@@ -25483,15 +25483,15 @@ function trAudioInit() {
 function trAudioMute() { if (master) master.gain.setTargetAtTime(TR.muted ? 0 : TR_MASTER, AC.currentTime, 0.02); }
 function trMusicKill() { var P = TR_AU.p; TR_AU.p = null; if (P) { try { P.pb.gain.setTargetAtTime(0, AC.currentTime, 0.01); } catch (e) { } setTimeout(function () { P.pb.disconnect(); }, 80); } }
 function trMusicStop() { trMusicKill(); if (AC && AC.state === 'running') AC.suspend(); }
-/** 從片長 t 開始放：新的播放匯流排（共用一個殘響）、對時 a0 ＝ AC.currentTime ＋ 0.05 ↔ t；還在響的長音（伊頌、墊底）照剩下的長度補上。 */
-function trMusicAt(t) {
+/** 從片長 t 開始放：新的播放匯流排（共用一個殘響）、對時 a0（沒給 ＝ AC.currentTime ＋ 0.05）↔ t；還在響的長音（伊頌、墊底）照剩下的長度補上。a0：錄影（record.js）指定對時。 */
+function trMusicAt(t, a0) {
   if (!AC) return;
   trMusicKill();
   if (AC.state === 'suspended') AC.resume();
   if (!TR_AU.ev) return;
   var pb = AC.createGain(); pb.connect(TR_AU.bus);
   bgmOut(AC, pb, 'organ');                                               // 建 pb.__rev（一個卷積器 → pb）：每一段的樂器出口都送進這一個
-  var P = TR_AU.p = { pb: pb, rev: pb.__rev.cv, hit: trRev(AC, pb, 3.2, 0.45), nb: trNoiseBuf(AC, 4), t0: t, a0: AC.currentTime + 0.05, g: {}, k: 0 };
+  var P = TR_AU.p = { pb: pb, rev: pb.__rev.cv, hit: trRev(AC, pb, 3.2, 0.45), nb: trNoiseBuf(AC, 4), t0: t, a0: a0 !== undefined ? a0 : AC.currentTime + 0.05, g: {}, k: 0 };
   var E = TR_AU.ev, i;
   for (i = 0; i < E.length && E[i].at < t; i++) {                        // 開始那一刻還在響的音 ⇒ 從現在響剩下的長度
     var e = E[i]; if (e.n && e.at + e.d > t + 0.05) trMusicNote(P, e, t, e.at + e.d - t);
@@ -25530,6 +25530,10 @@ function trAudioTick(t0, t1) {
   trMusicPump(t1);
   if (!AC || TR.muted) return;
   ambFrame();
+  trThunder(t0, t1);
+}
+/** 雷聲：片長 t0 → t1 之間照閃電的雜湊該響的那幾聲（錄影時 record.js 也叫它，把雷聲記進事件表）。 */
+function trThunder(t0, t1) {
   if (!WX.bolt) return;
   var A0 = trAt(t0), A1 = trAt(t1);
   if (A0.i !== A1.i) return;
