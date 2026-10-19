@@ -1,0 +1,53 @@
+<!-- ── 宣傳片的播放器外殼（splice.py 插在 </body> 前；只在預告片模式顯示，?play=1 ⇒ 整份就是遊戲）── -->
+<style id="trStyle">
+  body.trailer{ background:#000; }
+  /* 遊戲的舞台照 16:9 置中（字幕與構圖是照 16:9 排的）；遊戲自己的 HUD、選單、說明一律收起來 */
+  body.trailer #stage{ top:50%; left:50%; right:auto; bottom:auto; width:min(100vw, calc(100vh * 16 / 9)); height:auto; aspect-ratio:16/9; transform:translate(-50%,-50%); }
+  body.trailer #stage > :not(#cv){ display:none !important; }
+  body.trailer #cv{ cursor:default; }
+  #trUI{ display:none; }
+  body.trailer #trUI{ display:block; position:fixed; top:50%; left:50%; width:min(100vw, calc(100vh * 16 / 9)); aspect-ratio:16/9; transform:translate(-50%,-50%); z-index:100;
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif; color:#f2ead8; user-select:none; }
+  /* ⛔ 遊戲的全域 canvas 規則（absolute、crosshair、touch-action:none）也會套到字幕層 ⇒ 這裡蓋掉 */
+  #trUI canvas#trCap{ position:absolute; inset:0; width:100%; height:100%; cursor:default; touch-action:auto; pointer-events:none; }
+  #trUI .trLoad, #trUI .trCover{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:18px; }
+  #trUI .trLoad{ background:#05070b; display:flex; }
+  #trUI .trLoad .t{ font-family:"Noto Serif TC","Songti TC","PMingLiU",serif; font-size:clamp(28px,5vw,64px); letter-spacing:.35em; color:#e9dcbc; padding-left:.35em; }
+  #trUI .trLoad .bar{ width:min(60%,520px); height:3px; background:rgba(255,255,255,.12); border-radius:2px; overflow:hidden; }
+  #trUI .trLoad .bar i{ display:block; height:100%; width:0; background:#c9a45c; transition:width .3s; }
+  #trUI .trLoad .s{ font-size:clamp(11px,1.4vw,15px); color:#a99f8a; letter-spacing:.08em; text-align:center; padding:0 16px; }
+  #trUI .trCover{ background:rgba(3,5,9,.45); cursor:pointer; }
+  #trUI .trCover .play{ width:88px; height:88px; border-radius:50%; border:2px solid #c9a45c; display:flex; align-items:center; justify-content:center; font-size:34px; color:#e9cf8f; box-shadow:0 0 34px rgba(201,164,92,.35); padding-left:6px; box-sizing:border-box; }
+  #trUI .trCover .hint{ color:#cfc4ac; font-size:clamp(11px,1.4vw,15px); letter-spacing:.12em; text-align:center; padding:0 16px; }
+  #trUI .trBuf{ display:none; position:absolute; right:14px; top:12px; font-size:13px; color:#d8cdb4; background:rgba(0,0,0,.45); padding:3px 10px; border-radius:10px; }
+  #trUI .trBar{ position:absolute; left:0; right:0; bottom:0; display:flex; gap:10px; align-items:center; padding:10px 14px; background:linear-gradient(transparent, rgba(0,0,0,.78)); opacity:0; transition:opacity .25s; }
+  #trUI:hover .trBar{ opacity:1; }
+  #trUI .trBar button{ background:none; border:1px solid rgba(255,255,255,.35); color:#f2ead8; border-radius:6px; padding:4px 10px; font-size:14px; cursor:pointer; }
+  #trUI .trBar button:hover{ border-color:#c9a45c; }
+  #trUI .trBar .sp{ flex:1; }   /* Tim 2026-10-19：不要可以拖的時間軸（只往前播 ⇒ 船照出場順序邊播邊載），播完能重播就好 */
+  #trUI .trBar .time{ font-variant-numeric:tabular-nums; font-size:13px; color:#bdb29b; min-width:84px; text-align:right; }
+  #trUI .trEnd{ position:absolute; left:0; right:0; bottom:16%; display:none; flex-wrap:wrap; justify-content:center; gap:14px; padding:0 16px; }
+  #trUI .trEnd .btn{ display:inline-flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:#f6eedb; background:rgba(12,10,6,.72); border:1px solid #c9a45c; border-radius:12px; padding:12px 26px; font-size:clamp(14px,1.8vw,20px); cursor:pointer; letter-spacing:.1em; font-family:inherit; }
+  #trUI .trEnd .btn:hover{ background:rgba(40,30,12,.85); box-shadow:0 0 22px rgba(201,164,92,.35); }
+  #trUI .trEnd .btn small{ font-size:clamp(10px,1.1vw,12px); color:#bfb39a; letter-spacing:.04em; }
+  #trUI .trHint{ position:absolute; left:50%; bottom:7%; transform:translateX(-50%); background:rgba(0,0,0,.75); border:1px solid rgba(255,255,255,.3); border-radius:10px; padding:8px 14px; font-size:clamp(11px,1.4vw,15px); opacity:0; transition:opacity .3s; pointer-events:none; text-align:center; max-width:90%; }
+  #trUI.still .trBar, #trUI.still .trCover, #trUI.still .trBuf, #trUI.still .trHint{ display:none !important; }
+</style>
+<div id="trUI">
+  <canvas id="trCap" width="1920" height="1080"></canvas>
+  <div class="trLoad" id="trLoad"><div class="t">BLOCKSIDE</div><div class="bar"><i id="trLoadI"></i></div><div class="s" id="trLoadS">準備遊戲引擎…</div></div>
+  <div class="trCover" id="trCover"><div class="play">▶</div><div class="hint">BLOCKSIDE 宣傳片 · 建議開聲音</div></div>
+  <div class="trBuf" id="trBuf">準備中…</div>
+  <div class="trEnd" id="trEnd">
+    <button class="btn" id="trReplay" type="button">⟲ 重播<small>從頭再看一次</small></button>
+    <button class="btn" id="trTry" type="button">▶ 試玩<small>這份檔案裡就是整個遊戲</small></button>
+    <a class="btn" id="trLatest">🌐 遊戲最新版本<small id="trURL"></small></a>
+  </div>
+  <div class="trHint" id="trHint"></div>
+  <div class="trBar" id="trBar">
+    <button id="trPlay" title="空白鍵">▶</button>
+    <span class="sp"></span>
+    <span class="time" id="trTime">0:00 / 0:00</span>
+    <button id="trMute" title="M">🔊</button>
+  </div>
+</div>
