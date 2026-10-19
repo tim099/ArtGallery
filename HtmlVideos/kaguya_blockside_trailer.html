@@ -23773,7 +23773,7 @@ if (Q.get('start') === '1') startWhenReady();
 //   · 看第 t 秒 ⇒ 那一幕從開局走 n ＝ floor(τ / DT) 步（τ ＝ 那一幕的模擬秒數，慢動作照 rate 換算）⇒ 照 t 算的鏡頭畫。
 //   · 播放中 ⇒ 接著走；換幕（或測試用的 ?t=）⇒ 重開那一幕再走（播放器沒有拖曳的時間軸：只往前播、播完重播）（同一頁 reset() 走同一條路：同一個開局量三次雜湊相同）。
 //   · 會跟著鏡頭或畫面時間走的東西先關掉：遠方帆繩降級（rigfar）、碎木依鏡頭淘汰（DEB_CAP）、3D 雨、門的動畫、殉爆慢動作、物理減速、艙內水面的時間混合。
-// 走不完（重的一幕、剛拖過去）⇒ 時鐘停在走得到的那一步（畫面一律是 F(t)，只是播得比真實慢），右上角寫「準備中」。
+// 走不完（重的一幕、剛拖過去）⇒ 落後 TR_LAG 秒以內：時鐘照走、先畫算到的那一刻，下一格補；更久 ⇒ 時鐘停在走得到的那一步（畫面一律是 F(t)，只是播得比真實慢），右上角寫「準備中」。
 // 聲音：按下播放才建（使用者手勢）；模擬裡的砲聲、碎裂聲只在播放中、從上一格到這一格之間的那幾步發出（快轉時不出聲）；配樂照時間軸即時排程（audio.js：往前排 1.5 秒；暫停、跳時間、重播 ⇒ 從新的 t 重排）。
 
 var TR_W = 1280, TR_H = 720, TR_FOV = 0.9;
@@ -23827,14 +23827,45 @@ function trAzOf(sh) { return -sh.yaw; }
  *  cues:[{at: 模擬秒, fn(S)}], cam(u, τ, S) ⇒ {eye, look, fov}, look（只改畫面的天色）, sun, cut, fx(push, τ, S), cap(g, u, sc), over(g, u)（壓在黑場上面的字） } */
 function trAdd(sc) { sc.i = TR.S.length; sc.t0 = TR.DUR; TR.DUR += sc.dur; sc.rate = sc.rate || 1; sc.pre = sc.pre || 0; sc.lead = sc.lead || 0; TR.S.push(sc); return sc; }
 function trSceneIx(t) { for (var i = 0; i < TR.S.length; i++) if (t < TR.S[i].t0 + TR.S[i].dur) return i; return TR.S.length - 1; }
-/** 片長 t ⇒ 那一幕、模擬秒 τ、要走到第幾步 n、兩步之間的比例 a。 */
-function trAt(t) {
-  var i = trSceneIx(t), sc = TR.S[i], u = Math.min(sc.dur, Math.max(0, t - sc.t0)), tau = sc.pre + Math.max(0, u - sc.lead) * sc.rate;
-  var n = Math.floor(tau / DT + 1e-6);
-  return { i: i, sc: sc, u: u, tau: tau, n: n, a: Math.min(1, Math.max(0, tau / DT - n)) };
+// 慢動作（sc.warp；Tim 2026-10-19：「爆炸部分會lag & 破音(殉爆特別嚴重)」「火藥庫可以參考遊戲 用慢動作」）：
+//   sc.warp ＝ [[v, 倍率], …]：v ＝ 字卡之後的片長秒，兩格之間倍率線性變；同一個 v 給兩格 ⇒ 那一刻直接跳過去（殉爆那一下）。τ(v) ＝ pre ＋ ∫ 倍率 dv。
+//   遊戲的殉爆慢動作（73_slowmo.js）：模擬一步照舊 DT，只是每格畫面走得少；碎木、火光、煙、水花改成每格照「畫面的 dt × 倍率」走（SLOW_VIS、slowVisStep）—— ⛔ 留在模擬步上 ⇒ 0.1 倍時十格才動一下。
+//   這裡照同一套做，只是「每格畫面」換成固定的 TR_Q 片長秒（一個「格位」）⇒ 同一個 t 同一格（?t= 跟順著播走同一串格位）：
+//   有 warp 的幕，TR.k 數的是「預跑的模擬步（pre）＋ 之後的格位」；真的模擬步另外數在 TR.sk（cues 照它）。
+var TR_Q = 1 / 30;
+var TR_LAG = 0.75;                                                      // 模擬短暫落後時鐘多少秒以內不停錶（trFrame）
+function trRate(sc, v) {
+  var W = sc.warp; if (v <= W[0][0]) return W[0][1];
+  for (var i = 1; i < W.length; i++) if (v < W[i][0]) { var a = W[i - 1], b = W[i]; return a[1] + (b[1] - a[1]) * (v - a[0]) / (b[0] - a[0]); }
+  return W[W.length - 1][1];
 }
-/** 第 i 幕走到第 k 步時，片長是幾秒（時鐘停在走得到的那一步時用）。 */
-function trTimeOfStep(sc, k) { return sc.t0 + sc.lead + Math.max(0, (k * DT - sc.pre) / sc.rate); }
+function trTau(sc, v) {
+  if (!sc.warp) return sc.pre + v * sc.rate;
+  var W = sc.warp, s = sc.pre, x = 0;
+  if (v <= W[0][0]) return s + v * W[0][1];
+  s += W[0][0] * W[0][1]; x = W[0][0];
+  for (var i = 1; i < W.length && x < v; i++) {
+    var b = Math.min(v, W[i][0]); if (b <= x) continue;
+    s += (b - x) * (trRate(sc, x + 1e-9) + trRate(sc, b - 1e-9)) / 2; x = b;   // 兩格之間線性 ⇒ 梯形
+  }
+  if (x < v) s += (v - x) * W[W.length - 1][1];
+  return s;
+}
+function trPreSteps(sc) { return Math.floor(sc.pre / DT + 1e-6); }
+/** 片長 t ⇒ 那一幕、模擬秒 τ、要走到第幾步 n（有 warp ＝ 第幾個格位）、兩步之間的比例 a。 */
+function trAt(t) {
+  var i = trSceneIx(t), sc = TR.S[i], u = Math.min(sc.dur, Math.max(0, t - sc.t0)), v = Math.max(0, u - sc.lead), tau = trTau(sc, v), n, a;
+  if (sc.warp) {
+    var j = Math.floor(v / TR_Q + 1e-6), s = Math.floor(trTau(sc, j * TR_Q) / DT + 1e-6);   // 走完第 j 個格位 ⇒ 模擬走到第 s 步
+    n = trPreSteps(sc) + j; a = tau / DT - s;
+  } else { n = Math.floor(tau / DT + 1e-6); a = tau / DT - n; }
+  return { i: i, sc: sc, u: u, tau: tau, n: n, a: Math.min(1, Math.max(0, a)) };
+}
+/** 第 i 幕走到第 k 步（有 warp ＝ 第 k 個格位）時，片長是幾秒（時鐘停在走得到的那一步時用）。 */
+function trTimeOfStep(sc, k) {
+  if (sc.warp) return sc.t0 + sc.lead + Math.max(0, k - trPreSteps(sc)) * TR_Q;
+  return sc.t0 + sc.lead + Math.max(0, (k * DT - sc.pre) / sc.rate);
+}
 
 // ── 開一幕（跟擬真沙盒 flabSetup 同一條：照參數設好全域 ⇒ reset）──
 var trSpawn0 = spawnFleet;
@@ -23881,17 +23912,28 @@ function trSetup(sc) {
   SHIPS.forEach(function (sh, i) { var f = sc.fleet[i]; sh.trRam = !!(f && f.ram); });
   SHIPS.forEach(function (sh) { sh.portWant = sc.portWant === undefined ? 1 : sc.portWant; });   // 砲門（TASK-0719，62_ports.js）：預設開著（＝ 低畫質的樣子）⇒ 遊戲照交戰自己開關的那一套不會讓 ?t= 跳到的一格跟順著播的不一樣
   CUTV.half = !!(sc.cut && sc.cut.half); CUTV.deck = sc.cut && sc.cut.deck || 0; FLX3 = !!sc.xray;
-  TR.cur = sc.i; TR.k = 0; TR.cue = 0;
+  TR.cur = sc.i; TR.k = 0; TR.sk = 0; TR.cue = 0;
   if (sc.setup) sc.setup(SHIPS);
 }
-/** 走到第 i 幕的第 n 步；budget（毫秒）用完就先停（回 false）。 */
+/** 走到第 i 幕的第 n 步（有 warp ＝ 第 n 個格位）；budget（毫秒）用完就先停（回 false）。 */
 function trStepTo(i, n, budget) {
   var sc = TR.S[i];
   if (TR.cur !== i || n < TR.k) { var live = TR.live; TR.live = false; trSetup(sc); TR.live = live; }
-  var t0 = performance.now(), cues = sc.cues || [];
+  var t0 = performance.now(), cues = sc.cues || [], P = sc.warp ? trPreSteps(sc) : Infinity;
+  function step() {
+    while (TR.cue < cues.length && Math.round(cues[TR.cue].at / DT) <= TR.sk) { cues[TR.cue].fn(SHIPS, sc); TR.cue++; }
+    simStep(); TR.sk++;
+  }
   while (TR.k < n) {
-    while (TR.cue < cues.length && Math.round(cues[TR.cue].at / DT) <= TR.k) { cues[TR.cue].fn(SHIPS, sc); TR.cue++; }
-    simStep(); TR.k++;
+    if (TR.k < P) step();
+    else {                                                              // 一個格位（warp）：模擬走到這個格位結束的 τ；倍率 < 1 ⇒ 只給人看的照格位的模擬秒走（遊戲 90_main.js frame 同一套）
+      var j = TR.k - P, ta = trTau(sc, j * TR_Q), tb = trTau(sc, (j + 1) * TR_Q), s = Math.floor(tb / DT + 1e-6), slow = tb - ta < TR_Q - 1e-9;
+      SLOW_VIS = slow;
+      while (TR.sk < s) step();
+      SLOW_VIS = false;
+      if (slow) slowVisStep(tb - ta);
+    }
+    TR.k++;
     if (budget && performance.now() - t0 > budget) return TR.k >= n;
   }
   return true;
@@ -23981,7 +24023,7 @@ function trFrame(ts) {
     if (!trSceneLoaded(A.i)) { TR.needLoad = true; trUI(); return; }
   }
   var cut = TR.cur !== A.i || A.n < TR.k;
-  // 字卡前導（sc.lead；全艦隊那一幕）：黑底字卡的那幾秒 ⇒ 這一格只重開（不預跑）、預跑照 50 ms 一格分著做、時鐘照走（黑場上沒有東西會停）；快到字卡尾還沒做完 ⇒ 一格給 400 ms 做完（下一格 catchup 跳過去）。
+  // 字卡前導（sc.lead；全艦隊、進水那兩幕）：黑底字卡的那幾秒 ⇒ 這一格只重開（不預跑）、預跑照 100 ms 一格分著做、時鐘照走（黑場上沒有東西會停）；快到字卡尾還沒做完 ⇒ 一格給 400 ms 做完（下一格 catchup 跳過去）。
   //   2026-10-19 量（JIT 熱了以後）：十七艘重開 0.37–0.42 秒、模擬 1 秒要 0.34 秒 ⇒ 預跑 3 秒＋重開 ≈ 1.4 秒 —— 一口氣做 ⇒ 剛好卡在 catchup 的 1.4 秒上，慢一點的機器就停住、配樂重接（片子的最高潮那一下）。
   var lead = !TR.still && TR.playing && A.u < A.sc.lead;
   TR.live = TR.playing && !TR.resync && !lead && !cut;                  // 預跑（換幕那一口、字卡前導）不出聲：⛔ 幾秒的砲聲擠在一格裡發
@@ -23991,16 +24033,25 @@ function trFrame(ts) {
   if (cut && !TR.still && TR.playing) { trStepTo(A.i, lead ? 0 : Math.min(A.n, Math.floor(A.sc.pre / DT + 1e-6)), 0); TR.live = TR.playing && !TR.resync && !lead; }
   //   平常那一格 100 ms（以前 28）：全艦隊那一幕畫一格 26 ms、開戰後模擬一步 12 ms（2026-10-19 量）⇒ 每格模擬 ~20 ms，28 ms 只差一點 —— 中間頓一下（GC、建網格）下一格就算不完 ⇒ 時鐘停、配樂重接。
   //   寧可那一格長一點（畫面頓一下），配樂不斷。
-  var done = trStepTo(A.i, A.n, TR.still ? 0 : lead ? (A.u > A.sc.lead - 0.5 ? 400 : 50) : cut || catchup ? 400 : 100);
+  //   字卡上一格 100 ms（字是靜的，幀數低看不出來；2026-10-19 整片模擬播放：50 ms 時全艦隊的預跑在字卡裡做不完，淡入後連 6 格 340–490 ms 在補）。
+  var done = trStepTo(A.i, A.n, TR.still ? 0 : lead ? (A.u > A.sc.lead - 0.5 ? 400 : 100) : cut || catchup ? 400 : 100);
   TR.live = false;
+  var shown = A;                                                        // 這一格畫哪一刻（通常 ＝ 時鐘那一刻）
   if (lead) TR.buffering = TR.waitLoad;                                 // 字卡上做不完不停（下一格接著做）
-  else if (!done) { t = trTimeOfStep(A.sc, TR.k); A = trAt(t); TR.buffering = true; if (TR.playing) TR.resync = true; } else TR.buffering = TR.waitLoad;
+  else if (!done) {
+    // 短暫落後（TR_LAG 秒以內）：時鐘照走、配樂不停，這一格先畫算到的那一刻（也是 F(t)，只是早一點的 t），下一格接著補。
+    //   ⛔ 以前一算不完就把時鐘拉回算到的那一步、配樂停了從那一秒重接（AudioContext 整個停 ⇒ 正在響的聲音被切斷、長音從頭起音）——
+    //   殉爆斷船那一步自己就 228 ms（2026-10-19 火藥庫那幕量），每次都重接一次：Tim 聽到的「破音」。
+    var tk = trTimeOfStep(A.sc, TR.k);
+    if (TR.playing && !TR.still && t - tk <= TR_LAG) { shown = trAt(Math.max(A.sc.t0, Math.min(t, tk))); TR.buffering = TR.waitLoad; TR.lagMax = Math.max(TR.lagMax || 0, t - tk); }
+    else { t = tk; A = shown = trAt(t); TR.buffering = true; if (TR.playing) TR.resync = true; }
+  } else TR.buffering = TR.waitLoad;
   TR.t = t;
   if (TR.playing && TR.resync && !TR.buffering && !TR.waitLoad) { TR.resync = false; trMusicAt(t); }
   else if (TR.playing && TR.resync) trMusicStop();
   if (TR.playing) trAudioTick(prevT, t);
-  if (TR.drawnT !== t || TR.dirty) { if (!lead) trDraw(A); TR.drawnT = t; TR.dirty = false; }   // 字卡前導：整片黑，3D 不畫（模擬還在預跑的半路）
-  trOverlay(t, A);
+  if (TR.drawnT !== t || TR.dirty) { if (!lead) trDraw(shown); TR.drawnT = t; TR.dirty = false; }   // 字卡前導：整片黑，3D 不畫（模擬還在預跑的半路）
+  trOverlay(t, shown);
   if (TR.playing && t >= TR.DUR) trPause(true);
   trUI();
   if (TR.wantT !== null && !TR.buffering && Math.abs(t - TR.wantT) < 1e-6) { window.__trReady = true; document.title = 'READY ' + t.toFixed(2); }
@@ -24046,11 +24097,11 @@ function trWarm(id) {
   var sc = TR.S.filter(function (s) { return !s.free && s.fleet.some(function (f) { return f.hull === id; }) && trSceneLoaded(s.i); })
     .sort(function (a, b) { return a.fleet.length - b.fleet.length || a.i - b.i; })[0];
   if (!sc) return;                                                      // 有它的幕都還差別的船 ⇒ 第一次出場時再算
-  var live = TR.live, t0 = performance.now(), cur = TR.cur, k = TR.k, simt = SIMT;
+  var live = TR.live, t0 = performance.now(), cur = TR.cur, k = TR.k, sk = TR.sk, simt = SIMT;
   TR.live = false; trSetup(sc);
   // 序幕接回原狀：⛔ 只標 TR.cur = -1 ⇒ 序幕下一格從第 0 步重算到現在（~900 步），算不完時鐘就退回算到的那一步（2026-10-19 模擬播放量到：序幕從 15 秒退回 1 秒重播）。
   //   序幕沒有船 ⇒ 世界只有時間（SIMT、步數）⇒ 重開序幕、把兩個接回去就是同一格。
-  if (cur >= 0 && TR.S[cur].free) { trSetup(TR.S[cur]); TR.k = k; SIMT = simt; } else TR.cur = -1;
+  if (cur >= 0 && TR.S[cur].free) { trSetup(TR.S[cur]); TR.k = k; TR.sk = sk; SIMT = simt; } else TR.cur = -1;
   TR.live = live;
   (TR.warmLog = TR.warmLog || []).push([id, sc.id, Math.round(performance.now() - t0)]);
 }
@@ -24708,7 +24759,7 @@ function trScenes() {
   function hist(o) {
     var h = o.h;
     return trAdd({ id: o.id, dur: o.dur, seed: o.seed, wx: o.wx || 'clear', wind: o.wind || trWind(h, o.wOff, o.wS), mode: o.mode || 'sandbox', pre: o.pre === undefined ? 1.0 : o.pre,
-      phx: o.phx, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
+      phx: o.phx, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
       fleet: o.fleet || one(o.hull, h, o.ext), look: o.look, year: o.year, marks: o.marks, cut: o.cut, cues: o.cues, setup: o.setup, fadeIn: o.fadeIn, fadeOut: o.fadeOut, black: o.black, fx: o.fx,
       cam: o.cam,
       cap: function (g, u, tau, S, sc) {
@@ -24964,14 +25015,16 @@ function trScenes() {
     term: { zh: '撞角', en: 'ram', def: ['船首水線下的尖角，', '用整艘船的重量撞穿敵艦。'] }, termAt: 5.2,
   });
   var hY = SA - PI / 2 - 0.2;
-  hist({ id: 'congress', dur: 13, seed: 1841, h: hY, hull: 'constitution', ext: { sail: 1 }, year: 1862, era: false, pre: 0.8, rate: 1.6,   // 從下午燒到深夜：模擬 1.6 倍
+  //   殉爆（v 11）那一刻 1.6 倍 → 0.12 倍（照遊戲的殉爆慢動作），斷船落在慢動作裡；⛔ 以前 1.6 倍直接炸 ⇒ 殉爆後的重活一秒擠 1.6 秒進來，每次停錶、配樂重接
+  hist({ id: 'congress', dur: 14.5, seed: 1841, h: hY, hull: 'constitution', ext: { sail: 1 }, year: 1862, era: false, pre: 0.8, rate: 1.6,   // 從下午燒到深夜：模擬 1.6 倍
+    warp: [[0, 1.6], [11.0, 1.6], [11.0, 0.12], [13.4, 0.12], [14.5, 0.35]],
     look: function (u) { return L(trLookMix(TR_LOOK.dusk, TR_LOOK.night, trSmooth(2, 10, u)), DUSK_SUN); },
     cues: [{ at: 1.0, fn: function (S) { var sh = S[0], T = sh.T;
              [[60, 0, 52], [-120, 30, 46], [180, -20, 50], [-260, 10, 48], [0, -35, 56]].forEach(function (o) { trIgnite(sh, [T.cx + o[0], T.cy + o[1], T.zw + o[2]]); });
              if (typeof burnSailAt === 'function') sh.sails.filter(function (q) { return !q.flag && !q.dead; }).slice(1, 4).forEach(function (q) { var n = (sh.T.cloth[q.k] && sh.T.cloth[q.k].n) || 1; burnSailAt(sh, q, Math.floor(n * 0.55)); }); } },
            { at: 0.8 + 11.0 * 1.6, fn: function (S) { var sh = S[0], m = (sh.mags || []).filter(function (q) { return !q.gone; }).sort(function (a, b) { return b.lb - a.lb; })[0]; if (m) magBoom(sh, m); } }],
-    cam: function (u, tau, S) { return trAbove(trRel(S[0], trKey([[0, 1.75], [8, 1.45], [13, 1.3]], u), 0.08, trKey([[0, 72], [8, 62], [13, 105]], u), 6)); },
-    note: '國會號由憲法號代演；起火與最後的殉爆都是導演點的',
+    cam: function (u, tau, S) { return trAbove(trRel(S[0], trKey([[0, 1.75], [8, 1.45], [14.5, 1.3]], u), 0.08, trKey([[0, 72], [8, 62], [11, 66], [14.5, 105]], u), 6)); },
+    note: '國會號由憲法號代演；起火與最後的殉爆都是導演點的；殉爆的慢動作照遊戲的',
     story: ['同一天，國會號擱淺、中彈起火。', '大火從下午燒到深夜，燒進了火藥庫。'] });
   var hM = SA - PI / 2;
   hist({ id: 'monitor', dur: 12, seed: 1863, h: hM, look: L(TR_LOOK.grey), year: 1862, pre: 1.0, mode: 'eve',
@@ -25007,12 +25060,17 @@ function trScenes() {
     } });
   TR.S[TR.S.length - 1].rate = 0.5;
   var hF = SA - PI / 2;
-  hist({ id: 'flood', dur: 14, seed: 41, h: hF, wind: trWind(hF, 1.0, 0.7), pre: 6.0, cut: { half: true }, phx: { flood: 3 }, look: L(TR_LOOK.section),
+  //   開頭 1.4 秒是黑底字卡「船為什麼會沉？」（lead）：預跑 6 秒（帶進水粒子）連重開一口氣 1.37 秒（2026-10-19 整片模擬播放），只比 1.4 秒的線少 28 ms ⇒ 藏到字卡底下分格做。
+  var FDL = 1.4;
+  hist({ id: 'flood', dur: 14 + FDL, lead: FDL, seed: 41, h: hF, wind: trWind(hF, 1.0, 0.7), pre: 6.0, cut: { half: true }, phx: { flood: 3 }, look: L(TR_LOOK.section), fadeIn: 0,
+    black: function (u) { return 1 - trSmooth(FDL, FDL + 0.6, u); },
+    over: function (g, u) { trText(g, '船為什麼會沉？', TR_CW / 2, TR_CH * 0.47, '600 64px ' + TR_SERIF, '#f2e6c8', trFade(u, 0.15, FDL - 0.05, 0.4), 'center', 6); },
     fleet: [{ team: 'blue', hull: 'cosecha', x: 0, z: 0, yaw: trYaw(hF), hold: 1, sail: 1 }, { team: 'red', hull: 'constitution', x: Math.cos(hF + PI / 2) * 60, z: Math.sin(hF + PI / 2) * 60, yaw: trYaw(hF), hold: 1, sail: 1 }],
     cues: [{ at: 0.4, fn: function (S) { trVolley(S[1], S[0], 0, [S[0].T.cx, S[0].T.cy, S[0].T.zw + 3]); } }, { at: 2.4, fn: function (S) { trVolley(S[1], S[0], 0, [S[0].T.cx - 40, S[0].T.cy, S[0].T.zw + 2]); } }],
-    cam: function (u, tau, S) { return trAbove(trRel(S[0], trK2(u, 14, -1.5, -1.15), 0.12, trK2(u, 14, 48, 38), -1)); },
+    cam: function (u, tau, S) { var v = Math.max(0, u - FDL); return trAbove(trRel(S[0], trK2(v, 14, -1.5, -1.15), 0.12, trK2(v, 14, 48, 38), -1)); },
     // Tim：「可以不用寫進水模擬 而是用科普的方式講船隻進水」「以及那個時代船隻缺乏水密艙 因此更容易沉」「可以提一下鐵達尼號」
     cap2: function (g, u) {
+      u -= FDL;                                                          // 字卡之後才開始（下面的秒數照字卡之後算）
       trTag(g, '船為什麼會沉？', '', trFade(u, 0.3, 13.6, 0.4));
       trStory(g, ['船浮著，是因為它排開的水跟它一樣重（阿基米德原理）。', '吃水線下開一個洞，水灌進來，船越來越重、吃得越深；', '水積在一側，船就傾斜 —— 木匠帶著木塞去堵砲眼，水手輪班抽水。'], u, 1.4, 6.9);
       trTerm(g, { zh: '吃水線', en: 'waterline', def: ['船浮著時，水面在船身畫出的那條線。', '線下開一個洞，水就灌進來。'] }, trFade(u, 3.4, 6.9, 0.5));
@@ -25036,15 +25094,19 @@ function trScenes() {
       trNote(g, '帆上的火由導演點（噴口搆不到帆）；甲板上的火與之後的延燒是遊戲算的', trFade(u, 4.8, 10.6, 0.4));
     } });
   var hB = SA - PI / 2;
-  hist({ id: 'magazine', dur: 8, seed: 66, h: hB, hull: 'ember', ext: { sail: 2 }, pre: 0.8,
+  // 殉爆照遊戲的慢動作（Tim 2026-10-19：「火藥庫可以參考遊戲 用慢動作」；遊戲 73_slowmo.js：前彈藥庫那種大的掉到 0.1 倍）：
+  //   模擬 0.6 倍 → 殉爆那一刻（τ 1.6、v 4/3）掉到 0.1 倍 → 停 2.6 秒 → 2 秒緩回 0.6 倍。斷船（τ ≈ 1.8，2026-10-19 量：那一步 228 ms）落在慢動作裡（v ≈ 3.3）。
+  //   ⛔ 以前整幕 0.6 倍：殉爆後 0.5 模擬秒要算 681 ms（一秒 1.36 秒）＋斷船那一步 ⇒ 每次都停錶、配樂重接。
+  var MZ = 4 / 3;
+  hist({ id: 'magazine', dur: 10.5, seed: 66, h: hB, hull: 'ember', ext: { sail: 2 }, pre: 0.8,
+    warp: [[0, 0.6], [MZ, 0.6], [MZ, 0.1], [MZ + 2.6, 0.1], [MZ + 4.6, 0.6]],
     cues: [{ at: 1.6, fn: function (S) { var sh = S[0], m = (sh.mags || []).filter(function (q) { return !q.gone; }).sort(function (a, b) { return b.lb - a.lb; })[0]; if (m) magBoom(sh, m); } }],
-    cam: function (u, tau, S) { return trAbove(trRel(S[0], 1.9, 0.10, trK2(u, 8, 125, 140), 6)); },
+    cam: function (u, tau, S) { return trAbove(trRel(S[0], trKey([[0, 1.9], [10.5, 2.2]], u), 0.10, trKey([[0, 125], [MZ, 120], [MZ + 2.8, 96], [10.5, 150]], u), 6)); },   // 慢動作裡推近，緩回來時拉遠看斷成兩截
     term: { zh: '火藥庫', en: 'magazine', def: ['存放火藥的艙，放在吃水線以下最深處，', '離砲火最遠、淹水也最快。一旦起火 ——'] }, termAt: 0.4,
     cap2: function (g, u) {
-      trTag(g, '殉爆', '火藥庫一炸，船斷成兩截', trFade(u, 2.0, 7.6, 0.4));
-      trNote(g, '火藥庫由導演引爆；之後斷船、進水、下沉都是遊戲算的', trFade(u, 1.8, 7.6, 0.4));
+      trTag(g, '殉爆', '火藥庫一炸，船斷成兩截', trFade(u, 2.0, 10.1, 0.4));
+      trNote(g, '火藥庫由導演引爆；慢動作照遊戲的殉爆慢動作；之後斷船、進水、下沉都是遊戲算的', trFade(u, 1.8, 10.1, 0.4));
     } });
-  TR.S[TR.S.length - 1].rate = 0.6;
 
   // ═════ 六、傳說與魔法 ═════
   var hW = trSunAz(MOON) - PI / 2;
@@ -25092,18 +25154,46 @@ function trScenes() {
   hist({ id: 'ember', dur: 8, seed: 1803, h: hU, hull: 'ember', look: L(trLookMix(TR_LOOK.night, TR_LOOK.dusk, 0.25), MOON), pre: 1.5,
     cam: function (u, tau, S) { return trAbove(trRel(S[0], trK2(u, 8, PI - 0.6, PI - 0.25), 0.07, trK2(u, 8, 60, 48), 10)); },
     yl: '虛構', name: '餘燼號', line: '浴火鳳凰為首，九十門砲　船長室裡吊著一顆餘燼之心', by: BY('basecamp'), col: '#ff8a4a' });
-  hist({ id: 'maelstrom', dur: 10, seed: 1866, wx: 'maelstrom', wind: [0, 1.2], pre: 3.0, dist: 260, look: L(TR_LOOK.vortex, MOON),
-    fleet: [{ team: 'blue', hull: 'stormkaap', hold: 1 }, { team: 'red', hull: 'tidegrave', hold: 1 }],
-    fx: function (push, u, tau, S) { trWisps(push, S[0], 24, tau, [0.35, 1, 0.55], 2.2, 40); },
-    cam: function (u, tau, S) { var a = trK2(u, 10, 0.6, 1.5); return trAbove({ eye: trOrbit([0, 0, 0], a, trK2(u, 10, 0.62, 0.42), trK2(u, 10, 235, 175)), look: [0, -40, 0] }); },
-    cap2: function (g, u) { trLine(g, '海的盡頭，還有更深的海。', trFade(u, 0.8, 9.6, 0.6), TR_CH * 0.80); } });
-  TR.S[TR.S.length - 1].mode = 'sandbox';
+  // 大漩渦的海戰（Tim 2026-10-19：「大漩渦是否可安排一段海戰(搭配運鏡) 嘗試復刻神鬼奇航3中的場景」；遊戲的大漩渦本來就是照那一場做的，08_sea.js）：
+  //   夜燈號（整艘黑）對風暴角號（荷蘭船長的傳說）。開局照遊戲排在漏斗兩側（離中心 121 m、水面 −200 m；預設漩渦中心深 350 m），隔著漩渦眼對轟（約 240 m）。
+  //   2026-10-19 量（觀戰模式＋自動開砲、這些齊射）：每輪齊射開 11／14 門、飛過漩渦約 1.3 秒；夜燈號 13 秒後角度錯開打不出去 ⇒ 之後只排風暴角號；
+  //   風暴角號慢（7 m/s），被吸力往中心拉，20 秒滑進眼（32 m）—— 電影結尾荷蘭人號也是被漩渦吞下去的。
+  //   鏡頭五段（換鏡的片長秒 MS）：漏斗邊俯瞰 → 夜燈號肩後（風暴角號的砲彈打進來：慢動作 0.35 倍）→ 反打（夜燈號的砲彈打進風暴角號：0.3 倍）→ 漩渦眼上方往上看 → 拉升出漏斗。
+  var MS = [3.7, 8.6, 12.6, 16.6];
+  function mxShot(u) { for (var i = 0; i < MS.length; i++) if (u < MS[i]) return i; return MS.length; }
+  /** 站在 sh 的外側（離中心更遠 ＝ 漏斗壁更高）偏後、看過漩渦去 foe。 */
+  function mxBehind(sh, foe, k, w, fov) {
+    var c = shipCenter(sh), d = Math.hypot(c[0], c[2]) || 1, o = [c[0] / d, 0, c[2] / d], f = fwd(sh.yaw), e = shipCenter(foe);
+    return trAbove({ eye: [c[0] + o[0] * k - f[0] * w, c[1] + 16, c[2] + o[2] * k - f[2] * w], look: [e[0], e[1] + 6, e[2]], fov: fov }, 3);
+  }
+  hist({ id: 'maelstrom', dur: 21, seed: 1866, wx: 'maelstrom', wind: [0, 1.2], pre: 0.5, dist: 140, mode: 'eve', autoFire: true, cmd: ['free', 'free'], look: L(TR_LOOK.vortex, MOON),
+    warp: [[0, 1], [4.0, 1], [4.3, 0.35], [6.0, 0.35], [6.4, 1], [9.28, 1], [9.5, 0.3], [10.9, 0.3], [11.3, 1]],
+    fleet: [{ team: 'blue', hull: 'nightlamp' }, { team: 'red', hull: 'stormkaap' }],
+    cues: [[2.5, 0], [4.5, 1], [7.0, 0], [9.0, 1], [11.5, 0], [12.0, 1], [13.5, 1], [16.0, 1]].map(function (q) { return { at: q[0], fn: function (S) { trVolley(S[q[1]], S[1 - q[1]], 0); } }; }),
+    fx: function (push, u, tau, S) { trWisps(push, S[1], 24, tau, [0.35, 1, 0.55], 2.2, 40); },
+    cam: function (u, tau, S) {
+      var s = mxShot(u), p;
+      if (s === 0) { var a = trK2(u, MS[0], -0.40, -0.12); return trAbove({ eye: [Math.cos(a) * 360, trK2(u, MS[0], 10, -20), Math.sin(a) * 360], look: [0, -205, 0] }, 4); }
+      if (s === 1) { p = (u - MS[0]) / (MS[1] - MS[0]); return mxBehind(S[0], S[1], 34 - 8 * p, 26 - 6 * p, 0.65); }   // 風暴角號（55 萬格）比夜燈號（129 萬格）小 ⇒ 這一段收窄
+      if (s === 2) { p = (u - MS[1]) / (MS[2] - MS[1]); return mxBehind(S[1], S[0], 30 - 6 * p, 24 - 6 * p, 0.8); }
+      if (s === 3) {
+        var r = shipCenter(S[1]), th = Math.atan2(r[2], r[0]) + PI + trK2(u - MS[2], MS[3] - MS[2], -0.25, 0.25), ex = Math.cos(th) * 24, ez = Math.sin(th) * 24;
+        return trAbove({ eye: [ex, seaH(ex, ez, SIMT) + 26, ez], look: [r[0], r[1] + 8, r[2]], fov: 1.0 }, 4);
+      }
+      p = trSmooth(MS[3], 21, u); var a5 = -0.3 + 0.5 * p, d5 = trMix(60, 330, p);
+      return trAbove({ eye: [Math.cos(a5) * d5, trMix(-230, 140, p), Math.sin(a5) * d5], look: [0, trMix(-200, -230, p), 0], fov: 0.95 }, 4);
+    },
+    cap2: function (g, u) {
+      trLower(g, { year: '傳說 · 虛構', name: '夜燈號　對　風暴角號', line: '在大漩渦的壁上，隔著漩渦眼對轟', by: BY('basecamp · summit') }, trFade(u, 0.5, 3.5, 0.4));
+      trNote(g, '遊戲裡的對戰（虛構）　向電影《神鬼奇航：世界的盡頭》的漩渦之戰致敬', trFade(u, 3.7, 20.7, 0.4));   // 下三分之一淡掉才出（⛔ 跟署名疊在右下）
+      trLine(g, '海的盡頭，還有更深的海。', trFade(u, 17.6, 20.6, 0.6), TR_CH * 0.80);
+    } });
 
   // ═════ 七、全艦隊與片名 ═════
   var fleetAll = ['constitution', 'tridente', 'ember', 'napoleon', 'gloire', 'susquehanna', 'virginia', 'monitor', 'reale',
                   'nightlamp', 'stormkaap', 'tidegrave', 'cosecha', 'phoenix', 'falcon', 'sentinel', 'dromon'];
-  //   開頭 1.8 秒是黑底字卡（lead）：十七艘重開＋預跑 3 秒 ≈ 1.4 秒（2026-10-19 量），藏在字卡底下分格做 ⇒ 片子最高潮那一下不停、配樂不斷（director.js trFrame）。
-  var FL = 1.8;
+  //   開頭 2.2 秒是黑底字卡（lead）：十七艘重開＋預跑 3 秒 ≈ 1.4 秒（2026-10-19 量），藏在字卡底下分格做 ⇒ 片子最高潮那一下不停、配樂不斷（director.js trFrame）。
+  var FL = 2.2;   // 2026-10-19 整片模擬播放：1.8 秒時重開就花了 562 ms，預跑在字卡裡做不完 ⇒ 2.2
   trAdd({ id: 'fleet', dur: 11 + FL, lead: FL, seed: 17, wind: [20, 1.1], mode: 'eve', autoFire: true, pre: 3, dist: 200, gap: 85, cmd: ['line', 'line'], phx: { rig: 0 }, rate: 0.6, fadeIn: 0,
     fleet: fleetAll.map(function (h, i) { return { team: i % 2 ? 'red' : 'blue', hull: h }; }),
     cam: function (u, tau, S) { var v = Math.max(0, u - FL), a = trK2(v, 11, -0.9, -0.2); return { eye: trOrbit([0, 0, 0], a, trK2(v, 11, 0.42, 0.30), trK2(v, 11, 500, 420)), look: [0, 0, 0] }; },
@@ -25152,7 +25242,9 @@ function trScenes() {
     { at: T.flood, hit: 1, v: 0.9 }, { at: T.greekfire, hit: 1, v: 0.9 }, { at: T.magazine, hit: 1, v: 0.9 },
     { at: T.stormkaap - 0.4, hit: 1, v: 1, f0: 50, f1: 26, len: 3 },
     seg('dutchman', T.stormkaap, T.charts, { x: 0.2, fin: 0.6, fout: 1.6 }),
-    { at: T.charts - 0.4, tune: 'stormkaap', from: 0, to: T.fleet - T.charts + 0.4, loops: 2, fin: 1.5, fout: 1.5, gain: 1.15 },
+    seg('stormkaap', T.charts, T.fleet, { fin: 1.5, fout: 1.5, gain: 1.15 }),   // 遍數照長度算（⛔ 以前寫死 2 遍；大漩渦拉長到 21 秒後可能不夠 ⇒ 尾巴沒聲音）
+    { at: T.maelstrom + MS[0], hit: 1, v: 0.6, f0: 55, f1: 28, len: 1.8 }, { at: T.maelstrom + MS[1], hit: 1, v: 0.6, f0: 55, f1: 28, len: 1.8 },   // 大漩渦換鏡（輕：砲聲已經夠多）
+    { at: T.maelstrom + MS[2], hit: 1, v: 0.6, f0: 55, f1: 28, len: 1.8 }, { at: T.maelstrom + MS[3], bell: 147, v: 0.5 },
     { at: T.fleet - 1.8, rise: 1.8, v: 1.1 }, { at: T.fleet, hit: 1, v: 1.3, f0: 70, f1: 30, len: 2.4 },
     { at: T.fleet + 0.1, tune: 'nightlamp', from: 20.857, to: 20.857 + (TR.DUR - T.fleet - 0.1), fin: 0.4, fout: 4, gain: 1.1 },
     { at: T.title, hit: 1, v: 1.2, f0: 55, f1: 28, len: 3 }, { at: T.title + 1.0, bell: 147, v: 0.8 }
