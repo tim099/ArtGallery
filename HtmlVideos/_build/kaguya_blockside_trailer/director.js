@@ -160,9 +160,12 @@ function trStepTo(i, n, budget) {
     if (TR.k < P) step();
     else {                                                              // 一個格位（warp）：模擬走到這個格位結束的 τ；倍率 < 1 ⇒ 只給人看的照格位的模擬秒走（遊戲 90_main.js frame 同一套）
       var j = TR.k - P, ta = trTau(sc, j * TR_Q), tb = trTau(sc, (j + 1) * TR_Q), s = Math.floor(tb / DT + 1e-6), slow = tb - ta < TR_Q - 1e-9;
+      // 布與繩（30_rig_physics.js）照物理分級每 every 步算一次（最高兩檔 2 ⇒ 1 倍速一秒 30 次）⇒ 慢動作裡一秒模擬步變少、布就一頓一頓（0.5 倍 15 次）。
+      //   ⇒ 倍率 ≤ 0.75 的格位裡布每一步都算（0.5 倍照樣一秒 30 次，開銷跟 1 倍速一樣）。布與繩不回寫戰局（50_sim.js），切點只看格位 ⇒ 同一個 t 同一格。
+      var rl = slow && (tb - ta) <= 0.75 * TR_Q ? rigLv() : null, ev0 = rl ? rl.every : 0;
       SLOW_VIS = slow;
-      while (TR.sk < s) step();
-      SLOW_VIS = false;
+      try { if (rl) rl.every = 1; while (TR.sk < s) step(); }
+      finally { if (rl) rl.every = ev0; SLOW_VIS = false; }
       if (slow) slowVisStep(tb - ta);
     }
     TR.k++;

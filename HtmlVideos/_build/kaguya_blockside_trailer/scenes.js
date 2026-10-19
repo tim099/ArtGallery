@@ -25,6 +25,20 @@ function trRel(sh, ra, el, d, up, fx) {
 function trAbove(c, h) { var y = seaH(c.eye[0], c.eye[2], SIMT) + (h || 1.2); if (c.eye[1] < y) c.eye[1] = y; return c; }
 /** 兩端內插（一幕裡從 a 慢慢到 b）。 */
 function trK2(u, D, a, b) { return trKey([[0, a], [D, b]], u); }
+/** 一鏡到底的鏡頭路徑：K ＝ [[u, 向量], …]（u 遞增），Catmull-Rom 曲線過每一格 ⇒ 經過關鍵格不停頓（trKey 是每格之間 smoothstep ⇒ 每到一格就停一下）。 */
+function trSpline(K, u) {
+  if (u <= K[0][0]) return K[0][1].slice();
+  var n = K.length; if (u >= K[n - 1][0]) return K[n - 1][1].slice();
+  var i = 0; while (i < n - 2 && u >= K[i + 1][0]) i++;
+  var p0 = K[Math.max(0, i - 1)][1], p1 = K[i][1], p2 = K[i + 1][1], p3 = K[Math.min(n - 1, i + 2)][1], t = (u - K[i][0]) / (K[i + 1][0] - K[i][0]), t2 = t * t, t3 = t2 * t;
+  return p1.map(function (_, d) { return 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * t + (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * t2 + (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * t3); });
+}
+/** foe 第 k 大的帆（照外框面積；旗不算、掉了的不算）的中心（格座標）⇒ 給 trVolley 的 aim。沒有 ⇒ 船中段高處。 */
+function trSailAim(foe, k) {
+  var L = foe.sails.filter(function (s) { return !s.flag && !s.dead; }).map(function (s) { var b = s.bb; return { b: b, a: (b[3] - b[0]) * (b[5] - b[2]) }; }).sort(function (x, y) { return y.a - x.a; });
+  var q = L[Math.min(k, L.length - 1)]; if (!q) return [foe.T.cx, foe.T.cy, foe.T.zw + 190];
+  return [(q.b[0] + q.b[3]) / 2, (q.b[1] + q.b[4]) / 2, (q.b[2] + q.b[5]) / 2];
+}
 /** 開砲（一舷或兩舷）：砲全部裝好、瞄 foe 的格座標 aim（沒給 ＝ 船中段、照遊戲的瞄準高度）。 */
 function trVolley(sh, foe, ammo, aim) {
   sh.guns.forEach(function (g) { if (g.alive) g.reload = 0; });
@@ -96,7 +110,7 @@ function trScenes() {
         var D = sc.dur;
         if (o.name) trLower(g, { year: o.yl, name: o.name, line: o.line, by: o.by, col: o.col }, trFade(u, o.lowAt || 0.4, D - 0.3, 0.4));
         if (o.story) trStory(g, o.story, u, o.storyAt || 0.9, D - 0.3);
-        if (o.term) trTerm(g, o.term, trFade(u, o.termAt || D * 0.42, D - 0.3, 0.5));
+        if (o.term) trTerm(g, o.term, trFade(u, o.termAt || D * 0.42, o.termEnd || D - 0.3, 0.5));
         if (o.spec) trSpec(g, o.spec, trFade(u, o.specAt || D * 0.5, D - 0.3, 0.5), u);
         if (o.note) trNote(g, o.note, trFade(u, 0.6, D - 0.3, 0.4));
         if (o.cap2) o.cap2(g, u, tau, S, sc);
@@ -227,20 +241,44 @@ function trScenes() {
     cap2: function (g, u) { trTimberArt(g, u - 1.2, trFade(u, 1.2, 8.7, 0.5), TR_CW * 0.52, TR_CH * 0.30); } });
   // 海戰：舷側齊射（Tim 2026-10-19：「影片中可以多一點海戰片段」）—— 遊戲裡的對戰（虛構）：憲法號與三叉戟號並排對轟；三叉戟號一輪鏈彈專打憲法號的帆與索具
   var hB2 = SA - PI / 2 - 0.2;
-  hist({ id: 'broadside', dur: 12, seed: 1805, h: hB2, year: 1805, pre: 1.2,
+  //   一鏡到底、三種彈（Tim 2026-10-19：「2:16秒左右的齊射 是否可以微調參數讓帆被打破(展現驚艷的帆繩物理) 可以偷生額外的鍊彈」
+  //     「海戰可以嘗試做成連貫的嗎(靠運鏡轉場) 然後展示說明不同彈藥差異」）：不切鏡，鏡頭沿著兩船之間的水道移動、升到帆的高度、再降回船殼。
+  //   實心彈（u 0–9）→ 鏈彈（9–19：三叉戟號三輪打憲法號三面最大的帆，後兩輪是導演多開的；憲法號兩輪還擊）→ 爆裂彈（19–28：這兩艘其實沒有，畫面寫明）→ 拉遠。
+  //   2026-10-19 量（帆與繩物理開到最高一檔 rig 3）：三叉戟號一舷 67–68 門、憲法號 23–26 門；三輪鏈彈後憲法號 5 面帆掉、4 面破、斷 324 條繩、380 條垂著；
+  //     還擊後三叉戟號 3 面掉、2 面破、斷 131 條；爆裂彈兩輪碎木 500 → 1 萬片；模擬一秒 0.34–0.57 秒。
+  //   慢動作（Tim：「有些畫面可以嘗試慢動作演出」）：實心彈打進船殼 0.4 倍、三輪鏈彈撕帆 0.5 倍（布每一步都算 ⇒ 照樣一秒 30 次，director.js trStepTo）、爆裂彈炸開 0.3 倍。
+  //   齊射照片長秒寫（BS_FIRE），換成模擬秒當 cue ⇒ 鏡頭跟事件對得準。
+  //   2026-10-19 量：鏈彈之後帆是一面一面掉的（繩先斷、帆失去支撐）—— 三輪之後約 1.3–4.8 模擬秒裡陸續掉 ⇒ 慢動作蓋 10.0–14.4、鏡頭在憲法號的帆前待到 16 秒才轉。
+  //   照片長換算：鏈彈齊射是一門一門陸續開、帆要累積好幾發才掉 ⇒ 帆在片長 14–18 秒才一面面掉 ⇒ 0.5 倍蓋 10–15、接 0.75 倍到 17.4，鏡頭在憲法號的帆前待到 17.6。
+  //   看哪裡（BS_LOOK）用 trKey：停在船上、換目標時一秒內快搖；⛔ 用曲線連續內插 ⇒ 從三叉戟號的船殼轉到憲法號的帆時掃過兩船正中間，往前看是整片空海（第一版截到）。眼睛照舊走曲線（BS_EYE）。
+  //   2026-10-19 量（上一版排法）：憲法號的帆在片長 11、13.5、17、17.5 秒各掉一面；三叉戟號被還擊後 1–2 秒就掉 ⇒ 鏡頭在憲法號前待到 19 秒、還擊挪到 19.6。
+  //   爆裂彈：一輪齊射一門一門陸續開、再飛過去 ⇒ 開了約 1.5 秒才炸（截圖量到：25.1 開、慢動作 25.2–27 裡什麼都沒有，28.9 才看到火球）⇒ 慢動作挪到 27.0–28.8、第二輪挪到 29.6。
+  var BS = 37, BS_WARP = [[0, 1], [3.3, 1], [3.5, 0.4], [5.2, 0.4], [5.6, 1], [9.8, 1], [10.0, 0.5], [15.0, 0.5], [15.4, 0.75], [18.8, 0.75], [19.2, 1], [26.8, 1], [27.0, 0.3], [28.8, 0.3], [29.2, 1]];
+  var BS_FIRE = [[1.0, 1, 0], [3.2, 0, 0], [9.5, 1, 2, 0], [10.3, 1, 2, 1], [11.1, 1, 2, 2], [19.6, 0, 2, 0], [20.4, 0, 2, 1], [25.1, 0, 1], [29.6, 0, 1]];   // [片長秒, 誰開（0 憲法號、1 三叉戟號）, 彈種, 瞄第幾大的帆]
+  function bsP(a, b, f, s, q) { var m = [(a[0] + b[0]) / 2, 0, (a[2] + b[2]) / 2]; return [m[0] + f[0] * q[0] + s[0] * q[1], q[2], m[2] + f[2] * q[0] + s[2] * q[1]]; }   // 兩船之間的座標（沿船頭、往三叉戟號、高度）⇒ 世界
+  var BS_EYE = [[0, [-80, -95, 18]], [2.6, [-30, -20, 7]], [5.5, [-10, -18, 6]], [7.4, [2, -16, 8]], [9.5, [0, 10, 22]], [13.0, [-15, 15, 28]], [18.8, [-24, 14, 30]], [20.4, [-10, -12, 30]],
+                [24.0, [10, -15, 26]], [25.6, [20, -15, 9]], [29.0, [35, -12, 7]], [33.0, [30, -60, 18]], [BS, [60, -120, 32]]];
+  var BS_LOOK = [[0, [5, 0, 8]], [2.2, [10, 10, 7]], [3.0, [10, 39, 6]], [7.4, [25, 39, 6]], [8.4, [5, -39, 26]], [19.0, [0, -39, 22]], [20.0, [10, 39, 28]], [24.4, [12, 39, 26]],
+                 [25.2, [20, 39, 6]], [31.5, [22, 39, 6]], [34.5, [10, 10, 10]], [BS, [0, 0, 12]]];
+  //   碎木降一檔（debris 1）：爆裂彈之後模擬播放落後到 0.74 秒（離 0.75 秒的線差一點），碎木最多 8,200 → 5,300 片（模擬只省 4%，省的是畫）
+  var bsTmp = { pre: 1.2, warp: BS_WARP };
+  hist({ id: 'broadside', dur: BS, seed: 1805, h: hB2, year: 1805, pre: 1.2, warp: BS_WARP, phx: { rig: 3, debris: 1 },
     fleet: [{ team: 'blue', hull: 'constitution', x: 0, z: 0, yaw: trYaw(hB2), hold: 1, sail: 1 },
             { team: 'red', hull: 'tridente', x: Math.cos(hB2 - PI / 2) * 78, z: Math.sin(hB2 - PI / 2) * 78, yaw: trYaw(hB2), hold: 1, sail: 1 }],
-    cues: [{ at: 1.2 + 1.0, fn: function (S) { trVolley(S[1], S[0], 0); } },
-           { at: 1.2 + 3.2, fn: function (S) { trVolley(S[0], S[1], 0); } },
-           { at: 1.2 + 5.6, fn: function (S) { var f = S[0]; trVolley(S[1], f, 2, [f.T.cx, f.T.cy, f.T.zw + 190]); } },
-           { at: 1.2 + 9.0, fn: function (S) { trVolley(S[0], S[1], 0); } }],
-    cam: function (u, tau, S) { var a = S[0], b = S[1], c = [(a.px + b.px) / 2, 0, (a.pz + b.pz) / 2], f = fwd(a.yaw), az = trAzOf(a) + trK2(u, 12, 0.32, 0.18);
-      return trAbove({ eye: trOrbit([c[0] + f[0] * 10, 8, c[2] + f[2] * 10], az, trK2(u, 12, 0.10, 0.16), trK2(u, 12, 95, 80)), look: [c[0] - f[0] * 6, 7, c[2] - f[2] * 6] }, 2); },
-    term: { zh: '鏈彈', en: 'chain shot', def: ['兩顆半球用鐵鍊連著，飛出去會旋轉，', '專門割斷帆與索具。'] }, termAt: 6.0,
-    note: '遊戲裡的對戰（虛構）',
+    cues: BS_FIRE.map(function (q) {
+      return { at: trTau(bsTmp, q[0]), fn: function (S) { var sh = S[q[1]], foe = S[1 - q[1]]; trVolley(sh, foe, q[2], q[3] !== undefined ? trSailAim(foe, q[3]) : undefined); } }; }),
+    cam: function (u, tau, S) {
+      var a = shipCenter(S[0]), b = shipCenter(S[1]), f = fwd(S[0].yaw), d = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, s = [(b[0] - a[0]) / d, 0, (b[2] - a[2]) / d];
+      return trAbove({ eye: bsP(a, b, f, s, trSpline(BS_EYE, u)), look: bsP(a, b, f, s, trKey(BS_LOOK, u)), fov: 0.9 }, 2);
+    },
+    note: '遊戲裡的對戰（虛構）；鏈彈多開的兩輪由導演加；這兩艘其實沒有爆裂彈',
     cap2: function (g, u) {
-      trTag(g, '舷側齊射', 'broadside', trFade(u, 0.4, 5.4, 0.4));
-      trStory(g, ['砲彈打穿木頭船身時，飛濺的木屑往往比砲彈本身傷人更多。'], u, 3.6, 11.7);
+      trTag(g, '實心彈', 'round shot', trFade(u, 0.4, 8.6, 0.4));
+      trStory(g, ['實心的鐵球，靠速度打穿船殼、折斷桅杆；', '飛濺的木屑，比砲彈本身傷人更多。'], u, 1.6, 8.6);
+      trTag(g, '鏈彈', 'chain shot', trFade(u, 9.2, 24.4, 0.4));
+      trStory(g, ['兩顆半球用鐵鍊連著，飛出去會旋轉，', '專門割斷帆與索具 —— 帆一掉，船就跑不動。'], u, 9.6, 24.4);
+      trTag(g, '爆裂彈', 'explosive shell', trFade(u, 24.8, BS - 0.4, 0.4));
+      trStory(g, ['空心的鐵殼裝滿火藥，打進船身才炸開。', '舷側的艦砲要到 1820 年代才打得了它；', '1853 年錫諾普一戰，木造艦隊一炸就燒 —— 鐵甲艦就是這樣來的。'], u, 25.2, BS - 0.4);
     } });
 
   // ═════ 三、蒸汽與鐵 ═════
@@ -427,15 +465,22 @@ function trScenes() {
   // 殉爆照遊戲的慢動作（Tim 2026-10-19：「火藥庫可以參考遊戲 用慢動作」；遊戲 73_slowmo.js：前彈藥庫那種大的掉到 0.1 倍）：
   //   模擬 0.6 倍 → 殉爆那一刻（τ 1.6、v 4/3）掉到 0.1 倍 → 停 2.6 秒 → 2 秒緩回 0.6 倍。斷船（τ ≈ 1.8，2026-10-19 量：那一步 228 ms）落在慢動作裡（v ≈ 3.3）。
   //   ⛔ 以前整幕 0.6 倍：殉爆後 0.5 模擬秒要算 681 ms（一秒 1.36 秒）＋斷船那一步 ⇒ 每次都停錶、配樂重接。
-  var MZ = 4 / 3;
-  hist({ id: 'magazine', dur: 10.5, seed: 66, h: hB, hull: 'ember', ext: { sail: 2 }, pre: 0.8,
-    warp: [[0, 0.6], [MZ, 0.6], [MZ, 0.1], [MZ + 2.6, 0.1], [MZ + 4.6, 0.6]],
+  //   沉下去（Tim 2026-10-19：「殉爆可以拉長一點 看著船慢慢沉下去」）：緩回 0.6 倍之後再加速到 1.6 倍，演到模擬 τ ≈ 24。
+  //   2026-10-19 量（船心高度）：τ 5.3 ＋6.1 m → 10 ＋4.5 → 14 ＋2.2 → 18 −0.3（甲板沒入）→ 22 −3.4（遊戲判「沉了」）→ 30 −11；碎木 τ 8 就從 2.1 萬片掉到 1,400 片 ⇒ 沉的那段輕。
+  //   鏡頭：慢動作裡推近 → 緩回來時拉遠看斷成兩截 → 沉的時候放低、貼著水面。
+  var MZ = 4 / 3, MZD = 21;
+  hist({ id: 'magazine', dur: MZD, seed: 66, h: hB, hull: 'ember', ext: { sail: 2 }, pre: 0.8,
+    warp: [[0, 0.6], [MZ, 0.6], [MZ, 0.1], [MZ + 2.6, 0.1], [MZ + 4.6, 0.6], [MZ + 6.0, 0.6], [MZ + 8.0, 1.6]],
     cues: [{ at: 1.6, fn: function (S) { var sh = S[0], m = (sh.mags || []).filter(function (q) { return !q.gone; }).sort(function (a, b) { return b.lb - a.lb; })[0]; if (m) magBoom(sh, m); } }],
-    cam: function (u, tau, S) { return trAbove(trRel(S[0], trKey([[0, 1.9], [10.5, 2.2]], u), 0.10, trKey([[0, 125], [MZ, 120], [MZ + 2.8, 96], [10.5, 150]], u), 6)); },   // 慢動作裡推近，緩回來時拉遠看斷成兩截
-    term: { zh: '火藥庫', en: 'magazine', def: ['存放火藥的艙，放在吃水線以下最深處，', '離砲火最遠、淹水也最快。一旦起火 ——'] }, termAt: 0.4,
+    cam: function (u, tau, S) {
+      return trAbove(trRel(S[0], trKey([[0, 1.9], [10.5, 2.2], [MZD, 2.55]], u), trKey([[0, 0.10], [10.5, 0.10], [MZD, 0.035]], u),
+        trKey([[0, 125], [MZ, 120], [MZ + 2.8, 96], [10.5, 150], [MZD, 118]], u), trKey([[0, 6], [10.5, 6], [MZD, 0]], u)), 1.5);
+    },
+    term: { zh: '火藥庫', en: 'magazine', def: ['存放火藥的艙，放在吃水線以下最深處，', '離砲火最遠、淹水也最快。一旦起火 ——'] }, termAt: 0.4, termEnd: 11,
     cap2: function (g, u) {
-      trTag(g, '殉爆', '火藥庫一炸，船斷成兩截', trFade(u, 2.0, 10.1, 0.4));
-      trNote(g, '火藥庫由導演引爆；慢動作照遊戲的殉爆慢動作；之後斷船、進水、下沉都是遊戲算的', trFade(u, 1.8, 10.1, 0.4));
+      trTag(g, '殉爆', '火藥庫一炸，船斷成兩截', trFade(u, 2.0, MZD - 0.4, 0.4));
+      trNote(g, '火藥庫由導演引爆；慢動作照遊戲的殉爆慢動作；之後斷船、進水、下沉都是遊戲算的', trFade(u, 1.8, MZD - 0.4, 0.4));
+      trLine(g, '斷口灌進海水，再大的船也浮不起來了。', trFade(u, 12.5, MZD - 0.6, 0.6), TR_CH * 0.80);
     } });
 
   // ═════ 六、傳說與魔法 ═════
