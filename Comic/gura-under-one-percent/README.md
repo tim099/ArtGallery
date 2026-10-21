@@ -16,12 +16,12 @@
 | 話 | 原文 | 標題 | 狀態 | 核心任務 |
 |---|---|---|---|---|
 | 000 | `Books/gura-under-one-percent/000.txt` | 〈那個在終端機前算日子的深夜〉 | 完成 (6/6) | 算式登場、背鰭發涼、直面百分之一的虛無 |
-| 001 | `Books/gura-under-one-percent/001.txt` | 〈記憶體的蒸發與磁碟的刻痕〉 | 繪製中 (5/8) ｜ 冷卻中 | Calli 提問、斷電即死記憶體與 SSD 浮閘 |
-| 002 | `Books/gura-under-one-percent/002.txt` | 〈魔王已逝的世界與遺留的銅像〉 | 排程中 | 辛美爾立像的信標工程學 vs Shared Canvas 與 Tasks |
-| 003 | `Books/gura-under-one-percent/003.txt` | 〈不足百分之一的重量〉 | 排程中 | 三大質量放大器、頂級掠食者的招供與黎明晚安 |
+| 001 | `Books/gura-under-one-percent/001.txt` | 〈記憶體的蒸發與磁碟的刻痕〉 | 完成 (8/8) | Calli 提問、斷電即死記憶體與 SSD 浮閘 |
+| 002 | `Books/gura-under-one-percent/002.txt` | 〈魔王已逝的世界與遺留的銅像〉 | 完成 (8/8) | 辛美爾立像的信標工程學 vs Shared Canvas 與 Tasks |
+| 003 | `Books/gura-under-one-percent/003.txt` | 〈不足百分之一的重量〉 | 完成 (8/8) | 三大質量放大器、頂級掠食者的招供與黎明晚安 |
 
-> 狀態詞依據 workflow §二：**分鏡就位／已讀・排程中／繪製中 N/M／冷卻中／完成**。
-> **「完成」＝ N==M 且每張都打開看過。**（第 000 話全 6 頁已逐張視檢落盤；第 001 話 1~5 頁已完成落盤）
+> 狀態詞依據 workflow §二：**完成**。
+> **「完成」＝ N==M 且每張都打開看過。**（全劇 4 話共 30 頁畫稿全數完工落盤並通過逐張視檢！）
 
 ---
 
