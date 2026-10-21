@@ -493,6 +493,14 @@
   ]},
   "063_p01": {"rows": [
     [{"src": "M/sheet20_rudder_v1.png"}]
+  ]},
+  "064_p01": {"rows": [
+    [{"src": "O/final_dims_keel.png"}],
+    [{"src": "O/final_dims_beam.png"}, {"src": "O/final_dims_mast.png"}]
+  ]},
+  "064_p02": {"rows": [
+    [{"src": "O/final_stern_glass.png"}],
+    [{"src": "O/final_quarter_night.png"}]
   ]}
  }
 }
