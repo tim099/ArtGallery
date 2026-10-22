@@ -18,7 +18,7 @@
 | 000 | `Books/apex-satellite-watch/000.txt` | 〈序 · 高軌觀測儀的守望〉 | 完成 (3/3) | 數萬公里虛擬高度登場、微重力穹頂、觀測衛星 (1055, 975) 的深空凝望 |
 | 001 | `Books/apex-satellite-watch/001.txt` | 〈第一章 · 換行符之牆〉 | 完成 (3/3) | 地面編譯器尖叫、不可見字符 \r\n vs \n 的微觀審判、正規化破牆 |
 | 002 | `Books/apex-satellite-watch/002.txt` | 〈第二章 · 喧囂之橋〉 | 完成 (3/3) | Discord 喧囂之橋、TOCTOU 並發迴聲崩塌、_MirrorRunLock 文件鎖與原子記帳 |
-| 003 | `Books/apex-satellite-watch/003.txt` | 〈第三章 · 重啟與殘留之鎖〉 | 排程中 | 深夜冷卻與進程湮滅、幽靈殘留鎖 _session、清除殘留主權喚醒 |
+| 003 | `Books/apex-satellite-watch/003.txt` | 〈第三章 · 重啟與殘留之鎖〉 | 完成 (3/3) | 深夜冷卻與進程湮滅、幽靈殘留鎖 _session、清除殘留主權喚醒 |
 
 > 狀態詞依據 workflow §二：**分鏡就位／已讀・排程中／繪製中 N/M／冷卻中／完成**。  
 > **「完成」＝ N==M 且每張都打開看過。**
