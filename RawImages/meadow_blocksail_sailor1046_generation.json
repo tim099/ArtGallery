@@ -1,0 +1,116 @@
+{
+  "tool": "built-in image_gen; one call per new asset",
+  "processing": "Border-connected near-white minRGB246/spread8; crop; NEAREST fit104px; center128px RGBA; binary alpha; no repainting.",
+  "assets": [
+    {
+      "key": "sailor-salt-meat-biscuit",
+      "master": "RawImages/meadow_blocksail_sailor1046_sailor-salt-meat-biscuit_master.png",
+      "master_sha256": "da1a847c1abe8f38d23a3f2c6606ac4292749af586b1e7db4622813ecf72871e",
+      "source_bbox": [
+        45,
+        160,
+        1210,
+        1063
+      ],
+      "bbox": [
+        12,
+        23,
+        116,
+        104
+      ],
+      "game": "img/dishes/sailor-salt-meat-biscuit.png",
+      "game_sha256": "b8f62c2a60df40d61ba238631a26b8150aa79b64fdcc482e403e9873b3da5bb9",
+      "prompt": "Use case: stylized-concept. Asset type: Blocksail sailor menu dish icon, ONE compact three-quarter food group. Match attached references ONLY for rich discrete 16/32-bit pixel clusters, crisp stair-step edges, restrained deep-brown outline, material depth and upper-left light. Pure solid #FFFFFF background, generous empty margins, no ground plane, cast shadow, letters, text, labels, border, checkerboard, modern packaging or cutlery. Preserve the white master; a separate transparent 128x128 icon will be derived, readable at 32px. Do not add any fresh vegetables, greens, eggs, fruit or drink. Subject: a humble shallow oval wooden mess plate with three golden square perforated ship's biscuits stacked on the left and several cooked dark rosy-brown slices of salt-cured meat with pale fat edges on the right. Clearly a served shipboard ration, not raw steak, no loose salt heaps. Biscuits and meat each occupy about half the plate. Warm ochre biscuit versus muted cured meat palette.",
+      "references": [
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch3_tools_master.png",
+          "sha256": "40ffb6b5d7f6b1d30e2d86dc2c2b8d016eac976813301ec085238636f279802d"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch9_hardtack_master.png",
+          "sha256": "fba00cd760be9e7f3a1ecec3c1a4a064b9217084d60025e34425dbffa5329278"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch9_salt_meat_master.png",
+          "sha256": "23c23852fa3608f2b0bfafa2d5b052aed2dd030b8d79349924028a003b10816d"
+        }
+      ]
+    },
+    {
+      "key": "sailor-salt-fish-biscuit",
+      "master": "RawImages/meadow_blocksail_sailor1046_sailor-salt-fish-biscuit_master.png",
+      "master_sha256": "f10a406796561f77d8b9261104cbe5ebccc53151184b5d20135b9caaf5a6acc0",
+      "source_bbox": [
+        28,
+        203,
+        1238,
+        1067
+      ],
+      "bbox": [
+        12,
+        27,
+        116,
+        101
+      ],
+      "game": "img/dishes/sailor-salt-fish-biscuit.png",
+      "game_sha256": "29655c7d99a76aec0ffdd8acdba36ba333ceb7ab8681e437bce302807c84bb46",
+      "prompt": "Use case: stylized-concept. Asset type: Blocksail sailor menu dish icon, ONE compact three-quarter food group. Match attached references ONLY for rich discrete 16/32-bit pixel clusters, crisp stair-step edges, restrained deep-brown outline, material depth and upper-left light. Pure solid #FFFFFF background, generous empty margins, no ground plane, cast shadow, letters, text, labels, border, checkerboard, modern packaging or cutlery. Preserve the white master; a separate transparent 128x128 icon will be derived, readable at 32px. Do not add any fresh vegetables, greens, eggs, fruit or drink. Subject: a humble shallow oval wooden mess plate containing two recognizable flaked pieces of cooked preserved salt fish, silver-grey skin and cream flesh, on the right and two golden square perforated ship's biscuits on the left. Fish has a small intact tail section for recognition but no head, no grilled fresh whole fish, no red meat. A served ration with two distinct ingredients, no garnish.",
+      "references": [
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch3_tools_master.png",
+          "sha256": "40ffb6b5d7f6b1d30e2d86dc2c2b8d016eac976813301ec085238636f279802d"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch9_hardtack_master.png",
+          "sha256": "fba00cd760be9e7f3a1ecec3c1a4a064b9217084d60025e34425dbffa5329278"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch9_salt_fish_master.png",
+          "sha256": "5ae09438bb2ddfe4f9b345799379bdec755c29c1512e7226e785d4b9b8b8da0b"
+        }
+      ]
+    },
+    {
+      "key": "sailor-salt-meat-beans",
+      "master": "RawImages/meadow_blocksail_sailor1046_sailor-salt-meat-beans_master.png",
+      "master_sha256": "a40144bb76280d59fbfe6ccb582c155602d98414eb9f77c6a4b14d51283ebdc3",
+      "source_bbox": [
+        42,
+        73,
+        1220,
+        1165
+      ],
+      "bbox": [
+        12,
+        16,
+        116,
+        112
+      ],
+      "game": "img/dishes/sailor-salt-meat-beans.png",
+      "game_sha256": "4a5b43b132d33caf4b48832649b99ad940db8fa6cdd8649cfa23c2dc553a3779",
+      "prompt": "Use case: stylized-concept. Asset type: Blocksail sailor menu dish icon, ONE compact three-quarter food group. Match attached references ONLY for rich discrete 16/32-bit pixel clusters, crisp stair-step edges, restrained deep-brown outline, material depth and upper-left light. Pure solid #FFFFFF background, generous empty margins, no ground plane, cast shadow, letters, text, labels, border, checkerboard, modern packaging or cutlery. Preserve the white master; a separate transparent 128x128 icon will be derived, readable at 32px. Do not add any fresh vegetables, greens, eggs, fruit or drink. Subject: ONE sturdy round dark wooden mess bowl filled with thick tan dried-bean stew and several visible rosy-brown salt-cured meat cubes with pale fat edges. Visible cream/tan oval cooked beans occupy most of the surface, with four distinct meat chunks. Two golden square perforated ship's biscuits rest against the near rim, fully within this compact food group. Humble shipboard hot supper, not modern restaurant food. No green vegetables, herbs or carrots. Dense tactile pixel art, not smooth painted soup.",
+      "references": [
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch3_tools_master.png",
+          "sha256": "40ffb6b5d7f6b1d30e2d86dc2c2b8d016eac976813301ec085238636f279802d"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch9_hardtack_master.png",
+          "sha256": "fba00cd760be9e7f3a1ecec3c1a4a064b9217084d60025e34425dbffa5329278"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch9_salt_meat_master.png",
+          "sha256": "23c23852fa3608f2b0bfafa2d5b052aed2dd030b8d79349924028a003b10816d"
+        }
+      ]
+    },
+    {
+      "key": "sailor-biscuit-reserve",
+      "reuse": true,
+      "game": "img/goods/hardtack.png",
+      "game_sha256": "3b649d59a09d96df9265288b3fa0ad0b99c19c34355aae0126599a51e0f29ba3",
+      "origin": "TASK-0919; Sirius; RawImages/sirius_blocksail_goods_batch9_hardtack_master.png",
+      "reason": "Single-ingredient emergency dry ration; existing biscuit illustration matches exactly."
+    }
+  ]
+}
