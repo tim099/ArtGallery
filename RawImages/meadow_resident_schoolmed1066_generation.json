@@ -1,0 +1,55 @@
+{
+  "task": 1066,
+  "tool": "built-in image_gen, one independent call per person",
+  "styleReference": {
+    "path": "RawImages/meadow_captain_astrid_sprite_v1.png",
+    "sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+  },
+  "assets": [
+    {
+      "key": "teacher_f_01",
+      "name": "艾德琳",
+      "years": 35,
+      "height": 1.65,
+      "job": "teacher",
+      "work": [
+        "school"
+      ],
+      "subject": "A composed warm female schoolteacher35 with medium warm brown skin and compact cyan hair in a tidy bun above collar. Simple magenta long-sleeved fitted bodice and narrow ankle-length magenta skirt, ivory collar and sleeve cuffs, plain brown low shoes. She cradles a small closed leather-bound schoolbook against her waist in one hand and holds a small dark slate with NO writing in the other, both close to torso. Clear adult face, patient expression; no mortarboard, academic gown, modern classroom equipment or spectacles.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian professional, age-of-sail Caribbean-inspired town. Attached Astrid reference ONLY for refined Japanese anime pixel-art rendering, clear dark stair-step outlines and discrete shaded clusters. Do not copy her face, captain uniform, braid or military accessories. Tall portrait on pure white. Compact three-quarter standing facing SCREEN RIGHT, nose points right. Complete head, fingers and feet, generous margins. Narrow silhouette fits96x192 cell with164px figure height; props close to waist/torso, none beside feet, no outstretched elbows. ALL hair and eyebrows CYAN #00BCD4 with cyan-only shading, compact hairstyle entirely inside top30% of figure. MAIN coloured clothing MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, neutral lips, ivory linen, brown leather/wood, neutral props; no cyan/magenta spill on these materials. White background, no ground shadow, scene, lettering, labels or border. Historically inspired fictional character, not chibi or modern uniform. A composed warm female schoolteacher35 with medium warm brown skin and compact cyan hair in a tidy bun above collar. Simple magenta long-sleeved fitted bodice and narrow ankle-length magenta skirt, ivory collar and sleeve cuffs, plain brown low shoes. She cradles a small closed leather-bound schoolbook against her waist in one hand and holds a small dark slate with NO writing in the other, both close to torso. Clear adult face, patient expression; no mortarboard, academic gown, modern classroom equipment or spectacles.",
+      "original": "RawImages/meadow_resident_teacher_f_01_keyed_v1.png",
+      "original_sha256": "ba6031ffbad93a549498a30cbdcb028c69e58aa505d715174b508cd0914ad4a0",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-fd60d77b-4043-4ab4-a280-766bcc8abc23.png"
+    },
+    {
+      "key": "doctor_f_01",
+      "name": "薇若妮卡",
+      "years": 47,
+      "height": 1.7,
+      "job": "doctor",
+      "work": [
+        "hospital"
+      ],
+      "subject": "A confident experienced woman physician47, olive skin, subtle mature face lines, compact cyan bob above collar. Plain magenta knee-length professional coat over ivory linen shirt, dark brown narrow skirt and brown flat boots. One hand holds a small corked amber glass medicine bottle at waist; other arm cradles a compact closed leather-bound medical notebook. A small brown leather diagnostic pouch rests attached at her hip, above knees. No modern white laboratory coat, no stethoscope, syringe, red cross, plague mask or modern medical symbols.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian professional, age-of-sail Caribbean-inspired town. Attached Astrid reference ONLY for refined Japanese anime pixel-art rendering, clear dark stair-step outlines and discrete shaded clusters. Do not copy her face, captain uniform, braid or military accessories. Tall portrait on pure white. Compact three-quarter standing facing SCREEN RIGHT, nose points right. Complete head, fingers and feet, generous margins. Narrow silhouette fits96x192 cell with164px figure height; props close to waist/torso, none beside feet, no outstretched elbows. ALL hair and eyebrows CYAN #00BCD4 with cyan-only shading, compact hairstyle entirely inside top30% of figure. MAIN coloured clothing MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, neutral lips, ivory linen, brown leather/wood, neutral props; no cyan/magenta spill on these materials. White background, no ground shadow, scene, lettering, labels or border. Historically inspired fictional character, not chibi or modern uniform. A confident experienced woman physician47, olive skin, subtle mature face lines, compact cyan bob above collar. Plain magenta knee-length professional coat over ivory linen shirt, dark brown narrow skirt and brown flat boots. One hand holds a small corked amber glass medicine bottle at waist; other arm cradles a compact closed leather-bound medical notebook. A small brown leather diagnostic pouch rests attached at her hip, above knees. No modern white laboratory coat, no stethoscope, syringe, red cross, plague mask or modern medical symbols.",
+      "original": "RawImages/meadow_resident_doctor_f_01_keyed_v1.png",
+      "original_sha256": "a7cec8b87e1205efc4721ca49b3ed3d3ef0f6fb77f760b8068962b3953225ecc",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-5cd1fa5c-cae1-495c-abc8-3b16c8b2cda8.png"
+    },
+    {
+      "key": "nurse_f_01",
+      "name": "瑪德蓮",
+      "years": 28,
+      "height": 1.59,
+      "job": "nurse",
+      "work": [
+        "hospital"
+      ],
+      "subject": "A practical caring woman nurse28, lightly freckled fair skin and compact cyan hair in short rolled bun above collar. Modest magenta long-sleeved work dress with fitted narrow skirt and a simple full ivory linen apron, brown flat lace-up shoes. Both hands carry two neatly rolled ivory linen bandages and a folded white dressing cloth closely at waist, no tray of food. Keep the rolls visibly cloth with hollow spiral ends, not bottles. No modern nurse cap, red cross, stethoscope, syringe, medical logos or hospital scenery.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian professional, age-of-sail Caribbean-inspired town. Attached Astrid reference ONLY for refined Japanese anime pixel-art rendering, clear dark stair-step outlines and discrete shaded clusters. Do not copy her face, captain uniform, braid or military accessories. Tall portrait on pure white. Compact three-quarter standing facing SCREEN RIGHT, nose points right. Complete head, fingers and feet, generous margins. Narrow silhouette fits96x192 cell with164px figure height; props close to waist/torso, none beside feet, no outstretched elbows. ALL hair and eyebrows CYAN #00BCD4 with cyan-only shading, compact hairstyle entirely inside top30% of figure. MAIN coloured clothing MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, neutral lips, ivory linen, brown leather/wood, neutral props; no cyan/magenta spill on these materials. White background, no ground shadow, scene, lettering, labels or border. Historically inspired fictional character, not chibi or modern uniform. A practical caring woman nurse28, lightly freckled fair skin and compact cyan hair in short rolled bun above collar. Modest magenta long-sleeved work dress with fitted narrow skirt and a simple full ivory linen apron, brown flat lace-up shoes. Both hands carry two neatly rolled ivory linen bandages and a folded white dressing cloth closely at waist, no tray of food. Keep the rolls visibly cloth with hollow spiral ends, not bottles. No modern nurse cap, red cross, stethoscope, syringe, medical logos or hospital scenery.",
+      "original": "RawImages/meadow_resident_nurse_f_01_keyed_v1.png",
+      "original_sha256": "444829a61fb9d28d67b397128be01042b2074cabbbf8dcdd6cbd18b29bd8a75c",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-4846c742-d6e8-4187-9267-95876d4f5c96.png"
+    }
+  ]
+}

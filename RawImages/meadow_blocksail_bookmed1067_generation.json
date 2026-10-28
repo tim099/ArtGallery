@@ -1,0 +1,65 @@
+{
+  "task": 1067,
+  "tool": "built-in image_gen, one call per resource",
+  "processing": "Border-connected near-white minRGB246/spread8; crop; NEAREST fit104px; center128px RGBA, binary alpha. No repainting.",
+  "assets": [
+    {
+      "key": "books",
+      "name": "書籍",
+      "refs": [
+        "sirius_blocksail_goods_batch3_tools_master.png",
+        "sirius_blocksail_goods_batch17_paper_master.png"
+      ],
+      "prompt": "Use case: stylized-concept. ONE inventory resource icon for Blocksail. Attached Sirius TASK-0896 tools and second material reference ONLY define pixel-art style: saturated material colours, upper-left highlights, discrete shaded16/32-bit pixel clusters, crisp stair-step contours, restrained dark outline, tangible depth; not a smooth painting or vector. Independently design requested resource. Compact centered three-quarter view with generous margins, readable at32px, pure solid #FFFFFF background. No ground plane, external cast shadow, letters, numbers, labels, symbols, border, checkerboard, barrel, sack or generic crate. Preserve the white master; separate transparent128x128 derivative will be made. Subject: a small stack of THREE closed age-of-sail leather-bound books, one warm chestnut brown, one deep muted navy, one moss green. Clearly distinct thick cream paper page blocks, raised spine bands and small restrained brass corner fittings on the top book; no large clasps, no modern spiral binding. Top book angled slightly so front cover and page thickness both show. No open pages, writing, emblem, ribbon or extra objects. Books themselves, not a printing press or chest.",
+      "master": "RawImages/meadow_blocksail_bookmed1067_books_master.png",
+      "master_sha256": "9726a62266abe1944e4b5043360261c513a153787aeb8f2fc6382d85d279437c",
+      "game": "img/goods/books.png",
+      "game_sha256": "fd350c8b3f10ad671304a14cad44018e538e7cebe773acebcbd68b63960504cf",
+      "bbox": [
+        12,
+        15,
+        116,
+        112
+      ],
+      "references": [
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch3_tools_master.png",
+          "sha256": "40ffb6b5d7f6b1d30e2d86dc2c2b8d016eac976813301ec085238636f279802d"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch17_paper_master.png",
+          "sha256": "d74fc5e8c4f114b8784844d8a1593e9f6cddd93b0f539d5bfc1d5cb740a4a3be"
+        }
+      ]
+    },
+    {
+      "key": "medicine",
+      "name": "藥品",
+      "refs": [
+        "sirius_blocksail_goods_batch3_tools_master.png",
+        "sirius_blocksail_goods_batch17_vinegar_master.png"
+      ],
+      "prompt": "Use case: stylized-concept. ONE inventory resource icon for Blocksail. Attached Sirius TASK-0896 tools and second material reference ONLY define pixel-art style: saturated material colours, upper-left highlights, discrete shaded16/32-bit pixel clusters, crisp stair-step contours, restrained dark outline, tangible depth; not a smooth painting or vector. Independently design requested resource. Compact centered three-quarter view with generous margins, readable at32px, pure solid #FFFFFF background. No ground plane, external cast shadow, letters, numbers, labels, symbols, border, checkerboard, barrel, sack or generic crate. Preserve the white master; separate transparent128x128 derivative will be made. Subject: a compact group of TWO small corked amber apothecary glass bottles containing dark golden syrup and one small ivory ceramic ointment pot with a simple brown lid. Two bottles have distinct round and straight-shouldered shapes, no straw wrapping; warm honey glass with pale upper-left highlights and dark brown outlines. One short beige cloth tie around the narrow neck, no hanging label. Clearly preindustrial bottled medicines/syrups, not alcoholic drinks or food. No text, labels, medical cross, pills, blister pack, syringe, mortar, herbs or modern packaging. Bottles and pot only.",
+      "master": "RawImages/meadow_blocksail_bookmed1067_medicine_master.png",
+      "master_sha256": "e2d09500a9d67f58cad29162546318dad393250273d80e695bfa2d9fe11fb9ac",
+      "game": "img/goods/medicine.png",
+      "game_sha256": "859d3ab19b48272dcb0e7e43cff968133d996937f21ddca0405167bab922e220",
+      "bbox": [
+        12,
+        12,
+        115,
+        116
+      ],
+      "references": [
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch3_tools_master.png",
+          "sha256": "40ffb6b5d7f6b1d30e2d86dc2c2b8d016eac976813301ec085238636f279802d"
+        },
+        {
+          "path": "RawImages/sirius_blocksail_goods_batch17_vinegar_master.png",
+          "sha256": "9ec71df333da5567e9ed32b3c18cf44ed25d677ffafe204bd2ab8adb272ff7db"
+        }
+      ]
+    }
+  ]
+}
