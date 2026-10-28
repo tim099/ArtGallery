@@ -41,8 +41,8 @@ PATCHES = [
      "if (LAB_FLEET) { flabFrame(ts); if (!noRaf) requestAnimationFrame(frame); return; }",
      "if (LAB_FLEET) { flabFrame(ts); if (!noRaf) requestAnimationFrame(frame); return; }\nif (TRAILER) { trFrame(ts); if (!noRaf) requestAnimationFrame(frame); return; }"),
     ('開機：預告片模式不擺選單背景，交給導演',
-     "} else {\n\nreset();\nif (Q.get('start') === '1') startWhenReady();\n}",
-     "} else if (TRAILER) {\ntrBoot();\n} else {\n\nreset();\nif (Q.get('start') === '1') startWhenReady();\n}"),
+     "} else {\n\nif (START_Q) startWhenReady();\nelse reset();\n}",
+     "} else if (TRAILER) {\ntrBoot();\n} else {\n\nif (START_Q) startWhenReady();\nelse reset();\n}"),
     ('畫面解析度：預告片固定 TR_W×TR_H（字幕與構圖才每台機器都一樣）',
      "function resize() {",
      "function resize() {\nif (TRAILER && trResize()) return;"),
@@ -74,7 +74,7 @@ def trailer_maps():
     root = os.path.join(HERE, 'maps')
     if not os.path.isdir(root):
         return ''
-    out, total = {}, 0
+    out, total, files, ftotal = {}, 0, {}, 0
     for area in sorted(os.listdir(root)):
         d = os.path.join(root, area)
         with open(os.path.join(d, 'area.js'), 'r', encoding='utf-8') as f:
@@ -93,8 +93,28 @@ def trailer_maps():
             total += len(c.group(4))
         out[area] = {'area': A, 'chunks': ch}
         print('  ✓ 海圖 %s：%d 塊（%s）' % (area, len(ch), '、'.join(sorted(ch))))
-    print('  ✓ 海圖內嵌 %.2f MB' % (total / 1e6))
-    return '// ── trailer/maps（內嵌海圖） ──\nvar TR_MAPS = ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n'
+        # 城鎮（TASK-0750；Tim 2026-10-28「可以內嵌，照拖船路線 2 km 裁剪」）：海域有城 ⇒ towns.js ＋ townkit/ 用到的模型（towns_trim.py 放進來的）
+        #   ⇒ TR_FILES['maps/<海域>/<檔>'] ＝ 原文；director.js 的 bedScript 先查它（遊戲照 area.towns 讀這幾個路徑）
+        for dp, dn, fn in os.walk(d):
+            dn.sort()
+            for name in sorted(fn):
+                rel = os.path.relpath(os.path.join(dp, name), d).replace(os.sep, '/')
+                if rel == 'area.js' or re.match(r'-?\d+_-?\d+\.js$', rel) or not rel.endswith('.js'):
+                    continue
+                with open(os.path.join(dp, name), 'r', encoding='utf-8') as f:
+                    t = f.read()
+                if re.search(r'</script', t, re.I):
+                    fail('城鎮檔 %s/%s 裡有 </script（會提早關掉 <script>）' % (area, rel))
+                files['maps/%s/%s' % (area, rel)] = t
+                ftotal += len(t.encode('utf-8'))
+        if A.get('towns'):
+            n = sum(1 for k in files if k.startswith('maps/%s/' % area))
+            if 'maps/%s/towns.js' % area not in files:
+                fail('海域 %s 有城（area.towns）卻沒有 towns.js —— 先跑 towns_trim.py' % area)
+            print('  ✓ 城鎮 %s：%d 個檔（%s）' % (area, n, '、'.join(A['towns'])))
+    print('  ✓ 海圖內嵌 %.2f MB；城鎮內嵌 %.2f MB' % (total / 1e6, ftotal / 1e6))
+    return ('// ── trailer/maps（內嵌海圖） ──\nvar TR_MAPS = ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n'
+            + 'var TR_FILES = ' + json.dumps(files, ensure_ascii=False, separators=(',', ':')) + ';\n')
 
 
 def main(argv):

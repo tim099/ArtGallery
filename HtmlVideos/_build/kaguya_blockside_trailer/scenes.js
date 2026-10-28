@@ -103,7 +103,7 @@ function trScenes() {
   function hist(o) {
     var h = o.h;
     return trAdd({ id: o.id, dur: o.dur, seed: o.seed, wx: o.wx || 'clear', wind: o.wind || trWind(h, o.wOff, o.wS), mode: o.mode || 'sandbox', pre: o.pre === undefined ? 1.0 : o.pre,
-      phx: o.phx, map: o.map, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
+      phx: o.phx, map: o.map, townAt: o.townAt, clear: o.clear, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
       fleet: o.fleet || one(o.hull, h, o.ext), look: o.look, year: o.year, marks: o.marks, cut: o.cut, cues: o.cues, setup: o.setup, fadeIn: o.fadeIn, fadeOut: o.fadeOut, black: o.black, fx: o.fx,
       cam: o.cam,
       cap: function (g, u, tau, S, sc) {
@@ -234,13 +234,67 @@ function trScenes() {
       trLine(g, '跟著右塔射出的那一支（0.35 倍）：箭頭裹著點著的油布。', trFade(u, BL[1] + 0.3, BL[2] - 1.2, 0.4), TR_CH * 0.80);
       trStory(g, ['對面也有弩砲，還有一座投石機。', '火箭射進木頭船，一燒起來，划槳的人就得先放下槳去救火。'], u, BL[2] + 0.4, BLD - 0.3);
     } });
-  // 東羅馬帝國的覆滅（1453；Tim：「拜占庭 改稱為東羅馬帝國」）：持火號往霧裡退去
-  hist({ id: 'byzantium', dur: 8, seed: 1453, h: hD + 0.4, wind: trWind(hD + 0.4, 2.4, 0.5), pre: 1.0, hull: 'dromon', ext: { tele: 0 }, look: L(trLookMix(TR_LOOK.dusk, TR_LOOK.fog, 0.6), DUSK_SUN), year: 1453,
-    cam: function (u, tau, S) { return trAbove(trRel(S[0], trK2(u, 8, PI - 0.5, PI - 0.25), 0.06, trK2(u, 8, 40, 75), 2)); },
+  // 旱地行舟（1453 年 4 月 22 日；TASK-0750，Tim 2026-10-28「可以拍旱地行舟了」「另外可以試著用運鏡轉場(在同一個海域情況下)」）
+  //   海圖：Blocksail 世界地圖匯出的金角灣（goldenhorn：原點 28.950°E 41.050°N、512 m 一塊、9×7 塊）＋ 君士坦丁堡、加拉塔兩座城（TASK-0748 的 1453 復刻）。
+  //   路線（研究檔 kotoko-fusta-01m §6.1）：Barbaro「從雙柱（今 Dolmabahçe）把佩拉上方的山整座剷平，一直到佩拉的船塢」⇒ 雙柱 → Dolmabahçe 谷 → 山脊（今 Taksim）→ 往下到金角灣〔路線各家說法不同，畫面上寫採 Barbaro〕。
+  //   路線照地形挑（2026-10-28 量 bedHgt：岸邊 6 m → 400 m 內爬到 44 m → 山脊 61 m → 沿卡瑟姆帕夏谷下到金角灣；全長 ≈ 3.4 km）。
+  //     Barbaro 寫路長 3 哩（≈ 5.2 km）、Kritovoulos 寫 8 斯塔德（≈ 1.5 km）、「一半以上的路非常陡」⇒ 取中間、陡的那一段在雙柱那一側。
+  var HP = [[3930, 1330], [3500, 1250], [3000, 1100], [2400, 1050], [1800, 1200], [1500, 1500], [1450, 1700], [1150, 1800], [920, 1860], [820, 1890]];
+  function haul(s0, v, launch) { return { team: 'red', hull: 'fusta', x: 0, z: 0, yaw: 0, hold: 1, sail: 1, haul: { path: HP, v: v, s0: s0, launch: launch } }; }
+  /** 船 sh 的相對點：a 往船頭、b 往右舷、h 往上（世界）。 */
+  function rel(sh, a, b, h) { var c = shipCenter(sh), f = fwd(sh.yaw), r = [-f[2], 0, f[0]]; return [c[0] + f[0] * a + r[0] * b, c[1] + h, c[2] + f[2] * a + r[2] * b]; }
+  //   接著飛越君士坦丁堡（Tim 2026-10-28「其實可以展示一下君堡(包含聖索菲亞等建築)」「可以乾脆整塊匯入 然後演出」）：
+  //     同一幕接下去（⛔ 另開一幕 ⇒ 模擬重開、浪照 SIMT 算 ⇒ 換幕那一格整片浪跳一下；鏡頭當時離水面 18 m 看得出來）⇒ 以前的「1453 君士坦丁堡陷落」（持火號往霧裡退去）併進來當結尾。
+  //     最後一艘划進金角灣 → 升起、沿金角灣往東南（左加拉塔、右君士坦丁堡的海牆）→ 半島尖端的聖索菲亞與競技場；天色從晴轉黃昏。
+  //     地標的位置（世界 ＝ 海域 − 原點；城的規劃 2026-10-28 匯出）：聖索菲亞 (−442, 3114)、競技場 (−833, 3447)、加拉塔塔 (−914, 1237)。
+  var HD = 28, HF = 16;
+  var HL0 = L(Object.assign({}, TR_LOOK.gold, { fog: 0.0006 }), GOLD_SUN), HL1 = L(Object.assign({}, TR_LOOK.dusk, { fog: 0.0008 }), DUSK_SUN);
+  function gnd(x, z, h) { return [x, Math.max(0, bedHgt(x, z)) + h, z]; }
+  //   天色：金黃但霧淡（山脊上要看得到金角灣對岸的君士坦丁堡，約 3 km；gold 的霧 0.0017 ⇒ 1.5 km 外一片黃）
+  //   路兩側 22 m 不長樹：遊戲照物種表種的是整片林子；1453 年佩拉後山是葡萄園與園圃（研究檔沒寫 ⇒ 不上字幕），Barbaro 說整座山剷平 ⇒ 清出一條寬路，鏡頭也才看得到船。
+  //   下水那一艘：3323 m 出發、每秒 1.5 m ⇒ 第 22 秒前後龍骨低過吃水 0.9 m（2026-10-28 量：龍骨那一條線 3357 m 才到 −0.9）
+  hist({ id: 'haul', dur: HD + HF, seed: 1453, h: 0, wind: [200, 0.9], pre: 0.5, year: 1453,
+    look: function (u) { var o = trLookMix(HL0, HL1, 0.65 * trSmooth(HD + 2, HD + 12, u)); o.sunDir = norm(o.sunDir); return o; },   // 黃昏只轉六成五（整個轉過去 ⇒ 城整片背光、聖索菲亞看不清楚）
+    map: { area: 'goldenhorn', at: [2941, 1457] }, townAt: [-700, 900], clear: { path: HP, w: 22 },
+    fleet: [haul(40, 0.6), haul(450, 0.6), haul(1000, 0.6), haul(2000, 0.6), haul(3323, 1.5, 1)],
+    // 一鏡到底（Tim 2026-10-28「可以試著用運鏡轉場(在同一個海域情況下)」）：雙柱岸邊 → 爬坡 → 山脊上看金角灣 → 高飛下谷 → 最後一艘滑進金角灣
+    cam: function (u, tau, S) {
+      var E = [[0, rel(S[0], 60, 35, 25)], [5, rel(S[0], 30, -45, 35)], [9, rel(S[1], 20, 60, 45)], [13, rel(S[1], 70, 30, 55)],
+               [16.5, rel(S[2], -40, 15, 12)], [20, rel(S[2], 350, 60, 160)], [24, rel(S[4], -90, 70, 55)], [HD, rel(S[4], 50, 55, 18)],
+               [HD + 3, [-1900, 70, 560]], [HD + 7, [-1550, 150, 1150]], [HD + 11, [-950, 230, 1850]], [HD + HF, [-760, 140, 2830]]];   // 最後停在聖索菲亞西北（夕陽那一側）約 430 m
+      //   注視點照 trKey（每兩格之間 smoothstep）、在鏡頭離兩艘都還遠的時候就換到下一艘
+      //   ⛔ 注視點也走 Catmull-Rom ⇒ 從一艘換到下一艘時注視點掃過鏡頭身邊、方向亂甩（2026-10-28：第 8 秒船投影在畫面外 x 3512；方向另外內插也還有過衝）
+      var K = [[0, rel(S[0], -10, 0, 2)], [4.5, rel(S[0], 0, 0, 3)], [6.5, rel(S[1], 0, 0, 3)], [12, rel(S[1], -10, 0, 0)],
+               [14.5, rel(S[2], 300, 0, -45)], [17.5, rel(S[2], 600, 0, -55)], [19.5, rel(S[2], 1500, -300, -80)], [22, rel(S[4], 0, 0, 2)], [HD, rel(S[4], 0, 0, 2)],
+               [HD + 3, [-1300, 10, 1250]], [HD + 7, [-700, 30, 1900]], [HD + 11, [-480, 50, 3000]], [HD + HF, [-560, 30, 3200]]];
+      var e = trSpline(E, u), g = Math.max(seaH(e[0], e[2], SIMT), bedHgt(e[0], e[2])) + 3; if (e[1] < g) e[1] = g;   // 鏡頭別鑽進山裡
+      return { eye: e, look: trKey(K, u), fov: 0.85 };
+    },
+    //   標籤：加拉塔塔在第 29.5～33 秒（塔在畫面中間偏左、標題在正中 ⇒ 往左上拉）；聖索菲亞往左上、競技場往右上（⛔ 第一版兩個都往同一邊 ⇒ 字疊在一起）
+    marks: [{ at: function () { return gnd(-914, 1237, 55); }, zh: '加拉塔塔', en: 'Galata Tower', a: HD + 1.5, b: HD + 5, dx: -190, dy: -90 },
+            { at: function () { return gnd(-442, 3114, 50); }, zh: '聖索菲亞大教堂', en: 'Hagia Sophia', a: HD + 10, b: HD + HF - 0.2, dx: -200, dy: -170 },
+            { at: function () { return gnd(-833, 3447, 8); }, zh: '競技場', en: 'Hippodrome', a: HD + 11.5, b: HD + HF - 0.2, dx: 190, dy: -130 }],
+    term:{ zh: '金角灣', en: 'Golden Horn', def: ['君士坦丁堡北邊的海灣。', '1453 年灣口拉著一道鐵鏈，船進不去。'] }, termAt: 20.5, termEnd: HD - 0.4,
     cap2: function (g, u) {
-      trTitle(g, '1453', '君士坦丁堡陷落', trFade(u, 0.5, 7.6, 0.6), TR_CH * 0.36);
-      trLine(g, '鄂圖曼人把戰船拖過山丘，放進了金角灣。', trFade(u, 1.8, 7.6, 0.6), TR_CH * 0.66);
-      trLine(g, '延續千年的東羅馬帝國，在這一年結束。', trFade(u, 3.2, 7.6, 0.6), TR_CH * 0.73);
+      trTag(g, '旱地行舟', 'ships over land', trFade(u, 0.4, HD - 0.4, 0.4));
+      // 船名：越嶺號（kotoko-fusta-01m，TASK-0749）；研究檔 §1.1：Barbaro 記拖過去的主體是 fusta（大船留在雙柱）
+      trLower(g, { year: '1453 · 鄂圖曼帝國', name: '越嶺號', line: '輕型槳帆船（fusta）—— 拖過山的主要就是這一種', by: BY('kotoko') }, trFade(u, 0.4, 7.0, 0.4));
+      // 出處：鐵鏈 —— Barbaro 日記 4 月 2 日（Cornet 1856）；拖船的日期 —— Barbaro 4 月 22 日（研究檔 §6.1）
+      trStory(g, ['1453 年 4 月，金角灣口拉起一道鐵鏈，鄂圖曼的艦隊進不去。', '4 月 22 日，他們把船拖上岸，翻過加拉塔後面的山。'], u, 1.0, 7.4);
+      // 出處：Barbaro「很多圓木滾輪，用牛羊脂塗得很滑」「一大群土耳其人拉」；Kritovoulos §173「纜繩綁在四角，有的人力直拉，有的用絞盤」
+      trStory(g, ['地上鋪著圓木，塗滿牛羊脂；', '纜繩綁在船的四角，一大群人拉，陡的地方用絞盤。'], u, 7.8, 13.6);
+      // 出處：Kritovoulos §174「喊著號子升帆，坐在槳凳上，手握著槳空划」；Doukas「一人打鼓，一人用號角吹航海的曲子」
+      trStory(g, ['船上的人照樣升起帆、坐在槳凳上空划；', '有人打鼓，有人吹號。'], u, 14.0, 20.2);
+      // 出處：Barbaro「七十二艘 fusta」（研究檔 §1.1）；地形：Blocksail 世界地圖（Natural Earth、Terrain Tiles）
+      trStory(g, ['Barbaro 記下：這樣拖進金角灣的船，有 72 艘。', '這一段照真的地形生成：佩拉後山與金角灣。'], u, 21.0, HD - 0.4);
+      trNote(g, '陸上的船與拉縴的人由導演擺（路線採 Barbaro；人物借鎮民的圖）；下水之後的漂浮與划槳是遊戲算的', trFade(u, 7.4, HD - 0.4, 0.4));   // 船名牌（0.4–7.0）退場之後才出（⛔ 同時出 ⇒ 跟名牌那一行疊在一起）
+      // 東羅馬帝國的覆滅（Tim：「拜占庭 改稱為東羅馬帝國」）：城破的日子、聖索菲亞建成與改成清真寺 —— 公認的年份與事件
+      trTitle(g, '1453', '君士坦丁堡陷落', trFade(u, HD + 1.2, HD + 7.6, 0.6), TR_CH * 0.36);
+      trLine(g, '5 月 29 日，城破。', trFade(u, HD + 2.4, HD + 7.6, 0.6), TR_CH * 0.66);
+      trLine(g, '延續千年的東羅馬帝國，在這一年結束。', trFade(u, HD + 3.6, HD + 7.6, 0.6), TR_CH * 0.73);
+      trStory(g, ['聖索菲亞大教堂建成於 537 年；城破之後，改成了清真寺。', '這兩座城照 1453 年的史料復刻：君士坦丁堡與加拉塔。'], u, HD + 8.6, HD + HF - 0.3);
+      // 署名（每一位都在畫面上署名一次）：城的模型照 Blocksail townkit 索引的 work 數，2026-10-28：kaguya 102、summit 18、trailhead 5、crest 4、meadow 2、ame 2、gura 1
+      trNote(g, '城的建築（雕刻）：kaguya、summit、trailhead、crest、meadow、ame、gura', trFade(u, HD + 8.6, HD + HF - 0.3, 0.4));
     } });
 
   // ═════ 一、槳與帆 ═════
@@ -694,9 +748,9 @@ function trScenes() {
     { at: T.prologue + 0.2, bell: 147, v: 0.9 },
     { at: T.prologue + 0.6, pad: [38, 45, 50], len: T['open-dromon'] - T.prologue - 0.8, v: 0.42, fin: 3, fout: 1.6, inst: 'drone' },   // 序幕：伊頌那種持續音（沒有船、只有海）
     { at: T.prologue + 10.4, bell: 196, v: 0.4 }, { at: T.prologue + 18.6, bell: 196, v: 0.4 }, { at: T.prologue + 26.1, bell: 147, v: 0.5 },   // 序幕換一段（三列槳座、烏鴉、希臘火）
-    seg('methimon', T['open-dromon'] - 1.2, T.byzantium, { x: 0, fin: 2.0, fout: 1.0 }),
+    seg('methimon', T['open-dromon'] - 1.2, T.haul + HD, { x: 0, fin: 2.0, fout: 1.0 }),   // 旱地行舟的拖船段照舊東羅馬聖詠
     { at: T['open-dromon'] + 1.2, hit: 1, v: 0.9, f0: 60, f1: 30, len: 2.2 },
-    seg('zoientafo', T.byzantium, T.cosecha), { at: T.byzantium, hit: 1, v: 0.8, f0: 50, f1: 25, len: 3 },
+    seg('zoientafo', T.haul + HD, T.cosecha), { at: T.haul + HD, hit: 1, v: 0.8, f0: 50, f1: 25, len: 3 },   // 1453：鏡頭飛離最後一艘、轉向君士坦丁堡那一刻換曲
     seg('folia', T.cosecha, T.reale), seg('tedeum', T.reale, T.sextant),
     seg('granadera', T.sextant, T.constitution), seg('presidents', T.constitution, T.napoleon),
     { at: T.cosecha, bell: 196, v: 0.35 }, { at: T.reale, bell: 196, v: 0.35 }, { at: T.tridente, bell: 196, v: 0.35 }, { at: T.constitution, bell: 196, v: 0.35 },
