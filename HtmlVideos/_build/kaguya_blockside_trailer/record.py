@@ -9,6 +9,7 @@
   先錄一小段試：python -I record.py --from 125 --to 135
   2026-10-19 量（這台機器、無頭 Chrome、1080p）：一秒算約 22 格 ⇒ 整支 60 fps（約 26,000 格）約 20 多分鐘，再加聲音 1 倍速重播約 7 分鐘；
     VP9 平均約 22 Mbps（整支約 1.2 GB）。22 秒試錄：660 格、11 個 Cluster、索引 11 點；音效事件 630、峰值 0.97、削波 0。
+  2026-10-28 錄整支（8:38、31,062 格，Chrome 視窗、用顯示卡）：畫面 13.1 分鐘（一秒約 40 格）＋聲音 1 倍速重播 ⇒ 共 22.8 分鐘；VP9 平均 26.5 Mbps、1.73 GB。
 
 怎麼做到不掉格（Tim 2026-10-19：「確保錄製不掉fps的影片(或是掉了之後可後處理讓影片順暢)」）：
   片子是片長 t 的純函數 ⇒ 不即時播放、不用螢幕錄影。record.js 讓頁面一格一格算到 t ＝ from ＋ k／fps、畫好、交給瀏覽器的 WebCodecs 編碼；
@@ -171,12 +172,17 @@ class Rec:
         self.vf = open(os.path.join(tmp, 'v.bin'), 'wb')
         self.af = open(os.path.join(tmp, 'a.bin'), 'wb')
         self.vi, self.ai = [], []
+        self.seen = {'v': set(), 'a': set()}                            # 頁面重送的片段（回應掉了、其實收到了）照序號只收一次
         self.meta, self.done, self.err = None, threading.Event(), None
         self.vbytes = 0
 
 
 def handler_for(R):
     class H(http.server.BaseHTTPRequestHandler):
+        # HTTP/1.1 ⇒ 瀏覽器重用連線（⛔ 預設 1.0：每格一條新連線、回完就關 ⇒ 整支三萬多條，佇列一擠爆 Windows 就把連線打回去，
+        #   頁面只看到 Failed to fetch —— 2026-10-28 第一次錄整支，城建好之後斷在半路）；每個回應都要帶 Content-Length
+        protocol_version = 'HTTP/1.1'
+
         def log_message(self, *a):
             pass
 
@@ -191,6 +197,7 @@ def handler_for(R):
                 self.wfile.write(R.html)
             else:
                 self.send_response(404)
+                self.send_header('Content-Length', '0')
                 self.end_headers()
 
         def do_POST(self):
@@ -200,11 +207,14 @@ def handler_for(R):
             body = self.rfile.read(n) if n else b''
             kind = url.path.rsplit('/', 1)[-1]
             with R.lock:
-                if kind in ('v', 'a'):
+                if kind in ('v', 'a') and int(q['seq']) in R.seen[kind]:
+                    pass
+                elif kind in ('v', 'a'):
                     f, idx = (R.vf, R.vi) if kind == 'v' else (R.af, R.ai)
                     off = f.tell()
                     f.write(body)
                     idx.append((int(q['seq']), int(q['ts']), int(q.get('key', '1')), off, len(body)))
+                    R.seen[kind].add(int(q['seq']))
                     if kind == 'v':
                         R.vbytes += len(body)
                 elif kind == 'log':
@@ -220,8 +230,19 @@ def handler_for(R):
                     print('✗ 頁面回報錯誤：' + R.err, flush=True)
                     R.done.set()
             self.send_response(204)
+            self.send_header('Content-Length', '0')
             self.end_headers()
     return H
+
+
+class RecServer(http.server.ThreadingHTTPServer):
+    request_queue_size = 64                                             # 頁面同時最多 24 個 POST 在路上（⛔ 預設 5）
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        if isinstance(sys.exc_info()[1], (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)):
+            return                                                      # 錄完關掉 Chrome 時，保持著的連線被切斷：不是錯
+        super().handle_error(request, client_address)
 
 
 def main():
@@ -244,7 +265,7 @@ def main():
     html = inject(a.page)
     tmp = tempfile.mkdtemp(prefix='trrec_')
     R = Rec(html, tmp)
-    srv = http.server.ThreadingHTTPServer(('127.0.0.1', a.port), handler_for(R))
+    srv = RecServer(('127.0.0.1', a.port), handler_for(R))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     qs = {'rec': '1', 'res': '1080', 'fps': str(a.fps), 'vbr': str(a.vbr), 'abr': str(a.abr)}
     if a.t0 is not None:
