@@ -127,9 +127,10 @@ bedAvoid = function (sh) { return TRAILER && sh.trNoAvoid ? null : trBedAv0(sh);
 //   ⇒ ?t= 停在換幕那一秒，地形也已經在（同一個 t 同一格）。同一份海圖、同一個原點 ⇒ 第二次直接用（TR_BED）；沒有 sc.map ⇒ BED ＝ null（每一處跟沒有海圖一樣）。
 var TR_BED = {};
 function trBedOn(m) {
+  trTownsAway();
   if (!m) { BED = null; return; }
   var key = m.area + '@' + m.at.join(',');
-  if (TR_BED[key]) { BED = TR_BED[key]; return; }
+  if (TR_BED[key]) { BED = TR_BED[key]; trTownsBack(); return; }
   Object.keys(TR_BED).forEach(function (k0) { BED = TR_BED[k0]; Object.keys(BED.ch).forEach(function (k) { var C = BED.ch[k]; evEmit('bedDrop', C.cx, C.cy); }); delete TR_BED[k0]; });   // 網格、樹照塊的編號存 ⇒ 換一份海圖先丟掉舊的
   var src = TR_MAPS[m.area]; if (!src) throw new Error('沒有內嵌海圖：' + m.area);
   var A = JSON.parse(JSON.stringify(src.area)), have = src.chunks;
@@ -142,10 +143,184 @@ function trBedOn(m) {
   Object.keys(have).sort().forEach(function (k) { var C = bedDecode(have[k]), i = bedIdx(C.cx, C.cy); D.slot[i] = C; D.ch[k] = C; D.top = Math.max(D.top, C.max); D.loads++; evEmit('bedChunk', C.cx, C.cy, C); });
   while (BEDGL_Q.length) { var k = BEDGL_Q.shift(), C = D.ch[k]; if (C) bedUpload(k, C, bedLod(C)); }   // 網格全建好（⛔ 遊戲一格 2 塊 ⇒ 換幕後幾格地形一塊塊長出來）
   TR_BED[key] = D;
+  trTownsBack();
 }
+
+// ── 城鎮（海域有城：area.towns；TASK-0750 旱地行舟，Tim 2026-10-28「可以拍旱地行舟了」）──
+//   檔案：遊戲照 area.towns 讀 maps/<海域>/towns.js、townkit/（bedScript）⇒ 宣傳片是單檔：splice.py 把要用的那幾個檔內嵌成 TR_FILES，bedScript 先查它（⛔ 不讀外部檔）。
+//     TR_FILES 沒有那一個 ⇒ 照舊讀檔（測試：www/maps/<海域>/；量這一幕用到哪幾個模型，見 __tr.townFiles）。
+//   一頁幾片海域：遊戲一頁只有一片、城從不收；宣傳片換海域 ⇒ 城的清單收起來（trTownsAway），換回來放回去（trTownsBack）。
+//     ⛔ 不收 ⇒ 擱淺那一幕的船撞上看不見的君士坦丁堡碼頭（50_sim.js：有城就跑 quayStep）。
+//   城區：遊戲照旗艦遠近、照 performance.now 一區一區補（63_towns.js townDistFrame）⇒ 不是 t 的函數；這裡照這一幕的 sc.townAt（世界；沒寫 ＝ 原點）挑，整幕不換。
+//   等：這一幕有城 ⇒ 換進來時時鐘先停、畫面黑著（trFrame），每格照遊戲那一套往前做（收塊、種樹、挑城區；城的實例、地面在 render 裡的 townDraw 建），trTownSettled 才走 ⇒ 同一個 t 同一格。
+var TR_TOWNS = {}, TR_FILE_USED = {};
+var trScript0 = bedScript;
+bedScript = function (src) {
+  if (TRAILER && typeof TR_FILES !== 'undefined' && Object.prototype.hasOwnProperty.call(TR_FILES, src)) {
+    try { (0, eval)(TR_FILES[src]); } catch (e) { return Promise.reject(e); }
+    return Promise.resolve();
+  }
+  if (TRAILER) TR_FILE_USED[src] = 1;                                   // 測試：讀了哪幾個外部檔（要內嵌的清單）
+  return trScript0(src);
+};
+var trDistWant0 = townDistWant;
+townDistWant = function (p, me, town) {
+  if (!TRAILER || town) return trDistWant0(p, me, town);
+  var a = TR.townAt || [0, 0]; return trDistWant0(p, { px: a[0], pz: a[1] }, false);
+};
+function trTownsAway() {
+  if (!BED || !BED.A || !TOWNS.list.length) return;
+  TR_TOWNS[BED.A.id] = TOWNS.list; TOWNS.list = [];
+}
+function trTownsBack() {
+  if (!BED || !BED.A || !(BED.A.towns || []).length) return;
+  if (TR_TOWNS[BED.A.id]) { TOWNS.list = TR_TOWNS[BED.A.id]; delete TR_TOWNS[BED.A.id]; return; }
+  townWant();                                                            // 第一次：照遊戲那一套去要（bedScript ⇒ TR_FILES）
+}
+/** 這一格照遊戲的畫面迴圈往前做（90_main.js frame、89_townui.js frame 那幾樣）：收塊、種樹、挑城區。 */
+function trTownPump() {
+  if (!BED) return;
+  BED_BG = BED_PUMP_MS; bedPump(performance.now() + BED_PUMP_MS); treePump();
+  if (TOWNS.list.length) townDistFrame();
+}
+function trTownScene(sc) { var M = sc.map && typeof TR_MAPS !== 'undefined' && TR_MAPS[sc.map.area]; return !!(M && (M.area.towns || []).length); }
+/** 等城的那幾格：字幕層整片蓋黑、右上角寫進度（3D 照畫 ⇒ 城照遊戲那一套建）。 */
+function trTownCover() {
+  if (!trG) return;
+  trG.setTransform(1, 0, 0, 1, 0, 0); trG.globalAlpha = 1; trG.fillStyle = '#000'; trG.fillRect(0, 0, TR_CW, TR_CH);
+  var n = TOWNS.list.length, w = BED && BED.A ? (BED.A.towns || []).length : 0;
+  trText(trG, '載入城鎮… ' + n + '／' + w + (TOWNS.kitBusy ? '　模型' : '') + (TREE_Q.length ? '　樹 ' + TREE_Q.length : ''), TR_CW - 60, 70, '400 24px ' + TR_SANS, '#bdb39d', 0.85, 'right', 1);
+}
+/** 城建好了沒：規劃到齊、模型解完、每座城要的城區都上了、實例與地面沒有建到一半、路面到了、樹種完。 */
+function trTownSettled() {
+  if (!BED || !BED.A) return true;
+  var want = (BED.A.towns || []).length; if (!want) return true;
+  if (TOWNS.err) return true;                                            // 出錯 ⇒ 不等（錯照舊印在主控台）
+  if (TOWNS.list.length < want || TOWNS.kitBusy || !TOWNS.kit) return false;
+  if (BED.inq && BED.inq.length) return false;
+  if (TREE_Q.length || TREES.job) return false;                           // 樹（63_trees.js treePump）：排著的、擺到一半的
+  return TOWNS.list.every(function (T) {
+    var p = TOWNS.full[T.id];
+    if (p && p.cut) { var W = trDistWant0(p, { px: (TR.townAt || [0, 0])[0], pz: (TR.townAt || [0, 0])[1] }, false), on = TOWNS.onD[T.id] || 0; if (W.list.some(function (i) { return !(on & (1 << i)); })) return false; }
+    if (!T.inst || T.instRedo || T.ij || T.pend || !T.gt || !T.roadSurface) return false;
+    for (var k in T.gt) { var q = T.gt[k]; if (q.dirty || q.job) return false; }
+    return true;
+  });
+}
+// ── 旱地行舟（sc.fleet[].haul ＝ { path: [[往東, 往南], …]（海域座標，m）, v: 每秒幾公尺, s0: 第 0 秒船中在路線上第幾公尺, launch: 1 ⇒ 下水之後交回遊戲 }；TASK-0750）──
+//   1453 年 4 月 22 日：鄂圖曼艦隊從雙柱（今 Dolmabahçe）翻過佩拉後山拖進金角灣（Barbaro；kotoko-fusta-01m 研究檔 §6）。
+//   陸上：照遊戲堡壘那一套站在地上（sh.fixed：不浮、不進水、不擱淺、不碰碼頭；32_hull.js stepShip 照 sh.gy 擺高度）；
+//     位置、船頭、前後傾由導演每一步照路線擺（sailShip 之前；照 SIMT ⇒ 同一個 t 同一格）：船頭、船尾都在路線上（長船照軌道轉彎），龍骨那一條線貼著地形 ＋ 托架與滾木。
+//   下水（launch）：龍骨那一條線落到浮著的吃水以下 ⇒ fixed 拿掉、照拖的速度往前滑 ⇒ 之後的浮、搖、進水都是遊戲算的。
+var TR_HAUL_CLEAR = 0.6;                                                 // 托架＋滾木（研究檔 §6.2：滾輪直徑 0.25–0.3 m、托架縱梁）〔推算〕
+function trHaulInit(sh, H, sc) {
+  var at = sc.map ? sc.map.at : [0, 0], P = H.path.map(function (q) { return [q[0] - at[0], q[1] - at[1]]; }), cum = [0];
+  for (var i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+  var T = sh.T;
+  return { P: P, cum: cum, L: cum[cum.length - 1], v: H.v || 0.8, s0: H.s0 || 0, launch: !!H.launch, half: (T.wl1 - T.wl0) * S / 2, draft: T.zw * S, land: true };
+}
+/** 路線上第 s 公尺（夾在兩端）⇒ [x, z]（世界）。 */
+function trHaulAt(H, s) {
+  s = Math.max(0, Math.min(H.L, s));
+  var k = 1; while (k < H.P.length - 1 && H.cum[k] < s) k++;
+  var a = H.P[k - 1], b = H.P[k], g = H.cum[k] - H.cum[k - 1], u = g > 1e-6 ? (s - H.cum[k - 1]) / g : 0;
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+}
+function trHaulPose(sh) {
+  var H = sh.trHaul, s = H.s0 + H.v * SIMT, b = trHaulAt(H, s + H.half), t = trHaulAt(H, s - H.half);
+  var dx = b[0] - t[0], dz = b[1] - t[1], len = Math.hypot(dx, dz) || 1, hb = bedHgt(b[0], b[1]), hs = bedHgt(t[0], t[1]), up = 0;
+  for (var k = 0; k <= 8; k++) { var u = k / 8; up = Math.max(up, bedHgt(t[0] + dx * u, t[1] + dz * u) - (hs + (hb - hs) * u)); }   // 地形凸出龍骨那一條線多少 ⇒ 整條抬高
+  var keel = (hs + hb) / 2 + up + TR_HAUL_CLEAR;                         // 船中那一點龍骨底的高度
+  if (H.launch && keel <= -H.draft) {                                    // 下水：龍骨落到浮著的吃水以下 ⇒ 交回遊戲
+    H.land = false; sh.fixed = false; sh.spd = H.v; sh.vel = [Math.cos(sh.yaw) * H.v, 0, -Math.sin(sh.yaw) * H.v];
+    sh.sailSet = 0; applySailSet(sh);                                    // 帆收起來（⛔ 張著帆、槳照預設全力 ⇒ 一下水就每秒 5.7 m，2026-10-28 量）
+    if (sh.cfg.base > 0) { sh.tele = 2; sh.power = TELE[2]; sh.teleHand = true; }   // 槳慢慢划進金角灣
+    return;
+  }
+  sh.yaw = Math.atan2(-dz, dx); sh.pitchA = Math.atan2(hb - hs, len); sh.rollA = 0; sh.pitchW = sh.rollW = 0; sh.bob = 0;
+  sh.gy = keel + H.draft + (sh.sink || 0) - (sh.lift || 0);              // 32_hull.js stepShip：wl ＝ gy（10_ship.js shipMatrix 的高 ＝ −sink ＋ lift ＋ wl ＋ bob）
+  sh.wl = sh.gy;
+  var c = shipCenter(sh), x = (b[0] + t[0]) / 2, z = (b[1] + t[1]) / 2;
+  sh.M = shipMatrix(sh); c = shipCenter(sh); sh.px += x - c[0]; sh.pz += z - c[2];
+  sh.M = shipMatrix(sh); sh.inv = M4.inv(sh.M); sh.center = shipCenter(sh);
+  sh.spd = 0; sh.vel = [0, 0, 0];
+}
+// 拖船的路不長樹（Barbaro：把佩拉上方的山整座剷平；Doukas：清掉加拉塔後面的灌木）：sc.clear ＝ { path: [[往東, 往南], …]（海域座標）, w: 半寬 m }
+//   ⇒ 擺樹的遮罩（63_towns.js townClrOf；63_trees.js 每一塊擺樹前拿一次）再加上路線兩側 w 公尺；每一塊算一次、記在塊上。
+var trClrOf0 = townClrOf;
+townClrOf = function (C) {
+  var M = trClrOf0(C), K = TRAILER && TR.clear;
+  if (!K || !BED || !BED.A) return M;
+  if (C.trK === K && C.trM0 === M) return C.trM;
+  var G = TOWN_CLR_G, size = BED.A.chunk, m = Math.round(size / G), x0 = C.cx * size, z0 = C.cy * size, out = null;
+  if (trSegDist(K.path, x0 + size / 2, z0 + size / 2) <= K.w + size) {
+    for (var j = 0; j < m; j++) for (var i = 0; i < m; i++) {
+      if (trSegDist(K.path, x0 + (i + 0.5) * G, z0 + (j + 0.5) * G) > K.w) continue;
+      if (!out) { out = new Uint8Array(m * m); if (M) out.set(M); }
+      out[j * m + i] = 1;
+    }
+  }
+  C.trK = K; C.trM0 = M; C.trM = out || M;
+  return C.trM;
+};
+/** 點 (x, z) 到折線 P 的距離。 */
+function trSegDist(P, x, z) {
+  var best = Infinity;
+  for (var i = 1; i < P.length; i++) {
+    var a = P[i - 1], b = P[i], dx = b[0] - a[0], dz = b[1] - a[1], L2 = dx * dx + dz * dz, u = L2 > 0 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / L2)) : 0;
+    best = Math.min(best, Math.hypot(x - a[0] - dx * u, z - a[1] - dz * u));
+  }
+  return best;
+}
+// 拉縴的人：研究檔 §6.1 Kritovoulos「纜繩綁在四角、交給士兵拉，有的人力直拉、有的用絞盤」、Barbaro「一大群土耳其人拉」
+//   ⇒ 每艘在陸上的船，船頭前面兩列（左右兩條纜）各 TR_HAUL_N 人、間距 TR_HAUL_GAP，照船走的路線擺、腳踩地形；拉纜繩 ⇒ 身子比走路前傾。
+//   畫法照鎮民（63_towns.js 的城鎮看板：townFolkDraw 畫完城裡的人之後、同一支著色器、同一份人物圖集，另外一批實例）。
+//   人物：圖集裡的成年男子那幾款（Blocksail townkit _folk_*）—— 遊戲沒有鄂圖曼士兵的立繪 ⇒ 只代表「一大群人」、不代表衣著〔代演，畫面上寫明〕。
+var TR_HAUL_N = 14, TR_HAUL_GAP = 1.3, TR_HAUL_LEAD = 5, TR_HAUL_W = 2.4, TR_HAUL_OUT = [350, 450];
+var TR_HAULER_IDS = ['soldier_m_01', 'builder_m_01', 'lumberjack_m_01', 'porter_m_01', 'miner_m_01', 'farmer_m_01', 'shipwright_m_01', 'kilnman_m_01', 'miller_m_01'];
+var trFolkDraw0 = townFolkDraw;
+townFolkDraw = function (P, K, eye, PL, fogD, clock) {
+  var tris = trFolkDraw0(P, K, eye, PL, fogD, clock);
+  return TRAILER ? tris + trHaulersDraw(P, K && K.folk, eye, fogD, clock) : tris;
+};
+function trHaulersDraw(P, F, eye, fogD, clock) {
+  if (!F || !P.folk || !SHIPS.some(function (sh) { return sh.trHaul && sh.trHaul.land; })) return 0;
+  var L = F.people.filter(function (p) { return TR_HAULER_IDS.indexOf(p.id) >= 0; }); if (!L.length) return 0;
+  var SH = F.sheets, A = SH.map(function () { return []; }), n = 0, fw = sub(CAM.look, eye), rl = Math.hypot(fw[0], fw[2]) || 1, rx = -fw[2] / rl, rz = fw[0] / rl;
+  SHIPS.forEach(function (sh, si) {
+    var H = sh.trHaul; if (!H || !H.land) return;
+    var s = H.s0 + H.v * SIMT;
+    for (var side = -1; side <= 1; side += 2) for (var k = 0; k < TR_HAUL_N; k++) {
+      var d = s + H.half + TR_HAUL_LEAD + k * TR_HAUL_GAP, p = trHaulAt(H, d), q = trHaulAt(H, d + 1), dx = q[0] - p[0], dz = q[1] - p[1], l = Math.hypot(dx, dz) || 1;
+      var w = TR_HAUL_W + 0.25 * Math.sin(k * 2.1 + si), x = p[0] - dz / l * side * w, z = p[1] + dx / l * side * w;
+      if (Math.hypot(x - eye[0], z - eye[2]) > TR_HAUL_OUT[1]) continue;
+      var pc = L[(si * 7 + k * 3 + (side > 0 ? 1 : 0)) % L.length], sheet = SH[pc.sheet]; if (!sheet.tex) continue;
+      var face = dx * rx + dz * rz > 0 ? 1 : -1, wv = clock * 0.9 + k * 0.37 + si, r = Math.abs(Math.sin(wv * 6.2832));
+      A[pc.sheet].push(x, bedHgt(x, z), z, pc.height * TOWN_FOLK_SCALE * F.ch / F.hpx, 1.03 - 0.03 * r, 0.96 + 0.04 * r, face * (0.16 + 0.03 * Math.sin(wv * 6.2832)), 0.05 * TOWN_FOLK_SCALE * r,
+        face > 0 ? 0 : 0.5, pc.row / sheet.rows, face > 0 ? 0.5 : 0, (pc.row + 1) / sheet.rows, pc.cloth[(k + si) % pc.cloth.length], pc.hair[(k * 5 + si) % pc.hair.length], 0.94 + 0.12 * ((k * 7 + si * 3) % 10) / 10, face);
+      n++;
+    }
+  });
+  if (!n) return 0;
+  var PF = P.folk; gl.useProgram(PF.prog); setCommon(PF);                // 同 townFolkDraw 那一段
+  gl.uniform1f(PF.u.uFogD, fogD); gl.uniform3fv(PF.u.uEye, eye); gl.uniform3f(PF.u.uRight, rx, 0, rz);
+  gl.uniform2f(PF.u.uIn, -2, -1); gl.uniform2f(PF.u.uOut, TR_HAUL_OUT[0], TR_HAUL_OUT[1]); gl.uniform1i(PF.u.uTex, 11);
+  gl.bindVertexArray(P.folkVao); gl.bindBuffer(gl.ARRAY_BUFFER, P.folkBuf);
+  A.forEach(function (B, s) {
+    if (!B.length) return;
+    gl.activeTexture(gl.TEXTURE11); gl.bindTexture(gl.TEXTURE_2D, SH[s].tex); gl.activeTexture(gl.TEXTURE0);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(B), gl.DYNAMIC_DRAW);
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, B.length / 16);
+  });
+  return 2 * n;
+}
+var trSail1 = sailShip;
+sailShip = function (sh, h) { if (TRAILER && sh.trHaul && sh.trHaul.land) trHaulPose(sh); return trSail1(sh, h); };
 var TR_PHX0 = null;
 function trSetup(sc) {
   if (!TR_PHX0) TR_PHX0 = Object.assign({}, PHX);
+  TR.townAt = sc.townAt || [0, 0];                                       // 城區照這一點挑（世界；trTownsBack 之前）
+  TR.clear = sc.clear || null;                                           // 不長樹的路（海圖的塊在 trBedOn 擺樹 ⇒ 要在它之前）
   trBedOn(sc.map);                                                       // 海圖先（setWeather ⇒ vxInit 會照 BED 重烤漩渦）
   SEED = (sc.seed || 1797) >>> 0;
   WIND_FIX = { rot: sc.wind ? sc.wind[0] : 0, s0: sc.wind ? sc.wind[1] : 1 };   // ⛔ 兩個鍵都要給（少一個 ⇒ 風是 NaN）
@@ -168,6 +343,7 @@ function trSetup(sc) {
     if (f.tele !== undefined && sh.cfg.base > 0) { sh.tele = f.tele; sh.power = TELE[f.tele]; sh.teleHand = true; }
   });
   SHIPS.forEach(function (sh, i) { var f = sc.fleet[i]; sh.trRam = !!(f && f.ram); sh.trNoAvoid = !!(f && f.noAvoid); });
+  SHIPS.forEach(function (sh, i) { var f = sc.fleet[i]; sh.trHaul = f && f.haul ? trHaulInit(sh, f.haul, sc) : null; if (sh.trHaul) { sh.fixed = true; trHaulPose(sh); } });   // 旱地行舟：開局就站在路線上
   SHIPS.forEach(function (sh) { sh.portWant = sc.portWant === undefined ? 1 : sc.portWant; });   // 砲門（TASK-0719，62_ports.js）：預設開著（＝ 低畫質的樣子）⇒ 遊戲照交戰自己開關的那一套不會讓 ?t= 跳到的一格跟順著播的不一樣
   CUTV.half = !!(sc.cut && sc.cut.half); CUTV.deck = sc.cut && sc.cut.deck || 0; FLX3 = !!sc.xray;
   TR.cur = sc.i; TR.k = 0; TR.sk = 0; TR.cue = 0;
@@ -215,7 +391,7 @@ function trDraw(A) {
   renderLerp(true, A.a);
   trResize();
   trCam(sc.cam(A.u, A.tau, SHIPS, sc));
-  SSLOTS = []; MSLOTS = [];
+  MSLOTS = [];                                                           // 船艙遮罩每一格重挑（⛔ 上一格的打九折 ⇒ ?t= 跳到的一格跟順著播的不一樣）；陰影 d416442 起照鏡頭分段、沒有 SSLOTS 了
   if (look) { keep = { sky: SKY, hor: HORIZON, gr: GROUND, fog: WX.fog, sun: WX.sun, lum: WX.lum, foam: WX.foam };
     var L = typeof look === 'function' ? look(A.u, A.tau) : look;
     if (L.sky) SKY = L.sky; if (L.horizon) HORIZON = L.horizon; if (L.ground) GROUND = L.ground;
@@ -282,6 +458,15 @@ function trFrame(ts) {
     TR.resync = true;
     t = Math.max(0, Math.min(t, A.sc.t0 - 1e-3)); A = trAt(t);
     if (!trSceneLoaded(A.i)) { TR.needLoad = true; trUI(); return; }
+  }
+  // 城（TASK-0750）：這一幕的海域有城 ⇒ 先開這一幕、照遊戲那一套往前建（城的實例、地面在 render 裡的 townDraw 建 ⇒ 要畫；畫完用字幕層蓋黑），trTownSettled 之前時鐘不走。
+  if (trTownScene(A.sc)) {
+    if (TR.cur !== A.i) trStepTo(A.i, 0, 0);
+    trTownPump();
+    if (!trTownSettled()) {
+      TR.waitLoad = true; TR.buffering = true; if (TR.playing) TR.resync = true;
+      trDraw(trAt(A.sc.t0)); trTownCover(); trUI(); return;
+    }
   }
   var cut = TR.cur !== A.i || A.n < TR.k;
   // 字卡前導（sc.lead；全艦隊、進水那兩幕）：黑底字卡的那幾秒 ⇒ 這一格只重開（不預跑）、預跑照 100 ms 一格分著做、時鐘照走（黑場上沒有東西會停）；快到字卡尾還沒做完 ⇒ 一格給 400 ms 做完（下一格 catchup 跳過去）。
