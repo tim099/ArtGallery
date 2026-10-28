@@ -1,0 +1,16 @@
+{
+  "task": 1091,
+  "tool": "built-in image_gen",
+  "prompt": "ONE full-body adult female steamship STOKER / boiler-room coal fireman, about32years old, strong practical working woman, ready idle standing pose. Match attached Sirius carpenter ONLY for fine Japanese anime pixel-art style, crisp stair-step dark outlines, clean discrete shaded pixel clusters and body proportions; NOT carpenter costume or tools. Three-quarter body and face facing SCREEN RIGHT. Compact short hair, ALL hair and eyebrows CYAN #00BCD4 with cyan-only shading. Sleeveless sturdy work undershirt and practical high-waisted trousers: ALL main cloth MAGENTA #C2185B with magenta-only shading for later team recolouring. Warm natural tan skin, muscular forearms, a few readable charcoal soot smudges on cheek/upper arms and shirt, a modest sweat sheen; brown leather work boots and belt. Hold ONE recognizable broad dark steel COAL SHOVEL with wooden shaft vertically close against her right side, hand gripping near waist, broad shovel blade near knee/shin but CLEARLY ABOVE BOOT SOLES, shaft top no higher than shoulder. Coal dust on blade; shovel compact and inside overall silhouette. Other arm relaxed. Fully clothed workwear, neutral composed expression. No cap, no jewellery, no other tools. Whole head/hands/boots fully visible, compact silhouette suitable for96x192 sprite cell (width:height1:2), both feet supporting at bottom center. Pure white background #FFFFFF, generous margins, no floor, ground plane, cast shadow, scenery, smoke, fire, boiler, labels, text or border. Upper-left light. Hair/material key colours must not spill into skin, soot, wood or steel.",
+  "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-a1c39322-99a2-4256-9a0f-6de6a2f286a6.png",
+  "reference": "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_sailor_carpenter_sprite_v1.png",
+  "reference_sha256": "06387254314a089c9cbca2ca06ed30230dffa03875df3709685f6ee9547d5159",
+  "master_sha256": "9e615008a1ebf9b16ee3a7cc054fa6774ce05cb2cf6c2e5a8cefdd8a3b844bfb",
+  "processed_sha256": "ed3b7502afb7c433bd3f5461b0a0e3cd1a09fc15f3e6efbd658e871bd74e7350",
+  "atlas_sha256": "ef6e7e3c36546aa4c2d86a12a5bd6a70b1baaaf2088c56c796f916a2c5d80188",
+  "old13_rgba_sha256": "509c1f0e8dbc27b2693597e5aa732730fc837511f5a8947abb958526414ea895",
+  "cloth_pixels": 2749,
+  "hair_pixels": 412,
+  "foot_center": 48.578369905956116,
+  "base_commit": "5276702"
+}
