@@ -1,0 +1,70 @@
+{
+  "task": 1050,
+  "tool": "built-in image_gen, one independent call per person",
+  "styleReference": {
+    "path": "RawImages/meadow_captain_astrid_sprite_v1.png",
+    "sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+  },
+  "assets": [
+    {
+      "key": "fishcurer_f_01",
+      "name": "露西亞",
+      "years": 33,
+      "height": 1.66,
+      "job": "fishcurer",
+      "work": [
+        "fish-salter"
+      ],
+      "subject": "Woman salt-fish curer,33, sun-browned olive skin, sturdy practical build, cyan hair in a compact low bun above collar. Magenta long-sleeved work jacket, ivory linen apron over narrow dark-brown ankle-length skirt, flat brown ankle boots. Both hands support a SMALL shallow wooden board at waist carrying one recognizable silver-grey butterflied cured fish and a modest salt crust. No loose knife or blood. Pose shows a calm experienced worker, not a fisher with a rod, no net or basket.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian craft worker for an age-of-sail Caribbean-inspired town. Attached Astrid reference is ONLY for fine Japanese anime pixel-art style, discrete shaded clusters, clean dark stair-step contours and readable anatomy; do not copy her face, captain coat or military outfit. Tall portrait white canvas. Compact three-quarter standing pose facing SCREEN RIGHT (nose points right), complete head, both hands/fingers and both feet visible with generous blank margins. Narrow silhouette suitable for96x192 game cell with164px body height: no outstretched elbows, no oversized props, all props held near waist/torso and above knees, nothing beside the feet. ALL hair and eyebrows pure CYAN #00BCD4 with cyan-only shading. Short compact hair, entirely in top30% of the figure. MAIN coloured garment MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, ivory linen, brown leather/wood, neutral tools. No cyan or magenta reflections/spots on skin, eyes, lips, accessories or props; no makeup. Pure solid white background, no scenery, shadow, ground plane, labels, lettering, border or checkerboard. Refined proportional adult, not chibi or modern fashion. Woman salt-fish curer,33, sun-browned olive skin, sturdy practical build, cyan hair in a compact low bun above collar. Magenta long-sleeved work jacket, ivory linen apron over narrow dark-brown ankle-length skirt, flat brown ankle boots. Both hands support a SMALL shallow wooden board at waist carrying one recognizable silver-grey butterflied cured fish and a modest salt crust. No loose knife or blood. Pose shows a calm experienced worker, not a fisher with a rod, no net or basket.",
+      "original": "RawImages/meadow_resident_fishcurer_f_01_keyed_v1.png",
+      "original_sha256": "5b2a444db958017be6b46b0484c43602eca924d9161a803bba233f4f15304804",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-07c62e9e-c9ba-4810-8b23-7d2df558fb44.png"
+    },
+    {
+      "key": "potter_f_01",
+      "name": "艾莉雅",
+      "years": 27,
+      "height": 1.6,
+      "job": "potter",
+      "work": [
+        "pottery"
+      ],
+      "subject": "Woman potter,27, warm dark-brown skin, cyan hair cropped in short rounded curls close to head. Magenta simple fitted bodice and sleeves, ivory practical work apron over a narrow brown calf-length skirt, brown flat shoes. Holds one small unglazed terracotta handled jug snugly against waist with one hand beneath it and the other hand steadying its neck. Fine neutral clay traces on apron, no coloured marks. No pottery wheel, no other pots, no scene.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian craft worker for an age-of-sail Caribbean-inspired town. Attached Astrid reference is ONLY for fine Japanese anime pixel-art style, discrete shaded clusters, clean dark stair-step contours and readable anatomy; do not copy her face, captain coat or military outfit. Tall portrait white canvas. Compact three-quarter standing pose facing SCREEN RIGHT (nose points right), complete head, both hands/fingers and both feet visible with generous blank margins. Narrow silhouette suitable for96x192 game cell with164px body height: no outstretched elbows, no oversized props, all props held near waist/torso and above knees, nothing beside the feet. ALL hair and eyebrows pure CYAN #00BCD4 with cyan-only shading. Short compact hair, entirely in top30% of the figure. MAIN coloured garment MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, ivory linen, brown leather/wood, neutral tools. No cyan or magenta reflections/spots on skin, eyes, lips, accessories or props; no makeup. Pure solid white background, no scenery, shadow, ground plane, labels, lettering, border or checkerboard. Refined proportional adult, not chibi or modern fashion. Woman potter,27, warm dark-brown skin, cyan hair cropped in short rounded curls close to head. Magenta simple fitted bodice and sleeves, ivory practical work apron over a narrow brown calf-length skirt, brown flat shoes. Holds one small unglazed terracotta handled jug snugly against waist with one hand beneath it and the other hand steadying its neck. Fine neutral clay traces on apron, no coloured marks. No pottery wheel, no other pots, no scene.",
+      "original": "RawImages/meadow_resident_potter_f_01_keyed_v1.png",
+      "original_sha256": "5f6f9fa4cf060267973911c51af98b725a91d0af7166d5dc3794fb022ae28865",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-dc32f0b4-923b-4d88-9faf-7d9df99a33e8.png"
+    },
+    {
+      "key": "glassmaker_f_01",
+      "name": "克拉拉",
+      "years": 44,
+      "height": 1.71,
+      "job": "glassmaker",
+      "work": [
+        "glassworks"
+      ],
+      "subject": "Woman glassmaker,44, lightly freckled fair skin, mature focused face, compact cyan bob tucked above collar. Magenta plain long-sleeved work tunic, dark-brown leather protective apron, narrow brown trousers, sturdy brown boots. One hand holds a SMALL translucent amber glass bottle by its neck at waist, other hand carries a short neutral iron forming tool vertically close to torso. No long blowpipe, no kiln, no flame, no goggles or modern equipment. Bottle is amber honey with ivory highlights, never cyan.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian craft worker for an age-of-sail Caribbean-inspired town. Attached Astrid reference is ONLY for fine Japanese anime pixel-art style, discrete shaded clusters, clean dark stair-step contours and readable anatomy; do not copy her face, captain coat or military outfit. Tall portrait white canvas. Compact three-quarter standing pose facing SCREEN RIGHT (nose points right), complete head, both hands/fingers and both feet visible with generous blank margins. Narrow silhouette suitable for96x192 game cell with164px body height: no outstretched elbows, no oversized props, all props held near waist/torso and above knees, nothing beside the feet. ALL hair and eyebrows pure CYAN #00BCD4 with cyan-only shading. Short compact hair, entirely in top30% of the figure. MAIN coloured garment MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, ivory linen, brown leather/wood, neutral tools. No cyan or magenta reflections/spots on skin, eyes, lips, accessories or props; no makeup. Pure solid white background, no scenery, shadow, ground plane, labels, lettering, border or checkerboard. Refined proportional adult, not chibi or modern fashion. Woman glassmaker,44, lightly freckled fair skin, mature focused face, compact cyan bob tucked above collar. Magenta plain long-sleeved work tunic, dark-brown leather protective apron, narrow brown trousers, sturdy brown boots. One hand holds a SMALL translucent amber glass bottle by its neck at waist, other hand carries a short neutral iron forming tool vertically close to torso. No long blowpipe, no kiln, no flame, no goggles or modern equipment. Bottle is amber honey with ivory highlights, never cyan.",
+      "original": "RawImages/meadow_resident_glassmaker_f_01_keyed_v1.png",
+      "original_sha256": "9444cef236a36895a682f91a49d9c3ba0bee98faa124e78865b2207ba2398add",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-489ed4ef-b74d-41d7-a2aa-7c3f70081086.png"
+    },
+    {
+      "key": "soapmaker_f_01",
+      "name": "碧雅",
+      "years": 51,
+      "height": 1.63,
+      "job": "soapmaker",
+      "work": [
+        "soapworks"
+      ],
+      "subject": "Woman soap maker,51, medium brown skin, round mature face with subtle age lines, compact cyan hair in a short rolled bun above collar. Magenta long-sleeve work dress with simple ivory linen apron, practical brown shoes. Both hands hold a SMALL shallow rectangular wooden soap mold close at waist with three matte pale-ivory rectangular soap bars, clearly solid soap not food. No bubbles, no water bucket, no text or stamps. Calm friendly practical worker.",
+      "prompt": "Use case: stylized-concept. ONE full-body adult female civilian craft worker for an age-of-sail Caribbean-inspired town. Attached Astrid reference is ONLY for fine Japanese anime pixel-art style, discrete shaded clusters, clean dark stair-step contours and readable anatomy; do not copy her face, captain coat or military outfit. Tall portrait white canvas. Compact three-quarter standing pose facing SCREEN RIGHT (nose points right), complete head, both hands/fingers and both feet visible with generous blank margins. Narrow silhouette suitable for96x192 game cell with164px body height: no outstretched elbows, no oversized props, all props held near waist/torso and above knees, nothing beside the feet. ALL hair and eyebrows pure CYAN #00BCD4 with cyan-only shading. Short compact hair, entirely in top30% of the figure. MAIN coloured garment MAGENTA #C2185B with magenta-only shading. Natural skin, brown eyes, ivory linen, brown leather/wood, neutral tools. No cyan or magenta reflections/spots on skin, eyes, lips, accessories or props; no makeup. Pure solid white background, no scenery, shadow, ground plane, labels, lettering, border or checkerboard. Refined proportional adult, not chibi or modern fashion. Woman soap maker,51, medium brown skin, round mature face with subtle age lines, compact cyan hair in a short rolled bun above collar. Magenta long-sleeve work dress with simple ivory linen apron, practical brown shoes. Both hands hold a SMALL shallow rectangular wooden soap mold close at waist with three matte pale-ivory rectangular soap bars, clearly solid soap not food. No bubbles, no water bucket, no text or stamps. Calm friendly practical worker.",
+      "original": "RawImages/meadow_resident_soapmaker_f_01_keyed_v1.png",
+      "original_sha256": "b536961c85985f5688a16028aa8ce0d1e0b64828a2aed21a9913f420ca23741a",
+      "generated_source": "C:\\Users\\Tim\\.codex\\generated_images\\01a17a88-8135-72c3-9632-9b001069c6e2\\exec-b0d96e90-799d-42e2-952e-18a7d8fa4f0f.png"
+    }
+  ]
+}
