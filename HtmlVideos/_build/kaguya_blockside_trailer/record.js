@@ -26,9 +26,15 @@ if (TR_REC) {
 
 function trRecPost(kind, body, q) {
   var url = '/rec/' + kind + (q ? '?' + Object.keys(q).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).join('&') : '');
-  var p = fetch(url, { method: 'POST', body: typeof body === 'string' ? body : body instanceof Uint8Array ? body : JSON.stringify(body) })
-    .then(function (r) { if (!r.ok) throw new Error('record.py 回 ' + r.status + '（' + url + '）'); })
-    .catch(function (e) { TR_REC.err = TR_REC.err || String(e); });
+  var data = typeof body === 'string' ? body : body instanceof Uint8Array ? body : JSON.stringify(body);
+  //   連線一時被打回來（Failed to fetch）⇒ 退避重送最多 6 次（record.py 照片段序號去重 ⇒ 回應掉了、其實收到了也不會重複寫）
+  //   ⛔ 一次失敗就整支作廢：2026-10-28 第一次錄整支斷在城建好之後的半路
+  function send(k) {
+    return fetch(url, { method: 'POST', body: data })
+      .then(function (r) { if (!r.ok) throw new Error('record.py 回 ' + r.status + '（' + url + '）'); })
+      .catch(function (e) { if (k >= 6 || !(e instanceof TypeError)) throw e; TR_REC.retry = (TR_REC.retry || 0) + 1; return trRecSleep(200 * Math.pow(2, k)).then(function () { return send(k + 1); }); });
+  }
+  var p = send(0).catch(function (e) { TR_REC.err = TR_REC.err || String(e); });
   TR_REC.inflight.push(p);
   return p;
 }
@@ -82,6 +88,14 @@ async function trRecRun() {
     if (R.err) throw new Error(R.err);
     var t = t0 + k / fps, A = trAt(t);
     var cut = TR.cur !== A.i || A.n < TR.k;
+    // 城（TASK-0750 旱地行舟）：換進有城的那一幕 ⇒ 跟播放同一條（director.js trFrame）：先開這一幕（第 0 步）、照遊戲那一套往前建到城建完，才預跑、開錄
+    //   ⛔ 不等 ⇒ 錄影不經過 trFrame、沒人推城 ⇒ 錄到城一塊塊冒出來、樹與地形缺塊（2026-10-28 讀程式看到的）
+    if (cut && trTownScene(A.sc)) {
+      trStepTo(A.i, 0, 0);
+      var tw = performance.now(), nw = 0;
+      while (!trTownSettled()) { trTownPump(); trDraw(trAt(A.sc.t0)); nw++; await trRecYield(); if (R.err) throw new Error(R.err); }
+      trRecLog('城建好了：' + nw + ' 格、' + ((performance.now() - tw) / 1000).toFixed(1) + ' 秒');
+    }
     // 換幕：重開＋預跑不出聲（跟播放同一條：director.js trFrame）
     if (cut) { R.cap = false; TR.live = false; trStepTo(A.i, Math.min(A.n, A.sc.warp ? trPreSteps(A.sc) : Math.floor(A.sc.pre / DT + 1e-6)), 0); }
     R.t = t; R.cap = true; TR.live = true;
@@ -110,7 +124,7 @@ async function trRecRun() {
   }
   await enc.flush(); enc.close();
   await trRecDrain(0);
-  trRecLog('畫面完成：' + n + ' 格、' + ((performance.now() - tStart) / 60000).toFixed(1) + ' 分；音效事件 ' + R.sfx.length + '、環境音 ' + R.amb.length + ' 筆');
+  trRecLog('畫面完成：' + n + ' 格、' + ((performance.now() - tStart) / 60000).toFixed(1) + ' 分；音效事件 ' + R.sfx.length + '、環境音 ' + R.amb.length + ' 筆；POST 重送 ' + (R.retry || 0) + ' 次');
   var au = await trRecAudio(t0, t1);
   await trRecDrain(0);
   await trRecPost('done', { frames: n, fps: fps, w: W, h: H, t0: t0, t1: t1, vcodec: cfg.codec, audio: au, sfx: R.sfx.length, amb: R.amb.length, err: R.err });

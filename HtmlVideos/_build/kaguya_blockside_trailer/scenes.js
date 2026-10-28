@@ -2,8 +2,9 @@
 // Tim 2026-10-18：「可以安排多個場景 然後有歷史的厚重&魔法的神秘(魔法船)」「可以的話 讓所有船都出場」「儘可能在影片中展現遊戲各種特色(包含體素破壞 進水模擬 撞擊傷害等)」
 //   「加上一些歷史故事介紹」「時長可以拉長一些」「例如南北戰爭的海戰」「船的演化」「船的各種資訊介紹(六分儀」「帆的發明」「各種船隻的專有名詞等 帶點科普教育意義」
 //   「黑船打開日本國門」「造船的取材(需要用原本就彎曲的木材造彎曲部分才有足夠強度)」「獎帆船與拜占庭的覆滅」
-// 九段：開場（先打一場：憲法號對餘燼號）→ 序幕（沒有船：帆的發明、最早的海戰、三列槳座戰船、烏鴉 —— 放映時背景把十七艘全部載好）→ 一、槳與帆 → 二、風帆的極致 → 三、蒸汽與鐵 → 四、1862 漢普頓錨地 → 五、每一格都算數（引擎）→ 六、傳說與魔法 → 七、全艦隊與片名。
-// 十七艘一艘不漏（持火號、皇家號、收穫號、三叉戟號、憲法號、拿破崙號、蘇士奎哈納號、光榮號、維吉尼亞號、莫尼特號、哨兵號、炎羽號、餘燼號、夜隼號、風暴角號、潮墓號、夜燈號）。
+// 九段：開場（先打一場：憲法號對餘燼號）→ 序幕（蓬特號：帆的發明；接著沒有船：最早的海戰、三列槳座戰船、烏鴉 —— 放映時背景把其餘的船全部載好）→ 一、槳與帆 → 二、風帆的極致 → 三、蒸汽與鐵 → 四、1862 漢普頓錨地 → 五、每一格都算數（引擎）→ 六、傳說與魔法 → 七、全艦隊與片名。
+// 十九艘一艘不漏（蓬特號、持火號、越嶺號、皇家號、收穫號、三叉戟號、憲法號、拿破崙號、蘇士奎哈納號、光榮號、維吉尼亞號、莫尼特號、哨兵號、炎羽號、餘燼號、夜隼號、風暴角號、潮墓號、夜燈號）；
+//   全艦隊那一幕還是原本的十七艘（蓬特號、越嶺號 2026-10-28 加進來，各有自己那一幕）。
 //   出自十三位雕刻者（遊戲 config/game.json 的 ships[].author，2026-10-19 數：basecamp 三艘、summit 兩艘、meadow 兩艘，其餘一人一艘）；每一位都要在畫面上署名一次（炎羽號 kiara 只在撞角那幕出場 ⇒ 寫在代演那行）。
 // 史實：各作品的研究檔（Sculpture/works/<作品>/references、notes.md）寫的照寫；研究檔沒有的只寫公認、確定的（年份、事件），沒把握的數字不寫。
 //   代演：歷史場面裡由別艘船演的，畫面上寫明（坎伯蘭號 ← 炎羽號、國會號 ← 憲法號）；導演直接動手的也寫明（trNote），之後怎麼演變都交給遊戲算：
@@ -103,7 +104,7 @@ function trScenes() {
   function hist(o) {
     var h = o.h;
     return trAdd({ id: o.id, dur: o.dur, seed: o.seed, wx: o.wx || 'clear', wind: o.wind || trWind(h, o.wOff, o.wS), mode: o.mode || 'sandbox', pre: o.pre === undefined ? 1.0 : o.pre,
-      phx: o.phx, map: o.map, townAt: o.townAt, clear: o.clear, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
+      phx: o.phx, map: o.map, townAt: o.townAt, clear: o.clear, chain: o.chain, dist: o.dist, gap: o.gap, autoFire: o.autoFire, cmd: o.cmd, rate: o.rate, warp: o.warp, lead: o.lead, over: o.over, era: o.era, portWant: o.portWant, ports: o.ports, needAll: o.needAll,
       fleet: o.fleet || one(o.hull, h, o.ext), look: o.look, year: o.year, marks: o.marks, cut: o.cut, cues: o.cues, setup: o.setup, fadeIn: o.fadeIn, fadeOut: o.fadeOut, black: o.black, fx: o.fx,
       cam: o.cam,
       cap: function (g, u, tau, S, sc) {
@@ -130,8 +131,27 @@ function trScenes() {
     note: '遊戲裡的對戰（虛構）',
     cap2: function (g, u) { trLine(g, '每一發砲彈、每一塊木屑，都是遊戲當下算出來的。', trFade(u, 5.4, 9.6, 0.6), TR_CH * 0.80); } });
 
+  // ═════ 蓬特號（TASK-0750；Tim 2026-10-28：「另外目前有埃及船了 開頭可以放彭特號」）═════
+  //   序幕的第一句（尼羅河上第一次把布掛上桅杆）搬過來配這艘：apex-one 的蓬特號（Sculpture apex-one-punt-01m，研究檔 notes.md）——
+  //   原型是哈特謝普蘇特神廟（Deir el-Bahari）的蓬特遠征浮雕（約西元前 1470 年），數字照全尺寸復原船 Min of the Desert（2008）：
+  //   一面寬帆（上下兩根帆桁）、兩舷 30 支槳、船尾兩支舵槳；沒有龍骨 ⇒ 一條粗繩從船頭拉到船尾、架在叉柱上撐住兩頭（hogging truss）。
+  //   載回的貨（沒藥樹、黑檀、象牙）是浮雕上刻的、公認的；研究檔沒有的數字不寫。年代軸從 880 年起 ⇒ 不給 year（西元前的年份會被夾到最左邊）。
+  //   船跟開場那兩艘一起在封面載好（director.js trBoot：序幕之前每一幕的船）⇒ 按 ▶ 之後不用停下來等。
+  var hU = trSunAz(GOLD_SUN) - PI / 2 + 0.3, DU = 13;
+  //   預跑 6 秒：帆從收著放到張滿要好幾秒（⛔ 1.5 ⇒ 開場那幾秒帆腳還捲在半空，第一版截到）
+  hist({ id: 'punt', dur: DU, seed: 1470, h: hU, wind: trWind(hU, 0.5, 0.7), pre: 6, hull: 'punt', ext: { tele: 2, sail: 1 }, look: L(TR_LOOK.gold, GOLD_SUN),
+    cam: function (u, tau, S) { return trAbove(trRel(S[0], trK2(u, DU, -2.45, -1.55), trK2(u, DU, 0.07, 0.12), trK2(u, DU, 30, 24), 3)); },   // 船尾斜後方 → 正橫，太陽在鏡頭背後照著船身（⛔ 另一舷 ⇒ 太陽在畫面裡、船身整片背光，第一版截到）
+    yl: '約西元前 1470 年 · 古埃及', name: '蓬特號', line: '一面寬帆、兩舷三十支槳、船尾兩支舵槳', by: BY('apex-one'), lowAt: 5.2, storyAt: 5.8,
+    story: ['哈特謝普蘇特女王的船隊南下「蓬特之地」，', '載回沒藥樹、黑檀與象牙 —— 這趟遠航刻在她的神廟牆上。'],
+    term: { zh: '撐船索', en: 'hogging truss', def: ['船沒有龍骨，懸在水外的兩頭會往下垂；', '一條粗繩從船頭拉到船尾、架在叉柱上撐住。'] }, termAt: 6.6,
+    cap2: function (g, u) {
+      trLine(g, '約五千年前，尼羅河上，有人第一次把布掛上了桅杆。', trFade(u, 0.8, 4.9, 0.6), TR_CH * 0.78);
+      trLine(g, '從此，人類借著風，去了遠方。', trFade(u, 2.3, 4.9, 0.6), TR_CH * 0.84);
+    } });
+
   // ═════ 序幕：沒有船（Tim 2026-10-19：「開頭播一段科普 不用船隻的 趁這段時間載入第一幕的船隻」「那或是在一開頭就載入全部 … 可以多加一些科普內容在開頭」）═════
-  //   只有海＋會動的插圖；十七艘全部在這一幕載好、熱身完（序幕之後那一幕 needAll）⇒ 之後整支片不再載船。2026-10-19 量：冷載全部 ~20 秒＋熱身 ~5 秒 ⇒ 31 秒。
+  //   只有海＋會動的插圖；其餘的船全部在這一幕載好、熱身完（序幕之後那一幕 needAll）⇒ 之後整支片不再載船。2026-10-19 量：冷載全部 ~20 秒＋熱身 ~5 秒 ⇒ 31 秒。
+  //   2026-10-28：第一句（帆的發明）搬到前面蓬特號那一幕，這裡換成接到海戰的兩句；長度不變（載船的時間不縮）。
   //   史實（沒把握的數字不寫）：薩拉米斯海戰 西元前 480 年；三列槳座戰船每舷上中下 31／27／27 支槳、約 170 名槳手、船首包銅撞角；米列海戰 西元前 260 年，羅馬人的「烏鴉」吊橋。
   var hP = trSunAz(DUSK_SUN), DP = 31;
   trAdd({ id: 'prologue', free: true, dur: DP, seed: 3000, wind: trWind(hP, 2.4, 0.55), mode: 'sandbox', pre: 0.5, fadeIn: 0, fadeOut: 0, fleet: [], look: L(TR_LOOK.dusk, DUSK_SUN),
@@ -141,8 +161,8 @@ function trScenes() {
     },
     black: function (u) { return Math.max(1 - trSmooth(0, 1.6, u), trSmooth(DP - 0.7, DP, u)); },
     cap: function (g, u) {
-      trLine(g, '約五千年前，尼羅河上，有人第一次把布掛上了桅杆。', trFade(u, 0.8, 4.9, 0.6), TR_CH * 0.46);
-      trLine(g, '從此，人類借著風，去了遠方。', trFade(u, 2.3, 4.9, 0.6), TR_CH * 0.54);
+      trLine(g, '船載得了貨，也載得了兵。', trFade(u, 0.8, 4.9, 0.6), TR_CH * 0.46);   // 帆的發明搬到蓬特號那一幕；這裡接到海戰
+      trLine(g, '海上，很快就有了戰爭。', trFade(u, 2.3, 4.9, 0.6), TR_CH * 0.54);
       trLine(g, '約西元前 1175 年，埃及神廟的牆上刻下了一場海戰：', trFade(u, 5.4, 9.9, 0.6), TR_CH * 0.46);
       trLine(g, '法老拉美西斯三世的船隊，迎戰「海上民族」。', trFade(u, 6.7, 9.9, 0.6), TR_CH * 0.54);
       trTrireme(g, u - 10.4, trFade(u, 10.4, 18.0, 0.6), TR_CW * 0.46, TR_CH * 0.45, 1);   // 名詞卡在右上 ⇒ 插圖放低一點（底板上緣 ≥ 卡片下緣）
@@ -247,7 +267,8 @@ function trScenes() {
   //     同一幕接下去（⛔ 另開一幕 ⇒ 模擬重開、浪照 SIMT 算 ⇒ 換幕那一格整片浪跳一下；鏡頭當時離水面 18 m 看得出來）⇒ 以前的「1453 君士坦丁堡陷落」（持火號往霧裡退去）併進來當結尾。
   //     最後一艘划進金角灣 → 升起、沿金角灣往東南（左加拉塔、右君士坦丁堡的海牆）→ 半島尖端的聖索菲亞與競技場；天色從晴轉黃昏。
   //     地標的位置（世界 ＝ 海域 − 原點；城的規劃 2026-10-28 匯出）：聖索菲亞 (−442, 3114)、競技場 (−833, 3447)、加拉塔塔 (−914, 1237)。
-  var HD = 28, HF = 16;
+  //   2026-10-28 加灣口的巨鏈：飛越那一段 16 → 19 秒，中間降到離鏈約 90 m、順著鏈往海角看（⛔ 照原本的路線離鏈 780 m ⇒ 一根浮木在畫面上不到 4 個像素，第一版截到）
+  var HD = 28, HF = 19;
   var HL0 = L(Object.assign({}, TR_LOOK.gold, { fog: 0.0006 }), GOLD_SUN), HL1 = L(Object.assign({}, TR_LOOK.dusk, { fog: 0.0008 }), DUSK_SUN);
   function gnd(x, z, h) { return [x, Math.max(0, bedHgt(x, z)) + h, z]; }
   //   天色：金黃但霧淡（山脊上要看得到金角灣對岸的君士坦丁堡，約 3 km；gold 的霧 0.0017 ⇒ 1.5 km 外一片黃）
@@ -256,24 +277,28 @@ function trScenes() {
   hist({ id: 'haul', dur: HD + HF, seed: 1453, h: 0, wind: [200, 0.9], pre: 0.5, year: 1453,
     look: function (u) { var o = trLookMix(HL0, HL1, 0.65 * trSmooth(HD + 2, HD + 12, u)); o.sunDir = norm(o.sunDir); return o; },   // 黃昏只轉六成五（整個轉過去 ⇒ 城整片背光、聖索菲亞看不清楚）
     map: { area: 'goldenhorn', at: [2941, 1457] }, townAt: [-700, 900], clear: { path: HP, w: 22 },
+    //   灣口的巨鏈（director.js trChainDraw）：君士坦丁堡規劃的 chains「horn-chain」（城的座標 [2408.94, −36.48] → [1990.65, −714.09]；海域 ＝ (ox ＋ kx·x, oy ＋ y)，ox 251.85、oy 3758.36、kx 0.9994837）
+    //     ⇒ 世界：南端 Kentenarion 塔（Eugenius 塔）(−281.45, 2264.88) → 北端加拉塔堡（Kastellion）(−699.53, 1587.27)，約 796 m
+    chain: { a: [-281.45, 2264.88], b: [-699.53, 1587.27] },
     fleet: [haul(40, 0.6), haul(450, 0.6), haul(1000, 0.6), haul(2000, 0.6), haul(3323, 1.5, 1)],
     // 一鏡到底（Tim 2026-10-28「可以試著用運鏡轉場(在同一個海域情況下)」）：雙柱岸邊 → 爬坡 → 山脊上看金角灣 → 高飛下谷 → 最後一艘滑進金角灣
     cam: function (u, tau, S) {
       var E = [[0, rel(S[0], 60, 35, 25)], [5, rel(S[0], 30, -45, 35)], [9, rel(S[1], 20, 60, 45)], [13, rel(S[1], 70, 30, 55)],
                [16.5, rel(S[2], -40, 15, 12)], [20, rel(S[2], 350, 60, 160)], [24, rel(S[4], -90, 70, 55)], [HD, rel(S[4], 50, 55, 18)],
-               [HD + 3, [-1900, 70, 560]], [HD + 7, [-1550, 150, 1150]], [HD + 11, [-950, 230, 1850]], [HD + HF, [-760, 140, 2830]]];   // 最後停在聖索菲亞西北（夕陽那一側）約 430 m
+               [HD + 3, [-1900, 70, 560]], [HD + 7, [-1550, 150, 1150]], [HD + 11, [-645, 40, 1847]], [HD + HF, [-760, 140, 2830]]];   // HD + 11：鏈上離北端 250 m 那一點往西 90 m；最後停在聖索菲亞西北（夕陽那一側）約 430 m
       //   注視點照 trKey（每兩格之間 smoothstep）、在鏡頭離兩艘都還遠的時候就換到下一艘
       //   ⛔ 注視點也走 Catmull-Rom ⇒ 從一艘換到下一艘時注視點掃過鏡頭身邊、方向亂甩（2026-10-28：第 8 秒船投影在畫面外 x 3512；方向另外內插也還有過衝）
       var K = [[0, rel(S[0], -10, 0, 2)], [4.5, rel(S[0], 0, 0, 3)], [6.5, rel(S[1], 0, 0, 3)], [12, rel(S[1], -10, 0, 0)],
                [14.5, rel(S[2], 300, 0, -45)], [17.5, rel(S[2], 600, 0, -55)], [19.5, rel(S[2], 1500, -300, -80)], [22, rel(S[4], 0, 0, 2)], [HD, rel(S[4], 0, 0, 2)],
-               [HD + 3, [-1300, 10, 1250]], [HD + 7, [-700, 30, 1900]], [HD + 11, [-480, 50, 3000]], [HD + HF, [-560, 30, 3200]]];
+               [HD + 3, [-1300, 10, 1250]], [HD + 7, [-700, 30, 1900]], [HD + 11, [-330, 0, 2190]], [HD + 15, [-480, 50, 3000]], [HD + HF, [-560, 30, 3200]]];   // HD + 11：順著鏈看到南端（海角）
       var e = trSpline(E, u), g = Math.max(seaH(e[0], e[2], SIMT), bedHgt(e[0], e[2])) + 3; if (e[1] < g) e[1] = g;   // 鏡頭別鑽進山裡
       return { eye: e, look: trKey(K, u), fov: 0.85 };
     },
     //   標籤：加拉塔塔在第 29.5～33 秒（塔在畫面中間偏左、標題在正中 ⇒ 往左上拉）；聖索菲亞往左上、競技場往右上（⛔ 第一版兩個都往同一邊 ⇒ 字疊在一起）
     marks: [{ at: function () { return gnd(-914, 1237, 55); }, zh: '加拉塔塔', en: 'Galata Tower', a: HD + 1.5, b: HD + 5, dx: -190, dy: -90 },
-            { at: function () { return gnd(-442, 3114, 50); }, zh: '聖索菲亞大教堂', en: 'Hagia Sophia', a: HD + 10, b: HD + HF - 0.2, dx: -200, dy: -170 },
-            { at: function () { return gnd(-833, 3447, 8); }, zh: '競技場', en: 'Hippodrome', a: HD + 11.5, b: HD + HF - 0.2, dx: 190, dy: -130 }],
+            { at: function () { return [-437.0, 1.5, 2012.8]; }, zh: '金角灣巨鏈', en: 'the Great Chain', a: HD + 7.8, b: HD + 12.2, dx: 170, dy: -120 },   // 鏈上離北端 500 m 那一點（⛔ 300 m：HD + 11 鏡頭轉向海角時跑出畫面左邊）
+            { at: function () { return gnd(-442, 3114, 50); }, zh: '聖索菲亞大教堂', en: 'Hagia Sophia', a: HD + 12.8, b: HD + HF - 0.2, dx: -200, dy: -170 },
+            { at: function () { return gnd(-833, 3447, 8); }, zh: '競技場', en: 'Hippodrome', a: HD + 14.0, b: HD + HF - 0.2, dx: 190, dy: -130 }],
     term:{ zh: '金角灣', en: 'Golden Horn', def: ['君士坦丁堡北邊的海灣。', '1453 年灣口拉著一道鐵鏈，船進不去。'] }, termAt: 20.5, termEnd: HD - 0.4,
     cap2: function (g, u) {
       trTag(g, '旱地行舟', 'ships over land', trFade(u, 0.4, HD - 0.4, 0.4));
@@ -292,9 +317,12 @@ function trScenes() {
       trTitle(g, '1453', '君士坦丁堡陷落', trFade(u, HD + 1.2, HD + 7.6, 0.6), TR_CH * 0.36);
       trLine(g, '5 月 29 日，城破。', trFade(u, HD + 2.4, HD + 7.6, 0.6), TR_CH * 0.66);
       trLine(g, '延續千年的東羅馬帝國，在這一年結束。', trFade(u, HD + 3.6, HD + 7.6, 0.6), TR_CH * 0.73);
-      trStory(g, ['聖索菲亞大教堂建成於 537 年；城破之後，改成了清真寺。', '這兩座城照 1453 年的史料復刻：君士坦丁堡與加拉塔。'], u, HD + 8.6, HD + HF - 0.3);
+      // 出處：城的規劃 horn-chain —— floats（Barbaro 4 月 2 日：粗大圓木與鐵件連接、浮在水上）、note（南端 Eugenius 塔、北端加拉塔堡）
+      trStory(g, ['灣口這道鐵鏈，從君士坦丁堡拉到對岸的加拉塔；', '艦隊從海上進不去 —— 才有了翻山的那一著。'], u, HD + 8.0, HD + 12.4);
+      trStory(g, ['聖索菲亞大教堂建成於 537 年；城破之後，改成了清真寺。', '這兩座城照 1453 年的史料復刻：君士坦丁堡與加拉塔。'], u, HD + 12.8, HD + HF - 0.3);
       // 署名（每一位都在畫面上署名一次）：城的模型照 Blocksail townkit 索引的 work 數，2026-10-28：kaguya 102、summit 18、trailhead 5、crest 4、meadow 2、ame 2、gura 1
-      trNote(g, '城的建築（雕刻）：kaguya、summit、trailhead、crest、meadow、ame、gura', trFade(u, HD + 8.6, HD + HF - 0.3, 0.4));
+      trNote(g, '灣口的鐵鏈由導演畫（遊戲還沒有這一項）：浮木以鐵件頭尾相接（Barbaro）', trFade(u, HD + 8.0, HD + 12.4, 0.4));   // 鏡頭離鏈最近那幾秒
+      trNote(g, '城的建築（雕刻）：kaguya、summit、trailhead、crest、meadow、ame、gura', trFade(u, HD + 12.8, HD + HF - 0.3, 0.4));
     } });
 
   // ═════ 一、槳與帆 ═════
@@ -743,10 +771,10 @@ function trScenes() {
     return { at: at, tune: tune, from: from, to: from + L, loops: Math.ceil((from + L) / pl) + 1, fin: o.fin || 0.8, fout: o.fout || 0.8, gain: o.gain || 1 };
   }
   TR_SCORE = [
-    { at: T.hook + 0.1, tune: 'nightlamp', from: 20.857, to: 20.857 + T.prologue - T.hook + 0.4, fin: 0.3, fout: 1.4, gain: 1.0 },   // 開場：片尾那一段主題（頭尾呼應）
+    { at: T.hook + 0.1, tune: 'nightlamp', from: 20.857, to: 20.857 + T.punt - T.hook + 0.4, fin: 0.3, fout: 1.4, gain: 1.0 },   // 開場：片尾那一段主題（頭尾呼應）
     { at: T.hook + 0.83, hit: 1, v: 1.1, f0: 60, f1: 28, len: 2.4 }, { at: T.hook + 4.0, hit: 1, v: 1.1, f0: 60, f1: 28, len: 2.4 },   // 兩輪齊射（模擬 τ 1.5、3.4 ⇒ 慢動作 0.6 倍）
-    { at: T.prologue + 0.2, bell: 147, v: 0.9 },
-    { at: T.prologue + 0.6, pad: [38, 45, 50], len: T['open-dromon'] - T.prologue - 0.8, v: 0.42, fin: 3, fout: 1.6, inst: 'drone' },   // 序幕：伊頌那種持續音（沒有船、只有海）
+    { at: T.punt + 0.2, bell: 147, v: 0.9 }, { at: T.prologue + 0.2, bell: 147, v: 0.6 },
+    { at: T.punt + 0.6, pad: [38, 45, 50], len: T['open-dromon'] - T.punt - 0.8, v: 0.42, fin: 3, fout: 1.6, inst: 'drone' },   // 蓬特號＋序幕：伊頌那種持續音（古埃及沒有留下能照著奏的樂譜 ⇒ 不配曲）
     { at: T.prologue + 10.4, bell: 196, v: 0.4 }, { at: T.prologue + 18.6, bell: 196, v: 0.4 }, { at: T.prologue + 26.1, bell: 147, v: 0.5 },   // 序幕換一段（三列槳座、烏鴉、希臘火）
     seg('methimon', T['open-dromon'] - 1.2, T.haul + HD, { x: 0, fin: 2.0, fout: 1.0 }),   // 旱地行舟的拖船段照舊東羅馬聖詠
     { at: T['open-dromon'] + 1.2, hit: 1, v: 0.9, f0: 60, f1: 30, len: 2.2 },

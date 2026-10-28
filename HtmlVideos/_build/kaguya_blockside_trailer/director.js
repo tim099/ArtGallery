@@ -316,6 +316,66 @@ function trHaulersDraw(P, F, eye, fogD, clock) {
 }
 var trSail1 = sailShip;
 sailShip = function (sh, h) { if (TRAILER && sh.trHaul && sh.trHaul.land) trHaulPose(sh); return trSail1(sh, h); };
+
+// ── 金角灣巨鏈（TASK-0750）：遊戲只把規劃裡的 chains 記下來（Blocksail world/town.js，TASK-0748）、不畫 ⇒ 導演畫灣口那一道（sc.chain：兩端 a、b，世界座標 [x, z]）。
+//   樣子照 Barbaro（1453 年 4 月 2 日）：粗大的圓木用鐵件頭尾接起來、浮在水上 ⇒ 一根根浮木（碎片的長板形狀繞長軸轉四個角度疊成一根 ≈ 圓木）＋ 兩根之間幾節鐵環（小方塊）。
+//   浮木照那一刻的浪高擺（seaH：兩頭的高低差 ⇒ 前後傾）⇒ 跟著浪起伏、同一個 t 同一格；岸上那一段（地面不在水下）鐵鏈沿地面拉到兩端的塔腳。
+//   畫法：碎片的著色器 P.deb（方塊實例 ＝ 位置＋大小、四元數、色＋形狀）、自己一份 VAO 與緩衝（⛔ 不動遊戲的 DEBBUF）；掛在 drawCrew 後面 ⇒ 只畫主畫面（不投影、不進反射）。
+var TR_CHAIN_LOG = 5.5, TR_CHAIN_GAP = 1.5, TR_CHAIN_LINK = 0.5;         // 浮木長（形狀 3 的長板 4.6 × 0.8 × 0.25 ⇒ ×1.2：寬 0.96 m）、兩根之間的鐵件長、一節鐵環
+var TR_CHAIN_WOOD = 68 + 3 * 256, TR_CHAIN_IRON = 36;                    // 色（碎片的 8 位元色：紅 3 位、綠 3 位、藍 2 位）＋形狀（256 以上）：泡過水的深色木頭（長板）、黑鐵（方塊）
+//   ⛔ 灰褐（141）：黃昏時跟被夕陽照亮的水面同一個色，150 m 外就看不見（2026-10-28 第一版截到）
+var TRCH = { vao: null, buf: null };
+function trChainGL() {
+  var F = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], V = [], I = [];   // 方塊：同 60_render.js 碎片那一份
+  F.forEach(function (n, fi) {
+    var a = n[0] ? 0 : n[1] ? 1 : 2, u = (a + 1) % 3, w = (a + 2) % 3;
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c) { var p = [0, 0, 0]; p[a] = n[a] * 0.5; p[u] = c[0] * 0.5; p[w] = c[1] * 0.5; V.push(p[0], p[1], p[2], n[0], n[1], n[2]); });
+    var b = fi * 4; if (n[a] > 0) I.push(b, b + 1, b + 2, b, b + 2, b + 3); else I.push(b, b + 2, b + 1, b, b + 3, b + 2);
+  });
+  TRCH.vao = gl.createVertexArray(); gl.bindVertexArray(TRCH.vao);
+  var vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(V), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+  var ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(I), gl.STATIC_DRAW);
+  TRCH.buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, TRCH.buf);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 36, 0); gl.vertexAttribDivisor(2, 1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 4, gl.FLOAT, false, 36, 16); gl.vertexAttribDivisor(3, 1);
+  gl.enableVertexAttribArray(4); gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 36, 32); gl.vertexAttribDivisor(4, 1);
+  gl.bindVertexArray(null);
+}
+/** 四元數相乘（x, y, z, w）：a·b ＝ 先轉 b 再轉 a。 */
+function trQMul(a, b) { return [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0], a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]]; }
+/** 鏈的那一格實例：（長軸）方位 yq（繞 y）、前後傾 p（繞 z，長軸往上）、繞長軸轉 r。 */
+function trChainPut(A, x, y, z, w, yq, p, r, col) {
+  var q = trQMul(yq, trQMul([0, 0, Math.sin(p / 2), Math.cos(p / 2)], [Math.sin(r / 2), 0, 0, Math.cos(r / 2)]));
+  A.push(x, y, z, w, q[0], q[1], q[2], q[3], col);
+}
+function trChainDraw() {
+  var sc = TR.cur >= 0 ? TR.S[TR.cur] : null, C = sc && sc.chain; if (!C || !P.deb) return;
+  var a = C.a, b = C.b, L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L, A = [], s, w0 = -1, w1 = -1;
+  var yq = [0, Math.sin(Math.atan2(-uz, ux) / 2), 0, Math.cos(Math.atan2(-uz, ux) / 2)];
+  function X(s) { return a[0] + ux * s; } function Z(s) { return a[1] + uz * s; }
+  for (s = 0; s <= L; s += 1) if (bedHgt(X(s), Z(s)) < -0.8) { if (w0 < 0) w0 = s; w1 = s; }   // 水上那一段（地面在水面 0.8 m 以下）
+  if (w0 < 0) return;
+  function link(s0, s1, yOf) { for (var t = s0; t < s1; t += TR_CHAIN_LINK) { var m = t + TR_CHAIN_LINK / 2; trChainPut(A, X(m), yOf(m), Z(m), 0.22, yq, 0, 0, TR_CHAIN_IRON); } }
+  function ground(s) { var e = Math.min(s, L - s); return Math.max(bedHgt(X(s), Z(s)), seaH(X(s), Z(s), SIMT)) + 0.15 + 1.8 * Math.max(0, 1 - e / 4); }   // 兩端最後 4 m 往上拉到塔腳
+  var n = Math.max(1, Math.floor((w1 - w0 - 2 + TR_CHAIN_GAP) / (TR_CHAIN_LOG + TR_CHAIN_GAP))), s0 = w0 + 1 + (w1 - w0 - 2 - (n * (TR_CHAIN_LOG + TR_CHAIN_GAP) - TR_CHAIN_GAP)) / 2;
+  link(0, s0, ground);
+  for (var i = 0; i < n; i++) {
+    var p0 = s0 + i * (TR_CHAIN_LOG + TR_CHAIN_GAP), p1 = p0 + TR_CHAIN_LOG, m = (p0 + p1) / 2, h0 = seaH(X(p0), Z(p0), SIMT), h1 = seaH(X(p1), Z(p1), SIMT), pt = Math.atan2(h1 - h0, TR_CHAIN_LOG);
+    for (var k = 0; k < 4; k++) trChainPut(A, X(m), (h0 + h1) / 2 + 0.05, Z(m), TR_CHAIN_LOG / 4.6, yq, pt, k * Math.PI / 4, TR_CHAIN_WOOD);   // 浮木：中心比水面高一點（露出一大半，遠看才看得出一根根）
+    if (i < n - 1) link(p1, p1 + TR_CHAIN_GAP, function (t) { var q = (t - p1) / TR_CHAIN_GAP; return seaH(X(t), Z(t), SIMT) - 0.1 - 0.25 * Math.sin(q * Math.PI); });   // 兩根之間的鐵件：往下垂一點
+  }
+  link(s0 + n * (TR_CHAIN_LOG + TR_CHAIN_GAP) - TR_CHAIN_GAP, L, ground);
+  if (!TRCH.vao) trChainGL();
+  var PD = P.deb, cf = gl.isEnabled(gl.CULL_FACE);
+  gl.useProgram(PD.prog); setCommon(PD); gl.disable(gl.CULL_FACE);
+  gl.bindVertexArray(TRCH.vao); gl.bindBuffer(gl.ARRAY_BUFFER, TRCH.buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(A), gl.DYNAMIC_DRAW);
+  gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, A.length / 9);
+  gl.bindVertexArray(null); if (cf) gl.enable(gl.CULL_FACE);
+  TRCH.n = A.length / 9; TRCH.logs = n; TRCH.wet = [w0, w1, Math.round(L)];   // 讀數（?debug=1：__tr.ev('TRCH')）
+}
+var trCrew0 = drawCrew;
+drawCrew = function () { var r = trCrew0.apply(this, arguments); if (TRAILER) trChainDraw(); return r; };
 var TR_PHX0 = null;
 function trSetup(sc) {
   if (!TR_PHX0) TR_PHX0 = Object.assign({}, PHX);
@@ -443,7 +503,9 @@ function trFrame(ts) {
   if (free && dt > 0.25) dt = Math.min(dt, 1.5);
   else if (dt > 0.25) { if (TR.playing && dt <= 1.4 && !TR.resync && !TR.waitLoad) catchup = true; else { dt = 1 / 60; if (TR.playing) TR.resync = true; } }
   var t = TR.t;
-  if (TR.playing && !TR.waitLoad) t = Math.min(TR.DUR, t + dt);
+  //   等船那幾格照樣往前走（下面缺船的話又拉回上一幕最後一格）：⛔ 等的時候不走 ⇒ 下一格停在上一幕（序幕）、那一幕不缺船 ⇒ 不等、配樂重接，
+  //   再下一格又缺船 ⇒ 一格等一格不等，配樂每兩格重接一次（2026-10-28 整片模擬播放：序幕結尾等船 20 秒重接 119 次）
+  if (TR.playing) t = Math.min(TR.DUR, t + dt);
   var A = trAt(t), prevT = TR.t;
   TR.waitLoad = false;
   // 這一幕的船還沒載好 ⇒ 停在上一幕的最後一格（黑場），右上角寫「載入船隻 n／17」；
@@ -465,6 +527,9 @@ function trFrame(ts) {
     trTownPump();
     if (!trTownSettled()) {
       TR.waitLoad = true; TR.buffering = true; if (TR.playing) TR.resync = true;
+      //   播放中 ⇒ 時鐘停在這一幕的開頭（⛔ 不存 ⇒ 下一格從上一幕的尾巴算、落回上一幕 ⇒ 換幕重算整幕、算不完時鐘倒退，
+      //   一路倒回弩砲那一幕再播回來、永遠進不了旱地行舟 —— 2026-10-28 整片模擬播放量到倒退 8 次）；停著（?t=）⇒ 留在要看的那一秒
+      if (TR.playing) TR.t = A.sc.t0;
       trDraw(trAt(A.sc.t0)); trTownCover(); trUI(); return;
     }
   }
@@ -556,7 +621,11 @@ function trBoot() {
   if (DEBUG) (function gap(prev) { requestAnimationFrame(function (ts) { if (prev && ts - prev > 50) (TR.gapLog = TR.gapLog || []).push([Math.round(ts), Math.round(ts - prev), TR.loadName, TR.loadN]); gap(ts); }); })(0);   // 量：長格（> 50 ms）在載哪一艘時出現
   trScenes();
   var only = TR.wantT !== null ? trSceneIx(Math.min(TR.wantT, TR.DUR)) : undefined;
-  var L = trHulls(only), first = trHulls(only === undefined ? 0 : only);
+  //   封面先載好序幕（第一個 sc.free）之前每一幕的船（開場的對轟、蓬特號）⇒ 按 ▶ 之後到序幕之前都不用停下來等船（播到有船的幕不載：trLoadGate）
+  var pro = TR.S.findIndex(function (s) { return s.free; }), first = [];
+  if (only !== undefined) first = trHulls(only);
+  else TR.S.slice(0, pro > 0 ? pro : 1).forEach(function (s, i) { trHulls(i).forEach(function (h) { if (first.indexOf(h) < 0) first.push(h); }); });
+  var L = trHulls(only);
   TR.loadAll = L.length; TR.loadN = 0;
   if (!first.length) trReady();                                          // 序幕沒有船 ⇒ 引擎好了就能播，持火號在序幕放映時背景載（Tim 2026-10-19）
   hullSay = function (s) { TR.loadStep = s; trUI(); };
