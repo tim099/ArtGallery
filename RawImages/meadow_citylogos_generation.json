@@ -1,0 +1,68 @@
+[
+  {
+    "tier": 1,
+    "prompt": "ONE isolated town map icon, tier 1 of a coherent six-tier population series, tiny age-of-sail Caribbean hamlet under 500 inhabitants. Only TWO modest small ivory plaster cottages with terracotta gabled roofs, one lower timber shed, compact charming asymmetrical group. Pure town buildings themselves, NO circle, badge, border, terrain tile, base, ground plane, trees, water, flags, people, cast shadow, text, lettering or numbers. Refined 16/32-bit pixel art designed for final 128x128 PNG and 40px map use: crisp dark brown stepped outlines, clearly discrete pixel clusters, warm terracotta roofs, cream masonry, rich wood details, subtle upper-left light; three-quarter isometric view. Restrained detail readable at small size, entire building group centered with generous white margins. PURE WHITE #FFFFFF background for removal. Attached bricks image is ONLY a reference for crisp pixel clusters, tactile material shading and outlines, NOT subject matter. Draw architecture independently.",
+    "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-d60ed6cb-a618-4973-bdc6-fd23e1b9ca3b.png",
+    "reference": "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_bricks_master.png",
+    "tool": "built-in image_gen",
+    "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_citylogos_tier1_master.png",
+    "master_sha256": "42f4e20838d2c2b19929c3fc9b8201fe95ecaaed1adde92afc321a2e13711b74",
+    "reference_sha256": "14ea34854d1b79039dc5bcca2ba989454e28ebbe8ec7e7ce08920c0fd87da464",
+    "game_sha256": "7dac03930e71a95240333d280ed5b0cf068838672ca887028f2c5f22154be53a"
+  },
+  {
+    "tier": 2,
+    "prompt": "Generate ONE isolated town icon tier 2: a small age-of-sail Caribbean village of 501-1000 inhabitants, compact FOUR small cream-plaster houses of varied heights around a slightly taller timber-and-plaster meeting house, terracotta roofs. Match attached tier1 town's exact refined pixel-art style, warm palette, upper-left light, three-quarter isometric view, dark stepped outlines and discrete shaded pixel clusters. More developed than tier1 but still a humble low skyline; no tower, walls or monumental buildings. Pure architecture only. NO circle, badge, border, ground/terrain tile, base, trees, water, people, flags, text, numbers or cast shadow. PURE WHITE background, generous margins, centered whole buildings. Designed to downsample crisply to 128x128 and remain readable at40px.",
+    "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-6e43c046-5021-41a9-be1e-9b7a672eeda0.png",
+    "reference": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-d60ed6cb-a618-4973-bdc6-fd23e1b9ca3b.png",
+    "tool": "built-in image_gen",
+    "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_citylogos_tier2_master.png",
+    "master_sha256": "4f380228e526d379a8e83bf4abb67f5ff12084ba5b6b025c5b897a831f972a2c",
+    "reference_sha256": "42f4e20838d2c2b19929c3fc9b8201fe95ecaaed1adde92afc321a2e13711b74",
+    "game_sha256": "342585251ed9608adc9392f3146ff48abf1c01c0cc9dd0e64e614813460dfe0e"
+  },
+  {
+    "tier": 3,
+    "prompt": "ONE isolated town map icon tier3, a growing Caribbean age-of-sail market town 1001-2000 inhabitants. Compact SIX cream-plaster terracotta-roof buildings, central recognizable medium square civic bell tower with red tiled pyramidal roof rising clearly above surrounding two-storey shops. Match attached tier1 icon EXACT pixel-art style/palette/view: refined discrete pixel clusters, crisp dark brown stair-step contours, dimensional cream stone and terracotta roofs, upper-left illumination, isometric three-quarter. Designed for128x128 and40px display, strong taller silhouette distinguishing from humble village. Town architecture ONLY: NO circle, border, badge, ground, base, terrain tile, vegetation, flags, water, people, text or cast shadow. PURE WHITE background, centered group, generous margins, complete silhouette.",
+    "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-c0f3332a-1515-4ba5-9287-78423de7a01c.png",
+    "reference": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-d60ed6cb-a618-4973-bdc6-fd23e1b9ca3b.png",
+    "tool": "built-in image_gen",
+    "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_citylogos_tier3_master.png",
+    "master_sha256": "ad6180e798459a101baa49d4f8ec088ca999e26a7571ba2cd743cc8558d1d738",
+    "reference_sha256": "42f4e20838d2c2b19929c3fc9b8201fe95ecaaed1adde92afc321a2e13711b74",
+    "game_sha256": "1234e8b62b4051fafa9143ab90152ffb199afffcdf840f42f5179dae0be67058"
+  },
+  {
+    "tier": 4,
+    "prompt": "ONE isolated town map icon tier4, prosperous Caribbean age-of-sail city 2001-5000 inhabitants. Compact group of EIGHT terracotta-roof cream masonry buildings, many two/three-storey merchants houses with arcades and a substantial central civic hall topped by a wide square tower, small adjoining red-tile chapel dome. Clearly broader and denser urban silhouette than a village, architecture remains dominant and readable. Match attached icon's precise refined 16/32-bit pixel art, warm cream/terracotta/wood palette, dark stepped outlines, discrete clusters and upper-left light; same three-quarter isometric view. Final128x128 and40px map marker. Architecture ONLY, NO circle, badge, border, ground, terrain tile, base, trees, water, flags, people, text, numbers or external cast shadow. PURE WHITE background, compact centered silhouette generous white margin.",
+    "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-2417cbe7-6cae-4c53-ac64-f7ebab27e283.png",
+    "reference": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-d60ed6cb-a618-4973-bdc6-fd23e1b9ca3b.png",
+    "tool": "built-in image_gen",
+    "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_citylogos_tier4_master.png",
+    "master_sha256": "0103fdb2af7602acb96c639ae83ad57d8d02dd21b6478d239dd54dd094288e4b",
+    "reference_sha256": "42f4e20838d2c2b19929c3fc9b8201fe95ecaaed1adde92afc321a2e13711b74",
+    "game_sha256": "f312cd238478f1a668e66637f1ad98d1037d3e286daf96df679c5590c38c0ee6"
+  },
+  {
+    "tier": 5,
+    "prompt": "ONE isolated city map icon tier5, a large age-of-sail Caribbean city 5001-10000 inhabitants. Compact dense cluster of about TEN terracotta-roof cream masonry townhouses behind a short recognisable crenellated stone city wall with a square central entrance gate and two squat corner turrets; behind roofs one tall civic bell tower. A fortified city silhouette markedly different from an open market town, but still civilian town architecture, not a standalone castle. Match attached tier1 image exact refined pixel-art style: warm terracotta/ivory/wood palette, upper-left light, crisp dark brown stepped outlines and discrete16/32-bit clusters, isometric three-quarter view. Final128x128, clear at40px. NO circle, badge, frame, ground/terrain tile, base/pedestal, water, trees, flags, people, text or external shadow. PURE WHITE background, complete compact centered buildings with white margin.",
+    "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-1fef69db-52a5-4ce5-a4c5-587b4bae452d.png",
+    "reference": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-d60ed6cb-a618-4973-bdc6-fd23e1b9ca3b.png",
+    "tool": "built-in image_gen",
+    "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_citylogos_tier5_master.png",
+    "master_sha256": "1ea4862d27f54448744934925c149e81b7c366d5874df9711e0e568663377f64",
+    "reference_sha256": "42f4e20838d2c2b19929c3fc9b8201fe95ecaaed1adde92afc321a2e13711b74",
+    "game_sha256": "600043916c26368bf20968e55ac086ab7bc2cd1f766a53e01db863ef90e5a89c"
+  },
+  {
+    "tier": 6,
+    "prompt": "ONE isolated city map icon tier6, a grand bustling age-of-sail Caribbean metropolis ABOVE10000 inhabitants, clearly highest of six tiers. Dense broad stepped skyline of about FIFTEEN cream stone terracotta-roof urban buildings, impressive central large domed civic building, TWO distinctive tall slender bell towers flanking it, multi-storey merchant houses, a short front city gate and compact crenellated wall. More monumental, wider and denser skyline than the one-tower smaller walled city. Entire composition ARCHITECTURE ONLY. Match attached tier1 icon exact refined pixel-art style/palette/view: warm terracotta roofs/ivory plaster/brown wood, dark stepped outlines, discrete16/32-bit pixel clusters, upper-left light, isometric three-quarter. Designed for128x128 and40px map display with bold readable silhouette, simplified tiny details. NO circle, badge, border, ground, base, terrain tile, trees, water, flags, people, text, numbers or external cast shadow. PURE WHITE background, compact centered whole group, generous margins.",
+    "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-22815efe-7b2d-487f-8a8b-7aba1ffb3d4a.png",
+    "reference": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-d60ed6cb-a618-4973-bdc6-fd23e1b9ca3b.png",
+    "tool": "built-in image_gen",
+    "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_citylogos_tier6_master.png",
+    "master_sha256": "99ac1d465ba85231aee60694091d640169a824b18f959bd58ce0180142b4d8e1",
+    "reference_sha256": "42f4e20838d2c2b19929c3fc9b8201fe95ecaaed1adde92afc321a2e13711b74",
+    "game_sha256": "ad5d256e8d73fcf463d69fe27a3e39963304874d825721a502c931debdd22599"
+  }
+]
