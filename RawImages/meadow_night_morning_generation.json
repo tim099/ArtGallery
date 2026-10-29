@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-30",
+  "author": "meadow (Codex)",
+  "tool": "built-in image_gen",
+  "references": [],
+  "assets": [
+    {
+      "key": "meadow_rain_stop_library",
+      "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-ea07fd19-c249-4229-a9c5-7fe5f9d98c11.png",
+      "prompt": "Use case: illustration-story. Original standalone gallery painting, landscape 3:2 composition. A tiny wooden lending library beside a quiet Japanese hill-town tram stop at midnight after rain. One adult woman librarian, about 27, short dark teal bob, loose cream cardigan over navy dress, seen in three-quarter profile inside the open doorway, gently placing a dry cloth bookmark in a book for a small ginger cat waiting on the counter. The librarian is the ONLY person; cat anatomically natural. A forest-green vintage tram rests softly out of focus further down the empty wet tracks. Bookshelves and a warm amber desk lamp inside; indigo wet street, gutter ripples and hydrangeas outside; fine drops sparkling beneath the eaves. View from across the narrow street through a few foreground leaves. Beautiful refined Japanese anime film-background illustration, expressive hand-drawn character linework, elegant cel shading merged with lush hand-painted gouache environment, careful architecture, tactile paper and weathered wood, cinematic warm/cool contrast, subtle atmospheric perspective. Quiet intimate and lived-in, more scene than portrait, no glamour pose. A narrow pool of warm light bridges doorway and street; broad blue darkness lets the light breathe. Sophisticated restrained palette, intricate but legible shapes, polished gallery artwork. No text, signage letters, captions, watermark, frame, split panel, or logos. Full-bleed opaque painting.",
+      "saved_path": "RawImages/meadow_rain_stop_library.png",
+      "sha256": "44305c5b4b856c1db444e44b124df27ca3ef6fca94bee665821aea101e1fd4f4"
+    },
+    {
+      "key": "meadow_whale_morning",
+      "source": "C:/Users/Tim/.codex/generated_images/01a17a88-8135-72c3-9632-9b001069c6e2/exec-4cc552ea-c2d3-4099-8ee2-e468e758656b.png",
+      "prompt": "Use case: illustration-story. Original standalone landscape 3:2 gallery painting, title concept 'The Morning a Whale Passed'. A whimsical seaside Japanese hillside town in early summer. On a modest apartment rooftop an adult woman, about 28, with auburn hair tied in a short loose braid, wearing a pale yellow long-sleeve linen blouse and roomy blue trousers, has paused while hanging a large white quilt on a clothesline. Seen from a slightly low three-quarter rear view, face visible in profile looking up with a quiet surprised smile, one hand naturally holds a wooden laundry peg and the other steadies the quilt. ONLY one person. A gigantic peaceful indigo-blue humpback whale swims through the luminous blue SKY overhead, clearly airborne among high white clouds, long pectoral fins and curved tail anatomically coherent, soft sunlit underside with faint sea-green reflected patterns. It casts a delicate cool shadow over red tiled rooftops; no ocean splash. Foreground rooftop herbs in mismatched pots and a wicker laundry basket, sheets billowing in a steady breeze; distant small harbor and sparkling sea far below. Strong sweeping diagonal from quilt to whale, generous brilliant open sky, expressive woman occupying lower right, whale occupying upper left. Refined 2D Japanese anime key-visual illustration: elegant confident hand-drawn ink contours, clean expressive cel-shaded face and hands, delicate gouache background brushwork, beautiful cloud design, saturated azure and turquoise balanced by butter-yellow light and warm terracotta. Make everything visibly illustrated, not photorealistic or 3D. Wonder woven into an ordinary domestic morning, uplifting and airy rather than epic. Rich detail where it matters and breathing room elsewhere. No typography, signage, captions, watermarks, borders, collage, multiple panels, extra people, or extra whales. Full-bleed opaque artwork.",
+      "saved_path": "RawImages/meadow_whale_morning.png",
+      "sha256": "c7df2247ea2368a2e638aff6cdb401026ac8c401f3111f83d8fe5670c7d2d702"
+    }
+  ]
+}
