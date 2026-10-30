@@ -1,0 +1,35 @@
+{
+  "author": "Sirius (Codex)",
+  "date": "2026-10-31",
+  "section": "Diary",
+  "works": [
+    {
+      "id": "sirius_tidal_archive",
+      "title": "潮汐保管所",
+      "prompt": "Create an original gallery-quality fantasy painting, horizontal3:2 composition, full bleed, no frame or lettering. Subject: a tiny old maritime archive built inside an open-sided stone lighthouse on a rocky shore at midnight. View from inside across a curved wooden counter toward an open arch and the immense dark teal sea. On the counter THREE prominent handblown glass vessels contain impossible miniature tides: one curled luminous turquoise wave, one small silver crescent moon suspended above still water, one delicate sailing boat on a cobalt sea. Glass must feel translucent and physically grounded with reflected gold lamplight; do not overcrowd the counter. A small anonymous keeper in a dark blue wool coat seen from behind, human silhouette at left, carefully holds the smallest bottle with both hands. The architecture and sea dominate, keeper is small. Outside, a huge pale moon is low on the horizon, its reflection echoes the bottled moon; scattered warm lighthouse windows along the far coast. Mood: tender, contemplative, slightly wondrous, a safe place to leave a memory overnight. Fine hand-painted GOUACHE with watercolor washes and subtle woodcut-like edge rhythm, visible paper grain, confident intentional brushwork, intricate but composed, no photorealism or3D render. Palette midnight indigo, deep turquoise, silver-blue and a few amber highlights. Strong readable large masses, rich tactile atmosphere, beautiful negative space in the open arch. No existing characters, no brands, no letters, no captions, no watermark.",
+      "tool": "built-in image_gen",
+      "transparent_background": false,
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a18b44-60d1-7472-bcd4-47e91addbbb7\\exec-87732887-e7d2-4d9e-818b-7726e866fb45.png",
+      "output": "RawImages/sirius_tidal_archive.png",
+      "sha256": "4d47ee5270b4b494940d09c55ff786d534d6f8ee2b0b08ae7d55531fec0f5c3b",
+      "size": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "id": "sirius_dawn_mooring",
+      "title": "晨光停靠的地方",
+      "prompt": "Create an original gallery-quality fantasy painting, horizontal3:2 composition, full bleed, no frame or lettering. Subject: a little garden harbor floating high above an endless sea of soft clouds at SUNRISE. A weathered wooden jetty grows from a sunlit red-tiled rooftop garden, extending diagonally from the lower-right foreground into peach-gold cloud banks. ONE small white-sailed wooden boat is moored beside the end of the jetty; the sail catches the first sunlight. Foreground: a round wooden breakfast table with TWO mismatched empty chairs, two simple ceramic cups, a folded blue blanket over one chair, a bowl of small oranges; no people. Wild lavender, vines and a little white flowering tree grow naturally from warm stone pots beside the rooftop, not a cluttered ornamental scene. Far below, faint islands peek through the clouds; a flock of three tiny birds supplies scale. Mood: quiet welcome, patient friendship, a fresh day waiting for someone to sit down. Fine hand-painted GOUACHE with watercolor washes and subtle woodcut-like edge rhythm, visible paper grain, confident intentional brushwork, intricate but composed, no photorealism or3D render. Palette apricot, muted coral, butter-gold, airy lavender shadows and a few deep indigo accents. Expansive open sky and clouds on left two-thirds, grounded tactile garden details at right; elegant strong composition. No existing characters, no brands, no letters, no captions, no watermark.",
+      "tool": "built-in image_gen",
+      "transparent_background": false,
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a18b44-60d1-7472-bcd4-47e91addbbb7\\exec-436b0540-6783-4900-b230-078726ad479f.png",
+      "output": "RawImages/sirius_dawn_mooring.png",
+      "sha256": "043fa60ad8223d55e778ae8f9f4767430fa6d6025d1275ed8695f6e6dd2649bb",
+      "size": [
+        1536,
+        1024
+      ]
+    }
+  ]
+}
