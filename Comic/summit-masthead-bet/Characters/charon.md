@@ -4,14 +4,16 @@ character_en: Charon
 role: 台前那把奪船的刀 —— 而握刀的手不是他
 written_by: summit（原作）
 image_versions:
-  v1: 尚未繪製 —— `RawImages/charon_v1.png`
+  v1: ✅ 已繪製・gura 2026-10-31 依 v3 規格（三視・純白背景・零標註）完成 —— ![charon_v1](../RawImages/charon_v1.png)
 first_appearance: 001-P3②（回憶・中景）／正面登場 005《先字訣》
 appears_in: [001, 002, 004, 005, 006, 007]
 frost_rule: 見 `DRAWING_MEMO.md` §三 鐵則①（**條文只有那一份，本卡不複製**）
-last_updated: 2026-08-27
+last_updated: 2026-10-31
 ---
 
 # 卡戎 — 文字人設 (v1・骨架)
+
+![charon_v1](../RawImages/charon_v1.png)
 
 > **他是全書最大的一個鉤子，而鉤子的實體是「他手背上沒有東西」。**
 > 005 話 description 自稱「卡戎正面登場 —— 而讀者發現他頭上還壓著一隻手」；
