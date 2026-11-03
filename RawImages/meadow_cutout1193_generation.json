@@ -1,0 +1,465 @@
+{
+  "task": 1193,
+  "tool": "image_gen.imagegen (built-in)",
+  "intent": "background-extraction",
+  "transparent_background": true,
+  "assets": [
+    {
+      "id": "captain_astrid",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (captain_astrid). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-a7c93ad5-5ab3-49f6-be4d-cc80ddddb86a.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_captain_astrid.png",
+      "original_runtime_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "a2c4627ca8c2c9d294ad4876283261077708daf4f9ce534403d224dfefd98b8f",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        19,
+        880,
+        1659
+      ],
+      "name": "阿絲翠德・霜灣",
+      "original_source": {
+        "title": "阿絲翠德・霜灣｜聽冰的極地領航員",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_captain_astrid_sprite.md",
+        "image": "RawImages/meadow_captain_astrid_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "da5745d2490c020cf31543ae7fe68c54aa63306a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+    },
+    {
+      "id": "captain_elena",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (captain_elena). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-a7a0c591-0568-466b-a31a-42f5df4eeb5e.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_captain_elena.png",
+      "original_runtime_sha256": "745c2469b357de9d9c2661dcd1260dbad40c998396bef631caebb2aa07c51322",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "50408d0cb0c3bbfec2e02a2bfb9299de9250ffca95b77726fdd5ec0f9aa51805",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        17,
+        912,
+        1659
+      ],
+      "name": "艾蓮娜・維爾",
+      "original_source": {
+        "title": "艾蓮娜・維爾｜守約的艦隊指揮官",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_captain_elena_sprite.md",
+        "image": "RawImages/meadow_captain_elena_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "da5745d2490c020cf31543ae7fe68c54aa63306a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "745c2469b357de9d9c2661dcd1260dbad40c998396bef631caebb2aa07c51322"
+    },
+    {
+      "id": "captain_ines",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (captain_ines). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-025404b4-5632-4dea-aad6-be6c2129149c.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_captain_ines.png",
+      "original_runtime_sha256": "3ee5df2f50f5583f653e8589d4d1e0f87122de839bea746704e47bb2bb3beb7b",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "38f4880e2ddaab56a9f2eceaa43fecd3215d1f880ca8ea484aa8cc476b394329",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        49,
+        5,
+        944,
+        1659
+      ],
+      "name": "伊妮絲・莫羅",
+      "original_source": {
+        "title": "伊妮絲・莫羅｜守燈的護航船長",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_captain_ines_sprite.md",
+        "image": "RawImages/meadow_captain_ines_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "da5745d2490c020cf31543ae7fe68c54aa63306a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "3ee5df2f50f5583f653e8589d4d1e0f87122de839bea746704e47bb2bb3beb7b"
+    },
+    {
+      "id": "captain_marina",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (captain_marina). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-5ea3ba61-f3d3-4a72-a86c-270d43db7d15.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_captain_marina.png",
+      "original_runtime_sha256": "1f60495cec9fa96ad9ae551ca15de6a0331bdebed9a71b1a0f539655347f7195",
+      "original_size": [
+        948,
+        1660
+      ],
+      "rgba_sha256": "283307200474c5097b74a25f573b502519c7e085e32e48189fc311000c2a1cbc",
+      "size": [
+        948,
+        1660
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        33,
+        0,
+        945,
+        1636
+      ],
+      "name": "瑪莉娜・索爾",
+      "original_source": {
+        "title": "瑪莉娜・索爾｜追風的探險船長",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_captain_marina_sprite.md",
+        "image": "RawImages/meadow_captain_marina_sprite_v1.png",
+        "size": "948×1660",
+        "commit": "da5745d2490c020cf31543ae7fe68c54aa63306a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "1f60495cec9fa96ad9ae551ca15de6a0331bdebed9a71b1a0f539655347f7195"
+    },
+    {
+      "id": "captain_shiori",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (captain_shiori). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-ebc733d2-4faf-439f-bfac-983558d13185.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_captain_shiori.png",
+      "original_runtime_sha256": "12f4b0f68e59170ace9c353e7075181fe9836b0efdd44c8420f5b7697f161a57",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "680ba5614c06f2efdd300a1185c62a01e461fcc25b899386b0f26071b78181f5",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        33,
+        22,
+        832,
+        1636
+      ],
+      "name": "汐織・月瀨",
+      "original_source": {
+        "title": "汐織・月瀨｜讀星的學者船長",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_captain_shiori_sprite.md",
+        "image": "RawImages/meadow_captain_shiori_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "da5745d2490c020cf31543ae7fe68c54aa63306a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "12f4b0f68e59170ace9c353e7075181fe9836b0efdd44c8420f5b7697f161a57"
+    },
+    {
+      "id": "special_boatswain_rowenna",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_boatswain_rowenna). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-1bea3fb0-f3f8-4a34-9c88-59cc595f825b.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_boatswain_rowenna.png",
+      "original_runtime_sha256": "4e8963de5ce21b2b73a2376b5dba3c167da08e61b64bd7f6073a8ade1825aaa4",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "d6511128dfdb6acc5dcafac34b76903cdb34ecd1b7c7a791ccfc4fa7d4067a9a",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        79,
+        14,
+        934,
+        1643
+      ],
+      "name": "羅文娜・繩結",
+      "original_source": {
+        "title": "羅文娜・繩結｜水手長：每條繩後面，都站著一個人",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_boatswain_rowenna_sprite.md",
+        "image": "RawImages/meadow_special_boatswain_rowenna_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "8a3dcfa7cebdc093a0d8dce5947ec213761d5a9a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "4e8963de5ce21b2b73a2376b5dba3c167da08e61b64bd7f6073a8ade1825aaa4"
+    },
+    {
+      "id": "special_carpenter_maren",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_carpenter_maren). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-8e4e9ffe-7db5-4c5b-8299-4fae732dd2a6.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_carpenter_maren.png",
+      "original_runtime_sha256": "22d0582141446a35a5bd7ab2d05704ee53d624b261a50aa65cacd1fcafdb1865",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "8655689982fc32ea8f22bcd658d0cf0dd4d07fe06c9ffaf7d3fb3f29dce22d9d",
+      "size": [
+        948,
+        1660
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        49,
+        17,
+        910,
+        1644
+      ],
+      "name": "瑪蓮・橡肋",
+      "original_source": {
+        "title": "瑪蓮・橡肋｜船匠：聽得出船殼哪裡正在硬撐",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_carpenter_maren_sprite.md",
+        "image": "RawImages/meadow_special_carpenter_maren_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "962b92ecf08ed8d9b86f9f094841567b70f9eba3",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "22d0582141446a35a5bd7ab2d05704ee53d624b261a50aa65cacd1fcafdb1865"
+    },
+    {
+      "id": "special_cook_bea",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_cook_bea). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-145defa1-d664-4b20-821a-0c2880314102.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_cook_bea.png",
+      "original_runtime_sha256": "bf334b355026ad096510029c6641aeb24d6eee6edbf1107c81c2c0b38ad5d042",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "66a0b793ca397b945cf435b088701a5a15bf3ec452f00f647a9c25a18f3dd889",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        13,
+        947,
+        1659
+      ],
+      "name": "貝雅・暖鍋",
+      "original_source": {
+        "title": "貝雅・暖鍋｜廚師：讓遠航的人，記得自己正在回家",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_cook_bea_sprite.md",
+        "image": "RawImages/meadow_special_cook_bea_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "8a3dcfa7cebdc093a0d8dce5947ec213761d5a9a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "bf334b355026ad096510029c6641aeb24d6eee6edbf1107c81c2c0b38ad5d042"
+    },
+    {
+      "id": "special_gunner_vera",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_gunner_vera). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-6c950c06-706f-4000-a64c-3f6b28d79f3d.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_gunner_vera.png",
+      "original_runtime_sha256": "9bcc3dc131fe089d885db9e8f462f50bcfeedcc47b8d159a38b579ef6a8d76db",
+      "original_size": [
+        948,
+        1660
+      ],
+      "rgba_sha256": "ad59a465b6fe3a2dde046c6cd0b7b06b2493af7201496ab510d2725b041e5a61",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        41,
+        17,
+        928,
+        1627
+      ],
+      "name": "薇菈・燧石",
+      "original_source": {
+        "title": "薇菈・燧石｜砲術長：比起開火，更在意何時停火",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_gunner_vera_sprite.md",
+        "image": "RawImages/meadow_special_gunner_vera_sprite_v1.png",
+        "size": "948×1660",
+        "commit": "962b92ecf08ed8d9b86f9f094841567b70f9eba3",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "9bcc3dc131fe089d885db9e8f462f50bcfeedcc47b8d159a38b579ef6a8d76db"
+    },
+    {
+      "id": "special_navigator_liora",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_navigator_liora). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-2d8f8468-5263-4539-ad33-7d30a939d2df.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_navigator_liora.png",
+      "original_runtime_sha256": "b5f6d3202219c8dff4760a96089b0d6afc1e88630dbf2098ca0935ea66620fdb",
+      "original_size": [
+        948,
+        1660
+      ],
+      "rgba_sha256": "22e47b4f0f191fecd5fefae9d541b8624f4ac4e6dc8b53ac4e9ec84e40b0c7e8",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        15,
+        930,
+        1659
+      ],
+      "name": "莉奧拉・潮尺",
+      "original_source": {
+        "title": "莉奧拉・潮尺｜航海士：把未知留在海圖邊緣的人",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_navigator_liora_sprite.md",
+        "image": "RawImages/meadow_special_navigator_liora_sprite_v1.png",
+        "size": "948×1660",
+        "commit": "962b92ecf08ed8d9b86f9f094841567b70f9eba3",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "b5f6d3202219c8dff4760a96089b0d6afc1e88630dbf2098ca0935ea66620fdb"
+    },
+    {
+      "id": "special_quartermaster_nadia",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_quartermaster_nadia). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-2308572f-adab-4279-b5dd-680b37895a4c.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_quartermaster_nadia.png",
+      "original_runtime_sha256": "bdef15a4414e26e87798335a4fef8e50b7363464e2217c4b5aaf5b37f9ad0aaa",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "06dbd64c9b323a02f374f535bc9b39f018a4918ee397d5b35c735b1a8560eb2e",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        17,
+        932,
+        1659
+      ],
+      "name": "娜迪雅・銅秤",
+      "original_source": {
+        "title": "娜迪雅・銅秤｜軍需官：帳本上的每一筆，都是某人的明天",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_quartermaster_nadia_sprite.md",
+        "image": "RawImages/meadow_special_quartermaster_nadia_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "962b92ecf08ed8d9b86f9f094841567b70f9eba3",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "bdef15a4414e26e87798335a4fef8e50b7363464e2217c4b5aaf5b37f9ad0aaa"
+    },
+    {
+      "id": "special_sailmaker_celine",
+      "prompt": "Use case: background-extraction. EDIT TARGET: the attached existing Blocksail character portrait (special_sailmaker_celine). Remove ONLY the plain off-white background and replace it with genuine transparent alpha. Preserve the existing character faithfully: exactly the same face, expression, hairstyle, hair colour, skin tone, body proportions, pose, clothing, accessories, equipment, pixel-art linework, palette and shading. Do not redesign, restyle, beautify or redraw the character into a new interpretation. Preserve the full figure from the top of hair/hat through both boot soles, original composition and canvas proportions. Carefully remove background in internal gaps (arms, legs, loose strands, ropes and tool openings). White and ivory fabric, apron, gloves, sails, pale hair, highlights, book pages and equipment belonging to the character must remain opaque. Crisp clean pixel-art contours, no white fringe, no eroded outline, no cast shadow, no new scene, no ground, no text, no checkerboard painted into the image. Output one isolated unchanged character on a truly transparent background.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-3c4c38b8-130a-4243-8b14-965013719e8f.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_cutout1193_special_sailmaker_celine.png",
+      "original_runtime_sha256": "83fdecb6249d80b7a578a43d74fe254806aad7f32cdba30011ebdfd91ffc0ec9",
+      "original_size": [
+        948,
+        1659
+      ],
+      "rgba_sha256": "9d93b0e0d82e4fad613151eb7fa3380292cace549edf225b0a23650d96873698",
+      "size": [
+        948,
+        1659
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        18,
+        898,
+        1632
+      ],
+      "name": "賽琳・風縫",
+      "original_source": {
+        "title": "賽琳・風縫｜帆匠：把風留在該承受它的地方",
+        "author": "meadow (Codex)",
+        "card": "Portraits/meadow_special_sailmaker_celine_sprite.md",
+        "image": "RawImages/meadow_special_sailmaker_celine_sprite_v1.png",
+        "size": "948×1659",
+        "commit": "8a3dcfa7cebdc093a0d8dce5947ec213761d5a9a",
+        "kind": "named"
+      },
+      "original_gallery_sha256": "83fdecb6249d80b7a578a43d74fe254806aad7f32cdba30011ebdfd91ffc0ec9"
+    }
+  ],
+  "base_commit": "c067780846f2ebf789c3b40552beb16090be49c4"
+}
