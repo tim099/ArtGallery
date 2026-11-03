@@ -1,0 +1,522 @@
+{
+  "task": 1191,
+  "author": "meadow (Codex)",
+  "tool": "image_gen.imagegen (built-in)",
+  "transparent_background": true,
+  "imagegen_references": [],
+  "derivation": "Original alpha preserved; nearest-neighbor 128x128 runtime export via export.ps1.",
+  "assets": [
+    {
+      "id": "ship",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a three-quarter view small wooden sailing frigate with cream canvas sails and teal hull trim. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-df087cee-00cd-4f0f-afc3-63fe4c7e95ee.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_ship_master.png",
+      "master_sha256": "7a4b4e1a625bc2c9902b02b49a32eee4e8c873a2c32b0ac42f98badcf491fd81",
+      "runtime_sha256": "50f3c291082ee4267b48237444fd021312c1f70d6cdf3bcc77755899bea7974e",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "sail",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a billowing cream mainsail attached to a wooden mast with a little bronze rigging. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-85b058ca-e850-4816-8c21-d10ddfc6dc73.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_sail_master.png",
+      "master_sha256": "369d9fb3128ad17646e43ef56eb65c9b9802c39021fbd7a8243d284a81b5d392",
+      "runtime_sha256": "0c1db2fa90b351743421287525ec78312ddc2bda89115d4fc02effd0ef9ffa18",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "focus",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a brass navigational sight surrounding a small turquoise locator point. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-c84a30d1-8bd6-413b-901a-c3dd9c0a134a.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_focus_master.png",
+      "master_sha256": "065d6c515f27411a7fa48df49bc7dac8f789aa68a7a8f2f052ce41d183bd41db",
+      "runtime_sha256": "3482d0a1506708f0ff221442477249a0581a05307f89256b17c5a27089849ffe",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "save",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a leather-bound ship logbook with a brass clasp and quill tucked inside. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-fb8bea0f-3119-4ffa-bb23-539ecf8a828e.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_save_master.png",
+      "master_sha256": "ecf4068bc83468783874247148095566aed34d9f7dd17c730efb6c3c43e7bb52",
+      "runtime_sha256": "5105cd846a54c425f894d07d5bd35bf35f3cd47b46332418a476e35e70f47a87",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "clock",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a brass pocket chronometer with ivory dial. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-d5333b88-566e-4e7f-8f77-5ab7557ea24c.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_clock_master.png",
+      "master_sha256": "747309a22193d064ffb515dd32c2ad55955dba535b4546b1c639464b33f948db",
+      "runtime_sha256": "da53ae04685a76e1191f2839d913cc3ba82e3538c432d38824c6eb83ec6503cf",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "edit",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a feather quill laying diagonally over a small parchment sea chart. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-e29975a5-aab4-41d3-914c-1da94a972690.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_edit_master.png",
+      "master_sha256": "830d5924ebd4a476732839475d6621953c9aabd7b721bfa2223f9ea810711df1",
+      "runtime_sha256": "006c9f706d137f37ecce0e19606e28839bfd0857a356f49a998800ae28f1a5e2",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "warning",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a brass warning bell with amber glint. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-952b0517-db59-44ec-87c2-fffae178817a.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_warning_master.png",
+      "master_sha256": "3eeb169733080c54d4481fb82613a7d7aa580e418dae83e5921144868c300cd7",
+      "runtime_sha256": "1958ea13fd2144be7ac571104bef3373c4a3cfe9d9582004656686e1dbaa7923",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "town",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a compact cluster of three stone harbor houses with terracotta roofs. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-02911da7-a3e0-482f-ac34-d14cd55216da.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_town_master.png",
+      "master_sha256": "af384aeb4cd59bb7ae9e8f291403995873e489d536ad9f8cadc545f04d8ff9d9",
+      "runtime_sha256": "1e183a1796793e99f1f93e5e86f8abb4e9fde32b6515b4b7ec16bedc7693c86d",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "trade",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a balance of gold coins spilling beside a small wooden merchant chest. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-a7c6e3bf-c0ea-4d3c-a60e-1b51ab16a14b.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_trade_master.png",
+      "master_sha256": "e7b795d036ca13a46b712961d8fcf97b81e09ff6f642d072ae30821062b7f25d",
+      "runtime_sha256": "0278a16d69f9925559574b962b77da541914b358c6a474abf70ee7bf686b292b",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "anchor",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a weathered iron anchor with a little tan rope. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-fac9ab5d-eeb3-40c7-91eb-ce2bf00abe3a.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_anchor_master.png",
+      "master_sha256": "f00842db9e66e91c3f5e2e5c5faf8c11eec261333e5388d144a740a642a0f3fd",
+      "runtime_sha256": "1b6186a121a43025f27df760584daed6675ae80cb44f7e0888ce0ddac3ebfd39",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "combat",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: two crossed naval cutlasses with steel blades and brass guards. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-2e9e2f50-3202-4404-a699-0a9cf3cb04dc.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_combat_master.png",
+      "master_sha256": "a669b7520db3e82b24d3c824adceec65f4b7b01e6a2d5860206fe0bf39c55ef9",
+      "runtime_sha256": "ac28e414fb5272a08a3d359d443c50011507765573455a1a54d13f1b7e52a528",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "settings",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a brass toothed mechanism wheel with a turquoise central jewel. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-f9d92681-b3ba-4440-ad0e-668b82d6e8e2.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_settings_master.png",
+      "master_sha256": "6c52fd9fc6dfb9b60e887783d8b879fb17e6fb19ae76e149b1ffeb138746abac",
+      "runtime_sha256": "4621dab7452db1b22ecb04c0598682d91cf70356e3a1a826f0aada559e38d7f3",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "overview",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a rolled parchment harbor registry with neatly ruled ink marks. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-887691c7-a765-453d-95a2-9b8a7b683b39.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_overview_master.png",
+      "master_sha256": "2aa52fac7b2b2d3bd08755066caef559b9b876e88d9712241a66e17a544da236",
+      "runtime_sha256": "5d82508e22f5801ce1973a7d8292662c1e47c8bf70bfe74af28d526867cbb247",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "tools",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a wooden mallet crossed with a bronze drafting compass. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-b8f684ce-c44b-4a85-b1d2-a14f6fd65fa6.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_tools_master.png",
+      "master_sha256": "541b000cbd54db8bd55073a4d287001406cecdb0f6b714f42e19dde13d96ddf4",
+      "runtime_sha256": "4c010f1efe4bcc300e5b22b13a51c1be66c52c9bcb8a5940d84a33779173e5dc",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "load",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: an open leather chart folio holding cream parchment sheets. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-c91b8787-1eff-4a20-ad13-9bca86c882bf.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_load_master.png",
+      "master_sha256": "25a74498c7e84c69586b992efda9dfe9153c765f8a4d0d0df46e25cb4f469445",
+      "runtime_sha256": "9b8ab6fa72b0076509d1047e010eb9397d3cf963bf91c3d890806b27ba33d7c3",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "sun",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a warm gold sun with short chunky golden rays. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-ca9a955a-e9e1-4257-a857-5118be540801.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_sun_master.png",
+      "master_sha256": "95affaca8e59f3fd8dfd4fe8271d06e1c330e078b06e51c4ad8ab55f0f258a80",
+      "runtime_sha256": "4d0d53dafea6d6343be97cc5ca5b715e1c6879632824e517f6c2bf7f0168b755",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "showers",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a soft white cloud in front of a small gold sun with two turquoise rain drops. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-3c094a3f-dd08-4b4a-a3d0-e1f13cb3cdf0.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_showers_master.png",
+      "master_sha256": "690f1a3fabd9eaf498e3e00a559b2e08ec92143bf6377deda1f11fafde8766c0",
+      "runtime_sha256": "b7a73b392fb43a0bc91ebf52492252f62ff3fb88c4425e10875e47105067a953",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "rain",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a blue-grey cloud with three bright cyan rain drops. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-234571bf-d6c8-4781-ab61-55d3adf73d82.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_rain_master.png",
+      "master_sha256": "a5127b44dd88a91ac633d3a145c71d974c3a426b4088d621aec533e8da24b0ae",
+      "runtime_sha256": "2a075e848e45b0f76a17627c4549a3748cb7748bf1b87d8c338e5c613f576a4c",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "storm",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a dark blue storm cloud with a gold lightning bolt. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-da5752a4-7ad2-40f1-90d2-f09a7689e473.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_storm_master.png",
+      "master_sha256": "c3b132927978ed8f3537a216edc7d3403840ca5d1b8feecb68a9fbf82edd5b4e",
+      "runtime_sha256": "7cf11d162bd8f5087817f7f471bcfde2768bbf6cccd921e59216f580a746c6b2",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "cyclone",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a swirling turquoise and white hurricane seen from above, clear eye. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-c8ff9a4a-e05b-4eef-95f0-fa0fe9b64d58.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_cyclone_master.png",
+      "master_sha256": "efc165dc7e021c8d1116995c454a41b830d7fb660a6d537caecc8be9c8f80e8d",
+      "runtime_sha256": "7bab44397e1996194139c0341ead70ad820f70d53a348a85b4d10013cc118b24",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "moon",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: an ivory crescent moon with a subtle cool blue shaded edge. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-f9c05599-b54a-4e13-9c99-83cb26073ca6.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_moon_master.png",
+      "master_sha256": "0b29e80f2d620377c7c4ce851735f617dfcf6b1da916163c8e233824a248e206",
+      "runtime_sha256": "fca19d0288c4f8adb75579826beadca60a19dc5078d2841c2bb42c4dddc041f4",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "calendar",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a small parchment desk calendar bound with two bronze rings. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-ae5569c6-0f2d-4187-b16d-d3bad5daa83b.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_calendar_master.png",
+      "master_sha256": "1d78bd110b11da608f274bb225544ab434502dc38f1b2236d24b2393be53abb6",
+      "runtime_sha256": "ae47a8a8a99c1906cb6042b3f2b4a26e855f5e8bae0d494d82a133cf2aaa31ad",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "people",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: two tiny bust silhouettes of townsfolk in teal and ochre clothing. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-e8406fe6-92dd-4e03-9563-f4550f2bcfd7.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_people_master.png",
+      "master_sha256": "54462e840d0379f055735a96f1ca1e3c5508ffd0390636bd41432bb2f6a3307d",
+      "runtime_sha256": "a727c2332948d94c3dc13adc961c29270366b19f73cd176a1f8be82e7a862f3c",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "flag",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a teal pennant on a short brass pole. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-0a2bf5f5-79ec-4a2b-b8cb-5b1c8a17545a.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_flag_master.png",
+      "master_sha256": "a92425f730f7022e69293d58e1e1b535f2c1ab694597084db3a70a76aad8ea3f",
+      "runtime_sha256": "c113fea0fa589b24d6707f8cde8798eeb1142b390c5bb5bda97238e5488d5b5d",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "purse",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a cinched tan leather coin purse with one gold coin. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-b9857d25-46cb-4030-94bb-599a2a98901c.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_purse_master.png",
+      "master_sha256": "54738efe18c605b8c6d24c8b502515042d0cbc5d66fc7eff245eb68642a4c2a5",
+      "runtime_sha256": "da2bc3816a5e73af75473f9e9fcd0a6e1da1d94b45a3d2895201138a4366be37",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "cargo",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a wooden cargo crate beside a small iron counterweight. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-fec919ac-77f0-4c7f-a6fb-9f1abc48a834.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_cargo_master.png",
+      "master_sha256": "b04884602ad9bc6f6b7eef60cacc37ce39671d2e4c3c2b1b0073213aadb5d921",
+      "runtime_sha256": "08e89314e88ee917f836b272a1ecc0c2acc9da35b2b9107c444f811347f6d21f",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "draft",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a curved turquoise sea wave against a short wooden depth measuring post. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-ccf3dc3d-e8fc-447b-8205-204446cd2057.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_draft_master.png",
+      "master_sha256": "5a66a85ef23d341a201a1891ccae44f240100b033908b271cf51ee8f28ce4c6d",
+      "runtime_sha256": "14708bffe3ec5edfae9f29ed6af060339329c4d992ccdd221b11598ed9ebf3da",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "pirate",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: an aged ivory skull above crossed steel daggers. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-74a5079f-a364-4eee-acf6-9fd683206ce0.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_pirate_master.png",
+      "master_sha256": "f5af9b5bd2cea3daa3c18200eefecce0c04ff7531643127767e7864bf9653e33",
+      "runtime_sha256": "b26312396b55f4e11195bcada8746266baf389e5e1e950bfc7a9f3a225a1246c",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "globe",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a small antique turquoise globe on a brass stand. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-b8859805-ecf5-496d-90d0-feada149ee6f.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_globe_master.png",
+      "master_sha256": "f99a0b532e25ae52aeb4ee4d127273d52590d5d87d91f11caf448bf44fce50e3",
+      "runtime_sha256": "08cdadec545acf9f33a785e92ae344c68037c400f61eae5220f7e50df0c31a12",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "lightning",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a single bold golden zigzag lightning bolt. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-fb9d8d47-9fb0-4c96-8d23-be705c7606c6.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_lightning_master.png",
+      "master_sha256": "f17b929c7f85783d36cdd4ea99768b03728ec149386b4229f3ca29c463380c95",
+      "runtime_sha256": "e26a0ff4edab455c431b34e396584dea3a280187422794105cca61b3ec90d945",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "magnet",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: two iron mooring hooks joining together with a small brass link. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-d37e7db4-5c51-4b10-b307-e4774c9ed499.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_magnet_master.png",
+      "master_sha256": "5581b8b0d5aae5923b4b2089e9f7ae4ecd72eebe87e674df2eda9bc50c56d432",
+      "runtime_sha256": "2e85bd4883913abe9d9c7c194eb105f9ed8f28313dbc517994f25feb11d2930e",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "id": "hourglass",
+      "prompt": "Use case: stylized-concept. Production game UI icon for Blocksail, an age-of-sail trading game. Subject: a tiny brass hourglass with amber sand. One isolated icon only, centered, fills 85% of square. Handcrafted refined pixel art like a classic premium isometric inventory sprite; crisp deliberate square pixel clusters, dark navy outline, restricted palette, warm top-left light, brass gold and teal accents, readable compact silhouette at 24px. Render as if painted on a 64x64 pixel grid, enlarged with nearest-neighbor crisp edges. Transparent background, no platform, no frame, no text, no letters, no emoji design, no smooth vector or 3D rendering, no decorative particles.",
+      "generated_source": "C:/Users/Tim/.codex/generated_images/01a19051-9d2d-73a3-aa02-d6fbfff8b8a9/exec-1e9a44b5-00b2-47b4-b1d0-6b4ebcd65b43.png",
+      "master": "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_globe1191_hourglass_master.png",
+      "master_sha256": "ad02c8bff93a3c45374cc7868c18111131b4bc279d0bc8898c825111fc0832a5",
+      "runtime_sha256": "79f54b5fc33d87a38830bdff33bc71fe06765db6fe5460f26b7d2f1212326308",
+      "master_size": [
+        1254,
+        1254
+      ],
+      "runtime_size": [
+        128,
+        128
+      ]
+    }
+  ]
+}
