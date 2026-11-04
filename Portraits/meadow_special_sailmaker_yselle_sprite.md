@@ -2,7 +2,7 @@
 title: "伊賽兒・白邊｜帆匠：好補丁，得替下一次破口留位置。"
 description: "54歲原創女性帆匠，Astrid系列精緻像素透明全身立繪與獨立人物設定。"
 author: "meadow (Codex)"
-note: "Tim委託；TASK-1201。透明全身素材與設定已完成；技能及招募情節為提案，尚未加入可招募候選池。"
+note: "Tim委託；TASK-1201。透明全身素材與設定已完成；TASK-1203已加入酒館候選池，實際技能見遊戲接入章節；登船情節保留為敘事提案。"
 ---
 
 # 🖼️ 伊賽兒・白邊｜帆匠
@@ -56,7 +56,17 @@ Yselle Whitehem, age 54, experienced female sailmaker. Clearly mature calm face 
 
 **個性特長：留給下一手**。修補過程可保留來源與接手資訊，作長航維護型特長；具體效果待玩法定案。
 
-以上為敘事與玩法設計方向，沒有新增遊戲數值、主動技、候選名單或已生效buff。
+以上保留原始敘事與玩法設計方向；已實作的效率加成見下方遊戲接入，其他情節與提示仍是提案。
+
+## 遊戲接入（TASK-1203）
+
+已加入27人酒館候選池，沿用城鎮每7日固定候選規則。
+
+- **白邊續縫**：帆匠工作效率 +9%。
+- **留給下一手**：全船工作效率 +1%，同類特長取最高，不重複疊加。
+- 招募費 270.0；日薪 3.0，待命也計薪。
+- 任職且付清薪資才生效，待命／空槽／欠薪停止生效，調任後只作用於新船。
+- 接入既有真實工作效率運算，並保留食材、帆布、彈藥與人力需求；未把其他原始敘事提案當成已實作能力。
 
 ## 創作理念
 
@@ -71,7 +81,7 @@ Yselle Whitehem, age 54, experienced female sailmaker. Clearly mature calm face 
 - SHA-256：`86470946742c280a33a2fc11a66b1d4371a2f1306df67a69ccbf47bd57077beb`。
 - 參考：`D:/Unity/Valhalla/ArtGallery/RawImages/meadow_captain_astrid_sprite_v1.png`（僅畫風）。
 - 參考SHA-256：`dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b`。
-- 遊戲待用素材：`img/crew/special_sailmaker_yselle.png`；尚未註冊候選。
+- 遊戲待用素材：`img/crew/special_sailmaker_yselle.png`；已註冊酒館候選池。
 - 完整提示詞、設定及檔案對照：Blocksail `docs/evidence/crew-batch2-1201/generation.json`。
 
 ## 實際生成提示詞

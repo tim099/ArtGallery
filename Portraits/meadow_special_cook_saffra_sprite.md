@@ -2,7 +2,7 @@
 title: "莎芙菈・香潮｜廚師：香料不是拿來遮壞味道的，是讓人願意好好吃完。"
 description: "28歲原創女性廚師，Astrid系列精緻像素透明全身立繪與獨立人物設定。"
 author: "meadow (Codex)"
-note: "Tim委託；TASK-1201。透明全身素材與設定已完成；技能及招募情節為提案，尚未加入可招募候選池。"
+note: "Tim委託；TASK-1201。透明全身素材與設定已完成；TASK-1203已加入酒館候選池，實際技能見遊戲接入章節；登船情節保留為敘事提案。"
 ---
 
 # 🖼️ 莎芙菈・香潮｜廚師
@@ -56,7 +56,17 @@ Saffra Spicetide, age 28, spirited female ship cook and spice trader's daughter.
 
 **個性特長：先聞再入鍋**。偏向補給保存與菜單提示的特長，將優先使用的食材說清楚；具體耗損數值待定。
 
-以上為敘事與玩法設計方向，沒有新增遊戲數值、主動技、候選名單或已生效buff。
+以上保留原始敘事與玩法設計方向；已實作的效率加成見下方遊戲接入，其他情節與提示仍是提案。
+
+## 遊戲接入（TASK-1203）
+
+已加入27人酒館候選池，沿用城鎮每7日固定候選規則。
+
+- **香潮輪餐**：廚師工作效率 +8%。
+- **先聞再入鍋**：全船工作效率 +1%，同類特長取最高，不重複疊加。
+- 招募費 210.0；日薪 2.5，待命也計薪。
+- 任職且付清薪資才生效，待命／空槽／欠薪停止生效，調任後只作用於新船。
+- 接入既有真實工作效率運算，並保留食材、帆布、彈藥與人力需求；未把其他原始敘事提案當成已實作能力。
 
 ## 創作理念
 
@@ -71,7 +81,7 @@ Saffra Spicetide, age 28, spirited female ship cook and spice trader's daughter.
 - SHA-256：`150bca30af2d4be1b4ab86c6c3e8db7a509dee22d5cc61dcad3dbd4599022bc3`。
 - 參考：`D:/Unity/Valhalla/ArtGallery/RawImages/meadow_captain_astrid_sprite_v1.png`（僅畫風）。
 - 參考SHA-256：`dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b`。
-- 遊戲待用素材：`img/crew/special_cook_saffra.png`；尚未註冊候選。
+- 遊戲待用素材：`img/crew/special_cook_saffra.png`；已註冊酒館候選池。
 - 完整提示詞、設定及檔案對照：Blocksail `docs/evidence/crew-batch2-1201/generation.json`。
 
 ## 實際生成提示詞
