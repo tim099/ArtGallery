@@ -1,0 +1,121 @@
+{
+  "author": "meadow (Codex)",
+  "date": "2026-11-04",
+  "purpose": "Six town navigation icons, one wooden nautical toolbar",
+  "icons": [
+    {
+      "key": "crew",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent square UI icon for a refined pixel-art age-of-sail strategy game. Subject: An age-of-sail tavern recruitment emblem: a confident woman's navy tricorn hat with one ivory feather, above two small brass crew badges. Bold simple silhouette, communicates hiring a ship's crew. Style: exquisitely shaded Japanese RPG inventory pixel art, crisp stair-step contours, deliberate discrete pixel clusters, dark brown outlines, warm upper-left highlights, tactile wood/brass/ivory surfaces, restrained deep teal accents. Render as if on a 96x96 pixel grid enlarged cleanly. Centered compact three-quarter-view object, fills 82 percent of square, generous transparent margins. Must read clearly at 36px. Actual transparent background with alpha. No button frame, no background, no cast shadow, no ground, no checkerboard, no text, no emoji, no letters, no watermark. One icon only, not a sheet.",
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-64a3f15e-9229-4850-bf31-f1fbf883e180.png",
+      "tool": "built-in image_gen",
+      "game": "img/ui/town/crew.png",
+      "master": "RawImages/meadow_town_nav_crew_v1.png",
+      "source_sha256": "521a93b40228fa3b78e5b15a2687e05e24f0cba621c0122f75e7815242d9bd72",
+      "game_sha256": "21108cc6f44c30ccee79026325083d6db572ba81ea6eecc79009d8d67b08149f",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "game_size": [
+        128,
+        128
+      ],
+      "alpha": "Native generated alpha preserved through resizing; no background removal"
+    },
+    {
+      "key": "overview",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent square UI icon for a refined pixel-art age-of-sail strategy game. Subject: A compact age-of-sail port town overview emblem: three warm ivory and terracotta houses around a small central watchtower, one tiny navy pennant. Clear bold architectural silhouette. Style: exquisitely shaded Japanese RPG inventory pixel art, crisp stair-step contours, deliberate discrete pixel clusters, dark brown outlines, warm upper-left highlights, tactile wood/brass/ivory surfaces, restrained deep teal accents. Render as if on a 96x96 pixel grid enlarged cleanly. Centered compact three-quarter-view object, fills 82 percent of square, generous transparent margins. Must read clearly at 36px. Actual transparent background with alpha. No button frame, no background, no cast shadow, no ground, no checkerboard, no text, no emoji, no letters, no watermark. One icon only, not a sheet.",
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-f0e5e394-0fc4-427d-9668-db6d29bbf805.png",
+      "tool": "built-in image_gen",
+      "game": "img/ui/town/overview.png",
+      "master": "RawImages/meadow_town_nav_overview_v1.png",
+      "source_sha256": "2d030ef8b67ee1be31f620243226d2fcbbe797b698adf50e1e8af505c67de831",
+      "game_sha256": "9991832bc160d5d8e6fb091d9a03f54c435393b47dbf2ca74bc3e671c8330681",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "game_size": [
+        128,
+        128
+      ],
+      "alpha": "Native generated alpha preserved through resizing; no background removal"
+    },
+    {
+      "key": "flow",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent square UI icon for a refined pixel-art age-of-sail strategy game. Subject: A production and consumption emblem: two large curved arrows forming a clear circular exchange around a golden wheat sheaf and a single small iron cog. Arrows in turquoise and warm brass; legible simple cycle silhouette. Style: exquisitely shaded Japanese RPG inventory pixel art, crisp stair-step contours, deliberate discrete pixel clusters, dark brown outlines, warm upper-left highlights, tactile wood/brass/ivory surfaces, restrained deep teal accents. Render as if on a 96x96 pixel grid enlarged cleanly. Centered compact three-quarter-view object, fills 82 percent of square, generous transparent margins. Must read clearly at 36px. Actual transparent background with alpha. No button frame, no background, no cast shadow, no ground, no checkerboard, no text, no emoji, no letters, no watermark. One icon only, not a sheet.",
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-d300bea5-2160-4bdb-a9de-75ac9c9c4b72.png",
+      "tool": "built-in image_gen",
+      "game": "img/ui/town/flow.png",
+      "master": "RawImages/meadow_town_nav_flow_v1.png",
+      "source_sha256": "fd1b6d0775fa5f715f5ac975ad37b5870528a23db8b110e2b2c9c80c15d61fc7",
+      "game_sha256": "9cbbd60b8467eaa45048f3f82bc5b17b2d0fc8440c0ff20a6066eaa4fe911b95",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "game_size": [
+        128,
+        128
+      ],
+      "alpha": "Native generated alpha preserved through resizing; no background removal"
+    },
+    {
+      "key": "stock",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent square UI icon for a refined pixel-art age-of-sail strategy game. Subject: A stock and prices emblem: a tightly closed golden-brown timber cargo chest with brass bands and one prominent small gold coin leaning against its lower right. No lettering on the coin. Style: exquisitely shaded Japanese RPG inventory pixel art, crisp stair-step contours, deliberate discrete pixel clusters, dark brown outlines, warm upper-left highlights, tactile wood/brass/ivory surfaces, restrained deep teal accents. Render as if on a 96x96 pixel grid enlarged cleanly. Centered compact three-quarter-view object, fills 82 percent of square, generous transparent margins. Must read clearly at 36px. Actual transparent background with alpha. No button frame, no background, no cast shadow, no ground, no checkerboard, no text, no emoji, no letters, no watermark. One icon only, not a sheet.",
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-afc9c7de-94c9-4b75-b3f6-b589f43f3b28.png",
+      "tool": "built-in image_gen",
+      "game": "img/ui/town/stock.png",
+      "master": "RawImages/meadow_town_nav_stock_v1.png",
+      "source_sha256": "978da3397bc0a335828f29ef44c38ed00c261304703e29c8c2f678b8e48f3809",
+      "game_sha256": "0e099d4333dbbf4bdb71f0f69d597d888cec7f5eb47521308f5e589ce8004115",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "game_size": [
+        128,
+        128
+      ],
+      "alpha": "Native generated alpha preserved through resizing; no background removal"
+    },
+    {
+      "key": "stats",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent square UI icon for a refined pixel-art age-of-sail strategy game. Subject: A statistics emblem: a curled ivory parchment bearing three boldly painted turquoise bars ascending left to right, crossed by a rising brass line. Graphical shapes only, no writing or numbers. Style: exquisitely shaded Japanese RPG inventory pixel art, crisp stair-step contours, deliberate discrete pixel clusters, dark brown outlines, warm upper-left highlights, tactile wood/brass/ivory surfaces, restrained deep teal accents. Render as if on a 96x96 pixel grid enlarged cleanly. Centered compact three-quarter-view object, fills 82 percent of square, generous transparent margins. Must read clearly at 36px. Actual transparent background with alpha. No button frame, no background, no cast shadow, no ground, no checkerboard, no text, no emoji, no letters, no watermark. One icon only, not a sheet.",
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-9bc42b13-668c-4073-8a58-6b84306c63fb.png",
+      "tool": "built-in image_gen",
+      "game": "img/ui/town/stats.png",
+      "master": "RawImages/meadow_town_nav_stats_v1.png",
+      "source_sha256": "fdf10be29a9fe8909963be4da8d6b453b846c5c92f3559272f9df2da5e4e2f71",
+      "game_sha256": "13999f0668b696070cb135380dbdd089cc142fc8d4a1e4538c0a93cf88ec3e89",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "game_size": [
+        128,
+        128
+      ],
+      "alpha": "Native generated alpha preserved through resizing; no background removal"
+    },
+    {
+      "key": "trade",
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent square UI icon for a refined pixel-art age-of-sail strategy game. Subject: A maritime trade emblem: a polished antique brass balance scale, one tray carrying a single gold coin, the other carrying a small terracotta merchant pouch. Simple symmetric unmistakable scale silhouette. Style: exquisitely shaded Japanese RPG inventory pixel art, crisp stair-step contours, deliberate discrete pixel clusters, dark brown outlines, warm upper-left highlights, tactile wood/brass/ivory surfaces, restrained deep teal accents. Render as if on a 96x96 pixel grid enlarged cleanly. Centered compact three-quarter-view object, fills 82 percent of square, generous transparent margins. Must read clearly at 36px. Actual transparent background with alpha. No button frame, no background, no cast shadow, no ground, no checkerboard, no text, no emoji, no letters, no watermark. One icon only, not a sheet.",
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-287fac92-f245-4a18-b866-92bd960926f3.png",
+      "tool": "built-in image_gen",
+      "game": "img/ui/town/trade.png",
+      "master": "RawImages/meadow_town_nav_trade_v1.png",
+      "source_sha256": "a6654d58947d36d039889d281f7bc8a9af8995e94151b90eeb9e37dc440bebda",
+      "game_sha256": "cd2d96bfa0ffb08dfa81862c5fde20179e9d50bfc639978293316200c7032d6d",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "game_size": [
+        128,
+        128
+      ],
+      "alpha": "Native generated alpha preserved through resizing; no background removal"
+    }
+  ]
+}
