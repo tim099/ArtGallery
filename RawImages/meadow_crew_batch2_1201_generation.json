@@ -1,0 +1,215 @@
+{
+  "task": 1201,
+  "tool": "built-in image_gen",
+  "use_case": "stylized-concept",
+  "reference": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_captain_astrid_sprite_v1.png",
+  "reference_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b",
+  "transparent_background": true,
+  "characters": [
+    {
+      "id": "special_navigator_nerissa",
+      "name": "奈莉莎・灰汐",
+      "en": "Nerissa Greywake",
+      "role": "航海士",
+      "age": 46,
+      "visual": "Nerissa Greywake, age 46, seasoned coastal pilot. Mature angular face with subtle smile lines, deep brown skin, amber eyes, very short salt-and-pepper tightly curled hair with silver at temples. Quiet skeptical half-smile, sturdy slender build. Short fitted navy pilot's jacket with weathered brass buttons over muted sea-green waistcoat and ivory linen high-neck shirt, faded teal neckcloth, navy trousers, dark-brown knee boots. No captain insignia or fur. One hand holds a neatly coiled thin sounding line close to her hip, the small lead sounding weight hangs visibly beside the coil without touching the ground; other hand holds a compact closed tide notebook against her side. Slim leather chart case at belt. Grounded relaxed stance, practical veteran not a young girl's face.",
+      "tagline": "海圖說得再肯定，也得先問問水深。",
+      "personality": "寡言、務實，習慣先聽完值更水手的觀察再下結論。對新手不苛刻，對沒有日期的數據卻毫不客氣。",
+      "history": "曾替河口小商船帶路二十多年。一次船東為趕潮忽略她的複測請求，船雖勉強通過，載貨卻受了損；事後她發現自己為了保住工作，把不確定性說得太輕。此後她把每筆測深的日期、風向與可信程度寫在同一頁。",
+      "duties": "負責近岸測深、潮時比對、進出港備案與值更交接；航向由船長拍板，她提供可核對的選項。",
+      "strength": "擅長在舊海圖與當日觀測不符時找出差異，為吃水不同的船準備多條進港方案。",
+      "weakness": "碰到時間不足又資料稀少的決策容易過度保守；她得學會分清合理冒險與敷衍風險。",
+      "goal": "建立一本便宜小船也用得起的河口潮簿，註明每條記錄是何時、由誰量的。",
+      "hook": "在酒館要求船長說清這趟船的吃水和預定抵達時辰，才願意談受雇。此為劇情提案。",
+      "skill": {
+        "name": "灰汐複測",
+        "proposal": "航海士任職時改善近岸領航與值更交接；優先接既有工作效率或航線風險資訊，不憑空改海床或賦予安全通航。",
+        "trait": "留一條退路",
+        "traitProposal": "資料不足時指出保守備案，讓玩家看見哪些判斷仍待觀測；不把角色直覺變成全知海圖。"
+      },
+      "prompt": "Use case: stylized-concept. Asset: ONE original adult female special crew member for the Blocksail recruitment UI. Reference image is STYLE ONLY: match Astrid's refined Japanese anime pixel-art sprite, crisp stair-step contours, dark selective outlines, discrete clustered shading, detailed fabric/leather/brass and expressive face, restrained age-of-sail fantasy costume. Create a DISTINCT person, never copy Astrid's face, braid, captain coat or fur trim. Single full-body standing figure, portrait approximately 4:7, three-quarter facing slightly screen right, complete hair, hands, tools and boot soles, generous transparent margins on every side. Natural hair and clothing colours. Practical trousers and boots. Upper-left light, no ground shadow, no background scene, no white backdrop, no checkerboard drawn, no labels, text, border, watermark, duplicates or extra people. GENUINELY TRANSPARENT background with clean alpha; preserve ivory fabric and highlights as opaque. Use the reference's refined visible pixel clusters; no smooth airbrush gradients, blur or pixel-noise filter. Nerissa Greywake, age 46, seasoned coastal pilot. Mature angular face with subtle smile lines, deep brown skin, amber eyes, very short salt-and-pepper tightly curled hair with silver at temples. Quiet skeptical half-smile, sturdy slender build. Short fitted navy pilot's jacket with weathered brass buttons over muted sea-green waistcoat and ivory linen high-neck shirt, faded teal neckcloth, navy trousers, dark-brown knee boots. No captain insignia or fur. One hand holds a neatly coiled thin sounding line close to her hip, the small lead sounding weight hangs visibly beside the coil without touching the ground; other hand holds a compact closed tide notebook against her side. Slim leather chart case at belt. Grounded relaxed stance, practical veteran not a young girl's face.",
+      "task": 1201,
+      "gender": "female",
+      "status": "art-and-design-ready",
+      "image": "img/crew/special_navigator_nerissa.png",
+      "gallery_image": "RawImages/meadow_special_navigator_nerissa_sprite_v1.png",
+      "gallery_card": "Portraits/meadow_special_navigator_nerissa_sprite.md",
+      "sha256": "a03cd0655af82046eb01bd091e51fc42430d001f4b09464af7b5ceceef69197c",
+      "size": [
+        948,
+        1659
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "author": "meadow (Codex)",
+      "reference": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_captain_astrid_sprite_v1.png",
+      "reference_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+    },
+    {
+      "id": "special_gunner_odette",
+      "name": "奧黛特・銅燧",
+      "en": "Odette Brasswick",
+      "role": "砲術長",
+      "age": 32,
+      "visual": "Odette Brasswick, age 32, meticulous female master gunner. Fair freckled skin, clear grey-green eyes, copper-auburn chin-length straight bob with a single tucked-back side, alert measuring gaze and slight wry smile. Medium athletic build. Deep oxblood-red fitted waistcoat over ivory rolled-sleeve linen shirt, short navy shoulder cape secured behind upper arms, dark leather utility belt with brass measuring dividers and a CLOSED powder horn, navy trousers tucked into practical brown boots. One gloved hand holds a compact brass gunner's quadrant at waist, other rests on a leather-covered notebook, all props close to the silhouette. No giant cannon, no firearm in hands, no flames, no modern safety equipment, no oversized hat. Precise disciplined stance, not a captain.",
+      "tagline": "先量清楚，再讓別人聽見我們。",
+      "personality": "說話乾淨俐落，喜歡拿一個可重做的小實驗結束爭論。私下會在帳本夾乾花，對外卻不愛解釋。",
+      "history": "在港口鑄造坊當過試砲記錄員，見過同一批砲因火藥受潮而打出截然不同的結果。一次試射事故後，她拒絕照管事要求刪去異常紀錄，離開工坊改上商船，想讓砲班知道自己的器材能做到什麼、不能做到什麼。",
+      "duties": "統整砲班訓練、砲具量測、彈藥保存與交火後的器材紀錄；開火與停火遵照船長命令。",
+      "strength": "善於辨認器材狀態與操作流程造成的散差，讓送藥手與砲班使用同一套簡短口令。",
+      "weakness": "太相信可記錄的數字，面對經驗水手的模糊警訊時有時反應慢半拍。",
+      "goal": "寫一本讓新砲手也能辨認異常的薄手冊，保留失敗案例而不只列標準答案。",
+      "hook": "正在酒館找願意保留試射紀錄的船，不要求最重的砲，先問誰負責教新手。此為劇情提案。",
+      "skill": {
+        "name": "銅燧校準",
+        "proposal": "砲術長任職時改善砲班協同及裝填工作效率；仍受現有火砲、彈藥、到崗人力與射界限制，不產生額外砲彈。",
+        "trait": "異常不刪",
+        "traitProposal": "讓砲班相關效果與限制有清楚來源，偏重持續穩定操作；不直接套用未實作的命中率數值。"
+      },
+      "prompt": "Use case: stylized-concept. Asset: ONE original adult female special crew member for the Blocksail recruitment UI. Reference image is STYLE ONLY: match Astrid's refined Japanese anime pixel-art sprite, crisp stair-step contours, dark selective outlines, discrete clustered shading, detailed fabric/leather/brass and expressive face, restrained age-of-sail fantasy costume. Create a DISTINCT person, never copy Astrid's face, braid, captain coat or fur trim. Single full-body standing figure, portrait approximately 4:7, three-quarter facing slightly screen right, complete hair, hands, tools and boot soles, generous transparent margins on every side. Natural hair and clothing colours. Practical trousers and boots. Upper-left light, no ground shadow, no background scene, no white backdrop, no checkerboard drawn, no labels, text, border, watermark, duplicates or extra people. GENUINELY TRANSPARENT background with clean alpha; preserve ivory fabric and highlights as opaque. Use the reference's refined visible pixel clusters; no smooth airbrush gradients, blur or pixel-noise filter. Odette Brasswick, age 32, meticulous female master gunner. Fair freckled skin, clear grey-green eyes, copper-auburn chin-length straight bob with a single tucked-back side, alert measuring gaze and slight wry smile. Medium athletic build. Deep oxblood-red fitted waistcoat over ivory rolled-sleeve linen shirt, short navy shoulder cape secured behind upper arms, dark leather utility belt with brass measuring dividers and a CLOSED powder horn, navy trousers tucked into practical brown boots. One gloved hand holds a compact brass gunner's quadrant at waist, other rests on a leather-covered notebook, all props close to the silhouette. No giant cannon, no firearm in hands, no flames, no modern safety equipment, no oversized hat. Precise disciplined stance, not a captain.",
+      "task": 1201,
+      "gender": "female",
+      "status": "art-and-design-ready",
+      "image": "img/crew/special_gunner_odette.png",
+      "gallery_image": "RawImages/meadow_special_gunner_odette_sprite_v1.png",
+      "gallery_card": "Portraits/meadow_special_gunner_odette_sprite.md",
+      "sha256": "8040bad19c3fd86b979cfb47ecdcd0fecb3f2f994f8d1225e1dac1e2853271e8",
+      "size": [
+        948,
+        1659
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "author": "meadow (Codex)",
+      "reference": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_captain_astrid_sprite_v1.png",
+      "reference_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+    },
+    {
+      "id": "special_boatswain_tamar",
+      "name": "塔瑪・葦結",
+      "en": "Tamar Reedknot",
+      "role": "水手長",
+      "age": 35,
+      "visual": "Tamar Reedknot, age 35, strong female boatswain with broad shoulders and muscular forearms. Warm olive-tan skin, dark expressive eyes, thick black curly hair in a compact high bun wrapped with a faded wine-red headscarf. Confident open grin, one slightly raised eyebrow. Cropped unbuttoned navy work jacket, ivory shirt sleeves rolled high, dark sea-green woven waist sash, dark navy work trousers, sturdy mid-calf brown lace-up boots. A small brass boatswain's whistle on a cord at her chest, wooden belaying pin tucked safely in her belt. One hand holds a small tidy coil of natural hemp rope beside her hip, other rests on waist. Work-worn glove tucked into belt. Compact balanced stance, full fingers visible, no objects on ground, no copied blonde braid or officer finery.",
+      "tagline": "口令要聽懂，繩子才拉得齊。",
+      "personality": "嗓門亮、笑得爽快，喜歡用示範代替訓斥。她能記住誰怕高，卻常忘記自己也會累。",
+      "history": "成長於葦洲渡口，年輕時在纜繩作坊與渡船之間換工。她曾帶過來自幾個港口、彼此聽不懂口音的臨時船員，靠手勢和重述口令讓他們在暴雨中完成繫泊。後來大家叫她葦結，因為她最擅長把鬆散的人編成一起受力的一束。",
+      "duties": "安排甲板值更、索具作業、工具點交與新手訓練，讓每個班都知道自己的下一步與退讓空間。",
+      "strength": "擅長跨口音協作，能從動作遲疑看出有人沒聽懂，提前停下重新示範。",
+      "weakness": "遇到危急作業總想自己上，容易把職責分工又拉回一人硬撐。",
+      "goal": "養成一班不靠她大聲喊也能可靠交接的甲板骨幹。",
+      "hook": "在酒館替受傷的前船友找替班，若玩家願意讓新手受訓而非直接頂上，她會考慮登船。此為劇情提案。",
+      "skill": {
+        "name": "葦結口令",
+        "proposal": "水手長任職時改善甲板水手與索具作業的工作效率；不改角色移動速度、物理繩索強度或無條件消除疲勞。",
+        "trait": "重述一遍",
+        "traitProposal": "強調交接清楚與空缺提示，可作甲板協同特長；不得以一張人物卡替代一般水手人數。"
+      },
+      "prompt": "Use case: stylized-concept. Asset: ONE original adult female special crew member for the Blocksail recruitment UI. Reference image is STYLE ONLY: match Astrid's refined Japanese anime pixel-art sprite, crisp stair-step contours, dark selective outlines, discrete clustered shading, detailed fabric/leather/brass and expressive face, restrained age-of-sail fantasy costume. Create a DISTINCT person, never copy Astrid's face, braid, captain coat or fur trim. Single full-body standing figure, portrait approximately 4:7, three-quarter facing slightly screen right, complete hair, hands, tools and boot soles, generous transparent margins on every side. Natural hair and clothing colours. Practical trousers and boots. Upper-left light, no ground shadow, no background scene, no white backdrop, no checkerboard drawn, no labels, text, border, watermark, duplicates or extra people. GENUINELY TRANSPARENT background with clean alpha; preserve ivory fabric and highlights as opaque. Use the reference's refined visible pixel clusters; no smooth airbrush gradients, blur or pixel-noise filter. Tamar Reedknot, age 35, strong female boatswain with broad shoulders and muscular forearms. Warm olive-tan skin, dark expressive eyes, thick black curly hair in a compact high bun wrapped with a faded wine-red headscarf. Confident open grin, one slightly raised eyebrow. Cropped unbuttoned navy work jacket, ivory shirt sleeves rolled high, dark sea-green woven waist sash, dark navy work trousers, sturdy mid-calf brown lace-up boots. A small brass boatswain's whistle on a cord at her chest, wooden belaying pin tucked safely in her belt. One hand holds a small tidy coil of natural hemp rope beside her hip, other rests on waist. Work-worn glove tucked into belt. Compact balanced stance, full fingers visible, no objects on ground, no copied blonde braid or officer finery.",
+      "task": 1201,
+      "gender": "female",
+      "status": "art-and-design-ready",
+      "image": "img/crew/special_boatswain_tamar.png",
+      "gallery_image": "RawImages/meadow_special_boatswain_tamar_sprite_v1.png",
+      "gallery_card": "Portraits/meadow_special_boatswain_tamar_sprite.md",
+      "sha256": "d40c7ccf2147a85fbb5647674189e0b4e752e95e91b81827ba4be2f4dacf773d",
+      "size": [
+        948,
+        1659
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "author": "meadow (Codex)",
+      "reference": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_captain_astrid_sprite_v1.png",
+      "reference_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+    },
+    {
+      "id": "special_sailmaker_yselle",
+      "name": "伊賽兒・白邊",
+      "en": "Yselle Whitehem",
+      "role": "帆匠",
+      "age": 54,
+      "visual": "Yselle Whitehem, age 54, experienced female sailmaker. Clearly mature calm face with fine smile lines, light warm skin, grey-blue eyes behind small round brass spectacles, silver-white hair neatly coiled into a low bun with a few loose wisps. Slim wiry physique, patient slightly amused expression. Muted burgundy linen work blouse with rolled ivory cuffs beneath an indigo-blue split leather-and-canvas work apron, navy trousers, worn brown boots. One forearm cradles a compact folded roll of opaque ivory sailcloth at waist; other hand wears a dark leather sailmaker's palm and rests on the cloth, no needle pointed at viewer. Small wooden sail-sewing tools and closed needle case secured at belt. Cloth remains entirely opaque with crisp pixel folds. No enormous sail filling frame, no floor props, no fashionable young face.",
+      "tagline": "好補丁，得替下一次破口留位置。",
+      "personality": "耐心、愛講冷笑話，常一邊縫帆一邊聽人抱怨。對手藝很自信，對自己的身體變化則不太坦率。",
+      "history": "在港口帆坊工作三十多年，曾經一心追求縫得像新帆，直到一次救回海上破帆，才明白讓受力有路可走比遮住裂痕更要緊。她後來上船，把帆面補片和修理日期都記成小圖，讓接手者不必猜前人的做法。",
+      "duties": "檢查帆面受力與磨損、安排帆布裁補、保管針線與補片，與水手長確認作業窗口。",
+      "strength": "善於在有限帆布中規劃可再維修的補法，留下清晰工記，讓學徒接得上。",
+      "weakness": "長時間精細工作後手指會僵硬，偶爾為維持老手形象而不肯及時交班。",
+      "goal": "把補帆圖記交給一名肯問為什麼的學徒，再親眼看看年輕時只在布料標籤上見過的遠港。",
+      "hook": "帶著半卷完成的示範帆布在酒館等船；願意給她帶一名學徒與合理作息，比高薪更有吸引力。此為劇情提案。",
+      "skill": {
+        "name": "白邊續縫",
+        "proposal": "帆匠任職時改善既有帆面修補工作效率，沿用帆布、工具與到崗需求；不無限生成帆布，也不讓破帆瞬間復原。",
+        "trait": "留給下一手",
+        "traitProposal": "修補過程可保留來源與接手資訊，作長航維護型特長；具體效果待玩法定案。"
+      },
+      "prompt": "Use case: stylized-concept. Asset: ONE original adult female special crew member for the Blocksail recruitment UI. Reference image is STYLE ONLY: match Astrid's refined Japanese anime pixel-art sprite, crisp stair-step contours, dark selective outlines, discrete clustered shading, detailed fabric/leather/brass and expressive face, restrained age-of-sail fantasy costume. Create a DISTINCT person, never copy Astrid's face, braid, captain coat or fur trim. Single full-body standing figure, portrait approximately 4:7, three-quarter facing slightly screen right, complete hair, hands, tools and boot soles, generous transparent margins on every side. Natural hair and clothing colours. Practical trousers and boots. Upper-left light, no ground shadow, no background scene, no white backdrop, no checkerboard drawn, no labels, text, border, watermark, duplicates or extra people. GENUINELY TRANSPARENT background with clean alpha; preserve ivory fabric and highlights as opaque. Use the reference's refined visible pixel clusters; no smooth airbrush gradients, blur or pixel-noise filter. Yselle Whitehem, age 54, experienced female sailmaker. Clearly mature calm face with fine smile lines, light warm skin, grey-blue eyes behind small round brass spectacles, silver-white hair neatly coiled into a low bun with a few loose wisps. Slim wiry physique, patient slightly amused expression. Muted burgundy linen work blouse with rolled ivory cuffs beneath an indigo-blue split leather-and-canvas work apron, navy trousers, worn brown boots. One forearm cradles a compact folded roll of opaque ivory sailcloth at waist; other hand wears a dark leather sailmaker's palm and rests on the cloth, no needle pointed at viewer. Small wooden sail-sewing tools and closed needle case secured at belt. Cloth remains entirely opaque with crisp pixel folds. No enormous sail filling frame, no floor props, no fashionable young face.",
+      "task": 1201,
+      "gender": "female",
+      "status": "art-and-design-ready",
+      "image": "img/crew/special_sailmaker_yselle.png",
+      "gallery_image": "RawImages/meadow_special_sailmaker_yselle_sprite_v1.png",
+      "gallery_card": "Portraits/meadow_special_sailmaker_yselle_sprite.md",
+      "sha256": "86470946742c280a33a2fc11a66b1d4371a2f1306df67a69ccbf47bd57077beb",
+      "size": [
+        948,
+        1659
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "author": "meadow (Codex)",
+      "reference": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_captain_astrid_sprite_v1.png",
+      "reference_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+    },
+    {
+      "id": "special_cook_saffra",
+      "name": "莎芙菈・香潮",
+      "en": "Saffra Spicetide",
+      "role": "廚師",
+      "age": 28,
+      "visual": "Saffra Spicetide, age 28, spirited female ship cook and spice trader's daughter. Warm medium brown skin, golden-hazel eyes, dark chestnut curly hair gathered in a compact high bun under a muted plum headwrap. Bright attentive smile, slim energetic adult build. Mustard-ochre rolled-sleeve blouse, open short navy waistcoat, clean opaque ivory half-apron tied over navy trousers, sturdy brown calf boots. One hand supports a small polished copper saucepan close to her hip with lid CLOSED; other holds a compact closed wooden spice box at waist, no food floating, no steam. Small wooden tasting spoon tucked into apron loop. Costume practical maritime rather than modern chef uniform, no white chef hat. Clear distinctive warm ochre/copper/plum accents, composed ready-to-work stance.",
+      "tagline": "香料不是拿來遮壞味道的，是讓人願意好好吃完。",
+      "personality": "好奇、反應快，會記住每個人的口味與過敏提醒，但偶爾太急著證明自己的新點子。",
+      "history": "香料行的女兒，熟悉哪些氣味代表乾燥、哪些代表貨受了潮。家中一次遠航貨損後，她開始在船上做飯，發現帳面上的食材份量與人在搖晃廚房裡真正吃下的份量是兩回事。她逐漸學會先把穩定的一餐做好，再把創意留給還有餘裕的晚上。",
+      "duties": "安排船餐、檢查食材保存、點交香料與淡水，與軍需官核對真正可用的庫存。",
+      "strength": "擅長用既有食材做出輪替菜色，也能從氣味提早發現一批貨需要優先處理。",
+      "weakness": "遇到沒見過的食材容易手癢，得有人提醒她先保留熟悉且足量的船餐。",
+      "goal": "寫一本把保存方式、替代食材和實際份量都說明白的遠航食譜，而不是只給富人看的宴席書。",
+      "hook": "正為一支短途船隊試做長航菜單，想找願意公開船員意見、肯讓她修訂食譜的船。此為劇情提案。",
+      "skill": {
+        "name": "香潮輪餐",
+        "proposal": "廚師任職時改善既有烹飪工作效率；餐點仍消耗真實食材，buff依既有船餐系統生效，不把香料當成免費士氣。",
+        "trait": "先聞再入鍋",
+        "traitProposal": "偏向補給保存與菜單提示的特長，將優先使用的食材說清楚；具體耗損數值待定。"
+      },
+      "prompt": "Use case: stylized-concept. Asset: ONE original adult female special crew member for the Blocksail recruitment UI. Reference image is STYLE ONLY: match Astrid's refined Japanese anime pixel-art sprite, crisp stair-step contours, dark selective outlines, discrete clustered shading, detailed fabric/leather/brass and expressive face, restrained age-of-sail fantasy costume. Create a DISTINCT person, never copy Astrid's face, braid, captain coat or fur trim. Single full-body standing figure, portrait approximately 4:7, three-quarter facing slightly screen right, complete hair, hands, tools and boot soles, generous transparent margins on every side. Natural hair and clothing colours. Practical trousers and boots. Upper-left light, no ground shadow, no background scene, no white backdrop, no checkerboard drawn, no labels, text, border, watermark, duplicates or extra people. GENUINELY TRANSPARENT background with clean alpha; preserve ivory fabric and highlights as opaque. Use the reference's refined visible pixel clusters; no smooth airbrush gradients, blur or pixel-noise filter. Saffra Spicetide, age 28, spirited female ship cook and spice trader's daughter. Warm medium brown skin, golden-hazel eyes, dark chestnut curly hair gathered in a compact high bun under a muted plum headwrap. Bright attentive smile, slim energetic adult build. Mustard-ochre rolled-sleeve blouse, open short navy waistcoat, clean opaque ivory half-apron tied over navy trousers, sturdy brown calf boots. One hand supports a small polished copper saucepan close to her hip with lid CLOSED; other holds a compact closed wooden spice box at waist, no food floating, no steam. Small wooden tasting spoon tucked into apron loop. Costume practical maritime rather than modern chef uniform, no white chef hat. Clear distinctive warm ochre/copper/plum accents, composed ready-to-work stance.",
+      "task": 1201,
+      "gender": "female",
+      "status": "art-and-design-ready",
+      "image": "img/crew/special_cook_saffra.png",
+      "gallery_image": "RawImages/meadow_special_cook_saffra_sprite_v1.png",
+      "gallery_card": "Portraits/meadow_special_cook_saffra_sprite.md",
+      "sha256": "150bca30af2d4be1b4ab86c6c3e8db7a509dee22d5cc61dcad3dbd4599022bc3",
+      "size": [
+        948,
+        1659
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "author": "meadow (Codex)",
+      "reference": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_captain_astrid_sprite_v1.png",
+      "reference_sha256": "dc109884666dfdf056aba9ecbaab2dfc0220d459e2d1b3e85d1643462cb0361b"
+    }
+  ]
+}
