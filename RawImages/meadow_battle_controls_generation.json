@@ -1,0 +1,362 @@
+{
+  "tool": "built-in image_gen",
+  "assets": {
+    "helm": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-77f9b0db-c90a-429c-bf21-7540e954dd13.png",
+      "prompt": "ONE wooden ship steering wheel with eight handles and a warm brass central boss. Symmetrical frontal view, strong clean silhouette. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_helm_v1.png",
+      "source_sha256": "78f2dba6b6211b363965ea89224431170af719363f654adda8c00001e297a97f",
+      "game_sha256": "a7d20b3a3d13cba64f5361ddb94f0e50fdfcc02ef472bb77dd9d85c806abde0c",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        253
+      ],
+      "bbox": [
+        25,
+        24,
+        107,
+        104
+      ]
+    },
+    "camera": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-0b31a6ca-6671-4519-a059-097367525b27.png",
+      "prompt": "ONE compact nautical camera/view icon: a brass-and-dark-wood camera box with one large blue glass lens and tiny top viewfinder, simple instantly recognizable camera silhouette, three-quarter view. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_camera_v1.png",
+      "source_sha256": "fc45cd1d387facfbe98aade49297b4e91c1e1c96de85342df5dd70e7a473830e",
+      "game_sha256": "255ea6f68a6216955a79190514b70cc852d6b2adb95fb5c8da42aabeb94ca38b",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        36,
+        38,
+        99,
+        99
+      ]
+    },
+    "autopilot": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-e542ed23-3c12-4ded-b74f-50cf4bb4d6bb.png",
+      "prompt": "ONE automatic ship steering icon: a large wooden eight-spoke steering wheel on the left and a short teal navigation route curving around its right side, the route ending in one clear gold arrowhead. Wheel and navigation arrow remain separately readable at 24px. No robot, no lettering. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_autopilot_v1.png",
+      "source_sha256": "732ff5af28b9a65260d3c50f1163ecc6a16ab69dd940906455c8dd789f523314",
+      "game_sha256": "1aa30f46bf66f518f9d1936d18a5706a6968d2442d92882cb33f855fec340741",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        253
+      ],
+      "bbox": [
+        10,
+        27,
+        108,
+        99
+      ]
+    },
+    "autofire": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-1154b3ec-f031-4e0c-8e28-c051bc1d8122.png",
+      "prompt": "ONE automatic cannon firing icon. Match the reference cannon's iron and wood pixel style. A compact black iron naval cannon on brown wooden carriage, surrounded above and below by TWO LARGE bright gold curved arrows forming a clear repeat cycle. Cannon centered, looping arrows clearly separated from barrel and wheels. Remain readable at 24px. No robot, no explosion, no letters. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [
+        "D:/Unity/Blocksail/external/Blockside/src/art/battle/cannon.png"
+      ],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_autofire_v1.png",
+      "source_sha256": "a7aa035d5118eb9214e6b3bb3bb92e382602db90634efd6e41e03713f696ae10",
+      "game_sha256": "44dc59416bd7ff0aff58da42ea8bced232d3e731feca0516648628202a5c580b",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        18,
+        18,
+        108,
+        110
+      ],
+      "reference_sha256": [
+        "444bdafdac90659b55d7ba0049913f3565dfd96cf92c6fee290b37c5f5c7f87c"
+      ]
+    },
+    "greekfire": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-94c16ba9-5c10-4b8f-8c25-e02464162002.png",
+      "prompt": "ONE Greek fire naval ammunition icon: a compact bronze oil amphora with a short spout, a bright turquoise-and-gold tongue of flame emerging from the spout. Ancient naval incendiary, clearly distinct from a spherical explosive shell. No text, no historical labels. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_greekfire_v1.png",
+      "source_sha256": "99bc8b0a942a0ef5dfd80e31d41db09689dc5941c8a01cc65ee0d6bf51bfe29c",
+      "game_sha256": "3284ee20b1b9b7b37df1148ee108d8c23bcb94b676e9428d6038e1f67978eb3a",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        253
+      ],
+      "bbox": [
+        32,
+        34,
+        107,
+        95
+      ]
+    },
+    "solid": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-ceec6daf-7dea-4ad1-9c99-09fe4e78ab88.png",
+      "prompt": "ONE solid iron cannonball. A dark blue-black spherical iron ball with a crisp silver upper-left highlight, strong outline and shaded pixel clusters, no fuse, no flame. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_solid_v1.png",
+      "source_sha256": "66b26b2d99bdcddfbc36bb3a51447c82b68d5eddcc85b1afef56a4d9e75fef55",
+      "game_sha256": "c7efb9407259eb96917d8dd1aa4e2cd533caede0d94350e59f1b575fdf5515d4",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        38,
+        39,
+        90,
+        91
+      ]
+    },
+    "bolt": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-b5ff4ef1-84b8-4364-a973-40727ae392d3.png",
+      "prompt": "ONE crossbow bolt with a chunky dark iron arrowhead, short wooden shaft and cream feather fletching, diagonal compact composition. A single bolt, no bow. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_bolt_v1.png",
+      "source_sha256": "9a624aa1f6b08fb6743b802e70e4a1a0891c10551582e19a3d3ca5d03cfd43cb",
+      "game_sha256": "6df9992859067567d432d4255e46ea9ff9e48101a031d7a2b1767a4f80eeb34e",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        253
+      ],
+      "bbox": [
+        25,
+        36,
+        105,
+        90
+      ]
+    },
+    "rocket": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-59b84ce6-27b0-43ec-b668-95faa0aec1fb.png",
+      "prompt": "ONE age-of-sail incendiary rocket projectile, short wood shaft, iron conical tip, small red binding, bright orange flame trailing from the base, diagonal compact composition. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_rocket_v1.png",
+      "source_sha256": "0d9b8d22d5b62ebc2019b6c8a8d9e378abaee7acf041894ecc0fcb896347e5ae",
+      "game_sha256": "8bb2f874672cf53469572f5106120a0bc477632782e1c37aad76b62fa7560b3d",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        28,
+        37,
+        102,
+        99
+      ]
+    },
+    "stone": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-a0622174-968a-476a-a847-481ecabaf0c6.png",
+      "prompt": "ONE round rough gray stone projectile for a naval catapult, roughly spherical with faceted pale gray surface and dark fissures. No flames, no metal, no ground. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_stone_v1.png",
+      "source_sha256": "8dc65ad48dcecfd35ea7542d550dabed1dc4a1fcc5e6b64bdc5588712178e57d",
+      "game_sha256": "1a3789f4ba210a5ca437ffa3482e34e4fa868e7410a3301c8238e4ab9011be0c",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        37,
+        41,
+        88,
+        97
+      ]
+    },
+    "fire": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-2ac9e7ea-eef3-41fc-9ef1-0352bb415377.png",
+      "prompt": "ONE compact orange-and-gold flame with a deep red base, distinct three-lobed fire silhouette, crisp warm highlights. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_fire_v1.png",
+      "source_sha256": "8c2ba38501f2b459a8e6e5314fc8b9acc4226de0b8520399324ee7228de83db0",
+      "game_sha256": "8157c77d775271b5c5ed531995c085cecea52b3477eb8f31d71cf9c0b5a2eba5",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        33,
+        21,
+        92,
+        107
+      ]
+    },
+    "water": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-0be9efcc-7621-4a03-99a0-3c7318b3bb85.png",
+      "prompt": "ONE clear blue water droplet, full rounded body and pointed tip, deep blue outline and pale turquoise upper-left highlight. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_water_v1.png",
+      "source_sha256": "e18f2ec8db63be12583ebbb53b52e92494bcd6aabff4400114773651d2da6263",
+      "game_sha256": "8fd00e2be49aa3c5b032e11bf109fd5ca77779b051361465d145f124c73b2730",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        35,
+        23,
+        107,
+        112
+      ]
+    },
+    "breach": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-887137a2-f0ce-4c24-837d-95080b2286da.png",
+      "prompt": "ONE small broken oak hull plank with a ragged dark hole through its center, splintered timber edges, a hint of blue seawater visible in the opening. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_breach_v1.png",
+      "source_sha256": "b0a0df88ef58a0c4645b7011590247be87cc2465707eaee1b75f058a3beae046",
+      "game_sha256": "d7080762dd612bd8c6eff9c13a9555b0f81f6b3446bc600fbfb7dc5cfaeb6729",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        13,
+        31,
+        110,
+        95
+      ]
+    },
+    "xray": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-e0360356-f2d0-4083-b080-e23b91f59d9c.png",
+      "prompt": "ONE naval hull transparency view icon: a small oak boat hull with its near wall translucent blue, revealing three pale ribs inside, side three-quarter view. Clean readable game control emblem. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background. No external halo, bloom or glow, no cast shadow. Transparent empty pixels directly outside the crisp silhouette.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_xray_v1.png",
+      "source_sha256": "5c2dc6662e4bd2cd64907949f555a2d135f32dbad5156a05e0934edfd8e429e0",
+      "game_sha256": "40b3413168def24fcc7229e5c011982461b98aaf832ad80a9bc5446e9ad63b29",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        253
+      ],
+      "bbox": [
+        15,
+        32,
+        110,
+        98
+      ]
+    },
+    "cut": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-85aeb5c0-7a81-46a9-b2fe-8ba7a13f7341.png",
+      "prompt": "ONE cutaway naval view icon: short wooden ship hull cut cleanly across the middle, showing pale ribs and two interior deck levels at the exposed cross section, three-quarter view. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background. No external halo, bloom or glow, no cast shadow. Transparent empty pixels directly outside the crisp silhouette.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_cut_v1.png",
+      "source_sha256": "a75191aa4a0bb8b0d594c8d5650a9a21947774fae88c7b3423b6e4fe9e2ea18b",
+      "game_sha256": "478dd66a3cf9883914ab4671f2377ea293341937171cd0deeddaed59e50eac19",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bbox": [
+        16,
+        36,
+        106,
+        94
+      ]
+    },
+    "deck": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-21cff111-baa3-4986-8e7a-9915d320d677.png",
+      "prompt": "ONE hide-decks naval view icon: three small wooden rectangular deck panels stacked vertically with clear gaps, dark plank lines and brass edge highlights, isometric view. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background. No external halo, bloom or glow, no cast shadow. Transparent empty pixels directly outside the crisp silhouette.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_deck_v1.png",
+      "source_sha256": "add9d643f5c3cee1d4df2406020772ec90cd33da5e155d6692f42d8c94e5a621",
+      "game_sha256": "72e30c1afa834b0133abf93d81b466a170a15c0ce39c63c2a2b318658b58b37e",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        14,
+        17,
+        106,
+        112
+      ]
+    },
+    "compass": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-c648b7df-fc23-4d1a-a071-cf6dc489502f.png",
+      "prompt": "ONE compact round nautical compass with brass rim, dark navy face, red and ivory needle. No alphabet letters, no numbers, no ribbons. Use case: stylized-concept. Asset type: refined pixel-art naval game UI icon, same family as age-of-sail RPG inventory art. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, restrained tiny highlights from upper left, tactile brass/wood/iron textures. Centered compact composition with generous transparent margins, designed to read at24 and32px. No text, numbers, frame, opaque badge, background, ground shadow or checkerboard. Actual transparent background. No external halo, bloom or glow, no cast shadow. Transparent empty pixels directly outside the crisp silhouette.",
+      "references": [],
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_controls_compass_v1.png",
+      "source_sha256": "4a55473fce7747192cf9098ef20aeaff6fff2d0900e9630dcf5114fe5ce33ca4",
+      "game_sha256": "48b380252a2abd5bfe0f33ef24c9b1a43289f2999796121a38f6fe1391f21eff",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        25,
+        11,
+        104,
+        115
+      ]
+    }
+  }
+}
