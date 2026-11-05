@@ -1,0 +1,89 @@
+{
+  "tool": "built-in image_gen",
+  "assets": {
+    "sailor": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-5eef87c9-2f9c-4509-9497-0463eaa337bd.png",
+      "prompt": "Use case: stylized-concept. ONE refined pixel-art naval HUD icon: bust portrait of an adult FEMALE common sailor from the age of sail, chestnut hair in a compact braid, red headscarf, ivory linen blouse and navy waistcoat. Friendly determined face, no officer hat. Compact centered readable silhouette, front three-quarter view, upper-left warm light, rich discrete shaded pixel clusters, crisp stair-step dark outlines, polished 16/32-bit nautical RPG inventory art. Designed to remain identifiable at 24px. Full head and shoulders, generous transparent margins. No text, no numbers, no frame, no badge, no background, no checkerboard. Actual transparent background.",
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_sailor_v1.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "game_sha256": "9bdbdb1385d5408b2d1d90db312c88dd72c482a75ab896ea00d6fb1a605d8a0a",
+      "source_sha256": "978a5901e040d22f8ee5196ce78e6d18d5276564cfaf167e4703edba29b17523",
+      "bbox": [
+        27,
+        14,
+        108,
+        114
+      ]
+    },
+    "cannon": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-bea8afaf-6bfd-4af2-9ca0-612ff9cbe875.png",
+      "prompt": "Use case: stylized-concept. ONE refined pixel-art naval HUD icon: age-of-sail cast-iron black long CANNON on a compact warm brown wooden four-wheel carriage, brass fittings, muzzle angled toward upper left, three-quarter side view. Full object centered with transparent margins. Rich discrete shaded pixel clusters, crisp stair-step dark outlines, upper-left highlights, tactile iron and wood, polished 16/32-bit nautical RPG inventory art. Compact readable silhouette at 24px. No explosion, no smoke, no text, no frame, no background, no checkerboard. Actual transparent background.",
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_cannon_v1.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        253
+      ],
+      "game_sha256": "444bdafdac90659b55d7ba0049913f3565dfd96cf92c6fee290b37c5f5c7f87c",
+      "source_sha256": "548773f1ab4350bc7ee71433d557ebc9fd03d7d005bab0593ecf6fed3a0fc835",
+      "bbox": [
+        10,
+        27,
+        108,
+        98
+      ]
+    },
+    "shell": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-b1ab28f2-16b8-4d85-a8ab-092bb0ddd5b1.png",
+      "prompt": "Use case: stylized-concept. ONE refined pixel-art naval HUD icon: an age-of-sail black iron explosive spherical cannon SHELL with short lit fuse, tiny warm gold spark. Three-quarter view, black blue iron upper-left highlights and discrete shaded pixel clusters, crisp stair-step dark outline, polished 16/32-bit nautical RPG inventory art. Centered compact readable silhouette at 24px with generous transparent margins. No large flame, no text, no frame, no background, no checkerboard. Actual transparent background.",
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_shell_v1.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "game_sha256": "96a0a87fb1b03bffb32826918e669992c3f5261f1a2bc1bcd3492637d9699bfa",
+      "source_sha256": "b7c019bd5a4e8490ad5e7f35ef0117c5d44e54f75f49ed43a5ba89e751fc5d0d",
+      "bbox": [
+        19,
+        18,
+        87,
+        98
+      ]
+    },
+    "chain": {
+      "source": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-922c605b-d45a-43f0-80d1-fd41d36a4167.png",
+      "prompt": "Use case: stylized-concept. ONE refined pixel-art naval HUD icon: age-of-sail CHAIN SHOT ammunition, exactly two black iron balls joined by a short clearly visible iron chain, compact diagonal arrangement. Upper-left highlights, rich discrete blue-gray iron shaded pixel clusters, crisp stair-step dark outlines, polished 16/32-bit nautical RPG inventory art. Whole object centered, readable silhouette at 24px, generous transparent margins. No text, no frame, no background, no checkerboard. Actual transparent background.",
+      "master": "D:\\Unity\\Valhalla\\ArtGallery\\RawImages\\meadow_battle_chain_v1.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "game_sha256": "45c7d0d3cb8d9c4d32cebab23fde4c5b122bc2dc5a33033ca9477a21b8b499ed",
+      "source_sha256": "3851f7344556f00e1351d1f1e44fc7ec52eda2cc04effb3529b26d774ad51bce",
+      "bbox": [
+        11,
+        24,
+        113,
+        106
+      ]
+    }
+  }
+}
