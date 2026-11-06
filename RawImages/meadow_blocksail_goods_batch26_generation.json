@@ -1,0 +1,97 @@
+{
+  "task": 1250,
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "key": "saffron",
+      "prompt": "Use case: stylized-concept. ONE Blocksail inventory resource icon. Attached Sirius masters are ONLY pixel-art style references, not subject or shape references. Refined 16/32-bit pixel art, richly shaded material-specific colour, upper-left light, discrete shaded clusters, crisp stair-step contour, restrained dark outline, tactile depth. Compact three-quarter centered arrangement, generous empty margins. Pure solid white #FFFFFF background, no ground, no external cast shadow. No text, labels, border, checkerboard, container, sack, barrel or crate. Readable at 32px. Subject: A compact dense tangled tuft of dried saffron stigmas themselves: very fine dark crimson threads with flared trumpet tips and warm orange-red highlights. Rich burgundy interior, clearly threadlike not powder or flower petals. A few short filaments loosely curl at the edge. No purple crocus blossom, no bowl.",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png"
+      ],
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-3c739d89-ceaa-43fe-b7b2-8cf698bdea7c.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-460824ca-05cb-4833-863d-fd69c2fa1f72.png",
+      "edit_prompt": "Use case: background-extraction. Remove ONLY the plain white background of the attached resource icon to genuine transparent alpha. Preserve the entire saffron subject, its fragments, silhouette, internal holes, pixel clusters and near-white material highlights. Do not redesign or change colour. No painted checkerboard, shadow, label or replacement background.",
+      "game_sha256": "374fc814a9ad835ac8bda458863b10704b45dc2b044759c40902c3b8674547c0",
+      "bbox": [
+        12,
+        19,
+        116,
+        108
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch26_saffron_master.png",
+      "master_sha256": "3cf8e91e68fbabeef72c4f37aa5eeb7cf888e146dfac6cbe752ed1d6c3ee3722",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch26_saffron_transparent.png",
+      "transparent_sha256": "95996989ac7d23c1760ddeb33e26a01022f5a0719ceaab55730e4904f70f40bd",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png": "4c461ec6f679c2745be604b890648b8c97db6885d6828a9adc7d284fc0eea960"
+      }
+    },
+    {
+      "key": "mastic",
+      "prompt": "Use case: stylized-concept. ONE Blocksail inventory resource icon. Attached Sirius masters are ONLY pixel-art style references, not subject or shape references. Refined 16/32-bit pixel art, richly shaded material-specific colour, upper-left light, discrete shaded clusters, crisp stair-step contour, restrained dark outline, tactile depth. Compact three-quarter centered arrangement, generous empty margins. Pure solid white #FFFFFF background, no ground, no external cast shadow. No text, labels, border, checkerboard, container, sack, barrel or crate. Readable at 32px. Subject: A small compact heap of irregular Chios mastic resin tears: rounded rough ivory and pale honey-yellow translucent resin droplets, soft resinous waxy lustre, milky interiors, warm amber edges and a few fine natural imperfections. Clearly small solid resin tears, NOT cut faceted gemstones, not white sugar cubes, no branch or bowl.",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png"
+      ],
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-c4b21dae-69b3-46da-bec9-692fbc36760f.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-4c97d50a-056a-4020-8c4f-fea45c245003.png",
+      "edit_prompt": "Use case: background-extraction. Remove ONLY the plain white background of the attached resource icon to genuine transparent alpha. Preserve the entire mastic subject, its fragments, silhouette, internal holes, pixel clusters and near-white material highlights. Do not redesign or change colour. No painted checkerboard, shadow, label or replacement background.",
+      "game_sha256": "56c0a4170a837aa8fdb75694b60d89906268797427266fa7add5531f07185102",
+      "bbox": [
+        12,
+        22,
+        116,
+        106
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch26_mastic_master.png",
+      "master_sha256": "ba0063ace9032a6d3ed2846d4710e9a956518166bbe8bade11a1a854b2bfdd5a",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch26_mastic_transparent.png",
+      "transparent_sha256": "0af0a353865751fc75d24ec221293e3f2155fd565dfe7f226737989d3c3406de",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png": "4c461ec6f679c2745be604b890648b8c97db6885d6828a9adc7d284fc0eea960"
+      }
+    },
+    {
+      "key": "cork",
+      "prompt": "Use case: stylized-concept. ONE Blocksail inventory resource icon. Attached Sirius masters are ONLY pixel-art style references, not subject or shape references. Refined 16/32-bit pixel art, richly shaded material-specific colour, upper-left light, discrete shaded clusters, crisp stair-step contour, restrained dark outline, tactile depth. Compact three-quarter centered arrangement, generous empty margins. Pure solid white #FFFFFF background, no ground, no external cast shadow. No text, labels, border, checkerboard, container, sack, barrel or crate. Readable at 32px. Subject: Two overlapping curved slabs of harvested cork oak bark itself, one tilted to show porous warm ochre honey-brown inner cork and its thickness, dark deeply fissured rugged outer bark. A small natural broken chip at front. Distinct curved bark silhouette and coarse cork pores. Not sawn lumber, not a log, not a bottle stopper.",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png"
+      ],
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-706b8110-a2af-4551-915c-5e16a6850fc2.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-ec63b049-a465-4c9d-9558-20d4fa3be89d.png",
+      "edit_prompt": "Use case: background-extraction. Remove ONLY the plain white background of the attached resource icon to genuine transparent alpha. Preserve the entire cork subject, its fragments, silhouette, internal holes, pixel clusters and near-white material highlights. Do not redesign or change colour. No painted checkerboard, shadow, label or replacement background.",
+      "game_sha256": "606af37459dd7d81ca2f6d0c69691e86875e202590f6f0ed6d881d182c95877d",
+      "bbox": [
+        12,
+        20,
+        116,
+        107
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch26_cork_master.png",
+      "master_sha256": "bd6bfa1f5917a9ae844e873d49d421f866175695b599f18f5a18c4b2f4aadb53",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch26_cork_transparent.png",
+      "transparent_sha256": "5bd227058a91b77646958a6906ec319df0f258dc19fb2e335651e031afe3a866",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png": "4c461ec6f679c2745be604b890648b8c97db6885d6828a9adc7d284fc0eea960"
+      }
+    }
+  ],
+  "derivation": "image_gen transparent edit; alpha threshold 128; crop; NEAREST max104px; center128RGBA. No programmatic background removal."
+}
