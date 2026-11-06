@@ -1,0 +1,95 @@
+{
+  "tool": "built-in image_gen",
+  "task": 1237,
+  "assets": [
+    {
+      "key": "quicksilver",
+      "prompt": "Use case: stylized-concept. ONE Blocksail inventory icon. Attached Sirius masters are style references ONLY: refined 16/32-bit pixel art, rich material colours, upper-left highlights, discrete shaded pixel clusters, crisp stair-step contour, restrained dark outline, dimensional depth. Independently design subject, compact centered three-quarter view readable at 32px, generous margins. Pure solid white background #FFFFFF. No ground plane, cast shadow, text, labels, border, checkerboard, generic crate/sack/barrel. Subject: Liquid metallic mercury itself: one compact rounded silvery puddle and two small bead droplets beside it. Heavy convex meniscus, mirrorlike ivory upper-left highlights and deep blue-grey lower-right reflections. Clearly a fluid metal, no water splash, no container, no gems.",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_pig_iron_master.png",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png"
+      ],
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-8590ce72-c1e0-4423-ac9a-8d6e780ce5c5.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-b24ddba8-eb51-4073-95d3-10f5ba218933.png",
+      "edit_prompt": "Use case: background-extraction. Edit the attached inventory icon: remove ONLY the plain white background to genuine transparent alpha. Preserve the entire quicksilver subject exactly, its silhouette, dark contour, discrete pixel shading, all near-white highlights and pale facets within the subject. Keep detached material fragments or metal droplets. No replacement background, no checkerboard painted into the pixels, no shadow, no redesign, no text.",
+      "game_sha256": "c30b443b82c3d6fe61d00d62d01a7ac2dffcb45bfef17f1796095e44b1229321",
+      "bbox": [
+        12,
+        24,
+        116,
+        104
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch25_quicksilver_master.png",
+      "master_sha256": "4273a26fa8a8fbb878a021d626c3c92a88927cd3a67a612cd4d930d2088f3525",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch25_quicksilver_transparent.png",
+      "transparent_sha256": "320713d38da8168a5971619535fc7194cf080c05a0b4e9478e314f108ac9c6ec",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_pig_iron_master.png": "04ccbccacc8d9364c56ff9d9af6b4d99006ddc09650b25137c765f1c1ce3ffe3",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png": "4c461ec6f679c2745be604b890648b8c97db6885d6828a9adc7d284fc0eea960"
+      }
+    },
+    {
+      "key": "cinnabar",
+      "prompt": "Use case: stylized-concept. ONE Blocksail inventory icon. Attached Sirius masters are style references ONLY: refined 16/32-bit pixel art, rich material colours, upper-left highlights, discrete shaded pixel clusters, crisp stair-step contour, restrained dark outline, dimensional depth. Independently design subject, compact centered three-quarter view readable at 32px, generous margins. Pure solid white background #FFFFFF. No ground plane, cast shadow, text, labels, border, checkerboard, generic crate/sack/barrel. Subject: Cinnabar mercury ore: one chunky irregular dark stone with rich vermilion and deep crimson mineral seams, plus a smaller companion fragment. Angular granular mineral faces with red-orange lit edges, dark earthy grey host rock. Not iron ore, not cut jewellery, no glowing magical crystal.",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_iron_ore_master.png"
+      ],
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-1e51f9ac-395d-44b2-b491-82cf13e92ef9.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-e813625d-8048-4239-99ac-0ca7fa889653.png",
+      "edit_prompt": "Use case: background-extraction. Edit the attached inventory icon: remove ONLY the plain white background to genuine transparent alpha. Preserve the entire cinnabar subject exactly, its silhouette, dark contour, discrete pixel shading, all near-white highlights and pale facets within the subject. Keep detached material fragments or metal droplets. No replacement background, no checkerboard painted into the pixels, no shadow, no redesign, no text.",
+      "game_sha256": "19d50464797801081ac5c6d797beeaa387d8b27b1a1a8593add5678275072dd9",
+      "bbox": [
+        12,
+        12,
+        115,
+        116
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch25_cinnabar_master.png",
+      "master_sha256": "e5fa02046a3ebc2e591f7e1d44bd12e63f04c96991e2f37acc5abcd67ce38c1a",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch25_cinnabar_transparent.png",
+      "transparent_sha256": "a45950e7af12b0b71df29cc6c459c1f8e603a2a25db4063370fd5b14bade820b",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_iron_ore_master.png": "3ec6591ecb794ed40620f32035af211e05df9ad928a87b976dce6c99427a4ce5"
+      }
+    },
+    {
+      "key": "alum",
+      "prompt": "Use case: stylized-concept. ONE Blocksail inventory icon. Attached Sirius masters are style references ONLY: refined 16/32-bit pixel art, rich material colours, upper-left highlights, discrete shaded pixel clusters, crisp stair-step contour, restrained dark outline, dimensional depth. Independently design subject, compact centered three-quarter view readable at 32px, generous margins. Pure solid white background #FFFFFF. No ground plane, cast shadow, text, labels, border, checkerboard, generic crate/sack/barrel. Subject: Alum salt crystals themselves: compact cluster of three rough translucent colourless-to-milky-white octahedral crystals and one small chipped fragment. Pale cool blue-grey facet shadows, ivory highlights, distinct dark contour. Plain industrial mineral, uncut natural crystals; not green glass sheets, no gem setting.",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_iron_ore_master.png"
+      ],
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-1903cc3b-c7d8-46af-8f73-f229e338d9ad.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-1c12533a-2438-4400-aec5-fb45678e56bb.png",
+      "edit_prompt": "Use case: background-extraction. Edit the attached inventory icon: remove ONLY the plain white background to genuine transparent alpha. Preserve the entire alum subject exactly, its silhouette, dark contour, discrete pixel shading, all near-white highlights and pale facets within the subject. Keep detached material fragments or metal droplets. No replacement background, no checkerboard painted into the pixels, no shadow, no redesign, no text.",
+      "game_sha256": "5e94f6c1cd853b20f52a295565360b6963c0b69736e329f6f92920945d0a0dbd",
+      "bbox": [
+        12,
+        13,
+        116,
+        115
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch25_alum_master.png",
+      "master_sha256": "a3933b447b91cc325fe3a87d80656445ecaa2848d460c526eef0b2edd35a9e94",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch25_alum_transparent.png",
+      "transparent_sha256": "6c0a509579e33f48041c4139f2c9911adfff2a5f9d3b2e222ab97cc3f9a17215",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png": "4c461ec6f679c2745be604b890648b8c97db6885d6828a9adc7d284fc0eea960",
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_iron_ore_master.png": "3ec6591ecb794ed40620f32035af211e05df9ad928a87b976dce6c99427a4ce5"
+      }
+    }
+  ],
+  "derivation": "image_gen transparent edit; alpha threshold 128; crop; NEAREST max104px; center128RGBA. No programmatic background removal."
+}
