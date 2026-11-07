@@ -1,0 +1,74 @@
+[
+  {
+    "key": "sailor-na-fish-couscous",
+    "p": "ONE isolated detailed retro pixel-art food icon for Blocksail. An oval dark-blue enamel dish of golden small steamed couscous grains topped with two curled silvery salted fish fillets, a small golden olive oil sheen, a quarter of pale ship biscuit leaning on the rim; no vegetables or herbs. Reference only for rendering style: deliberate square pixel clusters, warm top-left light, deep restrained outline, strong recognizable silhouette at 32px. 3/4 view, centered with generous margins. Flat pure white background, no ground, shadow, border, words or checkerboard.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_north_african_menu_na-meat-tagine_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-8e17e44e-bfd5-467d-ba50-dbb05620eb98.png",
+    "edit": "Remove only the white backdrop to true alpha transparency; keep the dish, plating, crisp pixel art edges and ingredients exactly as shown, no cast shadow, text or extra garnish.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-d3f0c818-edf3-4750-ad5a-7e425a260d44.png",
+    "reference_sha256": {
+      "meadow_blocksail_north_african_menu_na-meat-tagine_master.png": "bec932ede2cd96df809ad88de8ebb3bf85286afd0890bca1fd01083fd6e23581"
+    },
+    "game_sha256": "5cebb3417ebe8cb3bfaf692fe06632a91e33fcf2f4682c462e5f838c01717e68",
+    "bbox": [
+      12,
+      27,
+      116,
+      100
+    ],
+    "master_archive": "meadow_blocksail_north_african_ship_menu_sailor-na-fish-couscous_master.png",
+    "master_sha256": "c492bd185cf32e035664c38f23a9b902479661f0e489d53a7763b8951b3a9a72",
+    "transparent_archive": "meadow_blocksail_north_african_ship_menu_sailor-na-fish-couscous_transparent.png",
+    "transparent_sha256": "9a4b8618fe8b756ff3bf6fa77b5a4fd3cc0dc8929837ccda0466df5c9dd77abb"
+  },
+  {
+    "key": "sailor-na-preserve-tagine",
+    "p": "ONE isolated detailed retro pixel-art food icon for Blocksail. Rust-red tagine with a partially lifted conical lid behind, glossy dark cubes of braised salt meat with several amber and burgundy preserved fruit pieces, a small scoop of golden couscous at the front. No olives, no herbs. Reference only for rendering style: deliberate square pixel clusters, warm top-left light, deep restrained outline, strong recognizable silhouette at 32px. 3/4 view, centered with generous margins. Flat pure white background, no ground, shadow, border, words or checkerboard.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_north_african_menu_na-meat-tagine_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-c605f26d-a295-4261-809e-f177f737941a.png",
+    "edit": "Remove only the white backdrop to true alpha transparency; keep the dish, plating, crisp pixel art edges and ingredients exactly as shown, no cast shadow, text or extra garnish.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-9f439a4d-590f-4521-97d5-9bc12166e6bc.png",
+    "reference_sha256": {
+      "meadow_blocksail_north_african_menu_na-meat-tagine_master.png": "bec932ede2cd96df809ad88de8ebb3bf85286afd0890bca1fd01083fd6e23581"
+    },
+    "game_sha256": "dcdedcc39eb2a29b764226208afaf4f1eae138887e237ee3a1ef4b6b0112e186",
+    "bbox": [
+      12,
+      14,
+      116,
+      114
+    ],
+    "master_archive": "meadow_blocksail_north_african_ship_menu_sailor-na-preserve-tagine_master.png",
+    "master_sha256": "13244750cf9b7ac700ca8e3ff7e27f3ebc5af6e7e992c9bd8e00549d7ff81ab7",
+    "transparent_archive": "meadow_blocksail_north_african_ship_menu_sailor-na-preserve-tagine_transparent.png",
+    "transparent_sha256": "d835004ae6f96c6516c1f4201ca49ad9089d706fab564ff7691e41a3da300693"
+  },
+  {
+    "key": "sailor-na-sweet-couscous",
+    "p": "ONE isolated detailed retro pixel-art food icon for Blocksail. A small ivory ceramic dessert plate with a steep dome of fine warm cream steamed couscous, three bright red and amber pieces of candied fruit on its peak, with alternating narrow stripes of pale sugar and dark toasted biscuit crumbs running down the dome. No nuts, no green herbs. Reference only for rendering style: deliberate square pixel clusters, warm top-left light, deep restrained outline, strong recognizable silhouette at 32px. 3/4 view, centered with generous margins. Flat pure white background, no ground, shadow, border, words or checkerboard.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_north_african_menu_na-meat-tagine_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-ac6aae64-e679-47bc-a385-a49a80506823.png",
+    "edit": "Remove only the white backdrop to true alpha transparency; keep the dish, plating, crisp pixel art edges and ingredients exactly as shown, no cast shadow, text or extra garnish.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-dbcd1c59-8c87-4f5b-a459-6506473b169b.png",
+    "reference_sha256": {
+      "meadow_blocksail_north_african_menu_na-meat-tagine_master.png": "bec932ede2cd96df809ad88de8ebb3bf85286afd0890bca1fd01083fd6e23581"
+    },
+    "game_sha256": "c26bcbb8e3d37617c029517feda92410789f9b76eea24e1587a1f4a95d72b392",
+    "bbox": [
+      12,
+      19,
+      116,
+      108
+    ],
+    "master_archive": "meadow_blocksail_north_african_ship_menu_sailor-na-sweet-couscous_master.png",
+    "master_sha256": "aeb40d8da06428ff591db97886d4f482680408e93c17c65a6ccfae645102344a",
+    "transparent_archive": "meadow_blocksail_north_african_ship_menu_sailor-na-sweet-couscous_transparent.png",
+    "transparent_sha256": "b9f581ba17e2061eccfb479062740cce2d597df4cf4ef40ad48457ad354c120d"
+  }
+]
