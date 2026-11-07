@@ -1,0 +1,98 @@
+[
+  {
+    "key": "na-couscous",
+    "p": "Create ONE finely clustered pixel-art inventory icon for a historical sailing game. Subject: Shallow cobalt-and-ivory Maghrebi pottery platter with a central mound of tiny steamed pale golden couscous beads, flanked by orange carrot batons and green vegetable wedges, readable mounded silhouette. Attached image only for authentic detailed raster pixel art, crisp square stair steps, restrained outline, color clusters and upper left highlights. Three-quarter view, readable at 32px, centered with generous empty margins, flat pure white background, no ground, cast shadow, lettering, frame or checkerboard. Design independent of reference.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_menu1235_med-olive-bean-soup_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-6521e1da-608a-4a14-997b-c4e1618b5af9.png",
+    "edit": "Remove the plain white backdrop to true alpha transparency, including any gaps under dish or wheat ears. Preserve subject exactly: same crisp pixel-art edges, composition, highlights, colors, ceramic details and food. No cast shadow, floor or added elements.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-59790958-ba00-46a3-83be-7fb8c32aef2b.png",
+    "reference_sha256": {
+      "meadow_blocksail_menu1235_med-olive-bean-soup_master.png": "caa02f08da2413b4ae3f5a7241f441cefea406a39dacf5983bae751653fda52a"
+    },
+    "game_sha256": "465a85eae202735ffecaa1e349f5625a90c2df21c59e6486e9249ae3db31e461",
+    "bbox": [
+      12,
+      33,
+      116,
+      95
+    ],
+    "master_archive": "meadow_blocksail_north_african_menu_na-couscous_master.png",
+    "master_sha256": "8a7a4817cecfc6974313754b0fe955de6a5c7e03513383d211f9ca8f99556728",
+    "transparent_archive": "meadow_blocksail_north_african_menu_na-couscous_transparent.png",
+    "transparent_sha256": "c747d8bd5c4bce6c0df3a75a22115ba1b89fc84e2ad05356daef9a6f241e06d5"
+  },
+  {
+    "key": "na-meat-tagine",
+    "p": "Create ONE finely clustered pixel-art inventory icon for a historical sailing game. Subject: A warm dark terracotta Moroccan tagine, iconic conical lid behind and to one side of its low pan, front exposes braised dark beef chunks, small green olives and amber sauce with yellow citrus peel; compact composition with the lid and food both readable. Attached image only for authentic detailed raster pixel art, crisp square stair steps, restrained outline, color clusters and upper left highlights. Three-quarter view, readable at 32px, centered with generous empty margins, flat pure white background, no ground, cast shadow, lettering, frame or checkerboard. Design independent of reference.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_menu1235_med-olive-bean-soup_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-4a51e757-a3f3-4df0-b3aa-da07f2841136.png",
+    "edit": "Remove the plain white backdrop to true alpha transparency, including any gaps under dish or wheat ears. Preserve subject exactly: same crisp pixel-art edges, composition, highlights, colors, ceramic details and food. No cast shadow, floor or added elements.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-34ecd326-a55d-4cad-bfb5-0c1258ff8210.png",
+    "reference_sha256": {
+      "meadow_blocksail_menu1235_med-olive-bean-soup_master.png": "caa02f08da2413b4ae3f5a7241f441cefea406a39dacf5983bae751653fda52a"
+    },
+    "game_sha256": "1337c8debbc099019e4f0826be253d78874cdcb2cb917f6f368f60fdd05f3c2d",
+    "bbox": [
+      12,
+      14,
+      116,
+      114
+    ],
+    "master_archive": "meadow_blocksail_north_african_menu_na-meat-tagine_master.png",
+    "master_sha256": "bec932ede2cd96df809ad88de8ebb3bf85286afd0890bca1fd01083fd6e23581",
+    "transparent_archive": "meadow_blocksail_north_african_menu_na-meat-tagine_transparent.png",
+    "transparent_sha256": "fee80905e70dda01834293d35b1786fc22b5ade8c52d0b5403b7ec51c846ca8e"
+  },
+  {
+    "key": "na-harira",
+    "p": "Create ONE finely clustered pixel-art inventory icon for a historical sailing game. Subject: Turquoise glazed deep clay bowl of earthy reddish-brown thick Moroccan pulse soup, visible tan whole pulses, torn green leaves and a few pale bubbles of broth. No bread, no tomato garnish, rich brown-red rather than orange. Attached image only for authentic detailed raster pixel art, crisp square stair steps, restrained outline, color clusters and upper left highlights. Three-quarter view, readable at 32px, centered with generous empty margins, flat pure white background, no ground, cast shadow, lettering, frame or checkerboard. Design independent of reference.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_menu1235_med-olive-bean-soup_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-d4f6fac5-b6dc-426a-bc8a-72373a779248.png",
+    "edit": "Remove the plain white backdrop to true alpha transparency, including any gaps under dish or wheat ears. Preserve subject exactly: same crisp pixel-art edges, composition, highlights, colors, ceramic details and food. No cast shadow, floor or added elements.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-09c7a010-f7ec-432f-90f3-f6b31c33e72c.png",
+    "reference_sha256": {
+      "meadow_blocksail_menu1235_med-olive-bean-soup_master.png": "caa02f08da2413b4ae3f5a7241f441cefea406a39dacf5983bae751653fda52a"
+    },
+    "game_sha256": "caf2272c495739cc56a4b84e963b9b6c8e2ac5a0bb5845304f518f8bb0ffd529",
+    "bbox": [
+      12,
+      19,
+      116,
+      108
+    ],
+    "master_archive": "meadow_blocksail_north_african_menu_na-harira_master.png",
+    "master_sha256": "585d601a2ad86e618ceea95ef77c2e2566f91c9e09a8f5d407d6b02b2af5d9cd",
+    "transparent_archive": "meadow_blocksail_north_african_menu_na-harira_transparent.png",
+    "transparent_sha256": "4ed64072f862319a573148bd1087f57fe5a0d1cea580e18f10630dff2d82b60f"
+  },
+  {
+    "key": "semolina",
+    "p": "Create ONE finely clustered pixel-art inventory icon for a historical sailing game. Subject: A compact low mound of pale yellow coarse semolina grains, with only two golden wheat ears tucked into the rear. Render coarse individual sandy golden granules, never fluffy white flour, no container. Attached image only for authentic detailed raster pixel art, crisp square stair steps, restrained outline, color clusters and upper left highlights. Three-quarter view, readable at 32px, centered with generous empty margins, flat pure white background, no ground, cast shadow, lettering, frame or checkerboard. Design independent of reference.",
+    "refs": [
+      "D:/Unity/Valhalla/ArtGallery/RawImages/meadow_blocksail_menu1235_med-olive-bean-soup_master.png"
+    ],
+    "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-0654502a-6eed-4abc-b4b4-c05b0e7be4c8.png",
+    "edit": "Remove the plain white backdrop to true alpha transparency, including any gaps under dish or wheat ears. Preserve subject exactly: same crisp pixel-art edges, composition, highlights, colors, ceramic details and food. No cast shadow, floor or added elements.",
+    "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-36a5c093-b1e9-4a55-8aa8-2e933ebe883f.png",
+    "reference_sha256": {
+      "meadow_blocksail_menu1235_med-olive-bean-soup_master.png": "caa02f08da2413b4ae3f5a7241f441cefea406a39dacf5983bae751653fda52a"
+    },
+    "game_sha256": "bbe2a3e04097caa14e9bbb9142e5c17965540dba0e9112e1f2b22b24499b0e9f",
+    "bbox": [
+      12,
+      17,
+      116,
+      110
+    ],
+    "master_archive": "meadow_blocksail_north_african_menu_semolina_master.png",
+    "master_sha256": "97b8f44979f024b017d610989ca5f198b275df5c0b2f34406050d6268d575422",
+    "transparent_archive": "meadow_blocksail_north_african_menu_semolina_transparent.png",
+    "transparent_sha256": "844efe72bdfa0f78a6d973a2a614eb620822312e5c30d33729c4fe4ed9ea9f4c"
+  }
+]
