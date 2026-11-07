@@ -1,0 +1,145 @@
+{
+  "assets": [
+    {
+      "key": "dates",
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-b6f8187e-dbe4-4c3f-afc9-71dbe6bcd989.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-96c75f9a-80d5-49a1-852a-394e98544614.png",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png"
+      ],
+      "prompt": "ONE centered Blocksail inventory sprite: Tight cluster of five elongated reddish mahogany wrinkled dried date fruits attached to a short tan stalk, one open fruit with golden flesh and long pointed stone. Use reference ONLY for exquisite historical pixel-art rendering: crisp chunky stair-step pixels, deep brown edge, saturated tactile material shading, light from upper left. Design independently. Strong silhouette at 32px. Generous empty margins. Solid pure white #FFFFFF background, no floor, cast shadow, checkerboard, border, typography or props beyond description.",
+      "transparent_prompt": "Remove only the surrounding white background to true alpha transparency, including visible gaps between legs and objects. Preserve all pixel art shapes, cream highlights, dark outlines and colors, with no cast shadow. One isolated sprite.",
+      "game_sha256": "b6085e5b69266f2d23446e8f1486b0673f1153472c01fe584b3e6dd7cfbad4dc",
+      "bbox": [
+        15,
+        12,
+        112,
+        116
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch27_dates_master.png",
+      "master_sha256": "b7ab28629abdf834afe1ce1ff04ad19b6704e1667a8719d6ff06e9d25a5117df",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch27_dates_transparent.png",
+      "transparent_sha256": "53eb85d873afb62aa6b6913405a162bb24fc1fef0cbf8d895982cf0d2be1cf0b",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2"
+      }
+    },
+    {
+      "key": "argan-oil",
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-265349a1-fe3f-4397-87f9-cb3362fca209.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-95cc361a-ef23-4dca-adc6-e0ebebe004df.png",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png"
+      ],
+      "prompt": "ONE centered Blocksail inventory sprite: A shallow terracotta dish filled with gleaming golden culinary argan oil, with two sharply pointed brown argan nuts, a cracked cream kernel and a small sage green leaf beside it. Use reference ONLY for exquisite historical pixel-art rendering: crisp chunky stair-step pixels, deep brown edge, saturated tactile material shading, light from upper left. Design independently. Strong silhouette at 32px. Generous empty margins. Solid pure white #FFFFFF background, no floor, cast shadow, checkerboard, border, typography or props beyond description.",
+      "transparent_prompt": "Remove only the surrounding white background to true alpha transparency, including visible gaps between legs and objects. Preserve all pixel art shapes, cream highlights, dark outlines and colors, with no cast shadow. One isolated sprite.",
+      "game_sha256": "1037e49139ae204c950f3466644794c065c3bb48f8fa29b4ceec5126252fa693",
+      "bbox": [
+        12,
+        21,
+        116,
+        106
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch27_argan-oil_master.png",
+      "master_sha256": "3dbb770bdbfdbba52b91b3e6268148a7bd3329d4ca1a3fea93a818c22a1e1090",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch27_argan-oil_transparent.png",
+      "transparent_sha256": "696e429db8cb1e50edcd14d423d11788647a21ff070578f6d4886a4fde652b24",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_glass_master.png": "4c461ec6f679c2745be604b890648b8c97db6885d6828a9adc7d284fc0eea960"
+      }
+    },
+    {
+      "key": "sheep",
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-58c36159-e99f-434b-a1d4-41831ea0bc58.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-396cd089-0af1-4601-8b84-7569372e07df.png",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png"
+      ],
+      "prompt": "ONE centered Blocksail inventory sprite: One adult domesticated sheep, full body three-quarter side view, cream curly fleece, dark umber muzzle and lower legs, horizontal ears, no horns, four grounded legs. Use reference ONLY for exquisite historical pixel-art rendering: crisp chunky stair-step pixels, deep brown edge, saturated tactile material shading, light from upper left. Design independently. Strong silhouette at 32px. Generous empty margins. Solid pure white #FFFFFF background, no floor, cast shadow, checkerboard, border, typography or props beyond description.",
+      "transparent_prompt": "Remove only the surrounding white background to true alpha transparency, including visible gaps between legs and objects. Preserve all pixel art shapes, cream highlights, dark outlines and colors, with no cast shadow. One isolated sprite.",
+      "game_sha256": "9073772b56fc6525d03783a5088278d3627b0c1854cc048ce040ae336da94116",
+      "bbox": [
+        12,
+        13,
+        116,
+        115
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch27_sheep_master.png",
+      "master_sha256": "63bbea346c5d776a6240363b74652a6075a53ef39a8437ce19d0afb9bf7b1d8a",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch27_sheep_transparent.png",
+      "transparent_sha256": "b0ac099d58cc21a9c9efc90910eadeda3448e253e8c966cb5044e51c05f431e0",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2"
+      }
+    },
+    {
+      "key": "wool",
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-713efea7-d0ad-4c9a-80c6-9322ee172070.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-b333ce1e-dbc0-45c3-8183-7ee6d1073d12.png",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png"
+      ],
+      "prompt": "ONE centered Blocksail inventory sprite: One compact heap of freshly shorn ivory raw sheep fleece, irregular billowing curls and a few beige shadow tufts, no skin no yarn no string. Use reference ONLY for exquisite historical pixel-art rendering: crisp chunky stair-step pixels, deep brown edge, saturated tactile material shading, light from upper left. Design independently. Strong silhouette at 32px. Generous empty margins. Solid pure white #FFFFFF background, no floor, cast shadow, checkerboard, border, typography or props beyond description.",
+      "transparent_prompt": "Remove only the surrounding white background to true alpha transparency, including visible gaps between legs and objects. Preserve all pixel art shapes, cream highlights, dark outlines and colors, with no cast shadow. One isolated sprite.",
+      "game_sha256": "26068a350f5af29bf7ffa20855ece92d7414511cd2c635ffeface153b19368b3",
+      "bbox": [
+        12,
+        18,
+        116,
+        110
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch27_wool_master.png",
+      "master_sha256": "e1c9af73938864313932a6935b843b21ea29e4e5f30ea058d8aaf9df8a466a38",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch27_wool_transparent.png",
+      "transparent_sha256": "72730397252ce7823425d85772504d5df6e1575135e8d714c23de81c2ff20b7a",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2"
+      }
+    },
+    {
+      "key": "woolcloth",
+      "master": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-52659d02-57dd-4501-9b9d-99e2cb13b0f3.png",
+      "transparent": "C:\\Users\\Tim\\.codex\\generated_images\\01a19051-9d2d-73a3-aa02-d6fbfff8b8a9\\exec-1e605727-9af7-4220-b474-dd0720cbf5c3.png",
+      "references": [
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png"
+      ],
+      "prompt": "ONE centered Blocksail inventory sprite: One thick folded bolt of rust-red wool broadcloth with a narrow muted indigo stripe and a short woven fringe, clear chunky fabric folds. Use reference ONLY for exquisite historical pixel-art rendering: crisp chunky stair-step pixels, deep brown edge, saturated tactile material shading, light from upper left. Design independently. Strong silhouette at 32px. Generous empty margins. Solid pure white #FFFFFF background, no floor, cast shadow, checkerboard, border, typography or props beyond description.",
+      "transparent_prompt": "Remove only the surrounding white background to true alpha transparency, including visible gaps between legs and objects. Preserve all pixel art shapes, cream highlights, dark outlines and colors, with no cast shadow. One isolated sprite.",
+      "game_sha256": "47f2c660b4c2602af22554cd57c5f20a356a2d9c71452e7ec9afbc7e72f88f84",
+      "bbox": [
+        12,
+        21,
+        116,
+        106
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "master_archive": "RawImages\\meadow_blocksail_goods_batch27_woolcloth_master.png",
+      "master_sha256": "1a2f32cee75d35b312e96dde92c0c4419a69cae9c5bd20548cb793516ae5123e",
+      "transparent_archive": "RawImages\\meadow_blocksail_goods_batch27_woolcloth_transparent.png",
+      "transparent_sha256": "e67ff0c1e383afe654f03bcc5d07fbf4f9e1f274ea668ed0c73ec7b9b6e3a9f2",
+      "reference_sha256": {
+        "D:/Unity/Valhalla/ArtGallery/RawImages/sirius_blocksail_goods_batch3_clay_master.png": "c64aa85e118a4ba9c11bcee399cda38b3c92fe349b06cdea0e1e844b402422d2"
+      }
+    }
+  ],
+  "derivation": "image_gen transparent edit; alpha threshold 128; crop; NEAREST max104px; center128RGBA. No programmatic background removal."
+}
