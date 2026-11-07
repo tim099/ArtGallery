@@ -1,0 +1,47 @@
+{
+  "pig": {
+    "p": "Transparent sprite sheet with EXACTLY TWO frames in equal left and right halves, single row, no other objects. In each half draw the SAME warm pale pink farm pig, floppy ears, short square snout and curled tail, full body, orthographic side profile facing RIGHT. Left stands with hooves under body, right takes a short step with fore and rear hooves separated in a diagonal gait. Use attached old animation only as a reference for the gait, alignment and orientation. Same scale, silhouette, baseline, head position and color in both frames, legs only change. Keep a large empty gap between the frames and transparent margins around all four sides. Detailed hand-clustered retro pixel art with crisply stepped contours and discrete colors, warm light from top-left. Readable when each sprite is resized to 64\u00d764. True transparent background, no shadow, no lines, no annotations, no letters or numbers, no floor. Wide 2:1 composition.",
+    "archive": "meadow_blocksail_livestock_pig-pink_master.png",
+    "master_sha256": "f890f6681ad114245b40cdb8604393a43d193065d4675766b7e5dcfd4412b6b7",
+    "sprite_sha256": "72afdfd313ec460093bfd61010110d3d0c4678a62f57359770357d08e4476acf",
+    "references": {
+      "meadow_blocksail_livestock_pig_reference.png": "51dd0fad80db86fd4574d48148ad54598725691187884cce085d514046e1ca18"
+    }
+  },
+  "pig-spotted": {
+    "p": "Transparent sprite sheet with EXACTLY TWO frames in equal left and right halves, single row, no other objects. In each half draw the SAME warm pale pink farm pig with irregular charcoal patches, floppy ears, short square snout and curled tail, full body, orthographic side profile facing RIGHT. Left stands with hooves under body, right takes a short step with fore and rear hooves separated in a diagonal gait. Use attached old animation only as a reference for the gait, alignment and orientation. Same scale, silhouette, baseline, head position and color in both frames, legs only change. Keep a large empty gap between the frames and transparent margins around all four sides. Detailed hand-clustered retro pixel art with crisply stepped contours and discrete colors, warm light from top-left. Readable when each sprite is resized to 64\u00d764. True transparent background, no shadow, no lines, no annotations, no letters or numbers, no floor. Wide 2:1 composition.",
+    "archive": "meadow_blocksail_livestock_pig-spotted_master.png",
+    "master_sha256": "07957e86136e3ec5caaf2a0426dbbb8df35c13e3f14cb7eec2fffa102ef83fa7",
+    "sprite_sha256": "c48b16acfb74999b4d95e01478838f09ddff334ea765a00f059fa132c44a21e6",
+    "references": {
+      "meadow_blocksail_livestock_pig-spotted_reference.png": "6659f316b893a19db51d030063a50c37110dda99d79c0d2c41a0abce242060fc"
+    }
+  },
+  "cow": {
+    "p": "Transparent sprite sheet with EXACTLY TWO frames in equal left and right halves, single row, no other objects. In each half draw the SAME ochre tan farm cow with cream flank patch, small horns, squared muzzle and hanging tail, full body, orthographic side profile facing RIGHT. Left stands with hooves under body, right takes a short step with fore and rear hooves separated in a diagonal gait. Use attached old animation only as a reference for the gait, alignment and orientation. Same scale, silhouette, baseline, head position and color in both frames, legs only change. Keep a large empty gap between the frames and transparent margins around all four sides. Detailed hand-clustered retro pixel art with crisply stepped contours and discrete colors, warm light from top-left. Readable when each sprite is resized to 64\u00d764. True transparent background, no shadow, no lines, no annotations, no letters or numbers, no floor. Wide 2:1 composition.",
+    "archive": "meadow_blocksail_livestock_cow-tan_master.png",
+    "master_sha256": "260e1730955c0ee95785c8751b1dc53b1a00d870c34e6fa816cc6ef14fa71c31",
+    "sprite_sha256": "971e4fc129b67e358aadf8634b51014e8e081ff5ad3e78da3eb881498835252b",
+    "references": {
+      "meadow_blocksail_livestock_cow_reference.png": "7dec57d3b04eec364838539ff460b4edb05f4a24e558303598aa077d1fbcfc61"
+    }
+  },
+  "cow-brown": {
+    "p": "Transparent sprite sheet with EXACTLY TWO frames in equal left and right halves, single row, no other objects. In each half draw the SAME deep chestnut farm cow with a cream face, small horns, squared muzzle and hanging tail, full body, orthographic side profile facing RIGHT. Left stands with hooves under body, right takes a short step with fore and rear hooves separated in a diagonal gait. Use attached old animation only as a reference for the gait, alignment and orientation. Same scale, silhouette, baseline, head position and color in both frames, legs only change. Keep a large empty gap between the frames and transparent margins around all four sides. Detailed hand-clustered retro pixel art with crisply stepped contours and discrete colors, warm light from top-left. Readable when each sprite is resized to 64\u00d764. True transparent background, no shadow, no lines, no annotations, no letters or numbers, no floor. Wide 2:1 composition.",
+    "archive": "meadow_blocksail_livestock_cow-brown_master.png",
+    "master_sha256": "2d901bb6a3cf97b2e01cc1dffea78ade4dfcbc14155052bad545423ac33b9d8f",
+    "sprite_sha256": "75f4a26831b4bbe34ccd7dd5419112a3b7c7a9bba19380b4f04f169326e8f33a",
+    "references": {
+      "meadow_blocksail_livestock_cow-brown_reference.png": "eaadd7891a21548eb87052ee9def72dbb387b7bb20b2f8faed2ffb2b83af75ff"
+    }
+  },
+  "sheep": {
+    "p": "Transparent sprite sheet with EXACTLY TWO frames in equal left and right halves, single row, no other objects. In each half draw the SAME compact ivory curly fleeced sheep with dark umber face and hooves, horizontal ears, no horns, shorter legs than cow, full body, orthographic side profile facing RIGHT. Left stands with hooves under body, right takes a short step with fore and rear hooves separated in a diagonal gait. Use attached old animation only as a reference for the gait, alignment and orientation. Same scale, silhouette, baseline, head position and color in both frames, legs only change. Keep a large empty gap between the frames and transparent margins around all four sides. Detailed hand-clustered retro pixel art with crisply stepped contours and discrete colors, warm light from top-left. Readable when each sprite is resized to 64\u00d764. True transparent background, no shadow, no lines, no annotations, no letters or numbers, no floor. Wide 2:1 composition.",
+    "archive": "meadow_blocksail_livestock_sheep-cream_master.png",
+    "master_sha256": "6e4e54d3a7bcf1bafa05dfaf1c39b321e4e1baf9f379818b254e7606f82aea2c",
+    "sprite_sha256": "4ddffd708d38fa1bf3849fc9a173d8bfb4e2657babc9a1139dc926512ff59e5d",
+    "references": {
+      "meadow_blocksail_livestock_pig_reference.png": "51dd0fad80db86fd4574d48148ad54598725691187884cce085d514046e1ca18"
+    }
+  }
+}
